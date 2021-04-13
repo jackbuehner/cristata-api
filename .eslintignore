@@ -1,0 +1,9 @@
+# do not ever lint node_modules
+node_modules
+# do not lint build output (make sure it's set to your correct build folder name)
+dist
+# do not lint these root files
+.eslintrc.js
+jest.config.js
+# do not lint .vscode files
+.vscode

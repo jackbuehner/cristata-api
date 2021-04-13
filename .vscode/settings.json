@@ -1,0 +1,12 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#161616",
+    "titleBar.activeBackground": "#551E9B",
+    "titleBar.activeForeground": "#FDFBFE"
+  },
+  "editor.formatOnSave": true,
+  "editor.fontFamily": "'Dank Mono', Consolas, 'Courier New', monospace",
+  "editor.tabSize": 2,
+  "debug.console.fontFamily": "'Dank Mono', default",
+  "window.title": "${dirty}[api] ${activeEditorShort}"
+}
