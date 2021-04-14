@@ -81,6 +81,14 @@ app.get('/auth/clear', (req: Request, res: Response) => {
   res.redirect('/');
 });
 
+// recieve webhook payloads from github
+import GithubWebHook from 'express-github-webhook';
+const githubWebhookHandler = GithubWebHook({
+  path: '/payload/github',
+  secret: process.env.GITHUB_PAYLOAD_SECRET,
+});
+app.use(githubWebhookHandler);
+
 // create a route for the articles api
 import { articlesRouter } from './api/v2/routes/articles.api.routes';
 app.use('/api/v2/articles', articlesRouter);
