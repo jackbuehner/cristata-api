@@ -37,7 +37,8 @@ app.use(express.json());
 app.use(
   cookieSession({
     name: 'github-auth-session',
-    keys: ['key1', 'key2'],
+    secret: process.env.COOKIE_SESSION_SECRET,
+    domain: process.env.BASE_DOMAIN,
   })
 );
 
