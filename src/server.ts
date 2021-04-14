@@ -13,6 +13,15 @@ dotenv.config();
 // create express app
 const app = express();
 
+// set up websocket server for sending data to app
+import WebSocket from 'ws';
+import { createServer } from 'http';
+const server = createServer();
+const wss = new WebSocket.Server({
+  server: server,
+});
+server.on('request', app);
+
 // allow CORS for the app
 const allowedOrigins = ['http://localhost:3000', 'https://thepaladin.cristata.app']; // allowed orgins
 app.use(
@@ -89,6 +98,32 @@ const githubWebhookHandler = GithubWebHook({
 });
 app.use(githubWebhookHandler);
 
+// handle incoming webhook payloads from github
+githubWebhookHandler.on('project_card', (repo: string, data: { [key: string]: unknown }) => {
+  const emitData = {
+    event: 'project_card',
+    project_id: parseInt((data.project_card as { project_url: string }).project_url.split('/').pop()), // get the project id by popping it from the end of the project url
+    column_id: (data.project_card as { column_id: number }).column_id,
+    card_id: (data.project_card as { id: number }).id,
+  };
+  wss.emit('github_payload_received', JSON.stringify(emitData));
+});
+githubWebhookHandler.on('project_column', (repo: string, data: { [key: string]: unknown }) => {
+  const emitData = {
+    event: 'project_column',
+    project_id: parseInt((data.project_column as { project_url: string }).project_url.split('/').pop()), // get the project id by popping it from the end of the project url
+    column_id: (data.project_column as { id: number }).id,
+  };
+  wss.emit('github_payload_received', JSON.stringify(emitData));
+});
+githubWebhookHandler.on('project', (repo: string, data: { [key: string]: unknown }) => {
+  const emitData = {
+    event: 'project',
+    project_id: (data.project as { id: number }).id,
+  };
+  wss.emit('github_payload_received', JSON.stringify(emitData));
+});
+
 // create a route for the articles api
 import { articlesRouter } from './api/v2/routes/articles.api.routes';
 app.use('/api/v2/articles', articlesRouter);
@@ -101,5 +136,76 @@ app.use('/api/v2/gh/org/projects', orgProjectsRouter);
 import { projectsRouter } from './api/v2/routes/gh.projects.api.route';
 app.use('/api/v2/gh/projects', projectsRouter);
 
-// start the express server
-app.listen(process.env.PORT, () => console.log(`Example app listening on port ${process.env.PORT}!`));
+// keep track of the github payload events that the client requests
+class Clients {
+  constructor() {
+    this.clientEvents = {};
+    this.saveClient = this.saveClient.bind(this);
+  }
+  clientEvents: { [key: string]: string[] };
+  saveClient(id: string, events: string[]) {
+    this.clientEvents[id] = events;
+  }
+}
+const clients = new Clients();
+
+/**
+ * Returns whether the input is valid JSON.
+ */
+function isValidJSON(text: unknown): boolean {
+  if (typeof text !== 'string') return false;
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+interface WebSocketExtended extends WebSocket {
+  id?: string;
+}
+
+wss.on('error', (err) => {
+  console.error(err);
+});
+
+wss.on('connection', function connection(ws: WebSocketExtended) {
+  // handle any errors
+  ws.on('error', (err) => {
+    console.error(err);
+  });
+
+  // handle incoming messages
+  ws.on('message', function incoming(message) {
+    // require messages to be valid JSON
+    if (isValidJSON(message)) {
+      const parsedMessage = JSON.parse(message as string);
+      console.log(parsedMessage);
+
+      // if the message is sending client information, save that info for later
+      if (parsedMessage.type === 'client_info') {
+        const data = parsedMessage as { type: 'client_info'; id: string; events: string[] };
+        clients.saveClient(data.id, data.events);
+        // save the ID to the websocket instance for later use
+        ws.id = data.id;
+      }
+    } else {
+      ws.emit('error', 'Message must be valid JSON');
+      ws.send('Error: Message must be valid JSON');
+    }
+  });
+
+  ws.send('Connected to websocket server');
+
+  wss.on('github_payload_received', (data: string) => {
+    const parsedData: { event: string; [key: string]: unknown } = JSON.parse(data);
+    // only send the data is the client requested the event
+    if (clients.clientEvents[ws.id].includes(parsedData.event)) {
+      ws.send(data);
+    }
+  });
+});
+
+// start the express and websocket server
+server.listen(process.env.PORT, () => console.log(`Cristata server listening on port ${process.env.PORT}!`));
