@@ -181,7 +181,6 @@ wss.on('connection', function connection(ws: WebSocketExtended) {
     // require messages to be valid JSON
     if (isValidJSON(message)) {
       const parsedMessage = JSON.parse(message as string);
-      console.log(parsedMessage);
 
       // if the message is sending client information, save that info for later
       if (parsedMessage.type === 'client_info') {
@@ -201,7 +200,7 @@ wss.on('connection', function connection(ws: WebSocketExtended) {
   wss.on('github_payload_received', (data: string) => {
     const parsedData: { event: string; [key: string]: unknown } = JSON.parse(data);
     // only send the data is the client requested the event
-    if (clients.clientEvents[ws.id].includes(parsedData.event)) {
+    if (ws.id && clients.clientEvents[ws.id].includes(parsedData.event)) {
       ws.send(data);
     }
   });
