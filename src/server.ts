@@ -164,6 +164,7 @@ function isValidJSON(text: unknown): boolean {
 
 interface WebSocketExtended extends WebSocket {
   id?: string;
+  isAlive?: boolean;
 }
 
 wss.on('error', (err) => {
@@ -175,6 +176,9 @@ wss.on('connection', function connection(ws: WebSocketExtended) {
   ws.on('error', (err) => {
     console.error(err);
   });
+
+  // set `isAlive` to true
+  ws.isAlive = true;
 
   // handle incoming messages
   ws.on('message', function incoming(message) {
@@ -204,6 +208,29 @@ wss.on('connection', function connection(ws: WebSocketExtended) {
       ws.send(data);
     }
   });
+
+  ws.on('pong', () => {
+    // set `isAlive` on every pong so that we know that the ws is still connected
+    ws.isAlive = true;
+  });
+});
+
+// frequently ping the websocket clients to keep them connected
+const wsPingCheck = setInterval(() => {
+  wss.clients.forEach((ws: WebSocketExtended) => {
+    // if websocket is not alive but still active on the server, terminate it
+    // (might have occurred if server did not detect that client disconnected)
+    if (ws.isAlive === false) return ws.terminate();
+
+    // check if websocket is alive
+    ws.isAlive = false; // set to false (the 'pong' event will set it to true)
+    ws.ping(); // ping the client
+  });
+}, 45000); // check every 45 seconds
+
+// clean up any functions that depend on the websocket server
+wss.on('close', () => {
+  clearInterval(wsPingCheck);
 });
 
 // start the express and websocket server
