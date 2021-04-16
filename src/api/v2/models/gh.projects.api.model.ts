@@ -58,6 +58,45 @@ async function getProject(
 }
 
 /**
+ * Edit a GitHub project
+ *
+ * @param id project ID
+ * @param name project name
+ * @param body project description
+ * @param state open or closed
+ * @param user express user profile
+ * @param res express response object
+ */
+async function updateProject(
+  id: string,
+  name: string,
+  body: string,
+  state: 'open' | 'closed',
+  user: IProfile,
+  res: Response = null,
+  callback: (data: unknown) => unknown = null
+): Promise<void> {
+  GHPAxios.patch(
+    `/projects/${id}`,
+    {
+      name: name,
+      body: body,
+      state: state,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${user.accessToken}`,
+      },
+    }
+  )
+    .then(({ data }) => {
+      if (res) res.json(data);
+      if (callback) callback(data);
+    })
+    .catch((err: AxiosError) => handleError(err, res));
+}
+
+/**
  * Get a project's columns from the GitHub projects API
  *
  * @param id project ID
@@ -499,6 +538,7 @@ async function getFullProject(project_id: string, user: IProfile, res: Response 
 
 export {
   getProject,
+  updateProject,
   getProjectColumns,
   getProjectColumn,
   createProjectColumn,

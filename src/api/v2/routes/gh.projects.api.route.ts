@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { IProfile } from '../../../passport';
 import {
   getProject,
+  updateProject,
   getProjectColumns,
   getProjectColumn,
   createProjectColumn,
@@ -28,6 +29,11 @@ function handleErrors(res: Response, callback: () => void) {
 // get a project
 projectsRouter.get('/:id', async (req: Request, res: Response) => {
   getProject(req.params.id, req.user as IProfile, res);
+});
+
+// patch a project
+projectsRouter.patch('/:id', async (req: Request, res: Response) => {
+  updateProject(req.params.id, req.body.name, req.body.body, req.body.state, req.user as IProfile, res);
 });
 
 // get a project, it's columns, and the columns' cards
