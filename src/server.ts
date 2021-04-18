@@ -59,7 +59,10 @@ app.use(passport.session());
 app.get('/auth/error', (req: Request, res: Response) => res.send('Unknown Error'));
 
 // redirect client to github for authentication
-app.get('/auth/github', passport.authenticate('github', { scope: ['user:email', 'read:org', 'write:org'] }));
+app.get(
+  '/auth/github',
+  passport.authenticate('github', { scope: ['user:email', 'read:org', 'write:org', 'read:discussion'] })
+);
 
 // listen for github auth response
 app.get(
@@ -135,6 +138,14 @@ app.use('/api/v2/gh/org/projects', orgProjectsRouter);
 // gh projects api
 import { projectsRouter } from './api/v2/routes/gh.projects.api.route';
 app.use('/api/v2/gh/projects', projectsRouter);
+
+// gh teams api
+import { teamsRouter } from './api/v2/routes/gh.teams.api.route';
+app.use('/api/v2/gh/teams', teamsRouter);
+
+// gh team discussions api
+import { teamDiscussionsRouter } from './api/v2/routes/gh.teams.discussions.api.route';
+app.use('/api/v2/gh/teams/discussions', teamDiscussionsRouter);
 
 // keep track of the github payload events that the client requests
 class Clients {
