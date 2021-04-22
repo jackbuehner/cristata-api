@@ -9,7 +9,13 @@ const teamDiscussionsRouter = Router();
 
 // get discussions in a team
 teamDiscussionsRouter.get('/:team_slug', async (req: Request, res: Response) => {
-  getTeamDiscussions(req.params.team_slug, req.user as IProfile, res);
+  getTeamDiscussions(
+    req.params.team_slug,
+    req.query.last?.toString(),
+    req.query.before?.toString(),
+    req.user as IProfile,
+    res
+  );
 });
 
 // get a single discussion

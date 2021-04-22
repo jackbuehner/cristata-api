@@ -52,7 +52,13 @@ function handleError(err: AxiosError, res: Response) {
  *
  * DOES NOT INCLUDE COMMENTS
  */
-async function getTeamDiscussions(teamSlug: string, user: IProfile, res: Response = null): Promise<void> {
+async function getTeamDiscussions(
+  teamSlug: string,
+  last = '10',
+  before: string | undefined,
+  user: IProfile,
+  res: Response = null
+): Promise<void> {
   let result;
   await GHPAxios.post(
     `https://api.github.com/graphql`,
@@ -61,7 +67,8 @@ async function getTeamDiscussions(teamSlug: string, user: IProfile, res: Respons
       {
         organization(login: "${process.env.GITHUB_ORG_LOGIN}") {
           team(slug: "${teamSlug}") {
-            discussions(last: 10) {
+            discussions(last: ${last}${before ? `, before: "${before}"` : ``}) {
+              totalCount
               edges {
                 cursor
                 node {
