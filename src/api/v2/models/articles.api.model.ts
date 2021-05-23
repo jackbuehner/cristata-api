@@ -137,6 +137,22 @@ async function patchArticle(
     ? { _id: id }
     : { _id: id, $or: [{ teams: { $in: user.teams } }, { users: user.id }] };
 
+  // set modified_at, modified_by, and last_modified_by
+  data = {
+    ...data,
+    people: {
+      ...data.people,
+      modified_by: [...new Set([...data.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
+      last_modified_by: parseInt(user.id),
+    },
+    timestamps: {
+      ...data.timestamps,
+      modified_at: new Date().toISOString(),
+    },
+  };
+
+  console.log(data);
+
   // attempt to patch the article
   try {
     await Article.updateOne(filter, { $set: data });
