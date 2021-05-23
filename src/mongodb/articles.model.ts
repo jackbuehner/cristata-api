@@ -34,10 +34,10 @@ interface IArticle {
   };
   locked?: boolean;
   timestamps?: {
-    created_at?: Date;
-    modified_at?: Date;
-    published_at?: Date;
-    target_publish_at?: Date;
+    created_at?: string; // ISO string
+    modified_at?: string; // ISO string
+    published_at?: string; // ISO string
+    target_publish_at?: string; // ISO string
   };
   people: {
     created_by?: GitHubUserID;
@@ -65,8 +65,8 @@ const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
   },
   locked: { type: Boolean, default: false },
   timestamps: {
-    created_at: { type: Date, default: Date.now() },
-    modified_at: { type: Date, default: Date.now() },
+    created_at: { type: Date, default: new Date().toISOString() },
+    modified_at: { type: Date, default: new Date().toISOString() },
     published_at: { type: Date, default: '0001-01-01T01:00:00.000+00:00' },
     target_publish_at: { type: Date, default: '0001-01-01T01:00:00.000+00:00' },
   },
