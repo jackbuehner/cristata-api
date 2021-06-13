@@ -16,11 +16,11 @@ const app = express();
 // set up websocket server for sending data to app
 import WebSocket from 'ws';
 import { createServer } from 'http';
-const server = createServer();
+const APIserver = createServer();
 const wss = new WebSocket.Server({
-  server: server,
+  server: APIserver,
 });
-server.on('request', app);
+APIserver.on('request', app);
 
 // allow CORS for the app
 const allowedOrigins = ['http://localhost:3000', 'https://thepaladin.cristata.app']; // allowed orgins
@@ -244,5 +244,8 @@ wss.on('close', () => {
   clearInterval(wsPingCheck);
 });
 
-// start the express and websocket server
-server.listen(process.env.PORT, () => console.log(`Cristata server listening on port ${process.env.PORT}!`));
+// start the api express and websocket server
+APIserver.listen(process.env.PORT, () => console.log(`Cristata server listening on port ${process.env.PORT}!`));
+
+// start the hocuspocus server (for syncing the tiptap editor contents)
+import './hocuspocusServer';

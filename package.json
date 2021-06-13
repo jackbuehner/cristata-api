@@ -32,6 +32,8 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
+    "@hocuspocus/extension-rocksdb": "^1.0.0-alpha.59",
+    "@hocuspocus/server": "^1.0.0-alpha.58",
     "axios": "^0.21.1",
     "cookie-session": "^1.4.0",
     "cors": "^2.8.5",
