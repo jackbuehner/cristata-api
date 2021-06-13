@@ -69,7 +69,11 @@ app.get(
   '/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/auth/error' }),
   (req: Request, res: Response) => {
-    res.redirect('/');
+    const location =
+      process.env.NODE_ENV === 'production'
+        ? `https://thepaladin.cristata.app/sign-in`
+        : `http://localhost:3000/sign-in`;
+    res.redirect(location);
   }
 );
 
@@ -80,7 +84,7 @@ app.get('/', requireAuth, (req: Request, res: Response) => {
 // auth route
 app.get('/auth', (req: Request, res: Response) => {
   if (req.user) {
-    res.send(JSON.stringify(req.user));
+    res.json(req.user);
   } else {
     res.status(403).end();
   }
