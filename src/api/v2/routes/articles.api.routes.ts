@@ -10,6 +10,7 @@ const articlesRouter = Router();
  * This is called a type predicate. It helps the typescript compiler know the
  * type of the object.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function instanceOfProfile(object): object is IProfile {
   return 'member' in object;
 }
