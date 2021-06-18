@@ -1,0 +1,82 @@
+import { Router, Request, Response } from 'express';
+import { IProfile } from '../../../passport';
+import '../../../mongodb/users.model';
+import { getUsers, getUser, patchUser } from '../models/users.api.model';
+const usersRouter = Router();
+
+enum Teams {
+  ADMIN = 4642417,
+  ANY = 0,
+}
+
+enum Users {
+  ANY = 0,
+}
+
+const permissions = {
+  get: {
+    teams: [Teams.ANY],
+    users: [],
+  },
+  patch: {
+    teams: [Teams.ADMIN], // the user can still patch their own profile
+    users: [],
+  },
+};
+
+async function handleAuth(
+  req: Request,
+  res: Response,
+  permissionsType: string,
+  callback: (user: IProfile) => unknown
+) {
+  try {
+    if (req.isAuthenticated()) {
+      const user = req.user as IProfile;
+
+      // check authorization
+      let isAuthorized = false;
+      if (
+        permissions[permissionsType].teams.includes(Teams.ANY) |
+        permissions[permissionsType].users.includes(Users.ANY)
+      ) {
+        // if `ANY` is specified in the permissions config for `permissionsType`
+        isAuthorized = true;
+      } else if (
+        permissions[permissionsType].teams.some((team: number) => user.teams.includes(team)) ||
+        permissions[permissionsType].users.includes(user.id)
+      ) {
+        // at least one of the user's teams  is inside the authorized teams array from the config
+        // or the user's id is included in the users array in the config
+        isAuthorized = true;
+      } else if (permissionsType === 'patch' && req.params.user_id.split('_')[1] === user.id) {
+        // if the user is trying patch their own profile, allow them
+        isAuthorized = true;
+      }
+
+      // if authorized, execute the callback; otherwise, send HTTP error 403 to the client (forbidden)
+      if (isAuthorized) {
+        callback(user);
+      } else {
+        res.status(403).send();
+      }
+    } else {
+      res.status(403).send();
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send();
+  }
+}
+
+usersRouter.get('/', async (req, res) => handleAuth(req, res, 'get', () => getUsers(res)));
+usersRouter.get('/:user_id', async (req, res) =>
+  handleAuth(req, res, 'get', (authUser) => getUser(req.params.user_id, authUser, res))
+);
+usersRouter.patch('/:user_id', async (req, res) =>
+  handleAuth(req, res, 'patch', (authUser) =>
+    patchUser(req.params.user_id.split('_')[0], req.params.user_id.split('_')[1], req.body, authUser, res)
+  )
+);
+
+export { usersRouter };
