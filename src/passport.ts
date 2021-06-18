@@ -4,6 +4,7 @@ import passportGitHub from 'passport-github2';
 import axios from 'axios';
 const GitHubStrategy = passportGitHub.Strategy;
 import mongoose from 'mongoose';
+import { IUserDoc } from './mongodb/users.model';
 
 // load environmental variables
 dotenv.config();
@@ -65,6 +66,7 @@ interface IProfile extends IGitHubProfile {
   member_status: boolean;
   teams: number[];
   accessToken: string;
+  _id?: string;
 }
 
 /**
@@ -166,10 +168,18 @@ passport.use(
       accessToken: string,
       refreshToken: string,
       gitHubProfile: IGitHubProfile,
-      done: (err?: Error | null, profile?: IGitHubProfile) => void
+      done: (err?: Error | null, profile?: IProfile) => void
     ) => {
-      const profile = await buildFullProfile(gitHubProfile, accessToken);
-      return done(null, profile);
+      try {
+        const profile = await buildFullProfile(gitHubProfile, accessToken);
+        await profileToDatabase(profile);
+        return done(null, {
+          ...profile,
+          _id: (await mongoose.model<IUserDoc>('User').findOne({ github_id: parseInt(profile.id) }))._id,
+        });
+      } catch (error) {
+        console.error(error);
+      }
     }
   )
 );
