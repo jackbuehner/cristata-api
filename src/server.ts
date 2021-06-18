@@ -18,6 +18,9 @@ import { server } from './hocuspocusServer';
 const app = express();
 server.on('request', app); // when a request is made to the server, load the app
 
+// return JSON in a nice format
+app.set('json spaces', 2);
+
 // allow CORS for the app
 const allowedOrigins = ['http://localhost:3000', 'https://thepaladin.cristata.app']; // allowed orgins
 app.use(
@@ -131,6 +134,10 @@ githubWebhookHandler.on('project', (repo: string, data: { [key: string]: unknown
 // create a route for the articles api
 import { articlesRouter } from './api/v2/routes/articles.api.routes';
 app.use('/api/v2/articles', articlesRouter);
+
+// users api
+import { usersRouter } from './api/v2/routes/users.api.routes';
+app.use('/api/v2/users', usersRouter);
 
 // gh org projects api
 import { orgProjectsRouter } from './api/v2/routes/gh.org.projects.api.route';
