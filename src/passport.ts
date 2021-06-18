@@ -3,6 +3,7 @@ import passport from 'passport';
 import passportGitHub from 'passport-github2';
 import axios from 'axios';
 const GitHubStrategy = passportGitHub.Strategy;
+import mongoose from 'mongoose';
 
 // load environmental variables
 dotenv.config();
@@ -114,6 +115,44 @@ async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: stri
 
   // return the new profile
   return profile;
+}
+
+/**
+ * If the profile has `member_status: true`, add it to the users database.
+ *
+ * If it is already in the database, update it.
+ */
+async function profileToDatabase(profile: IProfile) {
+  if (profile.member_status) {
+    try {
+      // check if user is already in the database
+      const User = mongoose.model<IUserDoc>('User'); // define model
+      const foundUser = await User.findOne({ github_id: parseInt(profile.id) });
+      const userAlreadyExists = !!foundUser;
+
+      if (userAlreadyExists) {
+        console.log('exists already');
+        User.updateOne(
+          { github_id: parseInt(profile.id) },
+          {
+            ...foundUser,
+            teams: profile.teams,
+          }
+        );
+      } else {
+        // create a new user based on the github profile
+        const user = new User({
+          name: profile.displayName,
+          email: profile._json.email,
+          github_id: parseInt(profile.id),
+          teams: profile.teams,
+        });
+        await user.save();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }
 
 passport.use(
