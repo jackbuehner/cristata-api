@@ -5,12 +5,12 @@ type GitHubUserID = number;
 
 // permissions groups
 enum Groups {
-  ADMIN = 1,
-  BOARD = 2,
-  MANAGING_EDITOR = 3,
-  COPY_EDITOR = 4,
-  STAFF_WRITER = 5,
-  CONTRIBUTOR = 6,
+  ADMIN = 'MDQ6VGVhbTQ2NDI0MTc=',
+  BOARD = 'MDQ6VGVhbTQ3MzA5ODU=',
+  MANAGING_EDITOR = 'MDQ6VGVhbTQ5MDMxMTY=',
+  COPY_EDITOR = 'MDQ6VGVhbTQ4MzM5MzU=',
+  STAFF_WRITER = 'MDQ6VGVhbTQ5MDMxMTg=',
+  CONTRIBUTOR = 'MDQ6VGVhbTQ5MDMxMjA=',
 }
 
 // use these as the stages for articles
