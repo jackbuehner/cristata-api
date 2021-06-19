@@ -53,6 +53,8 @@ interface IArticle {
   categories?: string[];
   tags?: string[];
   description?: string;
+  photo_path: string;
+  photo_caption?: string;
 }
 
 // create the schema for each field
@@ -85,6 +87,8 @@ const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
   categories: { type: [String], default: [''] },
   tags: { type: [String], default: [''] },
   description: { type: String, default: '' },
+  photo_path: { type: String, default: '' },
+  photo_caption: { type: String, default: '' },
 };
 
 // mongoose schema for each article
