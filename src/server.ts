@@ -93,7 +93,12 @@ app.get('/auth', (req: Request, res: Response) => {
 app.get('/auth/clear', (req: Request, res: Response) => {
   req.session = null;
   req.logout();
-  res.redirect('/');
+  const location =
+    process.env.NODE_ENV === 'production'
+      ? `https://thepaladin.cristata.app/sign-in`
+      : `http://localhost:3000/sign-in`;
+
+  res.redirect(location);
 });
 
 // recieve webhook payloads from github
