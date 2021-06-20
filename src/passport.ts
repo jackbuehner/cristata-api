@@ -149,7 +149,6 @@ async function profileToDatabase(profile: IProfile) {
         // create a new user based on the github profile
         const user = new User({
           name: profile.displayName,
-          email: profile._json.email,
           github_id: parseInt(profile.id),
           teams: profile.teams,
         });
