@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 type GitHubUserID = number;
-type GitHubTeamID = number;
+type GitHubTeamNodeID = string;
 
 // interface for each user profile
 interface IUser {
@@ -25,7 +25,7 @@ interface IUser {
   photo: string; // url to photo
   versions: IUser[]; // store previous versions of the user profile
   github_id: GitHubUserID;
-  teams: GitHubTeamID[];
+  teams: GitHubTeamNodeID[];
 }
 
 // create the schema for each field
@@ -51,7 +51,7 @@ const UserSchemaFields: Record<keyof IUser, unknown> = {
   photo: { type: String },
   versions: { type: {} },
   github_id: { type: Number },
-  teams: { type: [Number] },
+  teams: { type: [String] },
 };
 
 // mongoose schema for each article

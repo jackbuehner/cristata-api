@@ -16,8 +16,8 @@ function instanceOfProfile(object): object is IProfile {
 }
 
 enum Teams {
-  ADMIN = 4642417,
-  ANY = 0,
+  ADMIN = 'MDQ6VGVhbTQ2NDI0MTc=',
+  ANY = 'any',
 }
 
 enum Users {
@@ -59,7 +59,7 @@ async function handleAuth(
 
       // check if the user can publish
       const canPublish =
-        permissions['publish'].teams.some((team: number) => user.teams.includes(team)) ||
+        permissions['publish'].teams.some((team: string) => user.teams.includes(team)) ||
         permissions['publish'].users.includes(user.id);
 
       // check authorization
@@ -71,7 +71,7 @@ async function handleAuth(
         // if `ANY` is specified in the permissions config for `permissionsType`
         isAuthorized = true;
       } else if (
-        permissions[permissionsType].teams.some((team: number) => user.teams.includes(team)) ||
+        permissions[permissionsType].teams.some((team: string) => user.teams.includes(team)) ||
         permissions[permissionsType].users.includes(user.id)
       ) {
         // at least one of the user's teams  is inside the authorized teams array from the config

@@ -6,7 +6,7 @@ import { IProfile } from '../../../passport';
 
 // load environmental variables
 dotenv.config();
-const adminTeamID = parseInt(process.env.GITHUB_ORG_ADMIN_TEAM_ID);
+const adminTeamID = process.env.GITHUB_ORG_ADMIN_TEAM_ID;
 
 // define model
 const Article = mongoose.model<IArticleDoc>('Article');

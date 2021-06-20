@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// userID from GitHub is just a number
 type GitHubUserID = number;
+type GitHubTeamNodeID = string;
 
 // permissions groups
 enum Groups {
@@ -29,7 +29,7 @@ enum Stage {
 interface IArticle {
   name?: string;
   permissions: {
-    teams?: Groups[];
+    teams?: GitHubTeamNodeID[];
     users: GitHubUserID[];
   };
   locked?: boolean;

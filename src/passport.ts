@@ -25,8 +25,8 @@ interface IGitHubProfile {
   profileUrl: string;
   photos: { value: string }[];
   provider: string;
-  _raw: string;
-  _json: {
+  _raw?: string;
+  _json?: {
     login: string;
     id: number;
     node_id: string;
@@ -64,7 +64,7 @@ interface IGitHubProfile {
 
 interface IProfile extends IGitHubProfile {
   member_status: boolean;
-  teams: number[];
+  teams: string[];
   accessToken: string;
   _id?: string;
 }
@@ -86,6 +86,10 @@ async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: stri
     accessToken: accessToken,
   };
 
+  // set `_raw` and `_json` to undefined to reduce cookie size
+  profile._raw = undefined;
+  profile._json = undefined;
+
   // if the user's list of organizations includes our org id,
   // set member_status to true
   await axios
@@ -101,7 +105,7 @@ async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: stri
 
   // update the array of the user's teams that are part of our org
   await axios
-    .get<{ id: number; organization: { id: number } }[]>(`https://api.github.com/user/teams`, {
+    .get<{ node_id: string; organization: { id: number } }[]>(`https://api.github.com/user/teams`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
     .then((res) => {
@@ -110,8 +114,8 @@ async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: stri
       // get teams that are part of this org
       const orgTeams = teams.filter((team) => team.organization.id === parseInt(process.env.GITHUB_ORG_ID));
       // get team IDs and update the teams array in the full profile
-      const orgTeamsIDs = orgTeams.map((team) => team.id);
-      profile.teams = orgTeamsIDs;
+      const orgTeamsNodeIDs = orgTeams.map((team) => team.node_id);
+      profile.teams = orgTeamsNodeIDs;
     })
     .catch((err) => console.error(err));
 
