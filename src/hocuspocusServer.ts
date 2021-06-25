@@ -2,6 +2,7 @@ import { Server as Hocuspocus } from '@hocuspocus/server';
 import { RocksDB } from '@hocuspocus/extension-rocksdb';
 import { wss } from './websocket';
 import url from 'url';
+import { app } from './server';
 
 // configure the server
 const hocuspocus = Hocuspocus.configure({
@@ -25,9 +26,9 @@ const hocuspocus = Hocuspocus.configure({
     }
   },
 
-  onRequest: async () => {
-    // throw an error to prevent hocuspocus from interfering with passport authentication
-    throw new Error();
+  onRequest: async ({ request, response }) => {
+    // when a request is made to the server, load the app
+    app(request, response);
   },
 });
 

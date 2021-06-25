@@ -12,11 +12,9 @@ dotenv.config();
 
 // use hocuspocus as the base server
 import './hocuspocusServer'; // start the server
-import { server } from './hocuspocusServer';
 
 // create express app
 const app = express();
-server.on('request', app); // when a request is made to the server, load the app
 
 // return JSON in a nice format
 app.set('json spaces', 2);
@@ -159,3 +157,5 @@ app.use('/api/v2/gh/teams', teamsRouter);
 // gh team discussions api
 import { teamDiscussionsRouter } from './api/v2/routes/gh.teams.discussions.api.route';
 app.use('/api/v2/gh/teams/discussions', teamDiscussionsRouter);
+
+export { app };
