@@ -137,13 +137,9 @@ async function profileToDatabase(profile: IProfile) {
       const userAlreadyExists = !!foundUser;
 
       if (userAlreadyExists) {
-        console.log('exists already');
         User.updateOne(
           { github_id: parseInt(profile.id) },
-          {
-            ...foundUser,
-            teams: profile.teams,
-          }
+          { $set: { name: profile.displayName, teams: profile.teams } }
         );
       } else {
         // create a new user based on the github profile
