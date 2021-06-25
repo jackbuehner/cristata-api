@@ -1,0 +1,32 @@
+diff --git a/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs b/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
+index 4242807..18ef750 100644
+--- a/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
++++ b/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
+@@ -1546,8 +1546,9 @@ class Hocuspocus {
+             this.hooks('onRequest', { request, response })
+                 .then(() => {
+                 // default response if all prior hooks don't interfere
+-                response.writeHead(200, { 'Content-Type': 'text/plain' });
+-                response.end('OK');
++                // REMOVED BECAUSE IT RUNS BEFORE PASSPORT.JS CAN SEND ITS RESPONSE:
++                //response.writeHead(200, { 'Content-Type': 'text/plain' });
++                //response.end('OK');
+             })
+                 .catch(e => {
+                 // if a hook rejects and the error is empty, do nothing
+diff --git a/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js b/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
+index bf5c595..9b72b34 100644
+--- a/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
++++ b/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
+@@ -1517,8 +1517,9 @@ class Hocuspocus {
+             this.hooks('onRequest', { request, response })
+                 .then(() => {
+                 // default response if all prior hooks don't interfere
+-                response.writeHead(200, { 'Content-Type': 'text/plain' });
+-                response.end('OK');
++                // REMOVED BECAUSE IT RUNS BEFORE PASSPORT.JS CAN SEND ITS RESPONSE:
++                //response.writeHead(200, { 'Content-Type': 'text/plain' });
++                //response.end('OK');
+             })
+                 .catch(e => {
+                 // if a hook rejects and the error is empty, do nothing

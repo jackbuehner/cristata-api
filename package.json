@@ -12,7 +12,9 @@
     "dev": "nodemon src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "db": "\"C:\\\"Program Files\"\\MongoDB\\Server\\4.4\\bin\\mongod.exe\""
+    "db": "\"C:\\\"Program Files\"\\MongoDB\\Server\\4.4\\bin\\mongod.exe\"",
+    "postinstall": "patch-package",
+    "heroku-postbuild": "patch-package"
   },
   "keywords": [],
   "author": "",
@@ -45,6 +47,7 @@
     "mongoose": "^5.12.0",
     "passport": "^0.4.1",
     "passport-github2": "^0.1.12",
+    "patch-package": "^6.4.7",
     "ws": "^7.4.6",
     "y-protocols": "^1.0.5"
   }
