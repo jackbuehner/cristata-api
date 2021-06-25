@@ -8,6 +8,16 @@ import { IProfile } from '../../../passport';
 dotenv.config();
 const adminTeamID = process.env.GITHUB_ORG_ADMIN_TEAM_ID;
 
+// permissions groups
+enum Groups {
+  ADMIN = 'MDQ6VGVhbTQ2NDI0MTc=',
+  BOARD = 'MDQ6VGVhbTQ3MzA5ODU=',
+  MANAGING_EDITOR = 'MDQ6VGVhbTQ5MDMxMTY=',
+  COPY_EDITOR = 'MDQ6VGVhbTQ4MzM5MzU=',
+  STAFF_WRITER = 'MDQ6VGVhbTQ5MDMxMTg=',
+  CONTRIBUTOR = 'MDQ6VGVhbTQ5MDMxMjA=',
+}
+
 // define model
 const Article = mongoose.model<IArticleDoc>('Article');
 
@@ -22,6 +32,7 @@ async function newArticle(data: IArticle, user: IProfile, res: Response = null):
     // set people data based on who created the document
     permissions: {
       users: [user.id],
+      teams: [Groups.COPY_EDITOR, Groups.MANAGING_EDITOR],
     },
     people: {
       created_by: user.id,
