@@ -61,7 +61,7 @@ async function getArticles(user: IProfile, res: Response = null): Promise<void> 
   // others: only get documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? {}
-    : { $or: [{ teams: { $in: user.teams } }, { users: user.id }] };
+    : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
 
   // attempt to get all articles
   try {
@@ -89,7 +89,7 @@ async function getArticle(id: string, by: string, user: IProfile, res: Response 
   // others: only get documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { [method]: id }
-    : { [method]: id, $or: [{ teams: { $in: user.teams } }, { users: user.id }] };
+    : { [method]: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
 
   // not found message
   const noMatchMessage = user.teams.includes(adminTeamID)
@@ -146,7 +146,7 @@ async function patchArticle(
   // others: only patch documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: id }
-    : { _id: id, $or: [{ teams: { $in: user.teams } }, { users: user.id }] };
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
 
   // set modified_at, modified_by, and last_modified_by
   data = {
@@ -199,7 +199,7 @@ async function deleteArticle(id: string, user: IProfile, canPublish = false, res
   // others: can only delete documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: id }
-    : { _id: id, $or: [{ teams: { $in: user.teams } }, { users: user.id }] };
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
 
   // atempt to delete article
   try {
