@@ -49,6 +49,7 @@
     "passport-github2": "^0.1.12",
     "patch-package": "^6.4.7",
     "ws": "^7.4.6",
+    "y-mongodb": "^0.1.11",
     "y-protocols": "^1.0.5"
   }
 }

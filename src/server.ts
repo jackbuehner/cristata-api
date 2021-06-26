@@ -1,5 +1,5 @@
 import { Server as Hocuspocus } from '@hocuspocus/server';
-import { RocksDB } from '@hocuspocus/extension-rocksdb';
+import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
 import { wss } from './websocket';
 import url from 'url';
 import { app } from './app';
@@ -7,7 +7,7 @@ import { app } from './app';
 // configure the server
 const hocuspocus = Hocuspocus.configure({
   port: parseInt(process.env.PORT),
-  extensions: [new RocksDB({ path: './database' })],
+  extensions: [new HocuspocusMongoDB()],
 
   // use hocuspocus at '/hocupocus' and use wss at '/websocket'
   onUpgrade: async ({ request, socket, head }) => {
