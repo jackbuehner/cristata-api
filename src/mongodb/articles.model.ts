@@ -84,8 +84,8 @@ const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
     last_published_by: { type: Number },
     authors: { type: [Number], default: [] },
     editors: {
-      primary: { type: Number },
-      copy: { type: Number },
+      primary: { type: [Number] },
+      copy: { type: [Number] },
     },
   },
   stage: { type: Number, default: Stage.PLANNING },
