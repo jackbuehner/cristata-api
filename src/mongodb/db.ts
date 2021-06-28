@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import './articles.model';
+import './photoRequests.model';
 
 // load environmental variables
 dotenv.config();

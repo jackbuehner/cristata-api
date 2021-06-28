@@ -139,6 +139,10 @@ app.use('/api/v2/articles', articlesRouter);
 import { usersRouter } from './api/v2/routes/users.api.routes';
 app.use('/api/v2/users', usersRouter);
 
+// users api
+import { photoRequestsRouter } from './api/v2/routes/photoRequests.api.routes';
+app.use('/api/v2/photo-requests', photoRequestsRouter);
+
 // gh org projects api
 import { orgProjectsRouter } from './api/v2/routes/gh.org.projects.api.route';
 app.use('/api/v2/gh/org/projects', orgProjectsRouter);
