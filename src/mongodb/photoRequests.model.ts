@@ -59,7 +59,7 @@ const PhotoRequestSchemaFields: Record<keyof IPhotoRequest, unknown> = {
     created_by: { type: Number },
     modified_by: { type: [Number] },
     last_modified_by: { type: Number },
-    requested_by: { type: [Number] },
+    requested_by: { type: Number },
   },
   stage: { type: Number, default: Stage.NEW },
   versions: { type: {} },
