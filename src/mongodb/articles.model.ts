@@ -44,7 +44,7 @@ interface IArticle {
     modified_by?: GitHubUserID[];
     last_modified_by: GitHubUserID;
     published_by?: GitHubUserID[];
-    authors?: string;
+    authors?: GitHubUserID[];
     editors?: {
       primary?: GitHubUserID;
       copy?: GitHubUserID[];
@@ -58,6 +58,7 @@ interface IArticle {
   photo_caption?: string;
   body?: string;
   versions?: IArticle[]; // store previous versions of the article
+  hidden?: boolean;
 }
 
 // create the schema for each field
@@ -81,7 +82,7 @@ const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
     last_modified_by: { type: Number },
     published_by: { type: [Number] },
     last_published_by: { type: Number },
-    authors: { type: [String], default: [] },
+    authors: { type: [Number], default: [] },
     editors: {
       primary: { type: Number },
       copy: { type: Number },
@@ -95,6 +96,7 @@ const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
   photo_caption: { type: String, default: '' },
   body: { type: String },
   versions: { type: {} },
+  hidden: { type: Boolean, default: false },
 };
 
 // mongoose schema for each article
