@@ -94,7 +94,7 @@ async function getPhotoRequest(id: string, user: IProfile, res: Response = null)
 
   // get the photo request document
   try {
-    const photoRequest = await PhotoRequest.findOne(filter);
+    const photoRequest = await PhotoRequest.findById(id, filter);
     res ? (photoRequest ? res.json(photoRequest) : res.status(404).json({ message: noMatchMessage })) : null;
     return photoRequest;
   } catch (error) {
