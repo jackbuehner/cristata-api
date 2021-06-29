@@ -162,7 +162,7 @@ app.get('/api/v2/sign-s3', (req: Request, res: Response) => {
   const s3Params = {
     Bucket: s3Bucket,
     Key: fileName,
-    Expires: 120, // 2 minutes for upload
+    Expires: 300, // 5 minutes for upload (some photos are big)
     ContentType: fileType,
     ACL: 'public-read',
   };
