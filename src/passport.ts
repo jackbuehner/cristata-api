@@ -174,7 +174,7 @@ passport.use(
         await profileToDatabase(profile);
         return done(null, {
           ...profile,
-          _id: (await mongoose.model<IUserDoc>('User').findOne({ github_id: parseInt(profile.id) }))._id,
+          _id: (await mongoose.model<IUserDoc>('User').findOne({ github_id: parseInt(profile.id) }))?._id,
         });
       } catch (error) {
         console.error(error);
