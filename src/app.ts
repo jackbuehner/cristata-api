@@ -139,9 +139,13 @@ app.use('/api/v2/articles', articlesRouter);
 import { usersRouter } from './api/v2/routes/users.api.routes';
 app.use('/api/v2/users', usersRouter);
 
-// users api
+// photo requests api
 import { photoRequestsRouter } from './api/v2/routes/photoRequests.api.routes';
 app.use('/api/v2/photo-requests', photoRequestsRouter);
+
+// photos api
+import { photosRouter } from './api/v2/routes/photos.api.route';
+app.use('/api/v2/photos', photosRouter);
 
 // get signed s3 url
 import aws from 'aws-sdk';
