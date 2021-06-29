@@ -143,6 +143,39 @@ app.use('/api/v2/users', usersRouter);
 import { photoRequestsRouter } from './api/v2/routes/photoRequests.api.routes';
 app.use('/api/v2/photo-requests', photoRequestsRouter);
 
+// get signed s3 url
+import aws from 'aws-sdk';
+app.get('/api/v2/sign-s3', (req: Request, res: Response) => {
+  const s3 = new aws.S3();
+  const fileName = req.query['file-name'];
+  const fileType = req.query['file-type'];
+  const s3Bucket = req.query['s3-bucket'];
+
+  if (!fileName) return res.status(400).json('Missing query "file-name"');
+  if (!fileType) return res.status(400).json('Missing query "file-type"');
+  if (!s3Bucket) return res.status(400).json('Missing query "s3-bucket"');
+
+  const s3Params = {
+    Bucket: s3Bucket,
+    Key: fileName,
+    Expires: 120, // 2 minutes for upload
+    ContentType: fileType,
+    ACL: 'public-read',
+  };
+
+  s3.getSignedUrl('putObject', s3Params, (err, data) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).end();
+    }
+    const returnData = {
+      signedRequest: data,
+      url: `https://${s3Bucket}.s3.amazonaws.com/${fileName}`,
+    };
+    res.json(returnData);
+  });
+});
+
 // gh org projects api
 import { orgProjectsRouter } from './api/v2/routes/gh.org.projects.api.route';
 app.use('/api/v2/gh/org/projects', orgProjectsRouter);
