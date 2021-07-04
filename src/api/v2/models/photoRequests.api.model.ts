@@ -31,14 +31,16 @@ async function newPhotoRequest(data: IPhotoRequest, user: IProfile, res: Respons
   const photoRequest = new PhotoRequest({
     // set people data based on who created the document
     permissions: {
-      users: [user.id],
+      users: [parseInt(user.id)],
       teams: [Groups.MANAGING_EDITOR],
     },
     people: {
-      created_by: user.id,
-      modified_by: [user.id],
-      last_modified_by: user.id,
+      created_by: parseInt(user.id),
+      modified_by: [parseInt(user.id)],
+      last_modified_by: parseInt(user.id),
     },
+    // set history data
+    history: [...data.history, { type: 'created', user: parseInt(user.id) }],
     // include the other data about the document (can overwrite people data)
     ...data,
   });
@@ -56,12 +58,21 @@ async function newPhotoRequest(data: IPhotoRequest, user: IProfile, res: Respons
  *
  * @param user - the getting user's profile
  */
-async function getPhotoRequests(user: IProfile, res: Response = null): Promise<void> {
+async function getPhotoRequests(user: IProfile, query: URLSearchParams, res: Response = null): Promise<void> {
+  // expose history type to the filter
+  const historyType = query.getAll('historyType');
+  console.log(historyType);
+
   // admin: full access
   // others: only get documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
-    ? {}
-    : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    ? {
+        history: historyType.length > 0 ? { $elemMatch: { type: { $in: historyType } } } : undefined,
+      }
+    : {
+        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }],
+        history: historyType.length > 0 ? { $elemMatch: { type: { $in: historyType } } } : undefined,
+      };
 
   // attempt to get all articles
   try {
@@ -145,6 +156,10 @@ async function patchPhotoRequest(
       ...data.timestamps,
       modified_at: new Date().toISOString(),
     },
+    // set history data
+    history: data.history
+      ? [...data.history, { type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id) }]
+      : [{ type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id) }],
   };
 
   // attempt to patch the article

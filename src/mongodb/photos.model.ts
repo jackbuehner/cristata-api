@@ -24,6 +24,7 @@ interface IPhoto {
   };
   versions?: IPhoto[]; // store previous versions
   hidden?: boolean;
+  history?: { type: string; user: GitHubUserID }[];
 }
 
 // create the schema for each field
@@ -49,6 +50,7 @@ const PhotoSchemaFields: Record<keyof IPhoto, unknown> = {
   },
   versions: { type: {} },
   hidden: { type: Boolean, default: false },
+  history: { type: { type: String, user: Number } },
 };
 
 // mongoose schema for each article

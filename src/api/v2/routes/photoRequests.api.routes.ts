@@ -94,7 +94,7 @@ photoRequestsRouter.post('/', async (req, res) =>
   handleAuth(req, res, 'post', (user) => newPhotoRequest(req.body, user, res))
 );
 photoRequestsRouter.get('/', async (req, res) =>
-  handleAuth(req, res, 'get', (user) => getPhotoRequests(user, res))
+  handleAuth(req, res, 'get', (user) => getPhotoRequests(user, req.query as unknown as URLSearchParams, res))
 );
 photoRequestsRouter.get('/:id', async (req, res) =>
   handleAuth(req, res, 'get', (user) => getPhotoRequest(req.params.id, user, res))

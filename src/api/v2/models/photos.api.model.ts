@@ -16,10 +16,12 @@ async function newPhoto(data: IPhoto, user: IProfile, res: Response = null): Pro
   const photo = new Photo({
     // set people data based on who created the document
     people: {
-      uploaded_by: user.id,
-      modified_by: [user.id],
-      last_modified_by: user.id,
+      uploaded_by: parseInt(user.id),
+      modified_by: [parseInt(user.id)],
+      last_modified_by: parseInt(user.id),
     },
+    // set history data
+    history: [{ type: 'created', user: parseInt(user.id) }],
     // include the other data about the document (can overwrite people data)
     ...data,
   });
@@ -37,10 +39,20 @@ async function newPhoto(data: IPhoto, user: IProfile, res: Response = null): Pro
  *
  * @param user - the getting user's profile
  */
-async function getPhotos(user: IProfile, res: Response = null): Promise<void> {
+async function getPhotos(user: IProfile, query: URLSearchParams, res: Response = null): Promise<void> {
+  // expose history type to the filter
+  const historyType = query.getAll('historyType');
+  console.log(historyType);
+
+  // admin: full access
+  // others: only get documents for which the user has access (by team or userID)
+  const filter = {
+    history: historyType.length > 0 ? { $elemMatch: { type: { $in: historyType } } } : undefined,
+  };
+
   // attempt to get all photos
   try {
-    const photos = await Photo.find({});
+    const photos = await Photo.find(filter);
     res ? res.json(photos) : null;
   } catch (error) {
     console.error(error);
@@ -102,6 +114,10 @@ async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Respons
       ...data.timestamps,
       modified_at: new Date().toISOString(),
     },
+    // set history data
+    history: data.history
+      ? [...data.history, { type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id) }]
+      : [{ type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id) }],
   };
 
   // attempt to patch the article

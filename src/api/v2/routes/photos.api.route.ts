@@ -87,7 +87,9 @@ async function handleAuth(
 photosRouter.post('/', async (req, res) =>
   handleAuth(req, res, 'post', (user) => newPhoto(req.body, user, res))
 );
-photosRouter.get('/', async (req, res) => handleAuth(req, res, 'get', (user) => getPhotos(user, res)));
+photosRouter.get('/', async (req, res) =>
+  handleAuth(req, res, 'get', (user) => getPhotos(user, req.query as unknown as URLSearchParams, res))
+);
 photosRouter.get('/:id', async (req, res) =>
   handleAuth(req, res, 'get', (user) => getPhoto(req.params.id, user, res))
 );

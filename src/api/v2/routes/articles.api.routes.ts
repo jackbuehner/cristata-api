@@ -103,7 +103,9 @@ async function handleAuth(
 articlesRouter.post('/', async (req, res) =>
   handleAuth(req, res, 'post', (user) => newArticle(req.body, user, res))
 );
-articlesRouter.get('/', async (req, res) => handleAuth(req, res, 'get', (user) => getArticles(user, res)));
+articlesRouter.get('/', async (req, res) =>
+  handleAuth(req, res, 'get', (user) => getArticles(user, req.query as unknown as URLSearchParams, res))
+);
 articlesRouter.get('/:id', async (req, res) =>
   handleAuth(req, res, 'get', (user) =>
     getArticle(req.params.id, req.query.by ? req.query.by.toString() : null, user, res)

@@ -41,6 +41,7 @@ interface IPhotoRequest {
   article_id?: string; // _id from article
   versions?: IPhotoRequest[]; // store previous versions of the request
   hidden?: boolean;
+  history?: { type: string; user: GitHubUserID }[];
 }
 
 // create the schema for each field
@@ -65,6 +66,7 @@ const PhotoRequestSchemaFields: Record<keyof IPhotoRequest, unknown> = {
   versions: { type: {} },
   article_id: { type: String, default: '' },
   hidden: { type: Boolean, default: false },
+  history: { type: { type: String, user: Number } },
 };
 
 // mongoose schema for each article

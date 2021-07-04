@@ -16,6 +16,11 @@ const app = express();
 // return JSON in a nice format
 app.set('json spaces', 2);
 
+// use URL search params for query variable
+app.set('query parser', (queryString: string) => {
+  return new URLSearchParams(queryString);
+});
+
 // allow CORS for the app
 const allowedOrigins = ['http://localhost:3000', 'https://thepaladin.cristata.app']; // allowed orgins
 app.use(
