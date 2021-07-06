@@ -46,9 +46,10 @@ async function getPhotos(user: IProfile, query: URLSearchParams, res: Response =
 
   // admin: full access
   // others: only get documents for which the user has access (by team or userID)
-  const filter = {
-    history: historyType.length > 0 ? { $elemMatch: { type: { $in: historyType } } } : undefined,
-  };
+  const filter: Record<string, unknown> = {};
+  if (historyType.length > 0) {
+    filter.history = { $elemMatch: { type: { $in: historyType } } };
+  }
 
   // attempt to get all photos
   try {

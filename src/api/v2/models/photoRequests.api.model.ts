@@ -65,14 +65,12 @@ async function getPhotoRequests(user: IProfile, query: URLSearchParams, res: Res
 
   // admin: full access
   // others: only get documents for which the user has access (by team or userID)
-  const filter = user.teams.includes(adminTeamID)
-    ? {
-        history: historyType.length > 0 ? { $elemMatch: { type: { $in: historyType } } } : undefined,
-      }
-    : {
-        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }],
-        history: historyType.length > 0 ? { $elemMatch: { type: { $in: historyType } } } : undefined,
-      };
+  const filter: Record<string, unknown> = user.teams.includes(adminTeamID)
+    ? {}
+    : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+  if (historyType.length > 0) {
+    filter.history = { $elemMatch: { type: { $in: historyType } } };
+  }
 
   // attempt to get all articles
   try {
