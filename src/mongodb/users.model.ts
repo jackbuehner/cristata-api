@@ -16,6 +16,7 @@ interface IUser {
     modified_at: string; // ISO string
     joined_at?: string; // ISO string
     left_at?: string; // ISO string
+    last_login_at?: string; // ISO string
   };
   people: {
     created_by?: GitHubUserID;
@@ -42,6 +43,7 @@ const UserSchemaFields: Record<keyof IUser, unknown> = {
     modified_at: { type: Date, default: new Date().toISOString() },
     joined_at: { type: Date, default: '0001-01-01T01:00:00.000+00:00' },
     left_at: { type: Date, default: '0001-01-01T01:00:00.000+00:00' },
+    last_login_at: { type: Date, default: new Date().toISOString() },
   },
   people: {
     created_by: { type: Number },

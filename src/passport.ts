@@ -139,7 +139,13 @@ async function profileToDatabase(profile: IProfile) {
       if (userAlreadyExists) {
         User.updateOne(
           { github_id: parseInt(profile.id) },
-          { $set: { name: profile.displayName || profile.username, teams: profile.teams } }
+          {
+            $set: {
+              name: profile.displayName || profile.username,
+              teams: profile.teams,
+              timestamps: { ...foundUser.timestamps, last_login_at: new Date().toISOString() },
+            },
+          }
         );
       } else {
         // create a new user based on the github profile
