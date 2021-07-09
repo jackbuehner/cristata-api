@@ -1,0 +1,21 @@
+diff --git a/node_modules/passport-oauth2/lib/strategy.js b/node_modules/passport-oauth2/lib/strategy.js
+index 8ac16e4..a671609 100644
+--- a/node_modules/passport-oauth2/lib/strategy.js
++++ b/node_modules/passport-oauth2/lib/strategy.js
+@@ -154,14 +154,14 @@ OAuth2Strategy.prototype.authenticate = function(req, options) {
+     clientID: this._oauth2._clientId
+   }
+ 
+-  if (req.query && req.query.code) {
++  if (req.query && req.query.has('code')) {
+     function loaded(err, ok, state) {
+       if (err) { return self.error(err); }
+       if (!ok) {
+         return self.fail(state, 403);
+       }
+ 
+-      var code = req.query.code;
++      var code = req.query.get('code');
+ 
+       var params = self.tokenParams(options);
+       params.grant_type = 'authorization_code';
