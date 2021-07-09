@@ -28,7 +28,11 @@ async function getUsers(res: Response = null): Promise<void> {
 async function getUser(id: string, authUser: IProfile, res: Response = null): Promise<void> {
   try {
     const user =
-      id === 'me' ? await User.findOne({ github_id: parseInt(authUser.id) }) : await User.findById(id);
+      id === 'me'
+        ? await User.findOne({ github_id: parseInt(authUser.id) })
+        : mongoose.Types.ObjectId.isValid(id)
+        ? await User.findById(id)
+        : await User.findOne({ github_id: parseInt(id) });
     res ? res.json(user) : null;
   } catch (error) {
     console.error(error);
