@@ -2,7 +2,14 @@ import { Router, Request, Response } from 'express';
 import { IProfile } from '../../../passport';
 import('../models/articles.api.model');
 import { EnumArticleStage } from '../../../mongodb/articles.model';
-import { deleteArticle, getArticle, getArticles, newArticle, patchArticle } from '../models/articles.api.model';
+import {
+  deleteArticle,
+  getArticle,
+  getArticles,
+  newArticle,
+  patchArticle,
+  getStageCounts,
+} from '../models/articles.api.model';
 const articlesRouter = Router();
 
 /**
@@ -106,6 +113,7 @@ articlesRouter.post('/', async (req, res) =>
 articlesRouter.get('/', async (req, res) =>
   handleAuth(req, res, 'get', (user) => getArticles(user, req.query as unknown as URLSearchParams, res))
 );
+articlesRouter.get('/stage-counts', async (req, res) => handleAuth(req, res, 'get', () => getStageCounts(res)));
 articlesRouter.get('/:id', async (req, res) =>
   handleAuth(req, res, 'get', (user) =>
     getArticle(req.params.id, req.query.by ? req.query.by.toString() : null, user, res)

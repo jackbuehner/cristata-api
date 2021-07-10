@@ -224,4 +224,19 @@ async function deleteArticle(id: string, user: IProfile, canPublish = false, res
   }
 }
 
-export { newArticle, getArticles, getArticle, patchArticle, deleteArticle };
+/**
+ * Get the number of articles in the different stages.
+ *
+ * @param res - the response for an HTTP request
+ */
+async function getStageCounts(res = null): Promise<void> {
+  try {
+    const articleStageCounts = await Article.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
+    res ? res.json(articleStageCounts) : null;
+  } catch (error) {
+    console.error(error);
+    res ? res.status(400).json(error) : null;
+  }
+}
+
+export { newArticle, getArticles, getArticle, patchArticle, deleteArticle, getStageCounts };
