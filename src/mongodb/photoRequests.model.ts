@@ -41,7 +41,7 @@ interface IPhotoRequest {
   article_id?: string; // _id from article
   versions?: IPhotoRequest[]; // store previous versions of the request
   hidden?: boolean;
-  history?: { type: string; user: GitHubUserID }[];
+  history?: { type: string; user: GitHubUserID; at: string }[];
 }
 
 // create the schema for each field

@@ -59,7 +59,7 @@ interface IArticle {
   body?: string;
   versions?: IArticle[]; // store previous versions of the article
   hidden?: boolean;
-  history?: { type: string; user: GitHubUserID }[];
+  history?: { type: string; user: GitHubUserID; at: string }[];
 }
 
 // create the schema for each field

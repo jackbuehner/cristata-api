@@ -40,7 +40,7 @@ async function newPhotoRequest(data: IPhotoRequest, user: IProfile, res: Respons
       last_modified_by: parseInt(user.id),
     },
     // set history data
-    history: [{ type: 'created', user: parseInt(user.id) }],
+    history: [{ type: 'created', user: parseInt(user.id), at: new Date().toISOString() }],
     // include the other data about the document (can overwrite people data)
     ...data,
   });
@@ -156,8 +156,11 @@ async function patchPhotoRequest(
     },
     // set history data
     history: data.history
-      ? [...data.history, { type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id) }]
-      : [{ type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id) }],
+      ? [
+          ...data.history,
+          { type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id), at: new Date().toISOString() },
+        ]
+      : [{ type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id), at: new Date().toISOString() }],
   };
 
   // attempt to patch the article

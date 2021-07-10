@@ -24,7 +24,7 @@ interface IPhoto {
   };
   versions?: IPhoto[]; // store previous versions
   hidden?: boolean;
-  history?: { type: string; user: GitHubUserID }[];
+  history?: { type: string; user: GitHubUserID; at: string }[];
 }
 
 // create the schema for each field

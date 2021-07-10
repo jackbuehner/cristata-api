@@ -21,7 +21,7 @@ async function newPhoto(data: IPhoto, user: IProfile, res: Response = null): Pro
       last_modified_by: parseInt(user.id),
     },
     // set history data
-    history: [{ type: 'created', user: parseInt(user.id) }],
+    history: [{ type: 'created', user: parseInt(user.id), at: new Date().toISOString() }],
     // include the other data about the document (can overwrite people data)
     ...data,
   });
@@ -117,8 +117,11 @@ async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Respons
     },
     // set history data
     history: data.history
-      ? [...data.history, { type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id) }]
-      : [{ type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id) }],
+      ? [
+          ...data.history,
+          { type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id), at: new Date().toISOString() },
+        ]
+      : [{ type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id), at: new Date().toISOString() }],
   };
 
   // attempt to patch the article
