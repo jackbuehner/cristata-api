@@ -76,4 +76,22 @@ async function patchUser(
   }
 }
 
-export { getUsers, getUser, patchUser };
+/**
+ * Get a user photo in the user collection.
+ */
+async function getUserPhoto(id: string, authUser: IProfile, res: Response = null): Promise<void> {
+  try {
+    const user =
+      id === 'me'
+        ? await User.findOne({ github_id: parseInt(authUser.id) })
+        : mongoose.Types.ObjectId.isValid(id)
+        ? await User.findById(id)
+        : await User.findOne({ github_id: parseInt(id) });
+    res ? res.redirect(user.photo) : null;
+  } catch (error) {
+    console.error(error);
+    res ? res.status(400).json(error) : null;
+  }
+}
+
+export { getUsers, getUser, patchUser, getUserPhoto };

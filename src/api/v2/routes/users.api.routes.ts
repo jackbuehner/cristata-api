@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { IProfile } from '../../../passport';
 import '../../../mongodb/users.model';
-import { getUsers, getUser, patchUser } from '../models/users.api.model';
+import { getUsers, getUser, patchUser, getUserPhoto } from '../models/users.api.model';
 const usersRouter = Router();
 
 enum Teams {
@@ -70,6 +70,9 @@ async function handleAuth(
 }
 
 usersRouter.get('/', async (req, res) => handleAuth(req, res, 'get', () => getUsers(res)));
+usersRouter.get('/:user_id/photo', async (req, res) =>
+  handleAuth(req, res, 'get', (authUser) => getUserPhoto(req.params.user_id, authUser, res))
+);
 usersRouter.get('/:user_id', async (req, res) =>
   handleAuth(req, res, 'get', (authUser) => getUser(req.params.user_id, authUser, res))
 );
