@@ -50,7 +50,7 @@ const PhotoSchemaFields: Record<keyof IPhoto, unknown> = {
   },
   versions: { type: {} },
   hidden: { type: Boolean, default: false },
-  history: { type: { type: String, user: Number } },
+  history: { type: { type: String, user: Number, at: { type: Date, default: new Date().toISOString() } } },
 };
 
 // mongoose schema for each article
