@@ -201,4 +201,68 @@ app.use('/api/v2/gh/teams', teamsRouter);
 import { teamDiscussionsRouter } from './api/v2/routes/gh.teams.discussions.api.route';
 app.use('/api/v2/gh/teams/discussions', teamDiscussionsRouter);
 
+// get history of documents in mongodb that have history tracked
+import mongoose from 'mongoose';
+import { IArticleDoc } from './mongodb/articles.model';
+
+// get the 10 recent history changes
+app.get('/api/v2/history', (req, res) => {
+  mongoose
+    .model<IArticleDoc>('Article')
+    .aggregate([
+      { $match: { history: { $elemMatch: { type: { $in: ['created', 'patched', 'hidden'] } } } } },
+      { $sort: { 'timestamps.modified_at': -1 } },
+      { $limit: 10 },
+      { $addFields: { collection: 'articles' } },
+      {
+        $unionWith: {
+          coll: 'photorequests',
+          pipeline: [
+            { $match: { history: { $elemMatch: { type: { $in: ['created', 'patched', 'hidden'] } } } } },
+            { $sort: { 'timestamps.modified_at': -1 } },
+            { $limit: 10 },
+            { $addFields: { collection: 'photo-requests' } },
+          ],
+        },
+      },
+      {
+        $unionWith: {
+          coll: 'photos',
+          pipeline: [
+            { $match: { history: { $elemMatch: { type: { $in: ['created', 'patched', 'hidden'] } } } } },
+            { $sort: { 'timestamps.modified_at': -1 } },
+            { $limit: 10 },
+            { $addFields: { collection: 'photos' } },
+          ],
+        },
+      },
+      { $sort: { 'timestamps.modified_at': -1 } },
+      {
+        $unset: [
+          'body',
+          'people',
+          'permissions',
+          'categories',
+          'stage',
+          'description',
+          'photo_path',
+          'timestamps',
+          'locked',
+          'tags',
+          'hidden',
+          'photo_caption',
+          'article_id',
+        ],
+      },
+    ])
+    .then((result) => {
+      console.log(result);
+      res.json(result);
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(400).json(error);
+    });
+});
+
 export { app };
