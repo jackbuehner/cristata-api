@@ -156,9 +156,9 @@ app.use('/api/v2/photos', photosRouter);
 import aws from 'aws-sdk';
 app.get('/api/v2/sign-s3', (req: Request, res: Response) => {
   const s3 = new aws.S3();
-  const fileName = req.query['file-name'];
-  const fileType = req.query['file-type'];
-  const s3Bucket = req.query['s3-bucket'];
+  const fileName = (req.query as unknown as URLSearchParams).get('file-name');
+  const fileType = (req.query as unknown as URLSearchParams).get('file-type');
+  const s3Bucket = (req.query as unknown as URLSearchParams).get('s3-bucket');
 
   if (!fileName) return res.status(400).json('Missing query "file-name"');
   if (!fileType) return res.status(400).json('Missing query "file-type"');
