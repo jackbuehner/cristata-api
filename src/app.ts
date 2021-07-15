@@ -193,6 +193,10 @@ app.use('/api/v2/gh/org/projects', orgProjectsRouter);
 import { projectsRouter } from './api/v2/routes/gh.projects.api.route';
 app.use('/api/v2/gh/projects', projectsRouter);
 
+// gh org api
+import { orgRouter } from './api/v2/routes/gh.org.api.route';
+app.use('/api/v2/gh/org', orgRouter);
+
 // gh teams api
 import { teamsRouter } from './api/v2/routes/gh.teams.api.route';
 app.use('/api/v2/gh/teams', teamsRouter);
