@@ -59,6 +59,7 @@ interface IGitHubProfile {
     following: number;
     created_at: string;
     updated_at: string;
+    two_factor_authentication: boolean;
   };
 }
 
@@ -66,6 +67,8 @@ interface IProfile extends IGitHubProfile {
   member_status: boolean;
   teams: string[];
   accessToken: string;
+  two_factor_authentication: boolean;
+  emails: string[];
   _id?: string;
 }
 
@@ -84,6 +87,8 @@ async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: stri
     member_status: false,
     teams: [],
     accessToken: accessToken,
+    two_factor_authentication: gitHubProfile._json.two_factor_authentication,
+    emails: [],
   };
 
   // set `_raw` and `_json` to undefined to reduce cookie size
@@ -100,6 +105,20 @@ async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: stri
       const orgs = Array.from(res.data);
       const orgData = orgs.filter((org) => org.id === parseInt(process.env.GITHUB_ORG_ID));
       if (orgData.length === 1) profile.member_status = true;
+    })
+    .catch((err) => console.error(err));
+
+  // include the user's emails
+  await axios
+    .get<{ email: string; [key: string]: unknown }[]>(`https://api.github.com/user/emails`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    .then((res) => {
+      const emails: string[] = [];
+      res.data.forEach((item) => {
+        emails.push(item.email);
+      });
+      profile.emails = emails;
     })
     .catch((err) => console.error(err));
 
@@ -177,6 +196,7 @@ passport.use(
     ) => {
       try {
         const profile = await buildFullProfile(gitHubProfile, accessToken);
+        if (!profile.member_status) return done(new Error('NOT_ORG_MEMBER'));
         await profileToDatabase(profile);
         return done(null, {
           ...profile,

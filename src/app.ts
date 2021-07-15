@@ -60,7 +60,7 @@ app.get('/auth/error', (req: Request, res: Response) => res.send('Unknown Error'
 // redirect client to github for authentication
 app.get(
   '/auth/github',
-  passport.authenticate('github', { scope: ['user:email', 'read:org', 'write:org', 'read:discussion'] })
+  passport.authenticate('github', { scope: ['user', 'read:org', 'write:org', 'read:discussion'] })
 );
 
 // listen for github auth response
