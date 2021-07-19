@@ -157,6 +157,15 @@ async function patchArticle(
     ? { _id: id }
     : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
 
+  // determine the history type to set based on the stage or hidden status
+  const historyType = data.hidden
+    ? 'hidden'
+    : data.stage === EnumArticleStage.PUBLISHED
+    ? 'published'
+    : data.stage === EnumArticleStage.UPLOADED
+    ? 'uploaded'
+    : 'patched';
+
   // set modified_at, modified_by, and last_modified_by
   data = {
     ...data,
@@ -171,14 +180,19 @@ async function patchArticle(
     },
     // set history data
     history: data.history
-      ? [
-          ...data.history,
-          { type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id), at: new Date().toISOString() },
-        ]
-      : [{ type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id), at: new Date().toISOString() }],
+      ? [...data.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
+      : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
   };
 
-  console.log(data);
+  // update the publish time if the document is being published
+  if (data.stage === EnumArticleStage.PUBLISHED) {
+    data.timestamps.published_at = new Date().toISOString();
+  }
+
+  // set the slug if the document is being published and does not already have one
+  if (data.stage === EnumArticleStage.PUBLISHED && !data.slug) {
+    data.slug = slugify(data.name);
+  }
 
   // attempt to patch the article
   try {
