@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import mongoose, { AggregatePaginateModel } from 'mongoose';
+import mongoose from 'mongoose';
 import { Response } from 'express';
 import { EnumArticleStage, IArticle, IArticleDoc } from '../../../mongodb/articles.model';
 import { IProfile } from '../../../passport';
@@ -138,10 +138,8 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
       },
     ]);
 
-    const paginatedArticles = await (Article as AggregatePaginateModel<IArticleDoc>).aggregatePaginate(
-      articles,
-      { page, limit }
-    );
+    // @ts-expect-error aggregatePaginate DOES exist. The types for the plugin have not been updated for newer versions of mongoose.
+    const paginatedArticles = await Article.aggregatePaginate(articles, { page, limit });
 
     res ? res.json(paginatedArticles) : null;
   } catch (error) {
