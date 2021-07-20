@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 type GitHubUserID = number;
 type GitHubTeamNodeID = string;
@@ -28,6 +29,7 @@ enum Stage {
 // interface for each article
 interface IArticle {
   name?: string;
+  slug: string;
   permissions: {
     teams?: GitHubTeamNodeID[];
     users: GitHubUserID[];
@@ -66,6 +68,7 @@ interface IArticle {
 // the record ensures that the keys are part of IArticle (values unknown)
 const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
   name: { type: String, required: true, default: 'Article Title' },
+  slug: { type: String },
   permissions: {
     teams: { type: [String], default: [Groups.MANAGING_EDITOR] },
     users: { type: [Number] },
@@ -103,6 +106,9 @@ const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
 
 // mongoose schema for each article
 const ArticleSchema = new Schema(ArticleSchemaFields);
+
+// add pagination to aggregation
+ArticleSchema.plugin(aggregatePaginate);
 
 // create the model based on the schema
 interface IArticleDoc extends IArticle, Document {} // combine the 2 interfaces

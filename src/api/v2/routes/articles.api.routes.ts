@@ -6,6 +6,8 @@ import {
   deleteArticle,
   getArticle,
   getArticles,
+  getPublicArticles,
+  getPublicArticle,
   newArticle,
   patchArticle,
   getStageCounts,
@@ -52,6 +54,11 @@ const permissions = {
     teams: [Teams.ADMIN],
     users: [],
   },
+  getPublic: {
+    teams: [Teams.ANY],
+    users: [Users.ANY],
+    isPublic: true,
+  },
 };
 
 async function handleAuth(
@@ -61,13 +68,14 @@ async function handleAuth(
   callback: (user: IProfile, canPublish: boolean) => unknown
 ) {
   try {
-    if (req.isAuthenticated()) {
-      const user = req.user as IProfile;
+    if (req.isAuthenticated() || permissions[permissionsType].isPublic) {
+      const user = req.isAuthenticated() ? (req.user as IProfile) : undefined;
 
-      // check if the user can publish
-      const canPublish =
-        permissions['publish'].teams.some((team: string) => user.teams.includes(team)) ||
-        permissions['publish'].users.includes(user.id);
+      // check if the user can publish (automatically false if user undefined)
+      const canPublish = user
+        ? permissions['publish'].teams.some((team: string) => user.teams.includes(team)) ||
+          permissions['publish'].users.includes(user.id)
+        : false;
 
       // check authorization
       let isAuthorized = false;
@@ -113,7 +121,28 @@ articlesRouter.post('/', async (req, res) =>
 articlesRouter.get('/', async (req, res) =>
   handleAuth(req, res, 'get', (user) => getArticles(user, req.query as unknown as URLSearchParams, res))
 );
+articlesRouter.get('/permissions', async (req, res) =>
+  handleAuth(req, res, 'publish', (user, canPublish) => {
+    res.json({
+      canPublish: canPublish,
+    });
+  })
+);
 articlesRouter.get('/stage-counts', async (req, res) => handleAuth(req, res, 'get', () => getStageCounts(res)));
+articlesRouter.get(
+  '/public',
+  async (
+    req,
+    res // public, published articles that can appear for anyone
+  ) => handleAuth(req, res, 'getPublic', () => getPublicArticles(req.query as unknown as URLSearchParams, res))
+);
+articlesRouter.get(
+  '/public/:slug',
+  async (
+    req,
+    res // public, published article that can appear for anyone
+  ) => handleAuth(req, res, 'getPublic', () => getPublicArticle(req.params.slug, res))
+);
 articlesRouter.get('/:id', async (req, res) =>
   handleAuth(req, res, 'get', (user) =>
     getArticle(req.params.id, req.query.by ? req.query.by.toString() : null, user, res)

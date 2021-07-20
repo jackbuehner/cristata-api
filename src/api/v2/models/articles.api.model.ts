@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+import mongoose, { AggregatePaginateModel } from 'mongoose';
 import { Response } from 'express';
 import { EnumArticleStage, IArticle, IArticleDoc } from '../../../mongodb/articles.model';
 import { IProfile } from '../../../passport';
+import { slugify } from '../../../utils/slugify';
 
 // load environmental variables
 dotenv.config();
@@ -76,6 +77,104 @@ async function getArticles(user: IProfile, query: URLSearchParams, res: Response
   try {
     const articles = await Article.find(filter);
     res ? res.json(articles) : null;
+  } catch (error) {
+    console.error(error);
+    res ? res.status(400).json(error) : null;
+  }
+}
+
+const publicUnset = [
+  'stage',
+  'locked',
+  'hidden',
+  'article_id',
+  'history',
+  'permissions',
+  'versions',
+  'people.created_by',
+  'people.editors',
+  'people.last_modified_by',
+  'people.modified_by',
+  'people.published_by',
+  'timestamps.created_at',
+  'timestamps.modified_at',
+  'timestamps.target_publish_at',
+  '__v',
+  'people.authors.people',
+  'people.authors.timestamps',
+  'people.authors.teams',
+  'people.authors.github_id',
+  'people.authors.__v',
+  'people.authors.phone',
+  'people.authors.versions',
+];
+
+/**
+ * Get all of the published articles in the articles collection.
+ */
+async function getPublicArticles(query: URLSearchParams, res: Response = null): Promise<void> {
+  // expose queries
+  const categories = query.getAll('category');
+  const page = parseInt(query.get('page')) || 1;
+  const limit = parseInt(query.get('limit')) || 10;
+
+  try {
+    const articles = Article.aggregate([
+      {
+        $match: categories.length > 0 ? { categories: { $in: categories } } : { categories: { $exists: true } },
+      },
+      { $sort: { 'timestamps.modified_at': -1 } },
+      {
+        // replace author ids with full profiless
+        $lookup: {
+          from: 'users',
+          localField: 'people.authors',
+          foreignField: 'github_id',
+          as: 'people.authors',
+        },
+      },
+      {
+        $unset: publicUnset,
+      },
+    ]);
+
+    const paginatedArticles = await (Article as AggregatePaginateModel<IArticleDoc>).aggregatePaginate(
+      articles,
+      { page, limit }
+    );
+
+    res ? res.json(paginatedArticles) : null;
+  } catch (error) {
+    console.error(error);
+    res ? res.status(400).json(error) : null;
+  }
+}
+
+/**
+ * Get all a published article from the articles collection.
+ */
+async function getPublicArticle(slug: string, res: Response = null): Promise<void> {
+  try {
+    const article = await Article.aggregate([
+      {
+        $match: { slug: slug, stage: 5.2 },
+      },
+      { $sort: { 'timestamps.modified_at': -1 } },
+      { $limit: 1 },
+      {
+        // replace author ids with full profiless
+        $lookup: {
+          from: 'users',
+          localField: 'people.authors',
+          foreignField: 'github_id',
+          as: 'people.authors',
+        },
+      },
+      {
+        $unset: publicUnset,
+      },
+    ]);
+    res ? (article ? res.json(article[0]) : res.status(404).end()) : null;
   } catch (error) {
     console.error(error);
     res ? res.status(400).json(error) : null;
@@ -256,4 +355,13 @@ async function getStageCounts(res = null): Promise<void> {
   }
 }
 
-export { newArticle, getArticles, getArticle, patchArticle, deleteArticle, getStageCounts };
+export {
+  newArticle,
+  getArticles,
+  getPublicArticles,
+  getPublicArticle,
+  getArticle,
+  patchArticle,
+  deleteArticle,
+  getStageCounts,
+};
