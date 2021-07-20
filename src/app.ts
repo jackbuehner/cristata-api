@@ -27,6 +27,7 @@ const allowedOrigins = [
   'http://localhost:4000',
   'https://thepaladin.cristata.app',
   'https://thepaladin.news',
+  'https://new.thepaladin.news',
 ]; // allowed orgins
 app.use(
   cors({
