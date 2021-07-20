@@ -121,7 +121,10 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
   try {
     const articles = Article.aggregate([
       {
-        $match: categories.length > 0 ? { categories: { $in: categories } } : { categories: { $exists: true } },
+        $match:
+          categories.length > 0
+            ? { categories: { $in: categories }, stage: 5.2 }
+            : { categories: { $exists: true }, stage: 5.2 },
       },
       { $sort: { 'timestamps.modified_at': -1 } },
       {
