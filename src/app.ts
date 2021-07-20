@@ -22,7 +22,12 @@ app.set('query parser', (queryString: string) => {
 });
 
 // allow CORS for the app
-const allowedOrigins = ['http://localhost:3000', 'https://thepaladin.cristata.app']; // allowed orgins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:4000',
+  'https://thepaladin.cristata.app',
+  'https://thepaladin.news',
+]; // allowed orgins
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -174,7 +179,7 @@ app.get('/api/v2/sign-s3', (req: Request, res: Response) => {
 
   s3.getSignedUrl('putObject', s3Params, (err, data) => {
     if (err) {
-      console.log(err);
+      console.error(err);
       return res.status(500).end();
     }
     const returnData = {
@@ -260,7 +265,6 @@ app.get('/api/v2/history', (req, res) => {
       },
     ])
     .then((result) => {
-      console.log(result);
       res.json(result);
     })
     .catch((error) => {
