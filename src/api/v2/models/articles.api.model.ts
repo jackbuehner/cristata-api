@@ -107,6 +107,7 @@ const publicUnset = [
   'people.authors.__v',
   'people.authors.phone',
   'people.authors.versions',
+  'photoObj',
 ];
 
 /**
@@ -128,12 +129,27 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
       },
       { $sort: { 'timestamps.modified_at': -1 } },
       {
-        // replace author ids with full profiless
+        // replace author ids with full profiles from the users collection
         $lookup: {
           from: 'users',
           localField: 'people.authors',
           foreignField: 'github_id',
           as: 'people.authors',
+        },
+      },
+      {
+        // get the photo details from the photos collection
+        $lookup: {
+          from: 'photos',
+          localField: 'photo_path',
+          foreignField: 'photo_url',
+          as: 'photoObj',
+        },
+      },
+      {
+        // set the photo source as a new field so that `photoObj` can be deleted
+        $addFields: {
+          photo_credit: { $first: '$photoObj.people.photo_created_by' },
         },
       },
       {
@@ -163,12 +179,27 @@ async function getPublicArticle(slug: string, res: Response = null): Promise<voi
       { $sort: { 'timestamps.modified_at': -1 } },
       { $limit: 1 },
       {
-        // replace author ids with full profiless
+        // replace author ids with full profiles from the users collection
         $lookup: {
           from: 'users',
           localField: 'people.authors',
           foreignField: 'github_id',
           as: 'people.authors',
+        },
+      },
+      {
+        // get the photo details from the photos collection
+        $lookup: {
+          from: 'photos',
+          localField: 'photo_path',
+          foreignField: 'photo_url',
+          as: 'photoObj',
+        },
+      },
+      {
+        // set the photo source as a new field so that `photoObj` can be deleted
+        $addFields: {
+          photo_credit: { $first: '$photoObj.people.photo_created_by' },
         },
       },
       {
