@@ -57,6 +57,7 @@ interface IArticle {
   tags?: string[];
   description?: string;
   photo_path: string;
+  video_path?: string;
   photo_caption?: string;
   body?: string;
   versions?: IArticle[]; // store previous versions of the article
@@ -97,6 +98,7 @@ const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
   tags: { type: [String] },
   description: { type: String, default: '' },
   photo_path: { type: String, default: '' },
+  video_path: { type: String, default: '' },
   photo_caption: { type: String, default: '' },
   body: { type: String },
   versions: { type: {} },
