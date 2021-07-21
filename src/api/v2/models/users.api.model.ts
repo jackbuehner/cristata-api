@@ -94,4 +94,25 @@ async function getUserPhoto(id: string, authUser: IProfile, res: Response = null
   }
 }
 
-export { getUsers, getUser, patchUser, getUserPhoto };
+/**
+ * Get select information about a user
+ */
+async function getPublicUser(slug: string, res: Response = null): Promise<void> {
+  try {
+    const user = await User.aggregate([
+      {
+        $match: { slug: slug },
+      },
+      { $limit: 1 },
+      {
+        $unset: ['timestamps', 'people', 'teams', '__v', 'phone', 'versions'],
+      },
+    ]);
+    res ? (user ? res.json(user[0]) : res.status(404).end()) : null;
+  } catch (error) {
+    console.error(error);
+    res ? res.status(400).json(error) : null;
+  }
+}
+
+export { getUsers, getUser, patchUser, getUserPhoto, getPublicUser };

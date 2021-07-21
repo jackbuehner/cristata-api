@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { IProfile } from '../../../passport';
 import '../../../mongodb/users.model';
-import { getUsers, getUser, patchUser, getUserPhoto } from '../models/users.api.model';
+import { getUsers, getUser, patchUser, getUserPhoto, getPublicUser } from '../models/users.api.model';
 const usersRouter = Router();
 
 enum Teams {
@@ -22,6 +22,11 @@ const permissions = {
     teams: [Teams.ADMIN], // the user can still patch their own profile
     users: [],
   },
+  getPublic: {
+    teams: [Teams.ANY],
+    users: [Users.ANY],
+    isPublic: true,
+  },
 };
 
 async function handleAuth(
@@ -31,7 +36,7 @@ async function handleAuth(
   callback: (user: IProfile) => unknown
 ) {
   try {
-    if (req.isAuthenticated()) {
+    if (req.isAuthenticated() || permissions[permissionsType].isPublic) {
       const user = req.user as IProfile;
 
       // check authorization
@@ -70,6 +75,9 @@ async function handleAuth(
 }
 
 usersRouter.get('/', async (req, res) => handleAuth(req, res, 'get', () => getUsers(res)));
+usersRouter.get('/public/:user_slug', async (req, res) =>
+  handleAuth(req, res, 'getPublic', () => getPublicUser(req.params.user_slug, res))
+);
 usersRouter.get('/:user_id/photo', async (req, res) =>
   handleAuth(req, res, 'get', (authUser) => getUserPhoto(req.params.user_id, authUser, res))
 );
