@@ -116,6 +116,7 @@ const publicUnset = [
 async function getPublicArticles(query: URLSearchParams, res: Response = null): Promise<void> {
   // expose queries
   const categories = query.getAll('category');
+  const authors = query.getAll('author').map((author) => parseInt(author)); // convert each string to an integer
   const page = parseInt(query.get('page')) || 1;
   const limit = parseInt(query.get('limit')) || 10;
 
@@ -126,6 +127,9 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
           categories.length > 0
             ? { categories: { $in: categories }, stage: 5.2 }
             : { categories: { $exists: true }, stage: 5.2 },
+      },
+      {
+        $match: authors.length > 0 ? { 'people.authors': { $in: authors } } : {},
       },
       { $sort: { 'timestamps.modified_at': -1 } },
       {
