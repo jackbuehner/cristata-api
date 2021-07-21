@@ -5,6 +5,7 @@ import axios from 'axios';
 const GitHubStrategy = passportGitHub.Strategy;
 import mongoose from 'mongoose';
 import { IUserDoc } from './mongodb/users.model';
+import { slugify } from './utils/slugify';
 
 // load environmental variables
 dotenv.config();
@@ -163,6 +164,7 @@ async function profileToDatabase(profile: IProfile) {
               name: profile.displayName || profile.username,
               teams: profile.teams,
               timestamps: { ...foundUser.timestamps, last_login_at: new Date().toISOString() },
+              slug: slugify(profile.displayName || profile.username),
             },
           }
         );
@@ -172,6 +174,8 @@ async function profileToDatabase(profile: IProfile) {
           name: profile.displayName || profile.username,
           github_id: parseInt(profile.id),
           teams: profile.teams,
+          timestamps: { last_login_at: new Date().toISOString() },
+          slug: slugify(profile.displayName || profile.username),
         });
         await user.save();
       }

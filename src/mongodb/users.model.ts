@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { slugify } from '../utils/slugify';
 
 type GitHubUserID = number;
 type GitHubTeamNodeID = string;
@@ -6,6 +7,7 @@ type GitHubTeamNodeID = string;
 // interface for each user profile
 interface IUser {
   name: string;
+  slug: string;
   phone: number;
   email: string;
   twitter: string;
@@ -33,6 +35,7 @@ interface IUser {
 // the record ensures that the keys are part of IUser (values unknown)
 const UserSchemaFields: Record<keyof IUser, unknown> = {
   name: { type: String, required: true, default: 'New User' },
+  slug: { type: String, required: true, default: slugify('New User') },
   phone: { type: Number },
   email: { type: String },
   twitter: { type: String },
