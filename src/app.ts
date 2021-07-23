@@ -146,6 +146,10 @@ githubWebhookHandler.on('project', (repo: string, data: { [key: string]: unknown
 import { articlesRouter } from './api/v2/routes/articles.api.routes';
 app.use('/api/v2/articles', articlesRouter);
 
+// satire articles api
+import { satireRouter } from './api/v2/routes/satire.api.route';
+app.use('/api/v2/satire', satireRouter);
+
 // users api
 import { usersRouter } from './api/v2/routes/users.api.routes';
 app.use('/api/v2/users', usersRouter);
