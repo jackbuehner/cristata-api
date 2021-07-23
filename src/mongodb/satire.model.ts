@@ -60,6 +60,7 @@ interface ISatire {
   body?: string;
   versions?: ISatire[]; // store previous versions of the article
   hidden?: boolean;
+  legacy_html: boolean; // true if it is html from the old webflow
   history?: { type: string; user: GitHubUserID; at: string }[];
 }
 
@@ -101,6 +102,7 @@ const SatireSchemaFields: Record<keyof ISatire, unknown> = {
   body: { type: String },
   versions: { type: {} },
   hidden: { type: Boolean, default: false },
+  legacy_html: { type: Boolean, default: false },
   history: { type: { type: String, user: Number, at: { type: Date, default: new Date().toISOString() } } },
 };
 
