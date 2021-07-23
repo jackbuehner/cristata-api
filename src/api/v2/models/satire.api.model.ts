@@ -127,7 +127,7 @@ async function getPublicSatires(query: URLSearchParams, res: Response = null): P
       {
         $match: authors.length > 0 ? { 'people.authors': { $in: authors } } : {},
       },
-      { $sort: { 'timestamps.modified_at': -1 } },
+      { $sort: { 'timestamps.published_at': -1 } },
       {
         $unset: publicUnset,
       },
@@ -152,7 +152,7 @@ async function getPublicSatire(slug: string, res: Response = null): Promise<void
       {
         $match: { slug: slug, stage: 5.2 },
       },
-      { $sort: { 'timestamps.modified_at': -1 } },
+      { $sort: { 'timestamps.published_at': -1 } },
       { $limit: 1 },
       {
         $unset: publicUnset,

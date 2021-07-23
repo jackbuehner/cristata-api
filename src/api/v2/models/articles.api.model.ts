@@ -131,7 +131,7 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
       {
         $match: authors.length > 0 ? { 'people.authors': { $in: authors } } : {},
       },
-      { $sort: { 'timestamps.modified_at': -1 } },
+      { $sort: { 'timestamps.published_at': -1 } },
       {
         // replace author ids with full profiles from the users collection
         $lookup: {
@@ -180,7 +180,7 @@ async function getPublicArticle(slug: string, res: Response = null): Promise<voi
       {
         $match: { slug: slug, stage: 5.2 },
       },
-      { $sort: { 'timestamps.modified_at': -1 } },
+      { $sort: { 'timestamps.published_at': -1 } },
       { $limit: 1 },
       {
         // replace author ids with full profiles from the users collection
