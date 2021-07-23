@@ -29,6 +29,7 @@ interface IUser {
   versions: IUser[]; // store previous versions of the user profile
   github_id: GitHubUserID;
   teams: GitHubTeamNodeID[];
+  group?: number;
 }
 
 // create the schema for each field
@@ -57,6 +58,7 @@ const UserSchemaFields: Record<keyof IUser, unknown> = {
   versions: { type: {} },
   github_id: { type: Number },
   teams: { type: [String] },
+  group: { type: Number, default: '5.10' },
 };
 
 // mongoose schema for each article
