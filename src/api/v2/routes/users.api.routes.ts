@@ -1,7 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { IProfile } from '../../../passport';
 import '../../../mongodb/users.model';
-import { getUsers, getUser, patchUser, getUserPhoto, getPublicUser } from '../models/users.api.model';
+import {
+  getUsers,
+  getUser,
+  patchUser,
+  getUserPhoto,
+  getPublicUser,
+  getPublicUsers,
+} from '../models/users.api.model';
 const usersRouter = Router();
 
 enum Teams {
@@ -75,6 +82,9 @@ async function handleAuth(
 }
 
 usersRouter.get('/', async (req, res) => handleAuth(req, res, 'get', () => getUsers(res)));
+usersRouter.get('/public', async (req, res) =>
+  handleAuth(req, res, 'getPublic', () => getPublicUsers(req.query as unknown as URLSearchParams, res))
+);
 usersRouter.get('/public/:user_slug', async (req, res) =>
   handleAuth(req, res, 'getPublic', () => getPublicUser(req.params.user_slug, res))
 );

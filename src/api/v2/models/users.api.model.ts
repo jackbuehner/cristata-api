@@ -115,4 +115,32 @@ async function getPublicUser(slug: string, res: Response = null): Promise<void> 
   }
 }
 
-export { getUsers, getUser, patchUser, getUserPhoto, getPublicUser };
+/**
+ * Get select information about all users
+ */
+async function getPublicUsers(query: URLSearchParams, res: Response = null): Promise<void> {
+  // expose queries
+  const gte = parseInt(query.get('gte')) || 0;
+  const lt = parseInt(query.get('lt')) || 100;
+
+  try {
+    const users = await User.aggregate([
+      {
+        $match: {
+          $and: [{ group: { $gte: gte } }, { group: { $lt: lt } }],
+        },
+      },
+      { $sort: { group: 1 } },
+      {
+        $unset: ['timestamps', 'people', 'teams', '__v', 'phone', 'versions'],
+      },
+    ]);
+
+    res ? (users ? res.json(users) : res.status(404).end()) : null;
+  } catch (error) {
+    console.error(error);
+    res ? res.status(400).json(error) : null;
+  }
+}
+
+export { getUsers, getUser, patchUser, getUserPhoto, getPublicUser, getPublicUsers };
