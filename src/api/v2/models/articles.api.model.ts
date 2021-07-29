@@ -4,6 +4,7 @@ import { Response } from 'express';
 import { EnumArticleStage, IArticle, IArticleDoc } from '../../../mongodb/articles.model';
 import { IProfile } from '../../../passport';
 import { slugify } from '../../../utils/slugify';
+import { ISettings } from '../../../mongodb/settings.model';
 
 // load environmental variables
 dotenv.config();
@@ -119,6 +120,18 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
   const authors = query.getAll('author').map((author) => parseInt(author)); // convert each string to an integer
   const page = parseInt(query.get('page')) || 1;
   const limit = parseInt(query.get('limit')) || 10;
+  const featured = Boolean(query.get('featured')) || false;
+
+  // get the ids of the featured articles
+  const featuredIds: mongoose.Types.ObjectId[] = [];
+  if (featured) {
+    const result = await mongoose.model<ISettings>('Settings').findOne({ name: 'featured-articles' });
+    const ids = result.setting as unknown as { [key: string]: string };
+    featuredIds.push(mongoose.Types.ObjectId(ids.first));
+    featuredIds.push(mongoose.Types.ObjectId(ids.second));
+    featuredIds.push(mongoose.Types.ObjectId(ids.third));
+    featuredIds.push(mongoose.Types.ObjectId(ids.fourth));
+  }
 
   try {
     const articles = Article.aggregate([
@@ -131,7 +144,13 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
       {
         $match: authors.length > 0 ? { 'people.authors': { $in: authors } } : {},
       },
-      { $sort: { 'timestamps.published_at': -1 } },
+      {
+        $match: featuredIds.length > 0 ? { _id: { $in: featuredIds } } : {},
+      },
+      {
+        $addFields: featuredIds.length > 0 ? { featured_order: { $indexOfArray: [featuredIds, '$_id'] } } : {},
+      },
+      { $sort: featuredIds.length > 0 ? { featured_order: 1 } : { 'timestamps.published_at': -1 } },
       {
         // replace author ids with full profiles from the users collection
         $lookup: {
