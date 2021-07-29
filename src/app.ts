@@ -215,6 +215,10 @@ app.use('/api/v2/gh/teams', teamsRouter);
 import { teamDiscussionsRouter } from './api/v2/routes/gh.teams.discussions.api.route';
 app.use('/api/v2/gh/teams/discussions', teamDiscussionsRouter);
 
+// settings api
+import { settingsRouter } from './api/v2/routes/settings.api.route';
+app.use('/api/v2/settings', settingsRouter);
+
 // get history of documents in mongodb that have history tracked
 import mongoose from 'mongoose';
 import { IArticleDoc } from './mongodb/articles.model';
