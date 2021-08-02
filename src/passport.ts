@@ -200,7 +200,7 @@ passport.use(
     ) => {
       try {
         const profile = await buildFullProfile(gitHubProfile, accessToken);
-        if (!profile.member_status) return done(new Error('NOT_ORG_MEMBER'));
+        if (!profile.member_status) return done(null, profile); // return profile without adding to db since it is not an org member
         await profileToDatabase(profile);
         return done(null, {
           ...profile,
