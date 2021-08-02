@@ -42,7 +42,6 @@ async function newPhoto(data: IPhoto, user: IProfile, res: Response = null): Pro
 async function getPhotos(user: IProfile, query: URLSearchParams, res: Response = null): Promise<void> {
   // expose history type to the filter
   const historyType = query.getAll('historyType');
-  console.log(historyType);
 
   // admin: full access
   // others: only get documents for which the user has access (by team or userID)

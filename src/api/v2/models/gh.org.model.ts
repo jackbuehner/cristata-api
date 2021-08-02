@@ -32,8 +32,6 @@ async function postOrgInvitation(user: IProfile, res: Response = null): Promise<
     (email) => email.includes('@thepaladin.news') || email.includes('@furman.edu')
   );
 
-  console.log(`${process.env.GITHUB_ADMIN_USERNAME}:${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`);
-
   if (approvedEmail) {
     axios
       .post(
