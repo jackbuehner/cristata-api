@@ -8,7 +8,7 @@ import { IProfile } from '../../../passport';
  * @param res expess response (optional; needed to tell client that request was recieved and handled)
  */
 function handleError(err: AxiosError, res: Response) {
-  console.log(err);
+  console.error(err);
   if (err.response) {
     // server responded 4xx/5xx error code
     console.error(err.response.data);
