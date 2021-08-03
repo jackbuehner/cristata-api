@@ -144,10 +144,13 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
         $match: authors.length > 0 ? { 'people.authors': { $in: authors } } : {},
       },
       {
-        $match: featuredIds.length > 0 ? { _id: { $in: featuredIds } } : {},
+        $match: featured && featuredIds.length > 0 ? { _id: { $in: featuredIds } } : {},
       },
       {
-        $addFields: featuredIds.length > 0 ? { featured_order: { $indexOfArray: [featuredIds, '$_id'] } } : {},
+        $addFields:
+          featuredIds.length > 0
+            ? { featured_order: { $indexOfArray: [featuredIds, '$_id'] } }
+            : { featured_order: null },
       },
       { $sort: featuredIds.length > 0 ? { featured_order: 1 } : { 'timestamps.published_at': -1 } },
       {
