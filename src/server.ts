@@ -30,6 +30,14 @@ const hocuspocus = Hocuspocus.configure({
     // when a request is made to the server, load the app
     app(request, response);
   },
+
+  // don't allow client to stay connect if it is out of date
+  onConnect: async ({ requestParameters }) => {
+    const isClientUpdated = requestParameters.get('version') >= process.env.CLIENT_MINIMUM_VERSION;
+    if (!isClientUpdated) {
+      throw 'Client out of date!';
+    }
+  },
 });
 
 // start the http server and hocuspocus websocket server
@@ -45,6 +53,9 @@ hocuspocus
       `Failed to start Cristata  server on port ${process.env.PORT}! Message: ${JSON.stringify(err)}`
     )
   );
+
+// keep errors silent
+process.on('unhandledRejection', () => null);
 
 // make the http server available as its own variable
 const { httpServer } = hocuspocus;
