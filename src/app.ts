@@ -28,6 +28,7 @@ const allowedOrigins = [
   'https://thepaladin.cristata.app',
   'https://thepaladin.news',
   'https://new.thepaladin.news',
+  'https://dev.thepaladin.news',
 ]; // allowed orgins
 app.use(
   cors({
