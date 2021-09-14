@@ -10,9 +10,7 @@ dotenv.config();
 
 // connect to mongoDB
 mongoose.connect(
-  process.env.NODE_ENV === 'production'
-    ? `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@editor0.htefm.mongodb.net/db_2?retryWrites=true&w=majority`
-    : `mongodb://127.0.0.1:27017/?retryWrites=true&w=majority`,
+  `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@editor0.htefm.mongodb.net/${process.env.MONGO_DB_NAME}?retryWrites=true&w=majority`,
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,

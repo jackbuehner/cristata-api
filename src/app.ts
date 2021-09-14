@@ -75,11 +75,7 @@ app.get(
   '/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/auth/error' }),
   (req: Request, res: Response) => {
-    const location =
-      process.env.NODE_ENV === 'production'
-        ? `https://thepaladin.cristata.app/sign-in`
-        : `http://localhost:3000/sign-in`;
-    res.redirect(location);
+    res.redirect(process.env.PASSPORT_REDIRECT);
   }
 );
 
@@ -100,11 +96,7 @@ app.get('/auth', (req: Request, res: Response) => {
 app.get('/auth/clear', (req: Request, res: Response) => {
   req.session = null;
   req.logout();
-  const location =
-    process.env.NODE_ENV === 'production'
-      ? `https://thepaladin.cristata.app/sign-in`
-      : `http://localhost:3000/sign-in`;
-
+  const location = `${process.env.BASE_DOMAIN_PROTOCOL}://${process.env.BASE_DOMAIN}/sign-in`;
   res.redirect(location);
 });
 
