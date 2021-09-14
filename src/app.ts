@@ -26,6 +26,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:4000',
   'https://thepaladin.cristata.app',
+  'https://thepaladin.dev.cristata.app',
   'https://thepaladin.news',
   'https://new.thepaladin.news',
   'https://dev.thepaladin.news',
