@@ -5,6 +5,8 @@ import { EnumArticleStage, IArticle, IArticleDoc } from '../../../mongodb/articl
 import { IProfile } from '../../../passport';
 import { slugify } from '../../../utils/slugify';
 import { ISettings } from '../../../mongodb/settings.model';
+import { IUserDoc } from '../../../mongodb/users.model';
+import { sendEmail } from '../../../utils/sendEmail';
 
 // load environmental variables
 dotenv.config();
@@ -107,6 +109,7 @@ const publicUnset = [
   'people.authors.__v',
   'people.authors.phone',
   'people.authors.versions',
+  'people.watching',
   'photoObj',
 ];
 
@@ -299,7 +302,8 @@ async function patchArticle(
   }
 
   // if the article's current state is uploaded or published, do not patch article unless user canPublish
-  const isUploaded = currentArticle.stage === (EnumArticleStage.UPLOADED || EnumArticleStage.PUBLISHED);
+  const isUploaded =
+    currentArticle.stage === (EnumArticleStage['Uploaded/Scheduled'] || EnumArticleStage.Published);
   if (isUploaded && !canPublish) {
     const err = 'you do not have permission to modify a published document';
     res.status(403).json({ message: err });
@@ -316,9 +320,9 @@ async function patchArticle(
   // determine the history type to set based on the stage or hidden status
   const historyType = data.hidden
     ? 'hidden'
-    : data.stage === EnumArticleStage.PUBLISHED
+    : data.stage === EnumArticleStage.Published
     ? 'published'
-    : data.stage === EnumArticleStage.UPLOADED
+    : data.stage === EnumArticleStage['Uploaded/Scheduled']
     ? 'uploaded'
     : 'patched';
 
@@ -341,18 +345,106 @@ async function patchArticle(
   };
 
   // update the publish time if the document is being published
-  if (data.stage === EnumArticleStage.PUBLISHED) {
+  if (data.stage === EnumArticleStage.Published) {
     data.timestamps.published_at = new Date().toISOString();
   }
 
   // set the slug if the document is being published and does not already have one
-  if (data.stage === EnumArticleStage.PUBLISHED && !data.slug) {
+  if (data.stage === EnumArticleStage.Published && !data.slug) {
     data.slug = slugify(data.name);
   }
 
   // attempt to patch the article
   try {
     await Article.updateOne(filter, { $set: data });
+    res ? res.status(200).send() : null;
+  } catch (error) {
+    console.error(error);
+    res ? res.status(400).json(error) : null;
+  }
+
+  // send email alerts to the watchers if the stage changes
+  if (data.people.watching && data.stage !== currentArticle.stage) {
+    // get emails of watchers
+    const watchersEmails = await Promise.all(
+      data.people.watching.map(async (github_id) => {
+        const profile = await mongoose.model<IUserDoc>('User').findOne({ github_id }); // get the profile, which may contain an email
+        return profile.email;
+      })
+    );
+
+    // send email
+    sendEmail(
+      watchersEmails,
+      `[Stage: ${EnumArticleStage[data.stage]}] ${data.name}`,
+      `
+        <h1 style="font-size: 20px;">
+          The Paladin Network
+        </h1>
+        <p>
+          The stage has been updated for an article you are watching on Cristata.
+          <br />
+          To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${id}">https://thepaladin.cristata.app/cms/item/articles/${id}</a>
+        </p>
+        <p>
+          <span>
+            <b>Headline: </b>
+            ${data.name}
+          </span>
+          <br />
+          <span>
+            <b>New Stage: </b>
+            ${EnumArticleStage[data.stage]}
+          </span>
+          <br />
+          <span>
+            <b>Unique ID: </b>
+            ${id}
+          </span>
+        </p>
+        <p style="color: #cccccc">
+          Powered by Cristata
+        </p>
+      `
+    );
+  }
+}
+
+/**
+ * Watch an article.
+ *
+ * @param id - the id of the article
+ * @param user - the patching user's profile
+ * @param watch - whether to watch the article
+ * @param res - the response for an HTTP request
+ */
+async function watchArticle(id: string, user: IProfile, watch: boolean, res: Response = null): Promise<void> {
+  // if the current document does not exist, do not continue
+  const currentArticle = await getArticle(id, 'id', user);
+  if (!currentArticle) {
+    const err = 'the existing document does not exist or you do not have access';
+    res.status(404).json({ message: err });
+    console.error(err);
+    return;
+  }
+
+  // admin: full access
+  // others: only watch documents for which the user has access (by team or userID)
+  const filter = user.teams.includes(adminTeamID)
+    ? { _id: id }
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+
+  // get the current watchers, and then modify the array to either include or exclude the user based on whether they want to watch the article
+  let watching = currentArticle.people.watching;
+  if (watch) {
+    watching = [...new Set([...currentArticle.people.watching, parseInt(user.id)])]; // adds the user to the array, and then removes duplicates
+  } else {
+    watching = currentArticle.people.watching.filter((github_id) => github_id !== parseInt(user.id));
+  }
+
+  // attempt to patch the article
+  try {
+    await Article.updateOne(filter, { $set: { 'people.watching': watching } });
     res ? res.status(200).send() : null;
   } catch (error) {
     console.error(error);
@@ -372,7 +464,8 @@ async function deleteArticle(id: string, user: IProfile, canPublish = false, res
   // if the article's current state is uploaded or published, do not patch article unless user canPublish
   const currentArticle = await getArticle(id, 'id', user);
   if (currentArticle) {
-    const isUploaded = currentArticle.stage === (EnumArticleStage.UPLOADED || EnumArticleStage.PUBLISHED);
+    const isUploaded =
+      currentArticle.stage === (EnumArticleStage['Uploaded/Scheduled'] || EnumArticleStage.Published);
     if (isUploaded && !canPublish) {
       const err = 'you do not have permission to modify a published document';
       res.status(403).json({ message: err });
@@ -419,6 +512,7 @@ export {
   getPublicArticle,
   getArticle,
   patchArticle,
+  watchArticle,
   deleteArticle,
   getStageCounts,
 };

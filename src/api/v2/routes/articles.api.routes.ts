@@ -11,6 +11,7 @@ import {
   newArticle,
   patchArticle,
   getStageCounts,
+  watchArticle,
 } from '../models/articles.api.model';
 const articlesRouter = Router();
 
@@ -96,7 +97,7 @@ async function handleAuth(
 
       // if the article stage is changing to published/uploaded OR it contains a published date, consider authorized only if user has publish permissions
       const isStageUploadedOrPublished =
-        req.body?.stage === (EnumArticleStage.UPLOADED || EnumArticleStage.PUBLISHED);
+        req.body?.stage === (EnumArticleStage['Uploaded/Scheduled'] || EnumArticleStage.Published);
       const hasPublishedTimestamp = req.body?.timestamps?.published ? true : false;
       if ((isStageUploadedOrPublished || hasPublishedTimestamp) && !canPublish) isAuthorized = false;
 
@@ -147,6 +148,9 @@ articlesRouter.get('/:id', async (req, res) =>
   handleAuth(req, res, 'get', (user) =>
     getArticle(req.params.id, req.query.by ? req.query.by.toString() : null, user, res)
   )
+);
+articlesRouter.patch('/:id/watch', async (req, res) =>
+  handleAuth(req, res, 'patch', (user) => watchArticle(req.params.id, user, req.body.watch, res))
 );
 articlesRouter.patch('/:id', async (req, res) =>
   handleAuth(req, res, 'patch', (user, canPublish) =>

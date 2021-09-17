@@ -16,14 +16,14 @@ enum Groups {
 
 // use these as the stages for articles
 enum Stage {
-  PLANNING = 1.1,
-  DRAFT = 2.1,
-  PENDING_EDITOR_REVIEW = 3.1,
-  PENDING_INTERVIEWEE_APPROVAL = 3.2,
-  PENDING_EDIT = 3.4,
-  PENDING_UPLOAD = 4.1,
-  UPLOADED = 5.1,
-  PUBLISHED = 5.2,
+  'Planning' = 1.1,
+  'Draft' = 2.1,
+  'Editor Review' = 3.1,
+  'Copy Edit' = 3.3,
+  'Writer/Editor Check' = 3.5,
+  'Upload Approval' = 4.1,
+  'Uploaded/Scheduled' = 5.1,
+  'Published' = 5.2,
 }
 
 // interface for each article
@@ -51,6 +51,7 @@ interface IArticle {
       primary?: GitHubUserID;
       copy?: GitHubUserID[];
     };
+    watching?: GitHubUserID[];
   };
   stage?: Stage;
   categories?: string[];
@@ -93,8 +94,9 @@ const ArticleSchemaFields: Record<keyof IArticle, unknown> = {
       primary: { type: [Number] },
       copy: { type: [Number] },
     },
+    watching: { type: [Number] },
   },
-  stage: { type: Number, default: Stage.PLANNING },
+  stage: { type: Number, default: Stage.Planning },
   categories: { type: [String] },
   tags: { type: [String] },
   description: { type: String, default: '' },
