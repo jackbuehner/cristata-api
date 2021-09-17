@@ -81,6 +81,10 @@ interface IProfile extends IGitHubProfile {
  * @returns full profile as a promise
  */
 async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: string): Promise<IProfile> {
+  // check if user is in the database
+  const User = mongoose.model<IUserDoc>('User'); // define model
+  const foundUser = await User.findOne({ github_id: parseInt(gitHubProfile.id) });
+
   // create the full profile
   // eslint-disable-next-line prefer-const
   let profile: IProfile = {
@@ -90,6 +94,8 @@ async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: stri
     accessToken: accessToken,
     two_factor_authentication: gitHubProfile._json.two_factor_authentication,
     emails: [],
+    _id: foundUser?._id,
+    displayName: foundUser?.name || gitHubProfile.displayName || gitHubProfile.username,
   };
 
   // set `_raw` and `_json` to undefined to reduce cookie size
@@ -204,7 +210,6 @@ passport.use(
         await profileToDatabase(profile);
         return done(null, {
           ...profile,
-          _id: (await mongoose.model<IUserDoc>('User').findOne({ github_id: parseInt(profile.id) }))?._id,
         });
       } catch (error) {
         console.error(error);
