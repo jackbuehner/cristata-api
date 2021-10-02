@@ -4,6 +4,7 @@ import './articles.model';
 import './photoRequests.model';
 import './photos.model';
 import './settings.model';
+import './shorturl.model';
 
 // load environmental variables
 dotenv.config();

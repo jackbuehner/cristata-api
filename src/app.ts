@@ -156,6 +156,10 @@ app.use('/api/v2/photo-requests', photoRequestsRouter);
 import { photosRouter } from './api/v2/routes/photos.api.route';
 app.use('/api/v2/photos', photosRouter);
 
+// short urls api
+import { shorturlRouter } from './api/v2/routes/shorturl.api.route';
+app.use('/api/v2/shorturl', shorturlRouter);
+
 // get signed s3 url
 import aws from 'aws-sdk';
 app.get('/api/v2/sign-s3', (req: Request, res: Response) => {
