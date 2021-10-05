@@ -344,9 +344,12 @@ async function patchArticle(
       : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
   };
 
-  // update the publish time if the document is being published
+  // update the publish time if the document is being published for the first time
   if (data.stage === EnumArticleStage.Published) {
-    data.timestamps.published_at = new Date().toISOString();
+    if (!currentArticle.timestamps.published_at && !data.timestamps.published_at) {
+      // if the client did not provide a publish time and the article was not already published
+      data.timestamps.published_at = new Date().toISOString();
+    }
   }
 
   // set the slug if the document is being published and does not already have one
