@@ -37,6 +37,7 @@ interface ISatire {
     created_at?: string; // ISO string
     modified_at?: string; // ISO string
     published_at?: string; // ISO string
+    updated_at?: string; // ISO string
     target_publish_at?: string; // ISO string
   };
   people: {
@@ -78,6 +79,7 @@ const SatireSchemaFields: Record<keyof ISatire, unknown> = {
     created_at: { type: Date, default: new Date().toISOString() },
     modified_at: { type: Date, default: new Date().toISOString() },
     published_at: { type: Date, default: '0001-01-01T01:00:00.000+00:00' },
+    updated_at: { type: Date, default: '0001-01-01T01:00:00.000+00:00' },
     target_publish_at: { type: Date, default: '0001-01-01T01:00:00.000+00:00' },
   },
   people: {
