@@ -126,6 +126,9 @@ async function getPublicSatires(query: URLSearchParams, res: Response = null): P
       {
         $match: authors.length > 0 ? { 'people.authors': { $in: authors } } : {},
       },
+      {
+        $match: { 'timestamps.published_at': { $lt: new Date() } },
+      },
       { $sort: { 'timestamps.published_at': -1 } },
       {
         $unset: publicUnset,
@@ -150,6 +153,9 @@ async function getPublicSatire(slug: string, res: Response = null): Promise<void
     const satire = await Satire.aggregate([
       {
         $match: { slug: slug, stage: 5.2 },
+      },
+      {
+        $match: { 'timestamps.published_at': { $lt: new Date() } },
       },
       { $sort: { 'timestamps.published_at': -1 } },
       { $limit: 1 },

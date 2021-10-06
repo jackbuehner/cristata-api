@@ -150,6 +150,9 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
         $match: featured && featuredIds.length > 0 ? { _id: { $in: featuredIds } } : {},
       },
       {
+        $match: { 'timestamps.published_at': { $lt: new Date() } },
+      },
+      {
         $addFields:
           featuredIds.length > 0
             ? { featured_order: { $indexOfArray: [featuredIds, '$_id'] } }
@@ -203,6 +206,9 @@ async function getPublicArticle(slug: string, res: Response = null): Promise<voi
     const article = await Article.aggregate([
       {
         $match: { slug: slug, stage: 5.2 },
+      },
+      {
+        $match: { 'timestamps.published_at': { $lt: new Date() } },
       },
       { $sort: { 'timestamps.published_at': -1 } },
       { $limit: 1 },
