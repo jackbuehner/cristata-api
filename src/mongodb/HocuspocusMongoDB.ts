@@ -14,6 +14,7 @@ import {
 
 import { applyUpdate, encodeStateAsUpdate } from 'yjs';
 import { MongodbPersistence } from 'y-mongodb';
+import { config } from '../config';
 
 export class HocuspocusMongoDB implements Extension {
   provider: MongodbPersistence;
@@ -22,10 +23,12 @@ export class HocuspocusMongoDB implements Extension {
    * Constructor
    */
   constructor() {
+    // destructure connection info from config
+    const { username, password, host, database, options } = config.database.connection;
+
+    // set the provider database and collection
     this.provider = new MongodbPersistence(
-      process.env.NODE_ENV === 'production'
-        ? `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@editor0.htefm.mongodb.net/db_2?retryWrites=true&w=majority`
-        : `mongodb://127.0.0.1:27017/?retryWrites=true&w=majority`,
+      `mongodb+srv://${username}:${password}@${host}/${database}?${options}`,
       'hocuspocus'
     );
   }

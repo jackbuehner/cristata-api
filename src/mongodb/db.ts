@@ -1,21 +1,18 @@
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { config } from '../config';
 import './articles.model';
 import './photoRequests.model';
 import './photos.model';
 import './settings.model';
 import './shorturl.model';
 
-// load environmental variables
-dotenv.config();
+// destructure connection info from config
+const { username, password, host, database, options } = config.database.connection;
 
 // connect to mongoDB
-mongoose.connect(
-  `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@editor0.htefm.mongodb.net/${process.env.MONGO_DB_NAME}?retryWrites=true&w=majority`,
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-    useCreateIndex: true,
-  }
-);
+mongoose.connect(`mongodb+srv://${username}:${password}@${host}/${database}?${options}`, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true,
+});
