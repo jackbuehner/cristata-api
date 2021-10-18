@@ -163,17 +163,11 @@ async function profileToDatabase(profile: IProfile) {
       const userAlreadyExists = !!foundUser;
 
       if (userAlreadyExists) {
-        User.updateOne(
-          { github_id: parseInt(profile.id) },
-          {
-            $set: {
-              name: profile.displayName || profile.username,
-              teams: profile.teams,
-              timestamps: { ...foundUser.timestamps, last_login_at: new Date().toISOString() },
-              slug: slugify(profile.displayName || profile.username),
-            },
-          }
-        );
+        if (profile.displayName !== foundUser.name) foundUser.name = profile.displayName;
+        if (!foundUser.slug) foundUser.slug = slugify(profile.displayName || profile.username);
+        foundUser.teams = profile.teams;
+        foundUser.timestamps = { ...foundUser.timestamps, last_login_at: new Date().toISOString() };
+        foundUser.save();
       } else {
         // create a new user based on the github profile
         const user = new User({
