@@ -167,6 +167,9 @@ async function profileToDatabase(profile: IProfile) {
         if (!foundUser.slug) foundUser.slug = slugify(profile.displayName || profile.username);
         foundUser.teams = profile.teams;
         foundUser.timestamps = { ...foundUser.timestamps, last_login_at: new Date().toISOString() };
+        foundUser.email =
+          profile.emails.find((email) => email.includes('@thepaladin.news')) ||
+          profile.emails.find((email) => email.includes('@furman.edu'));
         foundUser.save();
       } else {
         // create a new user based on the github profile
@@ -176,6 +179,9 @@ async function profileToDatabase(profile: IProfile) {
           teams: profile.teams,
           timestamps: { last_login_at: new Date().toISOString() },
           slug: slugify(profile.displayName || profile.username),
+          email:
+            profile.emails.find((email) => email.includes('@thepaladin.news')) ||
+            profile.emails.find((email) => email.includes('@furman.edu')),
         });
         await user.save();
       }
