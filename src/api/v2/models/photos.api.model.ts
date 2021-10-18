@@ -43,16 +43,16 @@ async function getPhotos(user: IProfile, query: URLSearchParams, res: Response =
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
-  // admin: full access
-  // others: only get documents for which the user has access (by team or userID)
-  const filter: Record<string, unknown> = {};
-  if (historyType.length > 0) {
-    filter.history = { $elemMatch: { type: { $in: historyType } } };
-  }
-
   // attempt to get all photos
   try {
-    const photos = await Photo.find(filter);
+    const photos = await Photo.aggregate([
+      // filter by history type if defined
+      {
+        $match: historyType.length > 0 ? { history: { $elemMatch: { type: { $in: historyType } } } } : {},
+      },
+      // sort with newest docs first
+      { $sort: { 'timestamps.created_at': -1 } },
+    ]);
     res ? res.json(photos) : null;
   } catch (error) {
     console.error(error);
