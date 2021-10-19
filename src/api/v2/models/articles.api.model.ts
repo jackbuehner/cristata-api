@@ -442,9 +442,9 @@ async function patchArticle(
               The Paladin Network
             </h1>
             <p>
-              The stage has been updated for an article you are watching on Cristata.
+              The stage has been changed for an article you are watching on Cristata.
               <br />
-              To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${id}">https://thepaladin.cristata.app/cms/item/articles/${id}</a>
+              To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${id}">https://thepaladin.cristata.app/cms/item/articles/${id}</a>.
             </p>
             <p>
               <span>
