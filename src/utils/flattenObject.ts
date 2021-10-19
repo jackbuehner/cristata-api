@@ -6,9 +6,13 @@
  * @param sep the spearator to go between each root
  * @returns flattened object
  */
-function flattenObject(obj: { [key: string]: any }, roots: string[] = [], sep = '.') {
+function flattenObject(
+  obj: { [key: string]: never },
+  roots: string[] = [],
+  sep = '.'
+): { [key: string]: never } {
   // store the flattened object
-  let flattened: { [key: string]: any } = {};
+  const flattened: { [key: string]: never } = {};
 
   // iterate through each key
   Object.keys(obj).forEach((key) => {

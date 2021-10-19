@@ -87,7 +87,7 @@ shorturlRouter.post('/', async (req, res) =>
 );
 shorturlRouter.get('/', async (req, res) => handleAuth(req, res, 'get', () => getShortURLs(res)));
 shorturlRouter.get('/:code', async (req, res) =>
-  handleAuth(req, res, 'get', (user) => getShortURL(req.params.code, res))
+  handleAuth(req, res, 'get', () => getShortURL(req.params.code, res))
 );
 shorturlRouter.patch('/:code', async (req, res) =>
   handleAuth(req, res, 'patch', (user) => patchShortURL(req.params.code, req.body, user, res))

@@ -24,7 +24,7 @@ function sendEmail(
   subject: string,
   message: string,
   from = process.env.EMAIL_DEFAULT_FROM
-) {
+): void {
   const params = {
     Destination: {
       ToAddresses: typeof to === 'string' ? [to] : to,
@@ -44,7 +44,7 @@ function sendEmail(
     ReturnPath: from,
     Source: from,
   };
-  ses.sendEmail(params, (err, data) => {
+  ses.sendEmail(params, (err) => {
     if (err) {
       return console.error(err, err.stack);
     }
