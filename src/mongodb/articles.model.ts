@@ -49,7 +49,7 @@ interface IArticle {
     published_by?: GitHubUserID[];
     authors?: GitHubUserID[];
     editors?: {
-      primary?: GitHubUserID;
+      primary?: GitHubUserID[];
       copy?: GitHubUserID[];
     };
     watching?: GitHubUserID[];
