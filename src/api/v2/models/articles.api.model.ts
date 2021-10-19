@@ -7,6 +7,8 @@ import { slugify } from '../../../utils/slugify';
 import { ISettings } from '../../../mongodb/settings.model';
 import { IUserDoc } from '../../../mongodb/users.model';
 import { sendEmail } from '../../../utils/sendEmail';
+import { flattenObject } from '../../../utils/flattenObject';
+import { replaceGithubIdWithUserObj } from '../helpers';
 
 // load environmental variables
 dotenv.config();
@@ -66,18 +68,35 @@ async function getArticles(user: IProfile, query: URLSearchParams, res: Response
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
-  // admin: full access
-  // others: only get documents for which the user has access (by team or userID)
-  const filter: Record<string, unknown> = user.teams.includes(adminTeamID)
-    ? {}
-    : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
-  if (historyType.length > 0) {
-    filter.history = { $elemMatch: { type: { $in: historyType } } };
-  }
+  // aggregation pipline
+  const pipeline = [
+    {
+      // admin: full access
+      // others: only get documents for which the user has access (by team or userID)
+      $match: user.teams.includes(adminTeamID)
+        ? {}
+        : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] },
+    },
+    // filter by history type if defined
+    {
+      $match: historyType.length > 0 ? { history: { $elemMatch: { type: { $in: historyType } } } } : {},
+    },
+    // replace user ids in the people object with full profiles from the users colletion
+    ...replaceGithubIdWithUserObj(
+      [
+        ...new Set(
+          Object.keys(flattenObject(Article.schema.obj))
+            .filter((key) => key.includes('people'))
+            .map((key) => key.replace('.type', '').replace('.default', ''))
+        ),
+      ],
+      'Article'
+    ),
+  ];
 
   // attempt to get all articles
   try {
-    const articles = await Article.find(filter);
+    const articles = await Article.aggregate(pipeline);
     res ? res.json(articles) : null;
   } catch (error) {
     console.error(error);
@@ -262,19 +281,42 @@ async function getArticle(id: string, by: string, user: IProfile, res: Response 
   // admin: full access
   // others: only get documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
-    ? { [method]: id }
-    : { [method]: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    ? { [method]: method === '_id' ? new mongoose.Types.ObjectId(id) : id }
+    : {
+        [method]: method === '_id' ? new mongoose.Types.ObjectId(id) : id,
+        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }],
+      };
 
   // not found message
   const noMatchMessage = user.teams.includes(adminTeamID)
     ? 'document does not exist'
     : 'document does not exist or you do not have access';
 
+  // aggregation pipline
+  const pipeline = [
+    {
+      // admin: full access
+      // others: only get documents for which the user has access (by team or userID)
+      $match: filter,
+    },
+    // replace user ids in the people object with full profiles from the users colletion
+    ...replaceGithubIdWithUserObj(
+      [
+        ...new Set(
+          Object.keys(flattenObject(Article.schema.obj))
+            .filter((key) => key.includes('people'))
+            .map((key) => key.replace('.type', '').replace('.default', ''))
+        ),
+      ],
+      'Article'
+    ),
+  ];
+
   // get the article
   try {
-    const article = await Article.findOne(filter);
-    res ? (article ? res.json(article) : res.status(404).json({ message: noMatchMessage })) : null;
-    return article;
+    const articles = await Article.aggregate(pipeline);
+    if (res) articles?.length > 0 ? res.json(articles[0]) : res.status(404).json({ message: noMatchMessage });
+    return await Article.findOne(filter);
   } catch (error) {
     console.error(error);
     res ? res.status(400).json(error) : null;
