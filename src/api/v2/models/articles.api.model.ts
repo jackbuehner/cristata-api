@@ -378,17 +378,22 @@ async function patchArticle(
   data = {
     ...data,
     people: {
+      ...currentArticle.people,
       ...data.people,
-      modified_by: [...new Set([...data.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
+      modified_by: [...new Set([...currentArticle.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
       last_modified_by: parseInt(user.id),
     },
     timestamps: {
+      ...currentArticle.timestamps,
       ...data.timestamps,
       modified_at: new Date().toISOString(),
     },
     // set history data
-    history: data.history
-      ? [...data.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
+    history: currentArticle.history
+      ? [
+          ...currentArticle.history,
+          { type: historyType, user: parseInt(user.id), at: new Date().toISOString() },
+        ]
       : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
   };
 
@@ -415,7 +420,7 @@ async function patchArticle(
   }
 
   // send email alerts to the watchers if the stage changes
-  if (data.people.watching && data.stage !== currentArticle.stage) {
+  if (data.people.watching && data.stage && data.stage !== currentArticle.stage) {
     // get emails of watchers
     const watchersEmails = await Promise.all(
       data.people.watching.map(async (github_id) => {
@@ -427,7 +432,7 @@ async function patchArticle(
     // send email
     sendEmail(
       watchersEmails,
-      `[Stage: ${EnumArticleStage[data.stage]}] ${data.name}`,
+      `[Stage: ${EnumArticleStage[data.stage]}] ${data.name || currentArticle.name}`,
       `
         <h1 style="font-size: 20px;">
           The Paladin Network
@@ -440,7 +445,7 @@ async function patchArticle(
         <p>
           <span>
             <b>Headline: </b>
-            ${data.name}
+            ${data.name || currentArticle.name}
           </span>
           <br />
           <span>

@@ -102,25 +102,27 @@ async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Respons
     return;
   }
 
+  // determine the history type to set based on the hidden status
+  const historyType = data.hidden ? 'hidden' : 'patched';
+
   // set modified_at, modified_by, and last_modified_by
   data = {
     ...data,
     people: {
+      ...currentPhoto.people,
       ...data.people,
-      modified_by: [...new Set([...data.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
+      modified_by: [...new Set([...currentPhoto.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
       last_modified_by: parseInt(user.id),
     },
     timestamps: {
+      ...currentPhoto.timestamps,
       ...data.timestamps,
       modified_at: new Date().toISOString(),
     },
     // set history data
-    history: data.history
-      ? [
-          ...data.history,
-          { type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id), at: new Date().toISOString() },
-        ]
-      : [{ type: data.hidden ? 'hidden' : 'patched', user: parseInt(user.id), at: new Date().toISOString() }],
+    history: currentPhoto.history
+      ? [...currentPhoto.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
+      : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
   };
 
   // attempt to patch the article

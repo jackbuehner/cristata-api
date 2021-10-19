@@ -309,17 +309,19 @@ async function patchSatire(
   data = {
     ...data,
     people: {
+      ...currentSatire.people,
       ...data.people,
-      modified_by: [...new Set([...data.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
+      modified_by: [...new Set([...currentSatire.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
       last_modified_by: parseInt(user.id),
     },
     timestamps: {
+      ...currentSatire.timestamps,
       ...data.timestamps,
       modified_at: new Date().toISOString(),
     },
     // set history data
-    history: data.history
-      ? [...data.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
+    history: currentSatire.history
+      ? [...currentSatire.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
       : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
   };
 
