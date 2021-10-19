@@ -92,7 +92,7 @@ async function getSatires(user: IProfile, query: URLSearchParams, res: Response 
       [
         ...new Set(
           Object.keys(flattenObject(Satire.schema.obj))
-            .filter((key) => key.includes('people'))
+            .filter((key) => key.includes('people') && !key.includes('display_authors'))
             .map((key) => key.replace('.type', '').replace('.default', ''))
         ),
       ],
@@ -236,7 +236,7 @@ async function getSatire(id: string, by: string, user: IProfile, res: Response =
       [
         ...new Set(
           Object.keys(flattenObject(Satire.schema.obj))
-            .filter((key) => key.includes('people'))
+            .filter((key) => key.includes('people') && !key.includes('display_authors'))
             .map((key) => key.replace('.type', '').replace('.default', ''))
         ),
       ],
