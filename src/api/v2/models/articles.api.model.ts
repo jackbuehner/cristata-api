@@ -339,101 +339,97 @@ async function patchArticle(
   canPublish = false,
   res: Response = null
 ): Promise<void> {
-  // if the current document does not exist, do not continue (use POST to create an document)
-  const currentArticle = await getArticle(id, 'id', user);
-  if (!currentArticle) {
-    const err =
-      'the existing document does not exist or you do not have access. If you are trying to create a document, use the POST method';
-    res.status(404).json({ message: err });
-    console.error(err);
-    return;
-  }
-
-  // if the article's current state is uploaded or published, do not patch article unless user canPublish
-  const isUploaded =
-    currentArticle.stage === (EnumArticleStage['Uploaded/Scheduled'] || EnumArticleStage.Published);
-  if (isUploaded && !canPublish) {
-    const err = 'you do not have permission to modify a published document';
-    res.status(403).json({ message: err });
-    console.error(err);
-    return;
-  }
-
-  // admin: full access
-  // others: only patch documents for which the user has access (by team or userID)
-  const filter = user.teams.includes(adminTeamID)
-    ? { _id: id }
-    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
-
-  // determine the history type to set based on the stage or hidden status
-  const historyType = data.hidden
-    ? 'hidden'
-    : data.stage === EnumArticleStage.Published
-    ? 'published'
-    : data.stage === EnumArticleStage['Uploaded/Scheduled']
-    ? 'uploaded'
-    : 'patched';
-
-  // set modified_at, modified_by, and last_modified_by
-  data = {
-    ...data,
-    people: {
-      ...currentArticle.people,
-      ...data.people,
-      modified_by: [...new Set([...currentArticle.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
-      last_modified_by: parseInt(user.id),
-    },
-    timestamps: {
-      ...currentArticle.timestamps,
-      ...data.timestamps,
-      modified_at: new Date().toISOString(),
-    },
-    // set history data
-    history: currentArticle.history
-      ? [
-          ...currentArticle.history,
-          { type: historyType, user: parseInt(user.id), at: new Date().toISOString() },
-        ]
-      : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
-  };
-
-  // update the publish time if the document is being published for the first time
-  if (data.stage === EnumArticleStage.Published) {
-    if (!currentArticle.timestamps.published_at && !data.timestamps.published_at) {
-      // if the client did not provide a publish time and the article was not already published
-      data.timestamps.published_at = new Date().toISOString();
-    }
-  }
-
-  // set the slug if the document is being published and does not already have one
-  if (data.stage === EnumArticleStage.Published && !data.slug) {
-    data.slug = slugify(data.name);
-  }
-
-  // attempt to patch the article
   try {
+    // if the current document does not exist, do not continue (use POST to create an document)
+    const currentArticle = await getArticle(id, 'id', user);
+    if (!currentArticle) {
+      const err =
+        'the existing document does not exist or you do not have access. If you are trying to create a document, use the POST method';
+      res.status(404).json({ message: err });
+      console.error(err);
+      return;
+    }
+
+    // if the article's current state is uploaded or published, do not patch article unless user canPublish
+    const isUploaded =
+      currentArticle.stage === (EnumArticleStage['Uploaded/Scheduled'] || EnumArticleStage.Published);
+    if (isUploaded && !canPublish) {
+      const err = 'you do not have permission to modify a published document';
+      res.status(403).json({ message: err });
+      console.error(err);
+      return;
+    }
+
+    // admin: full access
+    // others: only patch documents for which the user has access (by team or userID)
+    const filter = user.teams.includes(adminTeamID)
+      ? { _id: id }
+      : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+
+    // determine the history type to set based on the stage or hidden status
+    const historyType = data.hidden
+      ? 'hidden'
+      : data.stage === EnumArticleStage.Published
+      ? 'published'
+      : data.stage === EnumArticleStage['Uploaded/Scheduled']
+      ? 'uploaded'
+      : 'patched';
+
+    // set modified_at, modified_by, and last_modified_by
+    data = {
+      ...data,
+      people: {
+        ...currentArticle.people,
+        ...data.people,
+        modified_by: [...new Set([...currentArticle.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
+        last_modified_by: parseInt(user.id),
+      },
+      timestamps: {
+        ...currentArticle.timestamps,
+        ...data.timestamps,
+        modified_at: new Date().toISOString(),
+      },
+      // set history data
+      history: currentArticle.history
+        ? [
+            ...currentArticle.history,
+            { type: historyType, user: parseInt(user.id), at: new Date().toISOString() },
+          ]
+        : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+    };
+
+    // update the publish time if the document is being published for the first time
+    if (data.stage === EnumArticleStage.Published) {
+      if (!currentArticle.timestamps.published_at && !data.timestamps.published_at) {
+        // if the client did not provide a publish time and the article was not already published
+        data.timestamps.published_at = new Date().toISOString();
+      }
+    }
+
+    // set the slug if the document is being published and does not already have one
+    if (data.stage === EnumArticleStage.Published && !data.slug) {
+      data.slug = slugify(data.name || currentArticle.name);
+    }
+
+    // attempt to patch the article
     await Article.updateOne(filter, { $set: data });
     res ? res.status(200).send() : null;
-  } catch (error) {
-    console.error(error);
-    res ? res.status(400).json(error) : null;
-  }
 
-  // send email alerts to the watchers if the stage changes
-  if (data.people.watching && data.stage && data.stage !== currentArticle.stage) {
-    // get emails of watchers
-    const watchersEmails = await Promise.all(
-      data.people.watching.map(async (github_id) => {
-        const profile = await mongoose.model<IUserDoc>('User').findOne({ github_id }); // get the profile, which may contain an email
-        return profile.email;
-      })
-    );
+    // send email alerts to the watchers if the stage changes
+    if (data.people.watching && data.stage && data.stage !== currentArticle.stage) {
+      // get emails of watchers
+      const watchersEmails = await Promise.all(
+        data.people.watching.map(async (github_id) => {
+          const profile = await mongoose.model<IUserDoc>('User').findOne({ github_id }); // get the profile, which may contain an email
+          return profile.email;
+        })
+      );
 
-    // send email
-    sendEmail(
-      watchersEmails,
-      `[Stage: ${EnumArticleStage[data.stage]}] ${data.name || currentArticle.name}`,
-      `
+      // send email
+      sendEmail(
+        watchersEmails,
+        `[Stage: ${EnumArticleStage[data.stage]}] ${data.name || currentArticle.name}`,
+        `
         <h1 style="font-size: 20px;">
           The Paladin Network
         </h1>
@@ -462,7 +458,11 @@ async function patchArticle(
           Powered by Cristata
         </p>
       `
-    );
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    res ? res.status(400).json(error) : null;
   }
 }
 
