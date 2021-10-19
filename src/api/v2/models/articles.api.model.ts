@@ -419,45 +419,74 @@ async function patchArticle(
     if (data.people.watching && data.stage && data.stage !== currentArticle.stage) {
       // get emails of watchers
       const watchersEmails = await Promise.all(
-        data.people.watching.map(async (github_id) => {
+        (data.people.watching || currentArticle.people.watching).map(async (github_id) => {
           const profile = await mongoose.model<IUserDoc>('User').findOne({ github_id }); // get the profile, which may contain an email
           return profile.email;
         })
       );
 
+      // get emails of authors and primary editors (if there are any) - mandatory watchers
+      const mandatoryWatchersEmails = await Promise.all(
+        [
+          ...(data.people.authors || currentArticle.people.authors),
+          ...(data.people.editors?.primary || currentArticle.people.editors?.primary),
+        ].map(async (github_id) => {
+          const profile = await mongoose.model<IUserDoc>('User').findOne({ github_id }); // get the profile, which may contain an email
+          return profile.email;
+        })
+      );
+
+      const email = (reason?: string) => {
+        return `
+            <h1 style="font-size: 20px;">
+              The Paladin Network
+            </h1>
+            <p>
+              The stage has been updated for an article you are watching on Cristata.
+              <br />
+              To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${id}">https://thepaladin.cristata.app/cms/item/articles/${id}</a>
+            </p>
+            <p>
+              <span>
+                <b>Headline: </b>
+                ${data.name || currentArticle.name}
+              </span>
+              <br />
+              <span>
+                <b>New Stage: </b>
+                ${EnumArticleStage[data.stage]}
+              </span>
+              <br />
+              <span>
+                <b>Unique ID: </b>
+                ${id}
+              </span>
+            </p>
+            ${
+              reason
+                ? `
+                  <p style="color: #888888">
+                    You receievd this email because ${reason}.
+                  </p>
+                `
+                : ''
+            }
+            <p style="color: #aaaaaa">
+              Powered by Cristata
+            </p>
+          `;
+      };
+
       // send email
       sendEmail(
         watchersEmails,
         `[Stage: ${EnumArticleStage[data.stage]}] ${data.name || currentArticle.name}`,
-        `
-        <h1 style="font-size: 20px;">
-          The Paladin Network
-        </h1>
-        <p>
-          The stage has been updated for an article you are watching on Cristata.
-          <br />
-          To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${id}">https://thepaladin.cristata.app/cms/item/articles/${id}</a>
-        </p>
-        <p>
-          <span>
-            <b>Headline: </b>
-            ${data.name || currentArticle.name}
-          </span>
-          <br />
-          <span>
-            <b>New Stage: </b>
-            ${EnumArticleStage[data.stage]}
-          </span>
-          <br />
-          <span>
-            <b>Unique ID: </b>
-            ${id}
-          </span>
-        </p>
-        <p style="color: #cccccc">
-          Powered by Cristata
-        </p>
-      `
+        email(`you clicked the 'Watch" button for this article in Cristata`)
+      );
+      sendEmail(
+        mandatoryWatchersEmails,
+        `[Stage: ${EnumArticleStage[data.stage]}] ${data.name || currentArticle.name}`,
+        email(`you are an are an author or editor for this article`)
       );
     }
   } catch (error) {
