@@ -66,7 +66,16 @@ const PhotoRequestSchemaFields: Record<keyof IPhotoRequest, unknown> = {
   versions: { type: {} },
   article_id: { type: String, default: '' },
   hidden: { type: Boolean, default: false },
-  history: { type: { type: String, user: Number, at: { type: Date, default: new Date().toISOString() } } },
+  history: [
+    {
+      type: { type: String },
+      user: { type: Number },
+      at: {
+        type: Date,
+        default: new Date().toISOString(),
+      },
+    },
+  ],
 };
 
 // mongoose schema for each article
