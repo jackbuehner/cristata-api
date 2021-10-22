@@ -75,7 +75,7 @@ async function getArticles(user: IProfile, query: URLSearchParams, res: Response
       // others: only get documents for which the user has access (by team or userID)
       $match: user.teams.includes(adminTeamID)
         ? {}
-        : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] },
+        : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': parseInt(user.id) }] },
     },
     // filter by history type if defined
     {
@@ -284,7 +284,7 @@ async function getArticle(id: string, by: string, user: IProfile, res: Response 
     ? { [method]: method === '_id' ? new mongoose.Types.ObjectId(id) : id }
     : {
         [method]: method === '_id' ? new mongoose.Types.ObjectId(id) : id,
-        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }],
+        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': parseInt(user.id) }],
       };
 
   // not found message
