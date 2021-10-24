@@ -160,6 +160,10 @@ app.use('/api/v2/photos', photosRouter);
 import { shorturlRouter } from './api/v2/routes/shorturl.api.route';
 app.use('/api/v2/shorturl', shorturlRouter);
 
+// royal flush api
+import { flushRouter } from './api/v2/routes/flush.api.route';
+app.use('/api/v2/flush', flushRouter);
+
 // get signed s3 url
 import aws from 'aws-sdk';
 app.get('/api/v2/sign-s3', (req: Request, res: Response) => {

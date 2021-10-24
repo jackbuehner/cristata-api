@@ -5,6 +5,7 @@ import './photoRequests.model';
 import './photos.model';
 import './settings.model';
 import './shorturl.model';
+import './flush.model';
 
 // destructure connection info from config
 const { username, password, host, database, options } = config.database.connection;
