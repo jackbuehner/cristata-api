@@ -30,6 +30,9 @@ const hocuspocus = Hocuspocus.configure({
   onRequest: async ({ request, response }) => {
     // when a request is made to the server, load the app
     app(request, response);
+  },
+
+  onListen: async () => {
     apollo(app, hocuspocus.httpServer);
   },
 
