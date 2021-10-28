@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 // load environmental variables
 dotenv.config();
 
-const _database = {
+const database = {
   connection: {
     username: process.env.MONGO_DB_USERNAME,
     password: process.env.MONGO_DB_PASSWORD,
@@ -13,4 +13,4 @@ const _database = {
   },
 };
 
-export { _database };
+export { database };

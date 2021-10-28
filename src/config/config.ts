@@ -1,4 +1,4 @@
-import { _database as database } from './_database';
+import { database } from './database';
 
 const config = {
   database,
