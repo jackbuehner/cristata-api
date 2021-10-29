@@ -19,6 +19,32 @@ mongoose.connect(`mongodb+srv://${username}:${password}@${host}/${database}?${op
   useCreateIndex: true,
 });
 
+type GitHubTeamNodeID = string;
+type GitHubUserID = number;
+interface CollectionSchemaFields {
+  timestamps: {
+    created_at: string; // ISO string
+    modified_at: string; // ISO string
+    published_at: string; // ISO string
+    updated_at: string; // ISO string
+  };
+  people: {
+    created_by?: GitHubUserID;
+    modified_by: GitHubUserID[]; // mongoose always returns at least an empty array
+    last_modified_by?: GitHubUserID;
+    published_by: GitHubUserID[]; // mongoose always returns at least an empty array
+    last_published_by?: GitHubUserID;
+    watching: GitHubUserID[]; // mongoose always returns at least an empty array
+  };
+  hidden: boolean;
+  locked: boolean;
+  history: Array<{
+    type: string;
+    user: GitHubUserID;
+    at: string; // ISO string
+  }>;
+}
+
 // schema fields to include in every collection
 const collectionSchemaFields = {
   timestamps: {
@@ -57,3 +83,5 @@ config.database.collections.forEach((collection) => {
   // create the model based on the schema
   mongoose.model(collection.name, Schema);
 });
+
+export type { CollectionSchemaFields, GitHubUserID, GitHubTeamNodeID };
