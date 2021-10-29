@@ -37,6 +37,8 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
+    "@graphql-tools/schema": "^8.3.1",
+    "@graphql-tools/utils": "^8.5.1",
     "@hocuspocus/extension-rocksdb": "^1.0.0-alpha.59",
     "@hocuspocus/server": "^1.0.0-alpha.58",
     "apollo-server-core": "^3.4.0",
@@ -49,7 +51,9 @@
     "express": "^4.17.1",
     "express-github-webhook": "^1.0.6",
     "graphql": "^15.7.1",
+    "graphql-s2s": "^0.22.0",
     "http-proxy-middleware": "^2.0.0",
+    "merge-anything": "^4.0.1",
     "mongoose": "^5.12.15",
     "mongoose-aggregate-paginate-v2": "^1.0.42",
     "nanoid": "^3.1.28",

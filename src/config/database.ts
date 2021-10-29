@@ -1,3 +1,4 @@
+import { IResolvers } from '@graphql-tools/utils';
 import dotenv from 'dotenv';
 
 // load environmental variables
@@ -11,6 +12,15 @@ const database = {
     database: process.env.MONGO_DB_NAME,
     options: `retryWrites=true&w=majority`,
   },
+  collections: [],
 };
 
+interface Collection {
+  name: string;
+  typeDefs: string;
+  resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
+  schemaFields: Record<string, unknown>;
+}
+
+export type { Collection };
 export { database };

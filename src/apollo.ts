@@ -1,23 +1,99 @@
-import { ApolloServer as Apollo, gql } from 'apollo-server-express';
-import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
+import { ApolloServerPluginDrainHttpServer, AuthenticationError, ContextFunction } from 'apollo-server-core';
 import { Server } from 'http';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 import { Application } from 'express';
+import { GraphQLScalarType } from 'graphql';
+import { config } from './config';
+import mongoose from 'mongoose';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { graphqls2s } from 'graphql-s2s';
+import { IResolvers } from '@graphql-tools/utils';
+import { IProfile } from './passport';
+import { merge } from 'merge-anything';
+export const gql = (s: TemplateStringsArray): string => `${s}`;
 
-// A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
-const typeDefs = gql`
+const dateScalar = new GraphQLScalarType({
+  name: 'Date',
+  description: 'ISO date string scalar type',
+});
+
+const mongooseObjectIdScalar = new GraphQLScalarType({
+  name: 'ObjectID',
+  description: 'mongoose ObjectID scalar type',
+  serialize(ObjectID: mongoose.Types.ObjectId) {
+    return ObjectID.toHexString(); // Convert outgoing ObjectID to hex string
+  },
+  parseValue(_id) {
+    return new mongoose.Types.ObjectId(_id); // Convert incoming hex string id to mongoose ObjectID
+  },
+});
+
+const coreTypeDefs = gql`
+  scalar Date
+  scalar ObjectID
+
   type Query {
-    placeholder: undefined
+    _: Boolean
   }
 `;
 
-// Resolvers define the technique for fetching the types defined in the
-// schema. This resolver retrieves books from the "books" array above.
-const resolvers = {
-  Query: {
-    placeholder: () => undefined,
+const collectionTypeDefs = gql`
+  type Collection {
+    _id: ID
+    timestamps: CollectionTimestamps
+    people: CollectionPeople
+    hidden: Boolean!
+    locked: Boolean!
+    history: [CollectionHistory]
+  }
+
+  type CollectionTimestamps {
+    created_at: Date!
+    modified_at: Date!
+    published_at: Date!
+    updated_at: Date!
+  }
+
+  type CollectionPeople {
+    created_by: User
+    modified_by: [User]
+    last_modified_by: User
+    published_by: [User]
+    last_published_by: User
+    watching: [User]
+  }
+
+  type CollectionHistory {
+    type: String!
+    user: User!
+    at: Date!
+  }
+`;
+
+const coreResolvers = {
+  Date: dateScalar,
+  ObjectID: mongooseObjectIdScalar,
+};
+
+async function getUsers(userIds: string | string[]) {
+  // if it is an array of github ids
+  if (Array.isArray(userIds)) {
+    return userIds.map(async (github_id) => await mongoose.model('User').findOne({ github_id }));
+  }
+  // if it just a single github id
+  const github_id = userIds;
+  return await mongoose.model('User').findOne({ github_id });
+}
+
+const collectionResolvers = {
+  CollectionPeople: {
+    created_by: ({ created_by }) => getUsers(created_by),
+    modified_by: ({ modified_by }) => getUsers(modified_by),
+    last_modified_by: ({ last_modified_by }) => getUsers(last_modified_by),
+    published_by: ({ published_by }) => getUsers(published_by),
+    last_published_by: ({ last_published_by }) => getUsers(last_published_by),
+    watching: ({ watching }) => getUsers(watching),
   },
 };
 
@@ -28,19 +104,71 @@ const resolvers = {
  * @param server http server
  */
 async function apollo(app: Application, server: Server): Promise<void> {
-  // initialize apollo
-  const apollo = new Apollo({
-    typeDefs,
-    resolvers,
-    plugins: [
-      ApolloServerPluginDrainHttpServer({ httpServer: server }),
-      ApolloServerPluginLandingPageGraphQLPlayground,
-    ],
-  });
+  try {
+    const typeDefs = [
+      graphqls2s.transpileSchema(
+        [
+          ...config.database.collections.map((collection) => collection.typeDefs),
+          coreTypeDefs,
+          collectionTypeDefs,
+        ].join()
+      ),
+    ];
 
-  // required logic for integrating with Express
-  await apollo.start();
-  apollo.applyMiddleware({ app, path: '/v3' });
+    const resolvers = merge(
+      coreResolvers,
+      collectionResolvers,
+      ...config.database.collections.map((collection) => collection.resolvers)
+    );
+
+    // create the base executable schema
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers,
+    });
+
+    // add auth info to context
+    const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
+      if (!req.isAuthenticated()) throw new AuthenticationError('you must be logged in');
+      if (!req.user) throw new AuthenticationError('your account could not be found');
+      return {
+        profile: req.user as IProfile,
+      };
+    };
+
+    // initialize apollo
+    const apollo = new Apollo({
+      schema,
+      plugins: [
+        ApolloServerPluginDrainHttpServer({ httpServer: server }),
+        ApolloServerPluginLandingPageGraphQLPlayground({
+          settings: {
+            'general.betaUpdates': false,
+            'editor.theme': 'dark',
+            'editor.cursorShape': 'line',
+            'editor.reuseHeaders': true,
+            'tracing.hideTracingResponse': true,
+            'queryPlan.hideQueryPlanResponse': true,
+            'editor.fontSize': 14,
+            'editor.fontFamily': `'Dank Mono', 'Source Code Pro', 'Consolas', 'Inconsolata', 'Droid Sans Mono', 'Monaco', monospace`,
+            'request.credentials': 'include',
+          },
+        }),
+      ],
+      context,
+    });
+
+    // required logic for integrating with Express
+    await apollo.start();
+    apollo.applyMiddleware({ app, path: '/v3' });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-export { apollo };
+interface Context {
+  profile: IProfile;
+}
+
+export type { Context };
+export { apollo, collectionTypeDefs };
