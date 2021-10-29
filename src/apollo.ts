@@ -28,9 +28,21 @@ const mongooseObjectIdScalar = new GraphQLScalarType({
   },
 });
 
+const jsonScalar = new GraphQLScalarType({
+  name: 'JSON',
+  description: 'JSON string',
+  serialize(value) {
+    return JSON.stringify(value);
+  },
+  parseValue(value) {
+    return JSON.parse(value);
+  },
+});
+
 const coreTypeDefs = gql`
   scalar Date
   scalar ObjectID
+  scalar JSON
 
   type Query {
     _: Boolean
@@ -84,6 +96,7 @@ const collectionTypeDefs = gql`
 const coreResolvers = {
   Date: dateScalar,
   ObjectID: mongooseObjectIdScalar,
+  JSON: jsonScalar,
 };
 
 async function getUsers(userIds: string | string[]) {
