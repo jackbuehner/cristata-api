@@ -97,7 +97,7 @@ const collectionTypeDefs = gql`
 
   type CollectionHistory {
     type: String!
-    user: User!
+    user: User
     at: Date!
   }
 `;
@@ -133,6 +133,9 @@ const collectionResolvers = {
     published_by: ({ published_by }) => getUsers(published_by),
     last_published_by: ({ last_published_by }) => getUsers(last_published_by),
     watching: ({ watching }) => getUsers(watching),
+  },
+  CollectionHistory: {
+    user: ({ user }) => getUsers(user),
   },
 };
 
