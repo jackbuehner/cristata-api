@@ -172,6 +172,7 @@ async function apollo(app: Application, server: Server): Promise<void> {
       if (!req.user) throw new AuthenticationError('your account could not be found');
       return {
         profile: req.user as IProfile,
+        config: config,
       };
     };
 
@@ -207,6 +208,7 @@ async function apollo(app: Application, server: Server): Promise<void> {
 
 interface Context {
   profile: IProfile;
+  config: typeof config;
 }
 
 export type { Context };
