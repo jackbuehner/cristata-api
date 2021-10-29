@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { config } from '../config';
 import './articles.model';
 import './photoRequests.model';
@@ -101,6 +102,10 @@ config.database.collections.forEach((collection) => {
       collection.canPublish ? publishableCollectionSchemaFields : {}
     )
   );
+
+  // add pagination to aggregation
+  Schema.plugin(aggregatePaginate);
+
   // create the model based on the schema
   mongoose.model(collection.name, Schema);
 });
