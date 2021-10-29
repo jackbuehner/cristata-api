@@ -39,10 +39,19 @@ const jsonScalar = new GraphQLScalarType({
   },
 });
 
+const voidScalar = new GraphQLScalarType({
+  name: 'Void',
+  description: 'Void custom scalar',
+  serialize: () => null,
+  parseValue: () => null,
+  parseLiteral: () => null,
+});
+
 const coreTypeDefs = gql`
   scalar Date
   scalar ObjectID
   scalar JSON
+  scalar Void
 
   type Query {
     _: Boolean
@@ -51,7 +60,7 @@ const coreTypeDefs = gql`
 
 const collectionTypeDefs = gql`
   type Collection {
-    _id: ID
+    _id: ObjectID!
     timestamps: CollectionTimestamps
     people: CollectionPeople
     hidden: Boolean!
@@ -97,6 +106,7 @@ const coreResolvers = {
   Date: dateScalar,
   ObjectID: mongooseObjectIdScalar,
   JSON: jsonScalar,
+  Void: voidScalar,
 };
 
 async function getUsers(userIds: string | string[]) {
