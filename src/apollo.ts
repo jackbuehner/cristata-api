@@ -8,7 +8,6 @@ import { config } from './config';
 import mongoose from 'mongoose';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphqls2s } from 'graphql-s2s';
-import { IResolvers } from '@graphql-tools/utils';
 import { IProfile } from './passport';
 import { merge } from 'merge-anything';
 export const gql = (s: TemplateStringsArray): string => `${s}`;
@@ -48,9 +47,17 @@ const collectionTypeDefs = gql`
     history: [CollectionHistory]
   }
 
+  type PublishableCollection inherits Collection {
+    timestamps: PublishableCollectionTimestamps
+    people: PublishableCollectionPeople
+  }
+
   type CollectionTimestamps {
     created_at: Date!
     modified_at: Date!
+  }
+
+  type PublishableCollectionTimestamps inherits CollectionTimestamps {
     published_at: Date!
     updated_at: Date!
   }
@@ -59,9 +66,12 @@ const collectionTypeDefs = gql`
     created_by: User
     modified_by: [User]
     last_modified_by: User
+    watching: [User]
+  }
+
+  type PublishableCollectionPeople inherits CollectionPeople {
     published_by: [User]
     last_published_by: User
-    watching: [User]
   }
 
   type CollectionHistory {
@@ -91,6 +101,12 @@ const collectionResolvers = {
     created_by: ({ created_by }) => getUsers(created_by),
     modified_by: ({ modified_by }) => getUsers(modified_by),
     last_modified_by: ({ last_modified_by }) => getUsers(last_modified_by),
+    watching: ({ watching }) => getUsers(watching),
+  },
+  PublishableCollectionPeople: {
+    created_by: ({ created_by }) => getUsers(created_by),
+    modified_by: ({ modified_by }) => getUsers(modified_by),
+    last_modified_by: ({ last_modified_by }) => getUsers(last_modified_by),
     published_by: ({ published_by }) => getUsers(published_by),
     last_published_by: ({ last_published_by }) => getUsers(last_published_by),
     watching: ({ watching }) => getUsers(watching),
@@ -108,9 +124,9 @@ async function apollo(app: Application, server: Server): Promise<void> {
     const typeDefs = [
       graphqls2s.transpileSchema(
         [
-          ...config.database.collections.map((collection) => collection.typeDefs),
           coreTypeDefs,
           collectionTypeDefs,
+          ...config.database.collections.map((collection) => collection.typeDefs),
         ].join()
       ),
     ];

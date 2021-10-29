@@ -17,6 +17,7 @@ const database = {
 
 interface Collection {
   name: string;
+  canPublish?: boolean;
   typeDefs: string;
   resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
   schemaFields: Record<string, unknown>;
