@@ -18,6 +18,8 @@ function canDo({ model, action, context }: CanDo): boolean {
 
   // return whether the action can be done
   return (
+    permissions[action]?.teams.includes(Teams.ANY) ||
+    permissions[action]?.users.includes(Users.ANY) ||
     permissions[action]?.teams.some((team) => context.profile.teams.includes(team)) ||
     permissions[action]?.users.includes(parseInt(context.profile.id))
   );
