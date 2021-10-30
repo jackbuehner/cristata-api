@@ -3,17 +3,27 @@
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
 
-async function createDoc(model: string, data: any, context: Context) {
+interface CreateDoc {
+  model: string;
+  args: {
+    github_id?: number;
+    name: string;
+    [key: string]: unknown;
+  };
+  context: Context;
+}
+
+async function createDoc({ model, args, context }: CreateDoc) {
   const Model = mongoose.model(model);
 
   // add relevant collection metadata
-  data.people = {
+  args.people = {
     created_by: parseInt(context.profile._id),
     modified_by: [parseInt(context.profile._id)],
     last_modified_by: parseInt(context.profile._id),
     watching: [parseInt(context.profile._id)],
   };
-  data.history = [
+  args.history = [
     {
       type: 'created',
       user: parseInt(context.profile._id),
@@ -22,7 +32,7 @@ async function createDoc(model: string, data: any, context: Context) {
   ];
 
   // create the new doc with the provided data and the schema defaults
-  const newDoc = new Model(data);
+  const newDoc = new Model(args);
 
   // save and return the new doc
   return await newDoc.save();

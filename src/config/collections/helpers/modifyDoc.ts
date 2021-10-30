@@ -5,8 +5,18 @@ import { slugify } from '../../../utils/slugify';
 import mongoose from 'mongoose';
 import { canDo, CollectionDoc, findDoc } from '.';
 
-async function modifyDoc(model: string, data: CollectionDoc, context: Context, publishable = false) {
+interface ModifyDoc {
+  model: string;
+  data: CollectionDoc;
+  context: Context;
+  publishable?: boolean;
+}
+
+async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
   const Model = mongoose.model<typeof data>(model);
+
+  // set defaults
+  if (publishable === undefined) publishable = false;
 
   // remove _id from the data object and convert it to an object id
   const { _id: string_id } = data;
