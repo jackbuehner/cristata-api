@@ -77,6 +77,15 @@ const collectionTypeDefs = gql`
     history: [CollectionHistory]
   }
 
+  type WithPermissions {
+    permisssions: CollectionPermissions!
+  }
+
+  type CollectionPermissions {
+    teams: [String]!
+    users: [Int]!
+  }
+
   type PublishableCollection inherits Collection {
     timestamps: PublishableCollectionTimestamps
     people: PublishableCollectionPeople

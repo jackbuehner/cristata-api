@@ -28,9 +28,10 @@ const Users = {
 interface Collection {
   name: string;
   canPublish?: boolean;
+  withPermissions?: boolean;
   typeDefs: string;
   resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
-  schemaFields: Record<string, unknown>;
+  schemaFields: (users: typeof Users, teams: typeof Teams) => Record<string, unknown>;
   permissions: (users: typeof Users, teams: typeof Teams) => CollectionPermissions;
 }
 
@@ -39,15 +40,7 @@ type CollectionPermissionsType = {
   users: GitHubUserID[];
 };
 
-type CollectionPermissionsActions =
-  | 'get'
-  | 'create'
-  | 'modify'
-  | 'hide'
-  | 'lock'
-  | 'watch'
-  | 'publish'
-  | 'delete';
+type CollectionPermissionsActions = keyof CollectionPermissions;
 
 interface CollectionPermissions {
   get: CollectionPermissionsType;

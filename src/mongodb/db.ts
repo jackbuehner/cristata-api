@@ -8,6 +8,7 @@ import './settings.model';
 import './shorturl.model';
 import './flush.model';
 import { merge } from 'merge-anything';
+import { Teams, Users } from '../config/database';
 
 // destructure connection info from config
 const { username, password, host, database, options } = config.database.connection;
@@ -41,6 +42,13 @@ interface CollectionSchemaFields {
     user: GitHubUserID;
     at: string; // ISO string
   }>;
+}
+
+interface WithPermissionsCollectionSchemaFields {
+  permissions: {
+    teams: GitHubTeamNodeID[];
+    users: GitHubUserID[];
+  };
 }
 
 interface PublishableCollectionSchemaFields {
@@ -92,14 +100,22 @@ const publishableCollectionSchemaFields = {
   },
 };
 
+const withPermissionsCollectionSchemaFields = {
+  permissions: {
+    teams: { type: [String] },
+    users: { type: [Number] },
+  },
+};
+
 // create the schema and model for each collection
 config.database.collections.forEach((collection) => {
   // create the schema
   const Schema = new mongoose.Schema(
     merge(
       collectionSchemaFields,
-      collection.schemaFields,
-      collection.canPublish ? publishableCollectionSchemaFields : {}
+      collection.schemaFields(Users, Teams),
+      collection.canPublish ? publishableCollectionSchemaFields : {},
+      collection.withPermissions ? withPermissionsCollectionSchemaFields : {}
     )
   );
 
@@ -110,4 +126,10 @@ config.database.collections.forEach((collection) => {
   mongoose.model(collection.name, Schema);
 });
 
-export type { CollectionSchemaFields, PublishableCollectionSchemaFields, GitHubUserID, GitHubTeamNodeID };
+export type {
+  CollectionSchemaFields,
+  WithPermissionsCollectionSchemaFields,
+  PublishableCollectionSchemaFields,
+  GitHubUserID,
+  GitHubTeamNodeID,
+};
