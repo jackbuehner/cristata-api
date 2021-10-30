@@ -8,6 +8,7 @@ export { watchDoc } from './watchDoc';
 export { findDoc } from './findDoc';
 export { canDo } from './canDo';
 export { deleteDoc } from './deleteDoc';
+export { findDocs } from './findDocs';
 
 type CollectionDoc = CollectionSchemaFields &
   Partial<PublishableCollectionSchemaFields> &
