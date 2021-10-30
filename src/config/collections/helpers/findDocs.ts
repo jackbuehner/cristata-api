@@ -15,10 +15,11 @@ interface FindDocs {
     limit: number;
   };
   context: Context;
+  fullAccess?: boolean;
 }
 
-function findDocs({ model, args, context }: FindDocs) {
-  requireAuthentication(context);
+function findDocs({ model, args, context, fullAccess }: FindDocs) {
+  if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
   const { _ids, filter, page, offset } = args;
@@ -28,14 +29,15 @@ function findDocs({ model, args, context }: FindDocs) {
   if (!sort) sort = { 'timestamps.created_at': 1 };
 
   // access filter
-  const accessFilter = context.profile.teams.includes(Teams.ADMIN)
-    ? {}
-    : {
-        $or: [
-          { 'permissions.teams': { $in: context.profile.teams } },
-          { 'permissions.users': context.profile.id },
-        ],
-      };
+  const accessFilter =
+    fullAccess || context.profile.teams.includes(Teams.ADMIN)
+      ? {}
+      : {
+          $or: [
+            { 'permissions.teams': { $in: context.profile.teams } },
+            { 'permissions.users': context.profile.id },
+          ],
+        };
 
   // @ts-expect-error aggregatePaginate DOES exist.
   // The types for the plugin have not been updated for newer versions of mongoose.
