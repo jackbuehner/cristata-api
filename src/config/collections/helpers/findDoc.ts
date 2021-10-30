@@ -2,7 +2,7 @@
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
 import { Teams } from '../../database';
-import { CollectionDoc } from '.';
+import { CollectionDoc, requireAuthentication } from '.';
 
 interface FindDoc {
   model: string;
@@ -11,6 +11,7 @@ interface FindDoc {
 }
 
 function findDoc({ model, _id, context }: FindDoc) {
+  requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
   // access filter

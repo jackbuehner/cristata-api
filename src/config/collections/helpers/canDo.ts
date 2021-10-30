@@ -1,5 +1,6 @@
 import { Context } from '../../../apollo';
 import { CollectionPermissionsActions, Teams, Users } from '../../database';
+import { requireAuthentication } from './';
 
 interface CanDo {
   model: string;
@@ -8,6 +9,8 @@ interface CanDo {
 }
 
 function canDo({ model, action, context }: CanDo): boolean {
+  requireAuthentication(context);
+
   // get the permsissions for the collection
   const permissions = context.config.database.collections
     .find((collection) => collection.name === model)

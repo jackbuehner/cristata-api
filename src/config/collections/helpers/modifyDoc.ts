@@ -3,7 +3,7 @@ import { Context } from '../../../apollo';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { slugify } from '../../../utils/slugify';
 import mongoose from 'mongoose';
-import { canDo, CollectionDoc, findDoc } from '.';
+import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
 
 interface ModifyDoc {
   model: string;
@@ -13,6 +13,7 @@ interface ModifyDoc {
 }
 
 async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
+  requireAuthentication(context);
   const Model = mongoose.model<typeof data>(model);
 
   // set defaults

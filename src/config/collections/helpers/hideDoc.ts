@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
-import { ForbiddenError } from 'apollo-server-express';
-import { canDo, findDoc } from '.';
+import { ForbiddenError } from 'apollo-server-errors';
+import { canDo, findDoc, requireAuthentication } from '.';
 
 interface HideDoc {
   model: string;
@@ -15,6 +15,8 @@ interface HideDoc {
 }
 
 async function hideDoc({ model, args, context, publishable }: HideDoc) {
+  requireAuthentication(context);
+
   // set defaults
   if (args.hide === undefined) args.hide = true;
   if (publishable === undefined) publishable = false;

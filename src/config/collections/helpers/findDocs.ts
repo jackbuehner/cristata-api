@@ -2,7 +2,7 @@
 import { Context } from '../../../apollo';
 import mongoose, { FilterQuery } from 'mongoose';
 import { Teams } from '../../database';
-import { CollectionDoc } from '.';
+import { CollectionDoc, requireAuthentication } from '.';
 
 interface FindDocs {
   model: string;
@@ -18,6 +18,7 @@ interface FindDocs {
 }
 
 function findDocs({ model, args, context }: FindDocs) {
+  requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
   const { _ids, filter, page, offset } = args;

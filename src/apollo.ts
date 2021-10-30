@@ -1,5 +1,5 @@
 import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
-import { ApolloServerPluginDrainHttpServer, AuthenticationError, ContextFunction } from 'apollo-server-core';
+import { ApolloServerPluginDrainHttpServer, ContextFunction } from 'apollo-server-core';
 import { Server } from 'http';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 import { Application } from 'express';
@@ -171,11 +171,10 @@ async function apollo(app: Application, server: Server): Promise<void> {
 
     // add auth info to context
     const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
-      if (!req.isAuthenticated()) throw new AuthenticationError('you must be logged in');
-      if (!req.user) throw new AuthenticationError('your account could not be found');
       return {
-        profile: req.user as IProfile,
         config: config,
+        isAuthenticated: req.isAuthenticated(),
+        profile: req.user as IProfile,
       };
     };
 
@@ -210,8 +209,9 @@ async function apollo(app: Application, server: Server): Promise<void> {
 }
 
 interface Context {
-  profile: IProfile;
   config: typeof config;
+  isAuthenticated: boolean;
+  profile?: IProfile;
 }
 
 export type { Context };

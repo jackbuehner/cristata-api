@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
+import { requireAuthentication } from './';
 
 interface CreateDoc {
   model: string;
@@ -14,6 +15,7 @@ interface CreateDoc {
 }
 
 async function createDoc({ model, args, context }: CreateDoc) {
+  requireAuthentication(context);
   const Model = mongoose.model(model);
 
   // add relevant collection metadata

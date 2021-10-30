@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
-import { ForbiddenError } from 'apollo-server-express';
-import { canDo, findDoc } from '.';
+import { ForbiddenError } from 'apollo-server-errors';
+import { canDo, findDoc, requireAuthentication } from '.';
 
 interface LockDoc {
   model: string;
@@ -15,6 +15,8 @@ interface LockDoc {
 }
 
 async function lockDoc({ model, args, context, publishable }: LockDoc) {
+  requireAuthentication(context);
+
   // set defaults
   if (args.lock === undefined) args.lock = true;
   if (publishable === undefined) publishable = false;

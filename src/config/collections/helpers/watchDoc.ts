@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
-import { ForbiddenError } from 'apollo-server-express';
-import { canDo, findDoc } from '.';
+import { ForbiddenError } from 'apollo-server-errors';
+import { canDo, findDoc, requireAuthentication } from '.';
 
 interface WatchDoc {
   model: string;
@@ -15,6 +15,8 @@ interface WatchDoc {
 }
 
 async function watchDoc({ model, args, context }: WatchDoc) {
+  requireAuthentication(context);
+
   // set defaults
   if (args.watch === undefined) args.watch = true;
   if (args.watcher === undefined) args.watcher = parseInt(context.profile.id);
