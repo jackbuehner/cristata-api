@@ -13,6 +13,7 @@ export { requireAuthentication } from './requireAuthentication';
 export { pruneDocs } from './pruneDocs';
 export { findDocAndPrune } from './findDocAndPrune';
 export { findDocsAndPrune } from './findDocsAndPrune';
+export { getCollectionActionAccess } from './getCollectionActionAccess';
 
 type CollectionDoc = CollectionSchemaFields &
   Partial<PublishableCollectionSchemaFields> &

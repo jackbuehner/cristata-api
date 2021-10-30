@@ -109,6 +109,17 @@ const collectionTypeDefs = gql`
     user: User
     at: Date!
   }
+
+  type CollectionActionAccess {
+    get: Boolean!
+    create: Boolean!
+    modify: Boolean!
+    hide: Boolean!
+    lock: Boolean!
+    watch: Boolean!
+    publish: Boolean # not all collections allow publishing
+    delete: Boolean!
+  }
 `;
 
 const coreResolvers = {
