@@ -53,8 +53,17 @@ const coreTypeDefs = gql`
   scalar JSON
   scalar Void
 
-  type Query {
-    _: Boolean
+  type Paged<T> {
+    docs: [T]!
+    totalDocs: Int
+    limit: Int
+    page: Int
+    totalPages: Int
+    pagingCounter: Int
+    hasPrevPage: Boolean
+    hasNextPage: Boolean
+    prevPage: Int
+    nextPage: Int
   }
 `;
 
