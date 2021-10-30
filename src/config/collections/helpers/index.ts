@@ -10,6 +10,9 @@ export { canDo } from './canDo';
 export { deleteDoc } from './deleteDoc';
 export { findDocs } from './findDocs';
 export { requireAuthentication } from './requireAuthentication';
+export { pruneDocs } from './pruneDocs';
+export { findDocAndPrune } from './findDocAndPrune';
+export { findDocsAndPrune } from './findDocsAndPrune';
 
 type CollectionDoc = CollectionSchemaFields &
   Partial<PublishableCollectionSchemaFields> &
