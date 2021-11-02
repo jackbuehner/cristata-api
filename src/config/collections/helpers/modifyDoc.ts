@@ -37,6 +37,23 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
 
     if (isPublished && !canDo({ action: 'publish', model, context }))
       throw new ForbiddenError('you cannot modify published documents in this collection');
+    else if (isPublished) {
+      // set updated published document metadata
+      data = {
+        ...data,
+        people: {
+          ...currentDoc.people,
+          ...data.people,
+          published_by: [...new Set([...currentDoc.people.published_by, parseInt(context.profile.id)])],
+          last_published_by: parseInt(context.profile.id),
+        },
+        timestamps: {
+          ...currentDoc.timestamps,
+          ...data.timestamps,
+          updated_at: new Date().toISOString(),
+        },
+      };
+    }
   }
 
   // set modification metadata

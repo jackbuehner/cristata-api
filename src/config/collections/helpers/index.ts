@@ -14,6 +14,7 @@ export { pruneDocs } from './pruneDocs';
 export { findDocAndPrune } from './findDocAndPrune';
 export { findDocsAndPrune } from './findDocsAndPrune';
 export { getCollectionActionAccess } from './getCollectionActionAccess';
+export { publishDoc } from './publishDoc';
 
 type CollectionDoc = CollectionSchemaFields &
   Partial<PublishableCollectionSchemaFields> &
