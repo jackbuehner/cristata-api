@@ -15,6 +15,12 @@ export const gql = (s: TemplateStringsArray): string => `${s}`;
 const dateScalar = new GraphQLScalarType({
   name: 'Date',
   description: 'ISO date string scalar type',
+  serialize(value) {
+    return new Date(value).toISOString();
+  },
+  parseValue(value) {
+    return new Date(value).toISOString();
+  },
 });
 
 const mongooseObjectIdScalar = new GraphQLScalarType({
