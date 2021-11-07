@@ -86,8 +86,9 @@ async function getArticles(user: IProfile, query: URLSearchParams, res: Response
       [
         ...new Set(
           Object.keys(flattenObject(Article.schema.obj))
-            .filter((key) => key.includes('people'))
-            .map((key) => key.replace('.type', '').replace('.default', ''))
+            .filter((key) => key.includes('people.tree'))
+            .filter((key) => !key.includes('id'))
+            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
         ),
       ],
       'Article'
@@ -304,8 +305,9 @@ async function getArticle(id: string, by: string, user: IProfile, res: Response 
       [
         ...new Set(
           Object.keys(flattenObject(Article.schema.obj))
-            .filter((key) => key.includes('people'))
-            .map((key) => key.replace('.type', '').replace('.default', ''))
+            .filter((key) => key.includes('people.tree'))
+            .filter((key) => !key.includes('id'))
+            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
         ),
       ],
       'Article'

@@ -92,8 +92,9 @@ async function getSatires(user: IProfile, query: URLSearchParams, res: Response 
       [
         ...new Set(
           Object.keys(flattenObject(Satire.schema.obj))
-            .filter((key) => key.includes('people') && !key.includes('display_authors'))
-            .map((key) => key.replace('.type', '').replace('.default', ''))
+            .filter((key) => key.includes('people.tree') && !key.includes('display_authors'))
+            .filter((key) => !key.includes('id'))
+            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
         ),
       ],
       'Satire'
@@ -236,8 +237,9 @@ async function getSatire(id: string, by: string, user: IProfile, res: Response =
       [
         ...new Set(
           Object.keys(flattenObject(Satire.schema.obj))
-            .filter((key) => key.includes('people') && !key.includes('display_authors'))
-            .map((key) => key.replace('.type', '').replace('.default', ''))
+            .filter((key) => key.includes('people.tree') && !key.includes('display_authors'))
+            .filter((key) => !key.includes('id'))
+            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
         ),
       ],
       'Satire'

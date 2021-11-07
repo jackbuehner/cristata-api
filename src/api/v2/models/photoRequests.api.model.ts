@@ -85,8 +85,9 @@ async function getPhotoRequests(user: IProfile, query: URLSearchParams, res: Res
       [
         ...new Set(
           Object.keys(flattenObject(PhotoRequest.schema.obj))
-            .filter((key) => key.includes('people'))
-            .map((key) => key.replace('.type', '').replace('.default', ''))
+            .filter((key) => key.includes('people.tree'))
+            .filter((key) => !key.includes('id'))
+            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
         ),
       ],
       'PhotoRequest'
@@ -137,8 +138,9 @@ async function getPhotoRequest(id: string, user: IProfile, res: Response = null)
       [
         ...new Set(
           Object.keys(flattenObject(PhotoRequest.schema.obj))
-            .filter((key) => key.includes('people'))
-            .map((key) => key.replace('.type', '').replace('.default', ''))
+            .filter((key) => key.includes('people.tree'))
+            .filter((key) => !key.includes('id'))
+            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
         ),
       ],
       'PhotoRequest'
