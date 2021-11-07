@@ -1,15 +1,18 @@
 import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer, ContextFunction } from 'apollo-server-core';
 import { Server } from 'http';
+import ws from 'ws';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 import { Application } from 'express';
-import { GraphQLScalarType } from 'graphql';
+import { GraphQLScalarType, execute, subscribe } from 'graphql';
 import { config } from './config';
 import mongoose from 'mongoose';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphqls2s } from 'graphql-s2s';
 import { IProfile } from './passport';
 import { merge } from 'merge-anything';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { PubSub } from 'graphql-subscriptions';
 export const gql = (s: TemplateStringsArray): string => `${s}`;
 
 const dateScalar = new GraphQLScalarType({
@@ -70,6 +73,10 @@ const coreTypeDefs = gql`
     hasNextPage: Boolean
     prevPage: Int
     nextPage: Int
+  }
+
+  type Subscription {
+    void: Void 
   }
 `;
 
@@ -174,6 +181,12 @@ const collectionResolvers = {
   },
 };
 
+// initialize a subscription server for graphql subscriptions
+const apolloWSS = new ws.Server({ noServer: true, path: '/v3' });
+
+// create publish-subscribe class for managing subscriptions
+const pubsub = new PubSub();
+
 /**
  * Starts the Apollo GraphQL server.
  *
@@ -231,9 +244,29 @@ async function apollo(app: Application, server: Server): Promise<void> {
             'request.credentials': 'include',
           },
         }),
+        {
+          // close the websocket subscription server when apollo server closed
+          async serverWillStart() {
+            return {
+              async drainServer() {
+                apolloWSS.close();
+              },
+            };
+          },
+        },
       ],
       context,
     });
+
+    // attach subscription handler to subscriptionServer
+    SubscriptionServer.create(
+      {
+        schema,
+        execute,
+        subscribe,
+      },
+      apolloWSS
+    );
 
     // required logic for integrating with Express
     await apollo.start();
@@ -250,4 +283,4 @@ interface Context {
 }
 
 export type { Context };
-export { apollo, collectionTypeDefs };
+export { apollo, apolloWSS, collectionTypeDefs, pubsub };

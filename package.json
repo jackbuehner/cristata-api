@@ -52,6 +52,7 @@
     "express-github-webhook": "^1.0.6",
     "graphql": "^15.7.1",
     "graphql-s2s": "^0.22.0",
+    "graphql-subscriptions": "^2.0.0",
     "http-proxy-middleware": "^2.0.0",
     "merge-anything": "^4.0.1",
     "mongoose": "^5.12.15",
@@ -60,7 +61,8 @@
     "passport": "^0.4.1",
     "passport-github2": "^0.1.12",
     "patch-package": "^6.4.7",
-    "ws": "^7.4.6",
+    "subscriptions-transport-ws": "^0.11.0",
+    "ws": "^7.5.5",
     "y-mongodb": "^0.1.11",
     "y-protocols": "^1.0.5"
   }

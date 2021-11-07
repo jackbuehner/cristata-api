@@ -3,7 +3,7 @@ import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
 import { wss } from './websocket';
 import url from 'url';
 import { app } from './app';
-import { apollo } from './apollo';
+import { apollo, apolloWSS } from './apollo';
 
 // configure the server
 const hocuspocus = Hocuspocus.configure({
@@ -20,6 +20,11 @@ const hocuspocus = Hocuspocus.configure({
       // use the wss websocket if the path is '/websocket
       wss.handleUpgrade(request, socket, head, (ws) => {
         wss.emit('connection', ws, request);
+      });
+    } else if (pathname === '/v3') {
+      // handle apollo subscriptions if the path is '/v3'
+      apolloWSS.handleUpgrade(request, socket, head, (ws) => {
+        apolloWSS.emit('connection', ws, request);
       });
     } else {
       // otherwise, end the websocket connection request
