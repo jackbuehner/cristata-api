@@ -11,7 +11,7 @@ interface DeleteDoc {
   context: Context;
 }
 
-async function deleteDoc({ model, args, context }: DeleteDoc): Promise<void> {
+async function deleteDoc({ model, args, context }: DeleteDoc): Promise<mongoose.Types.ObjectId> {
   requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
@@ -21,7 +21,7 @@ async function deleteDoc({ model, args, context }: DeleteDoc): Promise<void> {
 
   // delete the document
   await Model.deleteOne({ _id: args._id });
-  return;
+  return args._id;
 }
 
 export { deleteDoc };
