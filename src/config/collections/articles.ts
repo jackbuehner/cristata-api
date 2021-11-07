@@ -1,4 +1,4 @@
-import { Context, gql } from '../../apollo';
+import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import {
@@ -20,6 +20,7 @@ import {
   modifyDoc,
   publishDoc,
   watchDoc,
+  withPubSub,
 } from './helpers';
 
 const articles: Collection = {
@@ -175,6 +176,23 @@ const articles: Collection = {
       """
       articlePublish(_id: ObjectID!, published_at: Date, publish: Boolean): Article
     }
+
+    extend type Subscription {
+      """
+      Sends article documents when they are created.
+      """
+      articleCreated(): Article
+      """
+      Sends the updated article document when it changes.
+      If _id is omitted, the server will send changes for all articles.
+      """
+      articleModified(_id: ObjectID): Article
+      """
+      Sends article _id when it is deleted.
+      If _id is omitted, the server will send _ids for all deleted articles.
+      """
+      articleDeleted(_id: ObjectID): Article
+    }
   `,
   resolvers: {
     Query: {
@@ -236,14 +254,25 @@ const articles: Collection = {
         getCollectionActionAccess({ model: 'Article', context }),
     },
     Mutation: {
-      articleCreate: (_, args, context: Context) => createDoc({ model: 'Article', args, context }),
+      articleCreate: async (_, args, context: Context) =>
+        withPubSub('ARTICLE', 'CREATED', createDoc({ model: 'Article', args, context })),
       articleModify: (_, { _id, input }, context: Context) =>
-        modifyDoc({ model: 'Article', data: { ...input, _id }, context }),
-      articleHide: (_, args, context: Context) => hideDoc({ model: 'Article', args, context }),
-      articleLock: (_, args, context: Context) => lockDoc({ model: 'Article', args, context }),
-      articleWatch: (_, args, context: Context) => watchDoc({ model: 'Article', args, context }),
-      articleDelete: (_, args, context: Context) => deleteDoc({ model: 'Article', args, context }),
-      articlePublish: (_, args, context: Context) => publishDoc({ model: 'Article', args, context }),
+        withPubSub('ARTICLE', 'MODIFIED', modifyDoc({ model: 'Article', data: { ...input, _id }, context })),
+      articleHide: async (_, args, context: Context) =>
+        withPubSub('ARTICLE', 'MODIFIED', hideDoc({ model: 'Article', args, context })),
+      articleLock: async (_, args, context: Context) =>
+        withPubSub('ARTICLE', 'MODIFIED', lockDoc({ model: 'Article', args, context })),
+      articleWatch: async (_, args, context: Context) =>
+        withPubSub('ARTICLE', 'MODIFIED', watchDoc({ model: 'Article', args, context })),
+      articleDelete: async (_, args, context: Context) =>
+        withPubSub('ARTICLE', 'DELETED', deleteDoc({ model: 'Article', args, context })),
+      articlePublish: async (_, args, context: Context) =>
+        withPubSub('ARTICLE', 'MODIFIED', publishDoc({ model: 'Article', args, context })),
+    },
+    Subscription: {
+      articleCreated: { subscribe: () => pubsub.asyncIterator(['ARTICLE_CREATED']) },
+      articleModified: { subscribe: () => pubsub.asyncIterator(['ARTICLE_MODIFIED']) },
+      articleDeleted: { subscribe: () => pubsub.asyncIterator(['ARTICLE_DELETED']) },
     },
   },
   schemaFields: (Users, Teams) => ({

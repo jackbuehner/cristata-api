@@ -1,4 +1,4 @@
-import { Context, gql } from '../../apollo';
+import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, GitHubUserID, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
@@ -13,6 +13,7 @@ import {
   modifyDoc,
   publishDoc,
   watchDoc,
+  withPubSub,
 } from './helpers';
 
 const photoRequests: Collection = {
@@ -95,6 +96,23 @@ const photoRequests: Collection = {
       """
       photoRequestPublish(_id: ObjectID!, published_at: Date, publish: Boolean): PhotoRequest
     }
+
+    extend type Subscription {
+      """
+      Sends photoRequest documents when they are created.
+      """
+      photoRequestCreated(): PhotoRequest
+      """
+      Sends the updated photoRequest document when it changes.
+      If _id is omitted, the server will send changes for all photoRequests.
+      """
+      photoRequestModified(_id: ObjectID): PhotoRequest
+      """
+      Sends photoRequest _id when it is deleted.
+      If _id is omitted, the server will send _ids for all deleted photoRequests.
+      """
+      photoRequestDeleted(_id: ObjectID): PhotoRequest
+    }
   `,
   resolvers: {
     Query: {
@@ -109,14 +127,29 @@ const photoRequests: Collection = {
         getCollectionActionAccess({ model: 'PhotoRequest', context }),
     },
     Mutation: {
-      photoRequestCreate: (_, args, context: Context) => createDoc({ model: 'PhotoRequest', args, context }),
+      photoRequestCreate: async (_, args, context: Context) =>
+        withPubSub('PHOTOREQUEST', 'CREATED', createDoc({ model: 'PhotoRequest', args, context })),
       photoRequestModify: (_, { _id, input }, context: Context) =>
-        modifyDoc({ model: 'PhotoRequest', data: { ...input, _id }, context }),
-      photoRequestHide: (_, args, context: Context) => hideDoc({ model: 'PhotoRequest', args, context }),
-      photoRequestLock: (_, args, context: Context) => lockDoc({ model: 'PhotoRequest', args, context }),
-      photoRequestWatch: (_, args, context: Context) => watchDoc({ model: 'PhotoRequest', args, context }),
-      photoRequestDelete: (_, args, context: Context) => deleteDoc({ model: 'PhotoRequest', args, context }),
-      photoRequestPublish: (_, args, context: Context) => publishDoc({ model: 'PhotoRequest', args, context }),
+        withPubSub(
+          'PHOTOREQUEST',
+          'MODIFIED',
+          modifyDoc({ model: 'PhotoRequest', data: { ...input, _id }, context })
+        ),
+      photoRequestHide: async (_, args, context: Context) =>
+        withPubSub('PHOTOREQUEST', 'MODIFIED', hideDoc({ model: 'PhotoRequest', args, context })),
+      photoRequestLock: async (_, args, context: Context) =>
+        withPubSub('PHOTOREQUEST', 'MODIFIED', lockDoc({ model: 'PhotoRequest', args, context })),
+      photoRequestWatch: async (_, args, context: Context) =>
+        withPubSub('PHOTOREQUEST', 'MODIFIED', watchDoc({ model: 'PhotoRequest', args, context })),
+      photoRequestDelete: async (_, args, context: Context) =>
+        withPubSub('PHOTOREQUEST', 'DELETED', deleteDoc({ model: 'PhotoRequest', args, context })),
+      photoRequestPublish: async (_, args, context: Context) =>
+        withPubSub('PHOTOREQUEST', 'DELETED', publishDoc({ model: 'PhotoRequest', args, context })),
+    },
+    Subscription: {
+      photoRequestCreated: { subscribe: () => pubsub.asyncIterator(['PHOTOREQUEST_CREATED']) },
+      photoRequestModified: { subscribe: () => pubsub.asyncIterator(['PHOTOREQUEST_MODIFIED']) },
+      photoRequestDeleted: { subscribe: () => pubsub.asyncIterator(['PHOTOREQUEST_DELETED']) },
     },
   },
   schemaFields: (Users, Teams) => ({

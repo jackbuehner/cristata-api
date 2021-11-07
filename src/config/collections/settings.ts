@@ -1,8 +1,8 @@
-import { Context, gql } from '../../apollo';
+import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields } from '../../mongodb/db';
-import { createDoc, findDoc, findDocs, getCollectionActionAccess, modifyDoc } from './helpers';
+import { createDoc, findDoc, findDocs, getCollectionActionAccess, modifyDoc, withPubSub } from './helpers';
 
 const settings: Collection = {
   name: 'Settings',
@@ -45,6 +45,18 @@ const settings: Collection = {
       """
       settingModify(_id: ObjectID!, input: SettingsModifyInput!): Settings
     }
+
+    extend type Subscription {
+      """
+      Sends setting documents when they are created.
+      """
+      settingCreated(): Settings
+      """
+      Sends the updated setting document when it changes.
+      If _id is omitted, the server will send changes for all settings.
+      """
+      settingModified(_id: ObjectID): Settings
+    }
   `,
   resolvers: {
     Query: {
@@ -60,9 +72,14 @@ const settings: Collection = {
         getCollectionActionAccess({ model: 'Settings', context }),
     },
     Mutation: {
-      settingCreate: (_, args, context: Context) => createDoc({ model: 'Settings', args, context }),
+      settingCreate: async (_, args, context: Context) =>
+        withPubSub('SETTING', 'CREATED', createDoc({ model: 'Settings', args, context })),
       settingModify: (_, { _id, input }, context: Context) =>
-        modifyDoc({ model: 'Settings', data: { ...input, _id }, context }),
+        withPubSub('SETTING', 'MODIFIED', modifyDoc({ model: 'Settings', data: { ...input, _id }, context })),
+    },
+    Subscription: {
+      settingCreated: { subscribe: () => pubsub.asyncIterator(['SETTING_CREATED']) },
+      settingModified: { subscribe: () => pubsub.asyncIterator(['SETTING_MODIFIED']) },
     },
   },
   schemaFields: () => ({

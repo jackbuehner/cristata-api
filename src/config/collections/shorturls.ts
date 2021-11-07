@@ -1,4 +1,4 @@
-import { Context, gql } from '../../apollo';
+import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields } from '../../mongodb/db';
@@ -12,6 +12,7 @@ import {
   lockDoc,
   modifyDoc,
   watchDoc,
+  withPubSub,
 } from './helpers';
 
 const shorturls: Collection = {
@@ -51,7 +52,7 @@ const shorturls: Collection = {
       """
       Create a new shorturl.
       """
-      shorturlCreate(original_url: String!, code: String!, domain: Float!): ShortURL
+      shorturlCreate(original_url: String!, code: String!, domain: String!): ShortURL
       """
       Modify an existing shorturl.
       """
@@ -80,6 +81,23 @@ const shorturls: Collection = {
       """
       shorturlDelete(_id: ObjectID!): Void
     }
+
+    extend type Subscription {
+      """
+      Sends shorturl documents when they are created.
+      """
+      shorturlCreated(): ShortURL
+      """
+      Sends the updated shorturl document when it changes.
+      If _id is omitted, the server will send changes for all shorturls.
+      """
+      shorturlModified(_id: ObjectID): ShortURL
+      """
+      Sends shorturl _id when it is deleted.
+      If _id is omitted, the server will send _ids for all deleted shorturls.
+      """
+      shorturlDeleted(_id: ObjectID): ShortURL
+    }
   `,
   resolvers: {
     Query: {
@@ -95,13 +113,23 @@ const shorturls: Collection = {
         getCollectionActionAccess({ model: 'ShortURL', context }),
     },
     Mutation: {
-      shorturlCreate: (_, args, context: Context) => createDoc({ model: 'ShortURL', args, context }),
+      shorturlCreate: async (_, args, context: Context) =>
+        withPubSub('SHORTURL', 'CREATED', createDoc({ model: 'ShortURL', args, context })),
       shorturlModify: (_, { _id, input }, context: Context) =>
-        modifyDoc({ model: 'ShortURL', data: { ...input, _id }, context }),
-      shorturlHide: (_, args, context: Context) => hideDoc({ model: 'ShortURL', args, context }),
-      shorturlLock: (_, args, context: Context) => lockDoc({ model: 'ShortURL', args, context }),
-      shorturlWatch: (_, args, context: Context) => watchDoc({ model: 'ShortURL', args, context }),
-      shorturlDelete: (_, args, context: Context) => deleteDoc({ model: 'ShortURL', args, context }),
+        withPubSub('SHORTURL', 'MODIFIED', modifyDoc({ model: 'ShortURL', data: { ...input, _id }, context })),
+      shorturlHide: async (_, args, context: Context) =>
+        withPubSub('SHORTURL', 'MODIFIED', hideDoc({ model: 'ShortURL', args, context })),
+      shorturlLock: async (_, args, context: Context) =>
+        withPubSub('SHORTURL', 'MODIFIED', lockDoc({ model: 'ShortURL', args, context })),
+      shorturlWatch: async (_, args, context: Context) =>
+        withPubSub('SHORTURL', 'MODIFIED', watchDoc({ model: 'ShortURL', args, context })),
+      shorturlDelete: async (_, args, context: Context) =>
+        withPubSub('SHORTURL', 'DELETED', deleteDoc({ model: 'ShortURL', args, context })),
+    },
+    Subscription: {
+      shorturlCreated: { subscribe: () => pubsub.asyncIterator(['SHORTURL_CREATED']) },
+      shorturlModified: { subscribe: () => pubsub.asyncIterator(['SHORTURL_MODIFIED']) },
+      shorturlDeleted: { subscribe: () => pubsub.asyncIterator(['SHORTURL_DELETED']) },
     },
   },
   schemaFields: () => ({

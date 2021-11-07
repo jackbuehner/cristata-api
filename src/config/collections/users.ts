@@ -1,4 +1,4 @@
-import { Context, gql } from '../../apollo';
+import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, GitHubTeamNodeID, GitHubUserID } from '../../mongodb/db';
@@ -14,6 +14,7 @@ import {
   lockDoc,
   modifyDoc,
   watchDoc,
+  withPubSub,
 } from './helpers';
 
 const users: Collection = {
@@ -128,6 +129,23 @@ const users: Collection = {
       """
       userDelete(_id: ObjectID!): Void
     }
+
+    extend type Subscription {
+      """
+      Sends user documents when they are created.
+      """
+      userCreated(): User
+      """
+      Sends the updated user document when it changes.
+      If _id is omitted, the server will send changes for all users.
+      """
+      userModified(_id: ObjectID): User
+      """
+      Sends user _id when it is deleted.
+      If _id is omitted, the server will send _ids for all deleted users.
+      """
+      userDeleted(_id: ObjectID): User
+    }
   `,
   resolvers: {
     Query: {
@@ -175,13 +193,23 @@ const users: Collection = {
       userActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'User', context }),
     },
     Mutation: {
-      userCreate: (_, args, context: Context) => createDoc({ model: 'User', args, context }),
+      userCreate: async (_, args, context: Context) =>
+        withPubSub('USER', 'CREATED', createDoc({ model: 'User', args, context })),
       userModify: (_, { _id, input }, context: Context) =>
-        modifyDoc({ model: 'User', data: { ...input, _id }, context }),
-      userHide: (_, args, context: Context) => hideDoc({ model: 'User', args, context }),
-      userLock: (_, args, context: Context) => lockDoc({ model: 'User', args, context }),
-      userWatch: (_, args, context: Context) => watchDoc({ model: 'User', args, context }),
-      userDelete: (_, args, context: Context) => deleteDoc({ model: 'User', args, context }),
+        withPubSub('USER', 'MODIFIED', modifyDoc({ model: 'User', data: { ...input, _id }, context })),
+      userHide: async (_, args, context: Context) =>
+        withPubSub('USER', 'MODIFIED', hideDoc({ model: 'User', args, context })),
+      userLock: async (_, args, context: Context) =>
+        withPubSub('USER', 'MODIFIED', lockDoc({ model: 'User', args, context })),
+      userWatch: async (_, args, context: Context) =>
+        withPubSub('USER', 'MODIFIED', watchDoc({ model: 'User', args, context })),
+      userDelete: async (_, args, context: Context) =>
+        withPubSub('USER', 'DELETED', deleteDoc({ model: 'User', args, context })),
+    },
+    Subscription: {
+      userCreated: { subscribe: () => pubsub.asyncIterator(['USER_CREATED']) },
+      userModified: { subscribe: () => pubsub.asyncIterator(['USER_MODIFIED']) },
+      userDeleted: { subscribe: () => pubsub.asyncIterator(['USER_DELETED']) },
     },
   },
   schemaFields: () => ({

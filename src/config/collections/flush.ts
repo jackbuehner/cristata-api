@@ -1,4 +1,4 @@
-import { Context, gql } from '../../apollo';
+import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import {
@@ -18,6 +18,7 @@ import {
   modifyDoc,
   publishDoc,
   watchDoc,
+  withPubSub,
 } from './helpers';
 
 const flush: Collection = {
@@ -126,6 +127,23 @@ const flush: Collection = {
       """
       flushPublish(_id: ObjectID!, published_at: Date, publish: Boolean): Flush
     }
+
+    extend type Subscription {
+      """
+      Sends flush documents when they are created.
+      """
+      flushCreated(): Flush
+      """
+      Sends the updated flush document when it changes.
+      If _id is omitted, the server will send changes for all flushs.
+      """
+      flushModified(_id: ObjectID): Flush
+      """
+      Sends flush _id when it is deleted.
+      If _id is omitted, the server will send _ids for all deleted flushs.
+      """
+      flushDeleted(_id: ObjectID): Flush
+    }
   `,
   resolvers: {
     Query: {
@@ -139,14 +157,20 @@ const flush: Collection = {
       flushActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Flush', context }),
     },
     Mutation: {
-      flushCreate: (_, args, context: Context) => createDoc({ model: 'Flush', args, context }),
+      flushCreate: async (_, args, context: Context) =>
+        withPubSub('FLUSH', 'CREATED', createDoc({ model: 'Flush', args, context })),
       flushModify: (_, { _id, input }, context: Context) =>
-        modifyDoc({ model: 'Flush', data: { ...input, _id }, context }),
-      flushHide: (_, args, context: Context) => hideDoc({ model: 'Flush', args, context }),
-      flushLock: (_, args, context: Context) => lockDoc({ model: 'Flush', args, context }),
-      flushWatch: (_, args, context: Context) => watchDoc({ model: 'Flush', args, context }),
-      flushDelete: (_, args, context: Context) => deleteDoc({ model: 'Flush', args, context }),
-      flushPublish: (_, args, context: Context) => publishDoc({ model: 'Flush', args, context }),
+        withPubSub('FLUSH', 'MODIFIED', modifyDoc({ model: 'Flush', data: { ...input, _id }, context })),
+      flushHide: async (_, args, context: Context) =>
+        withPubSub('FLUSH', 'MODIFIED', hideDoc({ model: 'Flush', args, context })),
+      flushLock: async (_, args, context: Context) =>
+        withPubSub('FLUSH', 'MODIFIED', lockDoc({ model: 'Flush', args, context })),
+      flushWatch: async (_, args, context: Context) =>
+        withPubSub('FLUSH', 'MODIFIED', watchDoc({ model: 'Flush', args, context })),
+      flushDelete: async (_, args, context: Context) =>
+        withPubSub('FLUSH', 'DELETED', deleteDoc({ model: 'Flush', args, context })),
+      flushPublish: async (_, args, context: Context) =>
+        withPubSub('FLUSH', 'MODIFIED', publishDoc({ model: 'Flush', args, context })),
     },
     /*FlushArticles: {
       featured: ({ created_by }) => getArt(created_by),
@@ -165,6 +189,11 @@ const flush: Collection = {
         }
         return [];
       },
+    },
+    Subscription: {
+      flushCreated: { subscribe: () => pubsub.asyncIterator(['SHORTURL_CREATED']) },
+      flushModified: { subscribe: () => pubsub.asyncIterator(['SHORTURL_MODIFIED']) },
+      flushDeleted: { subscribe: () => pubsub.asyncIterator(['SHORTURL_DELETED']) },
     },
   },
   schemaFields: (Users, Teams) => ({

@@ -1,4 +1,4 @@
-import { Context, gql } from '../../apollo';
+import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import {
@@ -20,6 +20,7 @@ import {
   modifyDoc,
   publishDoc,
   watchDoc,
+  withPubSub,
 } from './helpers';
 
 const satire: Collection = {
@@ -172,6 +173,23 @@ const satire: Collection = {
       """
       satirePublish(_id: ObjectID!, published_at: Date, publish: Boolean): Satire
     }
+
+    extend type Subscription {
+      """
+      Sends satire documents when they are created.
+      """
+      satireCreated(): Satire
+      """
+      Sends the updated satire document when it changes.
+      If _id is omitted, the server will send changes for all satires.
+      """
+      satireModified(_id: ObjectID): Satire
+      """
+      Sends satire _id when it is deleted.
+      If _id is omitted, the server will send _ids for all deleted satires.
+      """
+      satireDeleted(_id: ObjectID): Satire
+    }
   `,
   resolvers: {
     Query: {
@@ -229,14 +247,25 @@ const satire: Collection = {
       satireActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Satire', context }),
     },
     Mutation: {
-      satireCreate: (_, args, context: Context) => createDoc({ model: 'Satire', args, context }),
+      satireCreate: async (_, args, context: Context) =>
+        withPubSub('SATIRE', 'CREATED', createDoc({ model: 'Satire', args, context })),
       satireModify: (_, { _id, input }, context: Context) =>
-        modifyDoc({ model: 'Satire', data: { ...input, _id }, context }),
-      satireHide: (_, args, context: Context) => hideDoc({ model: 'Satire', args, context }),
-      satireLock: (_, args, context: Context) => lockDoc({ model: 'Satire', args, context }),
-      satireWatch: (_, args, context: Context) => watchDoc({ model: 'Satire', args, context }),
-      satireDelete: (_, args, context: Context) => deleteDoc({ model: 'Satire', args, context }),
-      satirePublish: (_, args, context: Context) => publishDoc({ model: 'Satire', args, context }),
+        withPubSub('SATIRE', 'MODIFIED', modifyDoc({ model: 'Satire', data: { ...input, _id }, context })),
+      satireHide: async (_, args, context: Context) =>
+        withPubSub('SATIRE', 'MODIFIED', hideDoc({ model: 'Satire', args, context })),
+      satireLock: async (_, args, context: Context) =>
+        withPubSub('SATIRE', 'MODIFIED', lockDoc({ model: 'Satire', args, context })),
+      satireWatch: async (_, args, context: Context) =>
+        withPubSub('SATIRE', 'MODIFIED', watchDoc({ model: 'Satire', args, context })),
+      satireDelete: async (_, args, context: Context) =>
+        withPubSub('SATIRE', 'DELETED', deleteDoc({ model: 'Satire', args, context })),
+      satirePublish: async (_, args, context: Context) =>
+        withPubSub('SATIRE', 'DELETED', publishDoc({ model: 'Satire', args, context })),
+    },
+    Subscription: {
+      satireCreated: { subscribe: () => pubsub.asyncIterator(['SATIRE_CREATED']) },
+      satireModified: { subscribe: () => pubsub.asyncIterator(['SATIRE_MODIFIED']) },
+      satireDeleted: { subscribe: () => pubsub.asyncIterator(['SATIRE_DELETED']) },
     },
   },
   schemaFields: (Users, Teams) => ({

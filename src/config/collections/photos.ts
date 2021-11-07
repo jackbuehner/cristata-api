@@ -1,4 +1,4 @@
-import { Context, gql } from '../../apollo';
+import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, GitHubUserID, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
@@ -13,6 +13,7 @@ import {
   modifyDoc,
   publishDoc,
   watchDoc,
+  withPubSub,
 } from './helpers';
 
 const photos: Collection = {
@@ -111,6 +112,23 @@ const photos: Collection = {
       """
       photoPublish(_id: ObjectID!, published_at: Date, publish: Boolean): Photo
     }
+
+    extend type Subscription {
+      """
+      Sends photo documents when they are created.
+      """
+      photoCreated(): Photo
+      """
+      Sends the updated photo document when it changes.
+      If _id is omitted, the server will send changes for all photos.
+      """
+      photoModified(_id: ObjectID): Photo
+      """
+      Sends photo _id when it is deleted.
+      If _id is omitted, the server will send _ids for all deleted photos.
+      """
+      photoDeleted(_id: ObjectID): Photo
+    }
   `,
   resolvers: {
     Query: {
@@ -124,14 +142,25 @@ const photos: Collection = {
       photoActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Photo', context }),
     },
     Mutation: {
-      photoCreate: (_, args, context: Context) => createDoc({ model: 'Photo', args, context }),
+      photoCreate: async (_, args, context: Context) =>
+        withPubSub('PHOTO', 'CREATED', createDoc({ model: 'Photo', args, context })),
       photoModify: (_, { _id, input }, context: Context) =>
-        modifyDoc({ model: 'Photo', data: { ...input, _id }, context }),
-      photoHide: (_, args, context: Context) => hideDoc({ model: 'Photo', args, context }),
-      photoLock: (_, args, context: Context) => lockDoc({ model: 'Photo', args, context }),
-      photoWatch: (_, args, context: Context) => watchDoc({ model: 'Photo', args, context }),
-      photoDelete: (_, args, context: Context) => deleteDoc({ model: 'Photo', args, context }),
-      photoPublish: (_, args, context: Context) => publishDoc({ model: 'Photo', args, context }),
+        withPubSub('PHOTO', 'MODIFIED', modifyDoc({ model: 'Photo', data: { ...input, _id }, context })),
+      photoHide: async (_, args, context: Context) =>
+        withPubSub('PHOTO', 'MODIFIED', hideDoc({ model: 'Photo', args, context })),
+      photoLock: async (_, args, context: Context) =>
+        withPubSub('PHOTO', 'MODIFIED', lockDoc({ model: 'Photo', args, context })),
+      photoWatch: async (_, args, context: Context) =>
+        withPubSub('PHOTO', 'MODIFIED', watchDoc({ model: 'Photo', args, context })),
+      photoDelete: async (_, args, context: Context) =>
+        withPubSub('PHOTO', 'DELETED', deleteDoc({ model: 'Photo', args, context })),
+      photoPublish: async (_, args, context: Context) =>
+        withPubSub('PHOTO', 'DELETED', publishDoc({ model: 'Photo', args, context })),
+    },
+    Subscription: {
+      photoCreated: { subscribe: () => pubsub.asyncIterator(['PHOTO_CREATED']) },
+      photoModified: { subscribe: () => pubsub.asyncIterator(['PHOTO_MODIFIED']) },
+      photoDeleted: { subscribe: () => pubsub.asyncIterator(['PHOTO_DELETED']) },
     },
   },
   schemaFields: () => ({
