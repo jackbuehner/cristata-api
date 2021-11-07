@@ -109,15 +109,30 @@ const withPermissionsCollectionSchemaFields = {
 
 // create the schema and model for each collection
 config.database.collections.forEach((collection) => {
-  // create the schema
-  const Schema = new mongoose.Schema(
-    merge(
-      collectionSchemaFields,
-      collection.schemaFields(Users, Teams),
-      collection.canPublish ? publishableCollectionSchemaFields : {},
-      collection.withPermissions ? withPermissionsCollectionSchemaFields : {}
-    )
+  // merge preset schema fields per the config with fiels from the collection config
+  const basicSchemaFields = merge(
+    collectionSchemaFields,
+    collection.schemaFields(Users, Teams),
+    collection.canPublish ? publishableCollectionSchemaFields : {},
+    collection.withPermissions ? withPermissionsCollectionSchemaFields : {}
   );
+
+  // convert first level of nested objects into subdocuments
+  const complexSchemaFields = {};
+  Object.entries(basicSchemaFields).forEach(([key, value]) => {
+    // if the schema value is an object of properties, convert the object into a schema
+    // (check !vaue.type to ensure that it is an object instead of a complex schema def)
+    // @ts-expect-error type *might* inside vaue
+    if (Object.prototype.toString.call(value) === '[object Object]' && !value.type) {
+      const SubSchema = new mongoose.Schema(value as { [key: string]: unknown });
+      complexSchemaFields[key] = SubSchema;
+    } else {
+      complexSchemaFields[key] = value;
+    }
+  });
+
+  // create the schema
+  const Schema = new mongoose.Schema(complexSchemaFields);
 
   // add pagination to aggregation
   Schema.plugin(aggregatePaginate);
