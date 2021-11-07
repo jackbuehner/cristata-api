@@ -3,6 +3,7 @@ import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
 import { wss } from './websocket';
 import url from 'url';
 import { app } from './app';
+import { apollo } from './apollo';
 
 // configure the server
 const hocuspocus = Hocuspocus.configure({
@@ -29,6 +30,10 @@ const hocuspocus = Hocuspocus.configure({
   onRequest: async ({ request, response }) => {
     // when a request is made to the server, load the app
     app(request, response);
+  },
+
+  onListen: async () => {
+    apollo(app, hocuspocus.httpServer);
   },
 
   // don't allow client to stay connect if it is out of date
