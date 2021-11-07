@@ -1,6 +1,16 @@
 import { IResolvers } from '@graphql-tools/utils';
 import dotenv from 'dotenv';
 import { GitHubTeamNodeID, GitHubUserID } from '../mongodb/db';
+import {
+  users,
+  satire,
+  articles,
+  shorturls,
+  settings,
+  photoRequests,
+  photos,
+  flush,
+} from './collections';
 
 // load environmental variables
 dotenv.config();
@@ -13,7 +23,16 @@ const database = {
     database: process.env.MONGO_DB_NAME,
     options: `retryWrites=true&w=majority`,
   },
-  collections: [],
+  collections: [
+    users,
+    satire,
+    articles,
+    shorturls,
+    settings,
+    photoRequests,
+    photos,
+    flush,
+  ],
 };
 
 const Teams = {
@@ -23,6 +42,7 @@ const Teams = {
   COPY_EDITOR: 'MDQ6VGVhbTQ4MzM5MzU=',
   STAFF_WRITER: 'MDQ6VGVhbTQ5MDMxMTg=',
   CONTRIBUTOR: 'MDQ6VGVhbTQ5MDMxMjA=',
+  SHORTURL: 'T_kwDOBCVTT84ATx29',
   ANY: 'any',
 };
 
@@ -35,9 +55,20 @@ interface Collection {
   canPublish?: boolean;
   withPermissions?: boolean;
   typeDefs: string;
-  resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
-  schemaFields: (users: typeof Users, teams: typeof Teams) => Record<string, unknown>;
-  permissions: (users: typeof Users, teams: typeof Teams) => CollectionPermissions;
+  resolvers: IResolvers<
+    unknown,
+    Record<string, unknown>,
+    Record<string, unknown>,
+    unknown
+  >;
+  schemaFields: (
+    users: typeof Users,
+    teams: typeof Teams
+  ) => Record<string, unknown>;
+  permissions: (
+    users: typeof Users,
+    teams: typeof Teams
+  ) => CollectionPermissions;
 }
 
 type CollectionPermissionsType = {
