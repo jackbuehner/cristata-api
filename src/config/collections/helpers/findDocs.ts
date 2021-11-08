@@ -18,7 +18,7 @@ interface FindDocs {
   fullAccess?: boolean;
 }
 
-function findDocs({ model, args, context, fullAccess }: FindDocs) {
+async function findDocs({ model, args, context, fullAccess }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
@@ -39,16 +39,17 @@ function findDocs({ model, args, context, fullAccess }: FindDocs) {
           ],
         };
 
+  const pipeline = [
+    { $match: accessFilter },
+    { $match: _ids ? { _id: { $in: _ids } } : {} },
+    { $match: filter ? filter : {} },
+  ];
+
+  const aggregate = Model.aggregate(pipeline);
+
   // @ts-expect-error aggregatePaginate DOES exist.
   // The types for the plugin have not been updated for newer versions of mongoose.
-  return Model.aggregatePaginate(
-    [
-      { $match: accessFilter },
-      { $match: _ids ? { _id: { $in: _ids } } : {} },
-      { $match: filter ? filter : {} },
-    ],
-    { sort, page, offset, limit }
-  );
+  return Model.aggregatePaginate(aggregate, { sort, page, offset, limit });
 }
 
 export { findDocs };
