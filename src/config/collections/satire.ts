@@ -1,4 +1,4 @@
-import { Context, gql, pubsub } from '../../apollo';
+import { Context, getUsers, gql, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import {
@@ -44,14 +44,14 @@ const satire: Collection = {
     }
 
     type SatirePeople inherits PublishableCollectionPeople {
-      authors: [Int]!
+      authors: [User]!
       display_authors: [String]!
       editors: SatireEditors!
     }
 
     type SatireEditors {
-      primary: [Int]!
-      copy: [Int]!
+      primary: [User]!
+      copy: [User]!
     }
 
     type SatireTimestamps inherits PublishableCollectionTimestamps {
@@ -73,7 +73,7 @@ const satire: Collection = {
     }
 
     type PrunedSatirePeople {
-      authors: [Int]!
+      display_authors: [String]!
     }
 
     type PrunedSatireTimestamps {
@@ -261,6 +261,14 @@ const satire: Collection = {
         withPubSub('SATIRE', 'DELETED', deleteDoc({ model: 'Satire', args, context })),
       satirePublish: async (_, args, context: Context) =>
         withPubSub('SATIRE', 'DELETED', publishDoc({ model: 'Satire', args, context })),
+    },
+    SatirePeople: {
+      ...publishableCollectionPeopleResolvers,
+      authors: ({ authors }) => getUsers(authors),
+    },
+    SatireEditors: {
+      primary: ({ primary }) => getUsers(primary),
+      copy: ({ copy }) => getUsers(copy),
     },
     Subscription: {
       satireCreated: { subscribe: () => pubsub.asyncIterator(['SATIRE_CREATED']) },

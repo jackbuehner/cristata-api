@@ -1,4 +1,4 @@
-import { Context, gql, pubsub } from '../../apollo';
+import { collectionPeopleResolvers, Context, getUsers, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, GitHubUserID, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
@@ -29,7 +29,7 @@ const photoRequests: Collection = {
     }
 
     type PhotoRequestPeople inherits CollectionPeople {
-      requested_by: Int
+      requested_by: User
     }
 
     input PhotoRequestModifyInput {
@@ -145,6 +145,10 @@ const photoRequests: Collection = {
         withPubSub('PHOTOREQUEST', 'DELETED', deleteDoc({ model: 'PhotoRequest', args, context })),
       photoRequestPublish: async (_, args, context: Context) =>
         withPubSub('PHOTOREQUEST', 'DELETED', publishDoc({ model: 'PhotoRequest', args, context })),
+    },
+    PhotoRequestPeople: {
+      ...collectionPeopleResolvers,
+      requested_by: ({ requested_by }) => getUsers(requested_by),
     },
     Subscription: {
       photoRequestCreated: { subscribe: () => pubsub.asyncIterator(['PHOTOREQUEST_CREATED']) },

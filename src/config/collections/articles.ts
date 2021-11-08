@@ -1,4 +1,4 @@
-import { Context, gql, pubsub } from '../../apollo';
+import { Context, getUsers, gql, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import {
@@ -18,10 +18,12 @@ import {
   hideDoc,
   lockDoc,
   modifyDoc,
+  pruneDocs,
   publishDoc,
   watchDoc,
   withPubSub,
 } from './helpers';
+import { PRUNED_USER_KEEP_FIELDS } from './users';
 
 const articles: Collection = {
   name: 'Article',
@@ -46,13 +48,13 @@ const articles: Collection = {
     }
 
     type ArticlePeople inherits PublishableCollectionPeople {
-      authors: [Int]!
+      authors: [User]!
       editors: ArticleEditors!
     }
 
     type ArticleEditors {
-      primary: [Int]!
-      copy: [Int]!
+      primary: [User]!
+      copy: [User]!
     }
 
     type ArticleTimestamps inherits PublishableCollectionTimestamps {
@@ -76,7 +78,7 @@ const articles: Collection = {
     }
 
     type PrunedArticlePeople {
-      authors: [Int]!
+      authors: [PrunedUser]!
     }
 
     type PrunedArticleTimestamps {
@@ -268,6 +270,30 @@ const articles: Collection = {
         withPubSub('ARTICLE', 'DELETED', deleteDoc({ model: 'Article', args, context })),
       articlePublish: async (_, args, context: Context) =>
         withPubSub('ARTICLE', 'MODIFIED', publishDoc({ model: 'Article', args, context })),
+    },
+    ArticlePeople: {
+      ...publishableCollectionPeopleResolvers,
+      authors: ({ authors }) => getUsers(authors),
+    },
+    ArticleEditors: {
+      primary: ({ primary }) => getUsers(primary),
+      copy: ({ copy }) => getUsers(copy),
+    },
+    PrunedArticlePeople: {
+      authors: async ({ authors }) => {
+        const promise = getUsers(authors);
+        if (Array.isArray(promise)) {
+          return pruneDocs({
+            input: await Promise.all<mongoose.Document>(promise),
+            keep: PRUNED_USER_KEEP_FIELDS,
+          });
+        } else {
+          return pruneDocs({
+            input: [(await promise) as mongoose.Document],
+            keep: PRUNED_USER_KEEP_FIELDS,
+          })[0];
+        }
+      },
     },
     Subscription: {
       articleCreated: { subscribe: () => pubsub.asyncIterator(['ARTICLE_CREATED']) },

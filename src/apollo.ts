@@ -292,6 +292,7 @@ export {
   apolloWSS,
   collectionPeopleResolvers,
   collectionTypeDefs,
+  getUsers,
   publishableCollectionPeopleResolvers,
   pubsub,
 };
