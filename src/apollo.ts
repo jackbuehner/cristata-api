@@ -152,6 +152,8 @@ const coreResolvers = {
 };
 
 async function getUsers(userIds: string | string[]) {
+  // if it is undefined
+  if (!userIds) return null;
   // if it is an array of github ids
   if (Array.isArray(userIds)) {
     return userIds.map(async (github_id) => await mongoose.model('User').findOne({ github_id }));
