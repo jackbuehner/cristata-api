@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer, ContextFunction } from 'apollo-server-core';
 import { Server } from 'http';
@@ -163,21 +164,22 @@ async function getUsers(userIds: string | string[]) {
   return await mongoose.model('User').findOne({ github_id });
 }
 
+const collectionPeopleResolvers = {
+  created_by: ({ created_by }) => getUsers(created_by),
+  modified_by: ({ modified_by }) => getUsers(modified_by),
+  last_modified_by: ({ last_modified_by }) => getUsers(last_modified_by),
+  watching: ({ watching }) => getUsers(watching),
+};
+
+const publishableCollectionPeopleResolvers = {
+  ...collectionPeopleResolvers,
+  published_by: ({ published_by }) => getUsers(published_by),
+  last_published_by: ({ last_published_by }) => getUsers(last_published_by),
+};
+
 const collectionResolvers = {
-  CollectionPeople: {
-    created_by: ({ created_by }) => getUsers(created_by),
-    modified_by: ({ modified_by }) => getUsers(modified_by),
-    last_modified_by: ({ last_modified_by }) => getUsers(last_modified_by),
-    watching: ({ watching }) => getUsers(watching),
-  },
-  PublishableCollectionPeople: {
-    created_by: ({ created_by }) => getUsers(created_by),
-    modified_by: ({ modified_by }) => getUsers(modified_by),
-    last_modified_by: ({ last_modified_by }) => getUsers(last_modified_by),
-    published_by: ({ published_by }) => getUsers(published_by),
-    last_published_by: ({ last_published_by }) => getUsers(last_published_by),
-    watching: ({ watching }) => getUsers(watching),
-  },
+  CollectionPeople: collectionPeopleResolvers,
+  PublishableCollectionPeople: publishableCollectionPeopleResolvers,
   CollectionHistory: {
     user: ({ user }) => getUsers(user),
   },
@@ -285,4 +287,11 @@ interface Context {
 }
 
 export type { Context };
-export { apollo, apolloWSS, collectionTypeDefs, pubsub };
+export {
+  apollo,
+  apolloWSS,
+  collectionPeopleResolvers,
+  collectionTypeDefs,
+  publishableCollectionPeopleResolvers,
+  pubsub,
+};
