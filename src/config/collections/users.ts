@@ -17,6 +17,19 @@ import {
   withPubSub,
 } from './helpers';
 
+const PRUNED_USER_KEEP_FIELDS = [
+  '_id',
+  'name',
+  'github_id',
+  'current_title',
+  'email',
+  'biography',
+  'twitter',
+  'photo',
+  'slug',
+  'group',
+];
+
 const users: Collection = {
   name: 'User',
   canPublish: false,
@@ -156,18 +169,7 @@ const users: Collection = {
           model: 'User',
           _id: args._id,
           context,
-          keep: [
-            '_id',
-            'name',
-            'github_id',
-            'current_title',
-            'email',
-            'biography',
-            'twitter',
-            'photo',
-            'slug',
-            'group',
-          ],
+          keep: PRUNED_USER_KEEP_FIELDS,
           fullAccess: true,
         }),
       users: (_, args, context: Context) => findDocs({ model: 'User', args, context }),
@@ -176,18 +178,7 @@ const users: Collection = {
           model: 'User',
           args,
           context,
-          keep: [
-            '_id',
-            'name',
-            'github_id',
-            'current_title',
-            'email',
-            'biography',
-            'twitter',
-            'photo',
-            'slug',
-            'group',
-          ],
+          keep: PRUNED_USER_KEEP_FIELDS,
           fullAccess: true,
         }),
       userActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'User', context }),
@@ -267,4 +258,4 @@ interface IUserTimestamps {
 interface IUserDoc extends IUser, mongoose.Document {}
 
 export type { IUser, IUserDoc };
-export { users };
+export { users, PRUNED_USER_KEEP_FIELDS };
