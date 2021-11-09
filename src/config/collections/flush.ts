@@ -8,6 +8,7 @@ import {
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
 import {
+  canDo,
   createDoc,
   deleteDoc,
   findDoc,
@@ -267,34 +268,29 @@ const flush: Collection = {
     },
   },
   schemaFields: (Users, Teams) => ({
-    name: { type: String, required: true, default: 'New Flush' },
-    slug: { type: String },
+    volume: { type: Number, default: 1 },
+    issue: { type: Number, default: 1 },
+    events: [
+      new mongoose.Schema({
+        name: { type: String, required: true, default: 'New event' },
+        date: { type: Date, required: true, default: '0001-01-01T01:00:00.000+00:00' },
+        location: { type: String, required: true, default: 'location' },
+      }),
+    ],
     permissions: {
-      teams: { type: [String], default: [Teams.MANAGING_EDITOR] },
+      teams: { type: [String], default: [Teams.ADMIN] },
     },
     timestamps: {
-      target_publish_at: {
+      week: {
         type: Date,
         default: '0001-01-01T01:00:00.000+00:00',
       },
     },
-    people: {
-      authors: { type: [Number], default: [] },
-      display_authors: { type: [String], default: [] },
-      editors: {
-        primary: { type: [Number] },
-        copy: { type: [Number] },
-      },
+    articles: {
+      featured: { type: mongoose.Types.ObjectId },
+      more: [{ type: mongoose.Types.ObjectId }],
     },
-    stage: { type: Number, default: Stage.PLANNING },
-    tags: { type: [String] },
-    description: { type: String, default: '' },
-    photo_path: { type: String, default: '' },
-    photo_credit: { type: String, default: '' },
-    photo_caption: { type: String, default: '' },
-    body: { type: String },
-    versions: { type: {} },
-    legacy_html: { type: Boolean, default: false },
+    left_advert_photo_url: { type: String },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
@@ -321,34 +317,27 @@ interface IFlush
   extends CollectionSchemaFields,
     PublishableCollectionSchemaFields,
     WithPermissionsCollectionSchemaFields {
-  name: string;
-  slug: string;
+  volume: number;
+  issue: number;
+  events: Array<{
+    name: string;
+    date: string; // ISO string
+    location: string;
+  }>;
+  people: PublishableCollectionSchemaFields['people'] & CollectionSchemaFields['people'];
   timestamps: IFlushTimestamps &
     CollectionSchemaFields['timestamps'] &
     PublishableCollectionSchemaFields['timestamps'];
-  people: IFlushPeople & CollectionSchemaFields['people'] & PublishableCollectionSchemaFields['people'];
-  stage: Stage;
-  tags: string[];
-  description: string;
-  photo_path: string;
-  photo_credit: string;
-  photo_caption: string;
-  body?: string;
+  articles?: {
+    featured?: mongoose.Types.ObjectId;
+    more?: mongoose.Types.ObjectId[];
+  };
+  left_advert_photo_url?: string;
   versions?: IFlush[]; // store previous versions of the flush profile (only via v2 api)
-  legacy_html: boolean; // true if it is html from the old webflow
 }
 
 interface IFlushTimestamps {
-  target_publish_at?: string; // ISO string
-}
-
-interface IFlushPeople {
-  authors: GitHubUserID[];
-  display_authors: string[];
-  editors: {
-    primary: GitHubUserID[];
-    copy: GitHubUserID[];
-  };
+  week?: string; // ISO string
 }
 
 interface IFlushDoc extends IFlush, mongoose.Document {}
