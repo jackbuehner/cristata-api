@@ -25,6 +25,26 @@ import {
 } from './helpers';
 import { PRUNED_USER_KEEP_FIELDS } from './users';
 
+const PRUNED_ARTICLE_KEEP_FIELDS = [
+  '_id',
+  'timestamps.published_at',
+  'timestamps.updated_at',
+  'people.authors',
+  'name',
+  'categories',
+  'tags',
+  'description',
+  'photo_path',
+  'video_path',
+  'photo_caption',
+  'show_comments',
+  'legacy_html',
+  'body',
+  'slug',
+  'featured_order',
+  'photo_credit',
+];
+
 const articles: Collection = {
   name: 'Article',
   canPublish: true,
@@ -64,6 +84,7 @@ const articles: Collection = {
     type PrunedArticle {
       _id: ObjectID!
       name: String!
+      slug: String
       categories: [String]!
       tags: [String]!
       description: String!
@@ -204,25 +225,7 @@ const articles: Collection = {
           model: 'Article',
           _id: args._id,
           context,
-          keep: [
-            '_id',
-            'timestamps.published_at',
-            'timestamps.updated_at',
-            'people.authors',
-            'name',
-            'categories',
-            'tags',
-            'description',
-            'photo_path',
-            'video_path',
-            'photo_caption',
-            'show_comments',
-            'legacy_html',
-            'body',
-            'slug',
-            'featured_order',
-            'photo_credit',
-          ],
+          keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
         }),
       articles: (_, args, context: Context) => findDocs({ model: 'Article', args, context }),
@@ -231,25 +234,7 @@ const articles: Collection = {
           model: 'Article',
           args,
           context,
-          keep: [
-            '_id',
-            'timestamps.published_at',
-            'timestamps.updated_at',
-            'people.authors',
-            'name',
-            'categories',
-            'tags',
-            'description',
-            'photo_path',
-            'video_path',
-            'photo_caption',
-            'show_comments',
-            'legacy_html',
-            'body',
-            'slug',
-            'featured_order',
-            'photo_credit',
-          ],
+          keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
         }),
       articleActionAccess: (_, __, context: Context) =>
@@ -396,4 +381,4 @@ interface IArticlePeople {
 interface IArticleDoc extends IArticle, mongoose.Document {}
 
 export type { IArticle, IArticleDoc };
-export { articles, Stage as EnumArticleStage };
+export { articles, Stage as EnumArticleStage, PRUNED_ARTICLE_KEEP_FIELDS };
