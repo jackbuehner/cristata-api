@@ -147,12 +147,14 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
   // get the ids of the featured articles
   const featuredIds: mongoose.Types.ObjectId[] = [];
   if (featured) {
-    const result = await mongoose.model<ISettings>('Settings').findOne({ name: 'featured-articles' });
-    const ids = result.setting as unknown as { [key: string]: string };
-    featuredIds.push(mongoose.Types.ObjectId(ids.first));
-    featuredIds.push(mongoose.Types.ObjectId(ids.second));
-    featuredIds.push(mongoose.Types.ObjectId(ids.third));
-    featuredIds.push(mongoose.Types.ObjectId(ids.fourth));
+    const result = (
+      await mongoose.model<ISettings>('Settings').findOne({ name: 'featured-articles' })
+    ).toObject();
+    const ids = result.setting as Record<string, string | undefined | null | mongoose.Types.ObjectId>;
+    featuredIds.push(new mongoose.Types.ObjectId(ids.first));
+    featuredIds.push(new mongoose.Types.ObjectId(ids.second));
+    featuredIds.push(new mongoose.Types.ObjectId(ids.third));
+    featuredIds.push(new mongoose.Types.ObjectId(ids.fourth));
   }
 
   try {
