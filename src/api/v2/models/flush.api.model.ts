@@ -74,8 +74,8 @@ async function getDocuments(user: IProfile, query: URLSearchParams, res: Respons
         [
           ...new Set(
             Object.keys(flattenObject(Document.schema.obj))
-              .filter((key) => key.includes('people'))
-              .map((key) => key.replace('.type', '').replace('.default', ''))
+              .filter((key) => key.includes('people.obj'))
+              .map((key) => key.replace('.type', '').replace('.default', '').replace('.obj', ''))
           ),
         ],
         'Flush'
@@ -126,8 +126,8 @@ async function getDocument(id: string, user: IProfile, res: Response = null): Pr
         [
           ...new Set(
             Object.keys(flattenObject(Document.schema.obj))
-              .filter((key) => key.includes('people'))
-              .map((key) => key.replace('.type', '').replace('.default', ''))
+              .filter((key) => key.includes('people.obj'))
+              .map((key) => key.replace('.type', '').replace('.default', '').replace('.obj', ''))
           ),
         ],
         'Article'
