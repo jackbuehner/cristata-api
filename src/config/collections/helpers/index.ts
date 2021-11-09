@@ -1,4 +1,8 @@
-import { CollectionSchemaFields, PublishableCollectionSchemaFields } from '../../../mongodb/db';
+import {
+  CollectionSchemaFields,
+  PublishableCollectionSchemaFields,
+  WithPermissionsCollectionSchemaFields,
+} from '../../../mongodb/db';
 
 export { createDoc } from './createDoc';
 export { modifyDoc } from './modifyDoc';
@@ -19,8 +23,9 @@ export { withPubSub } from './withPubSub';
 
 type CollectionDoc = CollectionSchemaFields &
   Partial<PublishableCollectionSchemaFields> &
-  Record<string, unknown> & { people: Record<string, unknown> } & {
-    people: { editors: Record<string, unknown> };
-  } & { timestamps: Record<string, unknown> };
+  Partial<WithPermissionsCollectionSchemaFields> &
+  Partial<Record<string, unknown>> &
+  Partial<{ people: Partial<{ editors: Record<string, unknown>; [key: string]: unknown }> }> &
+  Partial<{ timestamps: Record<string, unknown> }>;
 
 export type { CollectionDoc };

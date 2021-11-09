@@ -52,7 +52,7 @@ async function patchUser(
 ): Promise<void> {
   // attempt to patch the article
   try {
-    const currentVersion = await User.findById(id);
+    const currentVersion = (await User.findById(id)).toObject();
 
     data = {
       ...data,

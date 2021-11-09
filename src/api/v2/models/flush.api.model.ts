@@ -162,7 +162,7 @@ async function patchDocument(
 ): Promise<void> {
   try {
     // if the current document does not exist, do not continue (use POST to create an document)
-    const currentDoc = await getDocument(id, user);
+    const currentDoc = (await getDocument(id, user)).toObject();
     if (!currentDoc) {
       const err =
         'the existing document does not exist or you do not have access. If you are trying to create a document, use the POST method';
@@ -206,6 +206,10 @@ async function patchDocument(
       history: currentDoc.history
         ? [...currentDoc.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
         : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+      permissions: {
+        ...currentDoc.permissions,
+        ...data.permissions,
+      },
     };
 
     // attempt to patch the document
@@ -228,7 +232,7 @@ async function patchDocument(
 async function watchDocument(id: string, user: IProfile, watch: boolean, res: Response = null): Promise<void> {
   try {
     // if the current document does not exist, do not continue
-    const currentDoc = await getDocument(id, user);
+    const currentDoc = (await getDocument(id, user)).toObject();
     if (!currentDoc) {
       const err = 'the existing document does not exist or you do not have access';
       res.status(404).json({ message: err });

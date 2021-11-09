@@ -93,7 +93,7 @@ async function getPhoto(id: string, user: IProfile, res: Response = null): Promi
  */
 async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Response = null): Promise<void> {
   // if the current document does not exist, do not continue (use POST to create an document)
-  const currentPhoto = await getPhoto(id, user);
+  const currentPhoto = (await getPhoto(id, user)).toObject();
   if (!currentPhoto) {
     const err =
       'the existing document does not exist or you do not have access. If you are trying to create a document, use the POST method';
@@ -123,6 +123,10 @@ async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Respons
     history: currentPhoto.history
       ? [...currentPhoto.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
       : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+    permissions: {
+      ...currentPhoto.permissions,
+      ...data.permissions,
+    },
   };
 
   // attempt to patch the article

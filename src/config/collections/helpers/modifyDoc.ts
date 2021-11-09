@@ -4,6 +4,11 @@ import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { slugify } from '../../../utils/slugify';
 import mongoose from 'mongoose';
 import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
+import {
+  CollectionSchemaFields,
+  PublishableCollectionSchemaFields,
+  WithPermissionsCollectionSchemaFields,
+} from '../../../mongodb/db';
 
 interface ModifyDoc {
   model: string;
@@ -24,7 +29,10 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
   const _id = new mongoose.Types.ObjectId(string_id as string);
 
   // if the current document does not exist OR the user does not have access, throw an error
-  const currentDoc = await findDoc({ model, _id, context });
+  const currentDoc = (await findDoc({ model, _id, context })).toObject() as unknown as CollectionSchemaFields &
+    PublishableCollectionSchemaFields &
+    WithPermissionsCollectionSchemaFields &
+    Record<string, unknown>;
   if (!currentDoc)
     throw new ApolloError(
       'the document you are trying to modify does not exist or you do not have access',
@@ -76,11 +84,15 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
           { type: 'patched', user: parseInt(context.profile.id), at: new Date().toISOString() },
         ]
       : [{ type: 'patched', user: parseInt(context.profile.id), at: new Date().toISOString() }],
+    permissions: {
+      ...currentDoc.permissions,
+      ...data.permissions,
+    },
   };
 
   // set the slug if the document is becoming published and it does not already have one
   // (only if the document has a slug property and a name property)
-  if (publishable && !data.slug && data.name && currentDoc.name) {
+  if (publishable && !data.slug && (data.name || currentDoc.name)) {
     const willBePublished = !!data.timestamps.published_at && !currentDoc.timestamps.published_at;
 
     if (willBePublished && !data.slug) data.slug = slugify(`${data.name || currentDoc.name}`);

@@ -176,7 +176,7 @@ async function patchPhotoRequest(
   res: Response = null
 ): Promise<void> {
   // if the current document does not exist, do not continue (use POST to create an document)
-  const currentPhotoRequest = await getPhotoRequest(id, user);
+  const currentPhotoRequest = (await getPhotoRequest(id, user)).toObject();
   if (!currentPhotoRequest) {
     const err =
       'the existing document does not exist or you do not have access. If you are trying to create a document, use the POST method';
@@ -218,6 +218,10 @@ async function patchPhotoRequest(
           { type: historyType, user: parseInt(user.id), at: new Date().toISOString() },
         ]
       : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+    permissions: {
+      ...currentPhotoRequest.permissions,
+      ...data.permissions,
+    },
   };
 
   // attempt to patch the article

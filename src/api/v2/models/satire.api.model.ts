@@ -274,7 +274,7 @@ async function patchSatire(
   res: Response = null
 ): Promise<void> {
   // if the current document does not exist, do not continue (use POST to create an document)
-  const currentSatire = await getSatire(id, 'id', user);
+  const currentSatire = (await getSatire(id, 'id', user)).toObject();
   if (!currentSatire) {
     const err =
       'the existing document does not exist or you do not have access. If you are trying to create a document, use the POST method';
@@ -325,6 +325,10 @@ async function patchSatire(
     history: currentSatire.history
       ? [...currentSatire.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
       : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+    permissions: {
+      ...currentSatire.permissions,
+      ...data.permissions,
+    },
   };
 
   // update the publish time if the document is being published for the first time
@@ -360,7 +364,7 @@ async function patchSatire(
  */
 async function deleteSatire(id: string, user: IProfile, canPublish = false, res = null): Promise<void> {
   // if the satire's current state is uploaded or published, do not patch satire unless user canPublish
-  const currentSatire = await getSatire(id, 'id', user);
+  const currentSatire = (await getSatire(id, 'id', user)).toObject();
   if (currentSatire) {
     const isUploaded = currentSatire.stage === (EnumSatireStage.UPLOADED || EnumSatireStage.PUBLISHED);
     if (isUploaded && !canPublish) {
