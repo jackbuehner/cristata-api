@@ -2,7 +2,15 @@ import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields } from '../../mongodb/db';
-import { createDoc, findDoc, findDocs, getCollectionActionAccess, modifyDoc, withPubSub } from './helpers';
+import {
+  canDo,
+  findDoc,
+  findDocs,
+  getCollectionActionAccess,
+  requireAuthentication,
+  withPubSub,
+} from './helpers';
+import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 
 const settings: Collection = {
   name: 'Settings',
@@ -39,7 +47,7 @@ const settings: Collection = {
       """
       Create a new setting.
       """
-      settingCreate(github_id: Int, name: String!): Settings
+      settingCreate(name: String!): Settings
       """
       Modify an existing setting.
       """
@@ -73,9 +81,48 @@ const settings: Collection = {
     },
     Mutation: {
       settingCreate: async (_, args, context: Context) =>
-        withPubSub('SETTING', 'CREATED', createDoc({ model: 'Settings', args, context })),
+        withPubSub(
+          'SETTING',
+          'CREATED',
+          (async () => {
+            // require authentication and authorization
+            requireAuthentication(context);
+            if (!canDo({ model: 'Settings', action: 'create', context })) {
+              throw new ForbiddenError('you cannot create documents in this collection');
+            }
+
+            // create the new doc with the provided data and the schema defaults
+            const newDoc = new (mongoose.model('Settings'))(args);
+
+            // save and return the new doc
+            return await newDoc.save();
+          })()
+        ),
       settingModify: (_, { _id, input }, context: Context) =>
-        withPubSub('SETTING', 'MODIFIED', modifyDoc({ model: 'Settings', data: { ...input, _id }, context })),
+        withPubSub(
+          'SETTING',
+          'MODIFIED',
+          (async () => {
+            // require authentication and authorization
+            requireAuthentication(context);
+            if (!canDo({ model: 'Settings', action: 'modify', context })) {
+              throw new ForbiddenError('you cannot modify documents in this collection');
+            }
+
+            // if the current document does not exist OR the user does not have access, throw an error
+            const currentDoc = await findDoc({ model: 'Settings', _id, context });
+            if (!currentDoc)
+              throw new ApolloError(
+                'the document you are trying to modify does not exist or you do not have access',
+                'DOCUMENT_NOT_FOUND'
+              );
+
+            // attempt to patch the document
+            return await mongoose
+              .model('Settings')
+              .findByIdAndUpdate(_id, { $set: { setting: input.setting } }, { returnOriginal: false });
+          })()
+        ),
     },
     Subscription: {
       settingCreated: { subscribe: () => pubsub.asyncIterator(['SETTING_CREATED']) },
@@ -84,7 +131,7 @@ const settings: Collection = {
   },
   schemaFields: () => ({
     name: { type: String, required: true },
-    setting: {},
+    setting: new mongoose.Schema({}, { strict: false }),
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ADMIN], users: [] },
