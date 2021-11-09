@@ -281,6 +281,9 @@ const articles: Collection = {
     },
     PrunedArticlePeople: {
       authors: async ({ authors }) => {
+        // if there are no authers, return an empty array
+        if (authors.length === 0) return [];
+        // otherwise, get and prune the user profile for each author
         const promise = getUsers(authors);
         if (Array.isArray(promise)) {
           return pruneDocs({
@@ -291,7 +294,7 @@ const articles: Collection = {
           return pruneDocs({
             input: [(await promise) as mongoose.Document],
             keep: PRUNED_USER_KEEP_FIELDS,
-          })[0];
+          });
         }
       },
     },
