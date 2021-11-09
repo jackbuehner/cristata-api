@@ -83,9 +83,8 @@ const settings: Collection = {
     },
   },
   schemaFields: () => ({
-    original_url: { type: String, required: true },
-    code: { type: String, required: true, unique: true },
-    domain: { type: String, required: true },
+    name: { type: String, required: true },
+    setting: {},
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ADMIN], users: [] },
@@ -100,7 +99,7 @@ const settings: Collection = {
 
 interface ISettings extends CollectionSchemaFields {
   name: string;
-  setting: JSON;
+  setting: Record<string, unknown> & mongoose.Document;
 }
 
 interface ISettingsDoc extends ISettings, mongoose.Document {}
