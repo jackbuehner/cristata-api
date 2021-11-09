@@ -34,7 +34,7 @@ function flattenObject(
     }
     // otherwise, add to flattened object
     else {
-      const flatKey = [...roots, key].join(sep);
+      const flatKey = [...roots, key].join(sep).replace(/_doc./g, ''); // remove _doc in case the object was a mongoose subdocument
       flattened[flatKey] = obj[key];
     }
   });
