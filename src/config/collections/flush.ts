@@ -11,7 +11,9 @@ import {
   createDoc,
   deleteDoc,
   findDoc,
+  findDocAndPrune,
   findDocs,
+  findDocsAndPrune,
   getCollectionActionAccess,
   hideDoc,
   lockDoc,
@@ -20,6 +22,7 @@ import {
   watchDoc,
   withPubSub,
 } from './helpers';
+import { PRUNED_ARTICLE_KEEP_FIELDS } from './articles';
 
 const flush: Collection = {
   name: 'Flush',
@@ -47,6 +50,25 @@ const flush: Collection = {
     }
 
     type FlushTimestamps inherits PublishableCollectionTimestamps {
+      week: Date!
+    }
+
+    type PrunedFlush {
+      _id: ObjectID
+      events: [FlushEvent]
+      articles: PrunedFlushArticles
+      timestamps: PrunedFlushTimestamps
+      volume: Int
+      issue: Int
+      left_advert_photo_url: String
+    }
+
+    type PrunedFlushArticles {
+      featured: PrunedArticle
+      more: [PrunedArticle]
+    }
+
+    type PrunedFlushTimestamps {
       week: Date!
     }
 
@@ -83,6 +105,10 @@ const flush: Collection = {
       Get a set of flushes. If _ids is omitted, the API will return all flushes.
       """
       flushes(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Flush>
+      """
+      Get a set of pruned flushes. If _ids is omitted, the API will return all flushes.
+      """
+      flushesPublic(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<PrunedFlush>
       """
       Get the permissions of the currently authenticated user for this
       collection.
@@ -154,6 +180,23 @@ const flush: Collection = {
           context,
         }),
       flushes: (_, args, context: Context) => findDocs({ model: 'Flush', args, context }),
+      flushesPublic: (_, args, context: Context) =>
+        findDocsAndPrune({
+          model: 'Flush',
+          args,
+          context,
+          keep: [
+            '_id',
+            'events',
+            'articles.featured',
+            'articles.more',
+            'timestamps.week',
+            'volume',
+            'issue',
+            'left_advert_photo_url',
+          ],
+          fullAccess: true,
+        }),
       flushActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Flush', context }),
     },
     Mutation: {
@@ -186,6 +229,33 @@ const flush: Collection = {
             context,
           });
           return test.docs;
+        }
+        return [];
+      },
+    },
+    PrunedFlushArticles: {
+      featured: ({ featured }, __, context: Context) => {
+        if (featured) {
+          return findDocAndPrune({
+            model: 'Article',
+            _id: featured,
+            context,
+            keep: PRUNED_ARTICLE_KEEP_FIELDS,
+            fullAccess: true,
+          });
+        }
+        return null;
+      },
+      more: async ({ more }, __, context: Context) => {
+        if (more.length > 0) {
+          const articles = await findDocsAndPrune({
+            model: 'Article',
+            args: { _ids: more, limit: 100 },
+            context,
+            keep: PRUNED_ARTICLE_KEEP_FIELDS,
+            fullAccess: true,
+          });
+          return articles.docs;
         }
         return [];
       },
