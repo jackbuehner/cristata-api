@@ -13,7 +13,11 @@ function pruneDocs<T extends mongoose.Document[]>({ input, keep }: PruneDocs<T>)
     const flatObj = flattenObject(obj as unknown as { [key: string]: never });
     const keepProps = keep.map((key) =>
       unflattenObject({
-        [key]: key === '_id' ? new mongoose.Types.ObjectId(flatObj['_id.id']) : flatObj[key],
+        [key]:
+        // if the property is a mongoose objectID, convert it to its hexidecimal representation
+          flatObj[key + '._bsontype'] === 'ObjectID'
+            ? Buffer.from(flatObj[key + '.id']).toString('hex')
+            : flatObj[key],
       })
     );
     return merge({}, ...keepProps) as mongoose.Document;
