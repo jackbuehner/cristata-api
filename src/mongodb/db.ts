@@ -122,8 +122,9 @@ config.database.collections.forEach((collection) => {
   Object.entries(basicSchemaFields).forEach(([key, value]) => {
     // if the schema value is an object of properties, convert the object into a schema
     // (check !vaue.type to ensure that it is an object instead of a complex schema def)
-    // @ts-expect-error type *might* inside vaue
-    if (Object.prototype.toString.call(value) === '[object Object]' && !value.type) {
+    // (check !vaue.paths to ensure that it is an object intead of a mongoose schema)
+    // @ts-expect-error type and paths *might* be inside value
+    if (Object.prototype.toString.call(value) === '[object Object]' && !value.type && !value.paths) {
       const SubSchema = new mongoose.Schema(value as { [key: string]: unknown });
       complexSchemaFields[key] = SubSchema;
     } else {
