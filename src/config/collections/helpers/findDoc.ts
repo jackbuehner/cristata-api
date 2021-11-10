@@ -6,12 +6,13 @@ import { CollectionDoc, requireAuthentication } from '.';
 
 interface FindDoc {
   model: string;
+  by?: string;
   _id: mongoose.Types.ObjectId;
   context: Context;
   fullAccess?: boolean;
 }
 
-function findDoc({ model, _id, context, fullAccess }: FindDoc) {
+function findDoc({ model, by, _id, context, fullAccess }: FindDoc) {
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
@@ -27,6 +28,7 @@ function findDoc({ model, _id, context, fullAccess }: FindDoc) {
         };
 
   // get the document
+  if (by) return Model.findOne({ [by]: _id, ...accessFilter });
   return Model.findById(_id, accessFilter);
 }
 
