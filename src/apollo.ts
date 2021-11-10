@@ -14,6 +14,7 @@ import { IProfile } from './passport';
 import { merge } from 'merge-anything';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { PubSub } from 'graphql-subscriptions';
+import { corsConfig } from './middleware/cors';
 export const gql = (s: TemplateStringsArray): string => `${s}`;
 
 const dateScalar = new GraphQLScalarType({
@@ -274,7 +275,7 @@ async function apollo(app: Application, server: Server): Promise<void> {
 
     // required logic for integrating with Express
     await apollo.start();
-    apollo.applyMiddleware({ app, path: '/v3' });
+    apollo.applyMiddleware({ app, path: '/v3', cors: corsConfig });
   } catch (error) {
     console.error(error);
   }

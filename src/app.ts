@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { corsConfig } from './middleware/cors';
 import passport from 'passport';
 import cookieSession from 'cookie-session';
 import './passport';
@@ -21,31 +22,8 @@ app.set('query parser', (queryString: string) => {
   return new URLSearchParams(queryString);
 });
 
-// allow CORS for the app
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:4000',
-  'https://thepaladin.cristata.app',
-  'https://api.thepaladin.cristata.app',
-  'https://thepaladin.dev.cristata.app',
-  'https://api.thepaladin.dev.cristata.app',
-  'https://thepaladin.news',
-  'https://new.thepaladin.news',
-  'https://dev.thepaladin.news',
-]; // allowed orgins
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // allow requests with no origin
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const message = 'The CORS policy for this origin does not allow access from the particular origin:';
-        return callback(new Error(message + origin), false);
-      }
-      return callback(null, true);
-    },
-    credentials: true, // set cookies on client
-  })
-); // TODO: in production, only allow certain domains
+// enable CORS for the app
+app.use(cors(corsConfig));
 
 // parse incoming request body as applciation/json
 app.use(express.json());
