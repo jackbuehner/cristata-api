@@ -34,9 +34,9 @@ const shorturls: Collection = {
 
     type Query {
       """
-      Get a shorturl by _id.
+      Get a shorturl by code.
       """
-      shorturl(_id: ObjectID!): ShortURL
+      shorturl(code: String!): ShortURL
       """
       Get a set of shorturls. If _ids is omitted, the API will return all shorturls.
       """
@@ -56,30 +56,30 @@ const shorturls: Collection = {
       """
       Modify an existing shorturl.
       """
-      shorturlModify(_id: ObjectID!, input: ShortURLModifyInput!): ShortURL
+      shorturlModify(code: String!, input: ShortURLModifyInput!): ShortURL
       """
       Toggle whether the hidden property is set to true for an existing shorturl.
       This mutation sets hidden: true by default.
       Hidden shorturls should not be presented to clients; this should be used as
       a deletion that retains the data in case it is needed later.
       """
-      shorturlHide(_id: ObjectID!, hide: Boolean): ShortURL
+      shorturlHide(code: String!, hide: Boolean): ShortURL
       """
       Toggle whether the locked property is set to true for an existing shorturl.
       This mutation sets locked: true by default.
       Locked shorturls should only be editable by the server and by admins.
       """
-      shorturlLock(_id: ObjectID!, lock: Boolean): ShortURL
+      shorturlLock(code: String!, lock: Boolean): ShortURL
       """
       Add a watcher to a shorturl.
       This mutation adds the watcher by default.
       This mutation will use the signed in shorturl if watcher is not defined.
       """
-      shorturlWatch(_id: ObjectID!, watcher: Int, watch: Boolean): ShortURL
+      shorturlWatch(code: String!, watcher: Int, watch: Boolean): ShortURL
       """
       Deletes a shorturl account.
       """
-      shorturlDelete(_id: ObjectID!): Void
+      shorturlDelete(code: String!): Void
     }
 
     extend type Subscription {
@@ -91,12 +91,12 @@ const shorturls: Collection = {
       Sends the updated shorturl document when it changes.
       If _id is omitted, the server will send changes for all shorturls.
       """
-      shorturlModified(_id: ObjectID): ShortURL
+      shorturlModified(code: String): ShortURL
       """
       Sends shorturl _id when it is deleted.
       If _id is omitted, the server will send _ids for all deleted shorturls.
       """
-      shorturlDeleted(_id: ObjectID): ShortURL
+      shorturlDeleted(code: String): ShortURL
     }
   `,
   resolvers: {
@@ -104,7 +104,8 @@ const shorturls: Collection = {
       shorturl: (_, args, context: Context) =>
         findDoc({
           model: 'ShortURL',
-          _id: args._id,
+          by: 'code',
+          _id: args.code,
           context,
           fullAccess: true,
         }),
