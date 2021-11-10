@@ -333,15 +333,15 @@ async function patchSatire(
 
   // update the publish time if the document is being published for the first time
   if (data.stage === EnumSatireStage.PUBLISHED) {
-    if (!currentSatire.timestamps.published_at && !data.timestamps.published_at) {
+    if (!currentSatire.timestamps?.published_at && !data.timestamps?.published_at) {
       // if the client did not provide a publish time and the article was not already published
       data.timestamps.published_at = new Date().toISOString();
     }
   }
 
   // set the slug if the document is being published and does not already have one
-  if (data.stage === EnumSatireStage.PUBLISHED && !data.slug) {
-    data.slug = slugify(data.name);
+  if (data.stage === EnumSatireStage.PUBLISHED && (!data.slug || !currentSatire.slug)) {
+    data.slug = slugify(data.name || currentSatire.name);
   }
 
   // attempt to patch the satire
