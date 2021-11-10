@@ -93,7 +93,7 @@ const collectionTypeDefs = gql`
   }
 
   type WithPermissions {
-    permisssions: CollectionPermissions!
+    permissions: CollectionPermissions!
   }
 
   type CollectionPermissions {
