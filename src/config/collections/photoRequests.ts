@@ -166,7 +166,7 @@ const photoRequests: Collection = {
     },
     stage: { type: Number, default: Stage.NEW },
     versions: { type: {} },
-    article_id: { type: String, default: '' },
+    article_id: { type: mongoose.Types.ObjectId, default: '' },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
