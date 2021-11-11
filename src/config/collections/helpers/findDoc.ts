@@ -28,8 +28,7 @@ function findDoc({ model, by, _id, context, fullAccess }: FindDoc) {
         };
 
   // get the document
-  if (by) return Model.findOne({ [by]: _id, ...accessFilter });
-  return Model.findById(_id, accessFilter);
+  return Model.findOne({ [by || '_id']: _id || null, ...accessFilter });
 }
 
 export { findDoc };
