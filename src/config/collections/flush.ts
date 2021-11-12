@@ -3,7 +3,6 @@ import { Collection } from '../database';
 import mongoose from 'mongoose';
 import {
   CollectionSchemaFields,
-  GitHubUserID,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
