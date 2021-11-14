@@ -15,6 +15,7 @@ import { merge } from 'merge-anything';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { PubSub } from 'graphql-subscriptions';
 import { corsConfig } from './middleware/cors';
+import { converObjIsoDatesToDates } from './utils/converObjIsoDatesToDates';
 export const gql = (s: TemplateStringsArray): string => `${s}`;
 
 const dateScalar = new GraphQLScalarType({
@@ -46,7 +47,7 @@ const jsonScalar = new GraphQLScalarType({
     return JSON.stringify(value);
   },
   parseValue(value) {
-    return JSON.parse(value);
+    return converObjIsoDatesToDates(JSON.parse(value));
   },
 });
 
