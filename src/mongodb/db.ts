@@ -126,7 +126,7 @@ config.database.collections.forEach((collection) => {
     // @ts-expect-error type and paths *might* be inside value
     if (Object.prototype.toString.call(value) === '[object Object]' && !value.type && !value.paths) {
       const SubSchema = new mongoose.Schema(value as { [key: string]: unknown });
-      complexSchemaFields[key] = SubSchema;
+      complexSchemaFields[key] = { type: SubSchema, default: () => ({}) };
     } else {
       complexSchemaFields[key] = value;
     }
