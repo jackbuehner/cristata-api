@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { corsConfig } from './middleware/cors';
+import { allowedOrigins, corsConfig } from './middleware/cors';
 import passport from 'passport';
 import cookieSession from 'cookie-session';
 import './passport';
@@ -262,6 +262,18 @@ app.get('/api/v2/history', (req, res) => {
       console.error(error);
       res.status(400).json(error);
     });
+});
+
+// create a CORS proxy
+import corsAnywhere from 'cors-anywhere';
+const proxy = corsAnywhere.createServer({
+  originWhitelist: allowedOrigins, // allow all origins
+  requireHeader: [], // don't require headers
+  removeHeaders: ['cookie', 'cookie2'],
+});
+app.get('/proxy/*', (req, res) => {
+  req.url = req.url.replace('/proxy/', '/'); // Strip '/proxy' from the front of the URL, else the proxy won't work.
+  proxy.emit('request', req, res);
 });
 
 export { app };
