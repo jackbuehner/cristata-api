@@ -7,7 +7,6 @@ import {
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
 import {
-  canDo,
   createDoc,
   deleteDoc,
   findDoc,
@@ -40,7 +39,7 @@ const flush: Collection = {
 
     type FlushEvent {
       name: String!
-      date: String!
+      date: Date!
       location: String!
     }
  
