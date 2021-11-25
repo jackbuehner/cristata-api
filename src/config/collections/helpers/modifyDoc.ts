@@ -9,6 +9,7 @@ import {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
+import { merge } from 'merge-anything';
 
 interface ModifyDoc {
   model: string;
@@ -47,8 +48,7 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
       throw new ForbiddenError('you cannot modify published documents in this collection');
     else if (isPublished) {
       // set updated published document metadata
-      data = {
-        ...data,
+      data = merge(data, {
         people: {
           ...currentDoc.people,
           ...data.people,
@@ -60,13 +60,12 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
           ...data.timestamps,
           updated_at: new Date().toISOString(),
         },
-      };
+      });
     }
   }
 
   // set modification metadata
-  data = {
-    ...data,
+  data = merge(data, {
     people: {
       ...currentDoc.people,
       ...data.people,
@@ -88,7 +87,7 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
       ...currentDoc.permissions,
       ...data.permissions,
     },
-  };
+  });
 
   // set the slug if the document is becoming published and it does not already have one
   // (only if the document has a slug property and a name property)
