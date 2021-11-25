@@ -5,6 +5,7 @@ import { IProfile } from '../../../passport';
 import { flattenObject } from '../../../utils/flattenObject';
 import { replaceGithubIdWithUserObj } from '../helpers';
 import { IFlush, IFlushDoc } from '../../../mongodb/flush.model';
+import { merge } from 'merge-anything';
 
 // load environmental variables
 dotenv.config();
@@ -191,6 +192,10 @@ async function patchDocument(
     // set modified_at, modified_by, and last_modified_by
     data = {
       ...data,
+      articles: {
+        ...currentDoc.articles,
+        ...data.articles,
+      },
       people: {
         ...currentDoc.people,
         ...data.people,
