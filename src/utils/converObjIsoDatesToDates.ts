@@ -19,6 +19,24 @@ function converObjIsoDatesToDates(obj: Record<string | number, unknown>): Record
     else if (isObject(value)) {
       copy[key] = converObjIsoDatesToDates(value);
     }
+
+    // if the value is an array, parse any dates inside it
+    else if (Array.isArray(value)) {
+      copy[key] = value.map((valueItem) => {
+        // if the value is an ISO date string, covert the value to a Date in the copy
+        if (isIsoDateString(valueItem)) {
+          copy[key] = new Date(valueItem);
+        }
+
+        // if the value is an object, send it through the function
+        else if (isObject(valueItem)) {
+          return converObjIsoDatesToDates(valueItem);
+        }
+
+        // otherwise, do nothing
+        return valueItem;
+      });
+    }
   });
 
   // return the copy
