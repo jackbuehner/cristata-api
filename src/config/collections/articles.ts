@@ -44,6 +44,7 @@ const PRUNED_ARTICLE_KEEP_FIELDS = [
   'featured_order',
   'photo_credit',
   'layout',
+  'template',
 ];
 
 const articles: Collection = {
@@ -67,6 +68,7 @@ const articles: Collection = {
       people: ArticlePeople
       timestamps: ArticleTimestamps
       layout: String!
+      template: String!
     }
 
     type ArticlePeople inherits PublishableCollectionPeople {
@@ -99,6 +101,7 @@ const articles: Collection = {
       people: PrunedArticlePeople
       timestamps: PrunedArticleTimestamps
       layout: String!
+      template: String!
     }
 
     type PrunedArticlePeople {
@@ -125,6 +128,7 @@ const articles: Collection = {
       people: ArticleModifyInputPeople
       timestamps: ArticleModifyInputTimestamps
       layout: String
+      template: String
     }
 
     input ArticleModifyInputPeople {
@@ -323,7 +327,8 @@ const articles: Collection = {
     versions: { type: {} },
     legacy_html: { type: Boolean, default: false },
     show_comments: { type: Boolean, default: false },
-    layout: { type: String, default: 'standard' },
+    layout: { type: String, default: 'standard' }, // only supported on template 'jackbuehner2020' and newer
+    template: { type: String, default: 'jackbuehner2020' },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
@@ -370,6 +375,7 @@ interface IArticle
   show_comments: boolean; // whether commenting on article should be enabled (for website, not cms)
   legacy_html: boolean; // true if it is html from the old webflow
   layout: string;
+  template: string;
 }
 
 interface IArticleTimestamps {
