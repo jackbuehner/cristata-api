@@ -28,6 +28,8 @@ const photos: Collection = {
       photo_url: String
       dimensions: PhotoDimensions
       people: PhotoPeople
+      legacy_caption: String
+      legacy_thumbnail_id: String
     }
 
     type PhotoDimensions {
@@ -181,6 +183,8 @@ const photos: Collection = {
       y: { type: Number },
     },
     versions: { type: {} },
+    legacy_caption: { type: String },
+    legacy_thumbnail_id: { type: String },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
@@ -205,6 +209,8 @@ interface IPhoto extends CollectionSchemaFields, CollectionSchemaFields, WithPer
     y?: number;
   };
   versions?: IPhoto[]; // store previous versions of the photo profile (only via v2 api)
+  legacy_caption?: string;
+  legacy_thumbnail_id?: string;
 }
 
 interface IPhotoPeople {

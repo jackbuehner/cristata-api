@@ -69,6 +69,7 @@ const articles: Collection = {
       timestamps: ArticleTimestamps
       layout: String!
       template: String!
+      legacy_comments: [ArticleLegacyComments]
     }
 
     type ArticlePeople inherits PublishableCollectionPeople {
@@ -83,6 +84,12 @@ const articles: Collection = {
 
     type ArticleTimestamps inherits PublishableCollectionTimestamps {
       target_publish_at: Date
+    }
+
+    type ArticleLegacyComments {
+      author_name: String!
+      commented_at: String!
+      content: String!
     }
 
     type PrunedArticle {
@@ -329,6 +336,15 @@ const articles: Collection = {
     show_comments: { type: Boolean, default: false },
     layout: { type: String, default: 'standard' }, // only supported on template 'jackbuehner2020' and newer
     template: { type: String, default: 'jackbuehner2020' },
+    legacy_comments: {
+      type: [
+        {
+          author_name: { type: String },
+          commented_at: { type: Date },
+          content: { type: String },
+        },
+      ],
+    },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
@@ -376,6 +392,11 @@ interface IArticle
   legacy_html: boolean; // true if it is html from the old webflow
   layout: string;
   template: string;
+  legacy_comments?: Array<{
+    author_name: string;
+    commented_at: string;
+    content: string;
+  }>;
 }
 
 interface IArticleTimestamps {
