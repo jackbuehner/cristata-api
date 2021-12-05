@@ -179,8 +179,9 @@ const flush: Collection = {
           context,
         }),
       flushes: (_, args, context: Context) => findDocs({ model: 'Flush', args, context }),
-      flushesPublic: (_, args, context: Context) =>
-        findDocsAndPrune({
+      flushesPublic: (_, args, context: Context) => {
+        console.log(args.filter.$and);
+        return findDocsAndPrune({
           model: 'Flush',
           args,
           context,
@@ -195,7 +196,8 @@ const flush: Collection = {
             'left_advert_photo_url',
           ],
           fullAccess: true,
-        }),
+        });
+      },
       flushActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Flush', context }),
     },
     Mutation: {

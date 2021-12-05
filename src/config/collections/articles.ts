@@ -8,6 +8,7 @@ import {
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
 import {
+  CollectionDoc,
   createDoc,
   deleteDoc,
   findDoc,
@@ -175,6 +176,17 @@ const articles: Collection = {
       collection.
       """
       articleActionAccess: CollectionActionAccess
+      """
+      Get the unique categories used in the articles collection. Category names are always returned lowercase with spaces
+      replaced by hyphens.
+      """
+      articleCategoriesPublic: [String]
+      """
+      Get the unique tags used in the articles collection. The contains parameter should be used to narrow to search the
+      results by whether it contains the provided string. Pagination is not available on this query. Uppercase letters are
+      remplaced by lowercase letters and spaces are replaced by hyphens.
+      """
+      articleTagsPublic(limit: Int, contains: String): [String]
     }
 
     type Mutation {
@@ -254,6 +266,29 @@ const articles: Collection = {
         }),
       articleActionAccess: (_, __, context: Context) =>
         getCollectionActionAccess({ model: 'Article', context }),
+      articleCategoriesPublic: async () => {
+        const Model = mongoose.model<CollectionDoc>('Article');
+        const categories: string[] = await Model.distinct('categories');
+        return Array.from(new Set(categories.map((cat) => cat.toLowerCase().replace(' ', '-'))));
+      },
+      articleTagsPublic: async (_, args) => {
+        const Model = mongoose.model<CollectionDoc>('Article');
+        const tags: string[] = await Model.distinct('tags');
+        let processed: string[] = tags.map((tag) => tag.toLowerCase().replace(' ', '-'));
+
+        // filter to ensure the tag contains the specified string
+        if (args.contains) {
+          processed = processed.filter((tag) => tag.indexOf(args.contains) !== -1);
+        }
+
+        // limit the length of the response
+        if (args.limit) {
+          processed = processed.slice(0, args.limit);
+        }
+
+        // returned the procesed tags
+        return Array.from(new Set(processed));
+      },
     },
     Mutation: {
       articleCreate: async (_, args, context: Context) =>
