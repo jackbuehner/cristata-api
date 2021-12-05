@@ -37,13 +37,15 @@ const PRUNED_ARTICLE_KEEP_FIELDS = [
   'description',
   'photo_path',
   'video_path',
+  'video_replaces_photo',
   'photo_caption',
+  'photo_credit',
+  'video_replaces_photo',
   'show_comments',
   'legacy_html',
   'body',
   'slug',
   'featured_order',
-  'photo_credit',
   'layout',
   'template',
 ];
@@ -62,6 +64,7 @@ const articles: Collection = {
       description: String!
       photo_path: String!
       video_path: String!
+      video_replaces_photo: Boolean!
       photo_caption: String!
       body: String
       show_comments: Boolean!
@@ -102,7 +105,9 @@ const articles: Collection = {
       description: String!
       photo_path: String!
       video_path: String!
+      video_replaces_photo: Boolean!
       photo_caption: String!
+      photo_credit: String
       body: String
       show_comments: Boolean!
       legacy_html: Boolean!
@@ -130,6 +135,7 @@ const articles: Collection = {
       description: String
       photo_path: String
       video_path: String
+      video_replaces_photo: Boolean
       photo_caption: String
       body: String
       legacy_html: Boolean
@@ -256,14 +262,35 @@ const articles: Collection = {
           fullAccess: true,
         }),
       articles: (_, args, context: Context) => findDocs({ model: 'Article', args, context }),
-      articlesPublic: async (_, args, context: Context) =>
-        findDocsAndPrune({
+      articlesPublic: async (_, args, context: Context) => {
+        const articles = await findDocsAndPrune({
           model: 'Article',
           args,
           context,
           keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
-        }),
+        });
+        const docs = await Promise.all(
+          articles.docs.map(async (prunedArticle) => {
+            return {
+              ...prunedArticle,
+              photo_credit: JSON.parse(
+                JSON.stringify(
+                  await findDoc({
+                    model: 'Photo',
+                    by: 'photo_url',
+                    //@ts-expect-error photo_path exists on prunedArticle
+                    _id: prunedArticle.photo_path,
+                    context,
+                    fullAccess: true,
+                  })
+                )
+              ).people?.photo_created_by,
+            };
+          })
+        );
+        return { ...articles, docs };
+      },
       articleActionAccess: (_, __, context: Context) =>
         getCollectionActionAccess({ model: 'Article', context }),
       articleCategoriesPublic: async () => {
@@ -364,6 +391,7 @@ const articles: Collection = {
     description: { type: String, default: '' },
     photo_path: { type: String, default: '' },
     video_path: { type: String, default: '' },
+    video_replaces_photo: { type: Boolean, default: false },
     photo_caption: { type: String, default: '' },
     body: { type: String },
     versions: { type: {} },
@@ -420,6 +448,7 @@ interface IArticle
   description: string;
   photo_path: string;
   video_path: string;
+  video_replaces_photo: boolean;
   photo_caption: string;
   body?: string;
   versions?: IArticle[]; // store previous versions of the article profile (only via v2 api)
