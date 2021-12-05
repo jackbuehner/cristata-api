@@ -25,6 +25,7 @@ import {
   withPubSub,
 } from './helpers';
 import { PRUNED_USER_KEEP_FIELDS } from './users';
+import { isArray } from '../../utils/isArray';
 
 const PRUNED_ARTICLE_KEEP_FIELDS = [
   '_id',
@@ -346,18 +347,11 @@ const articles: Collection = {
         // if there are no authers, return an empty array
         if (authors.length === 0) return [];
         // otherwise, get and prune the user profile for each author
-        const promise = getUsers(authors);
-        if (Array.isArray(promise)) {
-          return pruneDocs({
-            input: await Promise.all<mongoose.Document>(promise),
-            keep: PRUNED_USER_KEEP_FIELDS,
-          });
-        } else {
-          return pruneDocs({
-            input: [(await promise) as mongoose.Document],
-            keep: PRUNED_USER_KEEP_FIELDS,
-          });
-        }
+        const users = await getUsers(authors);
+        return pruneDocs({
+          input: isArray(users) ? users : [users],
+          keep: PRUNED_USER_KEEP_FIELDS,
+        });
       },
     },
     Subscription: {
