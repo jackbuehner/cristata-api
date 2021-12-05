@@ -180,7 +180,6 @@ const flush: Collection = {
         }),
       flushes: (_, args, context: Context) => findDocs({ model: 'Flush', args, context }),
       flushesPublic: (_, args, context: Context) => {
-        console.log(args.filter.$and);
         return findDocsAndPrune({
           model: 'Flush',
           args,
