@@ -222,7 +222,7 @@ const flush: Collection = {
     FlushArticles: {
       featured: ({ featured }, __, context: Context) => findDoc({ model: 'Article', _id: featured, context }),
       more: async ({ more }, __, context: Context) => {
-        if (more.length > 0) {
+        if (more && more.length > 0) {
           const test = await findDocs({
             model: 'Article',
             args: { _ids: more, limit: 100 },
@@ -247,7 +247,7 @@ const flush: Collection = {
         return null;
       },
       more: async ({ more }, __, context: Context) => {
-        if (more.length > 0) {
+        if (more && more.length > 0) {
           const articles = await findDocsAndPrune({
             model: 'Article',
             args: { _ids: more, limit: 100 },
