@@ -266,6 +266,7 @@ const articles: Collection = {
         findDocAndPrune({
           model: 'Article',
           _id: args._id,
+          filter: { stage: Stage.Published },
           context,
           keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
@@ -274,7 +275,7 @@ const articles: Collection = {
       articlesPublic: async (_, args, context: Context) => {
         const articles = await findDocsAndPrune({
           model: 'Article',
-          args,
+          args: { ...args, filter: { ...args.filter, stage: Stage.Published } },
           context,
           keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
@@ -307,8 +308,11 @@ const articles: Collection = {
                 $gte: dateAtTimeZero(args.date),
                 $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
               },
+              stage: Stage.Published,
             }
-          : undefined;
+          : {
+              stage: Stage.Published,
+            };
         return findDocAndPrune({
           model: 'Article',
           by: 'slug',
