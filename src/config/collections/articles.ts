@@ -26,6 +26,7 @@ import {
 } from './helpers';
 import { PRUNED_USER_KEEP_FIELDS } from './users';
 import { isArray } from '../../utils/isArray';
+import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
 
 const PRUNED_ARTICLE_KEEP_FIELDS = [
   '_id',
@@ -170,6 +171,13 @@ const articles: Collection = {
       """
       articlePublic(_id: ObjectID!): PrunedArticle
       """
+      Get a article by slug with confidential information pruned.
+
+      Provide the date of the article to ensure that the correct article is provided
+      (in case the slug is not unique).
+      """
+      articleBySlugPublic(slug: String!, date: Date): PrunedArticle
+      """
       Get a set of articles. If _ids is omitted, the API will return all articles.
       """
       articles(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Article>
@@ -291,6 +299,25 @@ const articles: Collection = {
           })
         );
         return { ...articles, docs };
+      },
+      articleBySlugPublic: (_, args, context: Context) => {
+        const filter = args.date
+          ? {
+              'timestamps.published_at': {
+                $gte: dateAtTimeZero(args.date),
+                $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
+              },
+            }
+          : undefined;
+        return findDocAndPrune({
+          model: 'Article',
+          by: 'slug',
+          _id: args.slug,
+          filter: filter,
+          context,
+          keep: PRUNED_ARTICLE_KEEP_FIELDS,
+          fullAccess: true,
+        });
       },
       articleActionAccess: (_, __, context: Context) =>
         getCollectionActionAccess({ model: 'Article', context }),
