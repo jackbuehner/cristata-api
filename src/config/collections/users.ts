@@ -163,7 +163,11 @@ const users: Collection = {
   resolvers: {
     Query: {
       user: (_, args, context: Context) =>
-        findDoc({ model: 'User', _id: args._id || parseInt(context.profile._id), context }),
+        findDoc({
+          model: 'User',
+          _id: args._id || new mongoose.Types.ObjectId(context.profile._id),
+          context,
+        }),
       userPublic: (_, args, context: Context) =>
         findDocAndPrune({
           model: 'User',
