@@ -8,6 +8,7 @@ import {
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
 import {
+  CollectionDoc,
   createDoc,
   deleteDoc,
   findDoc,
@@ -134,6 +135,10 @@ const satire: Collection = {
       collection.
       """
       satireActionAccess: CollectionActionAccess
+      """
+      Get the number of articles in each stage.
+      """
+      satireStageCounts: [StageCount]
     }
 
     type Mutation {
@@ -245,6 +250,10 @@ const satire: Collection = {
           fullAccess: true,
         }),
       satireActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Satire', context }),
+      satireStageCounts: async () => {
+        const Model = mongoose.model<CollectionDoc>('Satire');
+        return Model.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
+      },
     },
     Mutation: {
       satireCreate: async (_, args, context: Context) =>

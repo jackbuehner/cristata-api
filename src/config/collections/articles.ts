@@ -128,6 +128,11 @@ const articles: Collection = {
       updated_at: Date!
     }
 
+    type StageCount {
+      _id: Float!
+      count: Int!
+    }
+
     input ArticleModifyInput {
       name: String
       slug: String
@@ -202,6 +207,10 @@ const articles: Collection = {
       remplaced by lowercase letters and spaces are replaced by hyphens.
       """
       articleTagsPublic(limit: Int, contains: String): [String]
+      """
+      Get the number of articles in each stage.
+      """
+      articleStageCounts: [StageCount]
     }
 
     type Mutation {
@@ -347,6 +356,10 @@ const articles: Collection = {
 
         // returned the procesed tags
         return Array.from(new Set(processed));
+      },
+      articleStageCounts: async () => {
+        const Model = mongoose.model<CollectionDoc>('Article');
+        return Model.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
       },
     },
     Mutation: {
