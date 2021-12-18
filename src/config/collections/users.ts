@@ -46,7 +46,7 @@ const users: Collection = {
       timestamps: UserTimestamps
       photo: String
       github_id: Int
-      teams: String
+      teams: [String]
       group: Float
     }
 
@@ -79,7 +79,7 @@ const users: Collection = {
       current_title: String
       photo: String
       github_id: Int
-      teams: String
+      teams: [String]
       group: Float
     }
 
