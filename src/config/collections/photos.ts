@@ -30,6 +30,7 @@ const photos: Collection = {
       people: PhotoPeople
       legacy_caption: String
       legacy_thumbnail_id: String
+      size: Int
     }
 
     type PhotoDimensions {
@@ -49,6 +50,7 @@ const photos: Collection = {
       photo_url: String
       dimensions: PhotoModifyInputDimensions
       people: PhotoModifyInputPeople
+      size: Int
     }
 
     input PhotoModifyInputDimensions {
@@ -81,7 +83,7 @@ const photos: Collection = {
       """
       Create a new photo.
       """
-      photoCreate(github_id: Int, name: String!): Photo
+      photoCreate(name: String!): Photo
       """
       Modify an existing photo.
       """
@@ -176,7 +178,7 @@ const photos: Collection = {
       uploaded_by: { type: Number },
     },
     tags: { type: [String] },
-    file_type: { type: [String], default: undefined },
+    file_type: { type: String, default: undefined },
     photo_url: { type: String, default: '' },
     dimensions: {
       x: { type: Number },
