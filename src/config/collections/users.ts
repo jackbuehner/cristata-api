@@ -16,6 +16,7 @@ import {
   watchDoc,
   withPubSub,
 } from './helpers';
+import axios from 'axios';
 
 const PRUNED_USER_KEEP_FIELDS = [
   '_id',
@@ -29,6 +30,14 @@ const PRUNED_USER_KEEP_FIELDS = [
   'slug',
   'group',
 ];
+
+// create an axios instance for the GitHub API
+const GHAxios = axios.create({
+  baseURL: 'https://api.github.com',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 const users: Collection = {
   name: 'User',
@@ -46,8 +55,18 @@ const users: Collection = {
       timestamps: UserTimestamps
       photo: String
       github_id: Int
-      teams: [String]
+      teams: Teams
       group: Float
+    }
+
+    type Teams {
+      docs: [Team]
+    }
+
+    type Team {
+      _id: String!
+      slug: String!
+      name: String!
     }
 
     type UserTimestamps inherits CollectionTimestamps {
@@ -70,7 +89,7 @@ const users: Collection = {
     }
 
     input UserModifyInput {
-      name: String!
+      name: String
       slug: String
       phone: String
       email: String
@@ -200,6 +219,62 @@ const users: Collection = {
         withPubSub('USER', 'MODIFIED', watchDoc({ model: 'User', args, context })),
       userDelete: async (_, args, context: Context) =>
         withPubSub('USER', 'DELETED', deleteDoc({ model: 'User', args, context })),
+    },
+    Teams: {
+      docs: async (teamIds: string[], __, context: Context) => {
+        // get all of the teams
+        const { data } = await GHAxios.post(
+          `https://api.github.com/graphql`,
+          {
+            query: `
+            {
+              organization(login: "paladin-news") {
+                teams(first: 100, rootTeamsOnly: false) {
+                  edges {
+                    node {
+                      _id: id
+                      slug
+                      name
+                    }
+                  }
+                }
+              }
+            }      
+          `,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${context.profile.accessToken}`,
+            },
+          }
+        );
+
+        // identify the edges (which contain the teams)
+        type TeamsEdgesType = Array<{
+          node: {
+            _id: string;
+            slug: string;
+            name: string;
+          };
+        }>;
+        const ghTeamsEdges: TeamsEdgesType = data.data.organization.teams.edges;
+
+        // TODO: enable pagination for when the org has more than 100 teams
+
+        // filter to only include nodes that match the user's teams
+        const teams = ghTeamsEdges
+          // map to only include nodes (instead of edges.nodes)
+          .map((edge) => {
+            return edge.node;
+          })
+          // exclude nodes that are not in the user's list of teams
+          .filter((node) => {
+            return teamIds.includes(node._id);
+          });
+
+        // return the filtered teams nodes
+        return teams;
+      },
     },
     Subscription: {
       userCreated: { subscribe: () => pubsub.asyncIterator(['USER_CREATED']) },
