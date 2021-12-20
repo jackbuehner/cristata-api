@@ -201,11 +201,8 @@ app.use('/api/v2/gh/teams/discussions', teamDiscussionsRouter);
 import { settingsRouter } from './api/v2/routes/settings.api.route';
 app.use('/api/v2/settings', settingsRouter);
 
-// get history of documents in mongodb that have history tracked
-import mongoose from 'mongoose';
-import { IArticleDoc } from './mongodb/articles.model';
-
 // provide a user photo by user _id
+import mongoose from 'mongoose';
 app.get('/v3/user-photo/:user_id', async (req, res) => {
   try {
     // define model
@@ -226,65 +223,6 @@ app.get('/v3/user-photo/:user_id', async (req, res) => {
     console.error(error);
     res.status(400).json(error);
   }
-});
-
-// get the 10 recent history changes
-app.get('/api/v2/history', (req, res) => {
-  mongoose
-    .model<IArticleDoc>('Article')
-    .aggregate([
-      { $match: { history: { $elemMatch: { type: { $in: ['created', 'patched', 'hidden'] } } } } },
-      { $sort: { 'timestamps.modified_at': -1 } },
-      { $limit: 10 },
-      { $addFields: { collection: 'articles' } },
-      {
-        $unionWith: {
-          coll: 'photorequests',
-          pipeline: [
-            { $match: { history: { $elemMatch: { type: { $in: ['created', 'patched', 'hidden'] } } } } },
-            { $sort: { 'timestamps.modified_at': -1 } },
-            { $limit: 10 },
-            { $addFields: { collection: 'photo-requests' } },
-          ],
-        },
-      },
-      {
-        $unionWith: {
-          coll: 'photos',
-          pipeline: [
-            { $match: { history: { $elemMatch: { type: { $in: ['created', 'patched', 'hidden'] } } } } },
-            { $sort: { 'timestamps.modified_at': -1 } },
-            { $limit: 10 },
-            { $addFields: { collection: 'photos' } },
-          ],
-        },
-      },
-      { $sort: { 'timestamps.modified_at': -1 } },
-      {
-        $unset: [
-          'body',
-          'people',
-          'permissions',
-          'categories',
-          'stage',
-          'description',
-          'photo_path',
-          'timestamps',
-          'locked',
-          'tags',
-          'hidden',
-          'photo_caption',
-          'article_id',
-        ],
-      },
-    ])
-    .then((result) => {
-      res.json(result);
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(400).json(error);
-    });
 });
 
 // create a CORS proxy
