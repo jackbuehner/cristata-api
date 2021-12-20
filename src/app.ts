@@ -205,6 +205,29 @@ app.use('/api/v2/settings', settingsRouter);
 import mongoose from 'mongoose';
 import { IArticleDoc } from './mongodb/articles.model';
 
+// provide a user photo by user _id
+app.get('/v3/user-photo/:user_id', async (req, res) => {
+  try {
+    // define model
+    const User = mongoose.model<IUser>('User');
+
+    // make authenticated user available
+    const authUser = req.user as IProfile;
+
+    // identify the user _id
+    const user_id = req.params.user_id === 'me' ? authUser._id : req.params.user_id;
+
+    // get the user
+    const user = await User.findById(user_id);
+
+    // redirect the request to the user photo
+    res.redirect(user.photo);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json(error);
+  }
+});
+
 // get the 10 recent history changes
 app.get('/api/v2/history', (req, res) => {
   mongoose
@@ -266,6 +289,8 @@ app.get('/api/v2/history', (req, res) => {
 
 // create a CORS proxy
 import corsAnywhere from 'cors-anywhere';
+import { IProfile } from './passport';
+import { IUser } from './config/collections/users';
 const proxy = corsAnywhere.createServer({
   originWhitelist: allowedOrigins, // allow all origins
   requireHeader: [], // don't require headers
