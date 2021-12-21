@@ -217,7 +217,7 @@ const articles: Collection = {
       """
       Create a new article.
       """
-      articleCreate(github_id: Int, name: String!): Article
+      articleCreate(name: String!): Article
       """
       Modify an existing article.
       """

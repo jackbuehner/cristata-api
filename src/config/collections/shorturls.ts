@@ -14,6 +14,8 @@ import {
   watchDoc,
   withPubSub,
 } from './helpers';
+import { customAlphabet } from 'nanoid';
+import { UserInputError } from 'apollo-server-errors';
 
 const shorturls: Collection = {
   name: 'ShortURL',
@@ -52,7 +54,7 @@ const shorturls: Collection = {
       """
       Create a new shorturl.
       """
-      shorturlCreate(original_url: String!, code: String!, domain: String!): ShortURL
+      shorturlCreate(original_url: String!, code: String, domain: String!): ShortURL
       """
       Modify an existing shorturl.
       """
@@ -114,8 +116,28 @@ const shorturls: Collection = {
         getCollectionActionAccess({ model: 'ShortURL', context }),
     },
     Mutation: {
-      shorturlCreate: async (_, args, context: Context) =>
-        withPubSub('SHORTURL', 'CREATED', createDoc({ model: 'ShortURL', args, context })),
+      shorturlCreate: async (_, args, context: Context) => {
+        // return error if shorturl code is not alphanumeric
+        if (args.code && !args.code.match(/^[a-z0-9]+$/i))
+          throw new UserInputError('shorturl code must be alphanumeric');
+
+        // return error if code is not unique
+        const codeExists = !!(await findDoc({
+          model: 'ShortURL',
+          by: 'code',
+          _id: args.code,
+          context,
+          fullAccess: true,
+        }));
+        if (codeExists) throw new UserInputError('shorturl code must be unique');
+
+        // if no code is provided, generate an alphanumeric code
+        const generateCode = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 7);
+        if (!args.code) args.code = generateCode();
+
+        // return the new shorturl doc
+        return withPubSub('SHORTURL', 'CREATED', createDoc({ model: 'ShortURL', args, context }));
+      },
       shorturlModify: (_, { _id, input }, context: Context) =>
         withPubSub('SHORTURL', 'MODIFIED', modifyDoc({ model: 'ShortURL', data: { ...input, _id }, context })),
       shorturlHide: async (_, args, context: Context) =>

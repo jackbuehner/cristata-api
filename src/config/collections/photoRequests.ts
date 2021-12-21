@@ -63,7 +63,7 @@ const photoRequests: Collection = {
       """
       Create a new photoRequest.
       """
-      photoRequestCreate(github_id: Int, name: String!): PhotoRequest
+      photoRequestCreate(name: String!): PhotoRequest
       """
       Modify an existing photoRequest.
       """

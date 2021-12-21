@@ -119,7 +119,7 @@ const flush: Collection = {
       """
       Create a new flush.
       """
-      flushCreate(github_id: Int, name: String!): Flush
+      flushCreate(volume: Int!, issue: Int!): Flush
       """
       Modify an existing flush.
       """

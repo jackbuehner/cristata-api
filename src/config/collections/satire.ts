@@ -145,7 +145,7 @@ const satire: Collection = {
       """
       Create a new satire.
       """
-      satireCreate(github_id: Int, name: String!): Satire
+      satireCreate(name: String!): Satire
       """
       Modify an existing satire.
       """
