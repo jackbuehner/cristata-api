@@ -47,6 +47,7 @@ app.use(passport.session()); // replace `req.user` with passport user
 app.use('/auth', authRouter); // authentication routes
 app.use(githubWebhookHandler); // recieve and handle webhook payloads from GitHub
 app.use('/api/v2', apiRouter2); // API v2 routes
+app.use('/v2', apiRouter2);
 app.use('/v3', apiRouter3); // API v3 routes
 app.use('/', proxyRouter); // CORS proxy routes
 
