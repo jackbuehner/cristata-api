@@ -84,7 +84,7 @@ async function getPhotoRequests(user: IProfile, query: URLSearchParams, res: Res
     ...replaceGithubIdWithUserObj(
       [
         ...new Set(
-          Object.keys(flattenObject(PhotoRequest.schema.obj))
+          Object.keys(flattenObject(PhotoRequest.schema.obj as Record<string, never>))
             .filter((key) => key.includes('people.tree'))
             .filter((key) => !key.includes('id'))
             .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
@@ -137,7 +137,7 @@ async function getPhotoRequest(id: string, user: IProfile, res: Response = null)
     ...replaceGithubIdWithUserObj(
       [
         ...new Set(
-          Object.keys(flattenObject(PhotoRequest.schema.obj))
+          Object.keys(flattenObject(PhotoRequest.schema.obj as Record<string, never>))
             .filter((key) => key.includes('people.tree'))
             .filter((key) => !key.includes('id'))
             .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))

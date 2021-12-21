@@ -252,7 +252,8 @@ const satire: Collection = {
       satireActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Satire', context }),
       satireStageCounts: async () => {
         const Model = mongoose.model<CollectionDoc>('Satire');
-        return Model.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
+        // @ts-expect-error bug in mongoose: https://github.com/Automattic/mongoose/issues/11059
+        return await Model.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
       },
     },
     Mutation: {

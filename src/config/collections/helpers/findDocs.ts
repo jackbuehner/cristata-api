@@ -45,7 +45,7 @@ async function findDocs({ model, args, context, fullAccess }: FindDocs) {
   // (field names are key + _is_baseline)
   const timestampBaselineBooleanFields = [
     ...new Set(
-      Object.keys(flattenObject(Model.schema.obj))
+      Object.keys(flattenObject(Model.schema.obj as { [x: string]: never }))
         .filter((key) => key.includes('timestamps.obj'))
         .filter((key) => !key.includes('id'))
         .map((key) =>
@@ -76,11 +76,11 @@ async function findDocs({ model, args, context, fullAccess }: FindDocs) {
   if (offset !== undefined) {
     // @ts-expect-error aggregatePaginate DOES exist.
     // The types for the plugin have not been updated for newer versions of mongoose.
-    return Model.aggregatePaginate(aggregate, { sort, offset, limit });
+    return await Model.aggregatePaginate(aggregate, { sort, offset, limit });
   }
   // @ts-expect-error aggregatePaginate DOES exist.
   // The types for the plugin have not been updated for newer versions of mongoose.
-  return Model.aggregatePaginate(aggregate, { sort, page, limit });
+  return await Model.aggregatePaginate(aggregate, { sort, page, limit });
 }
 
 export { findDocs };

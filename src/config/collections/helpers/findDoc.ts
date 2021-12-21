@@ -13,7 +13,7 @@ interface FindDoc {
   fullAccess?: boolean;
 }
 
-function findDoc({ model, by, _id, filter, context, fullAccess }: FindDoc) {
+async function findDoc({ model, by, _id, filter, context, fullAccess }: FindDoc) {
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
@@ -29,7 +29,7 @@ function findDoc({ model, by, _id, filter, context, fullAccess }: FindDoc) {
         };
 
   // get the document
-  return Model.findOne({ [by || '_id']: _id || null, ...accessFilter, ...filter });
+  return await Model.findOne({ [by || '_id']: _id || null, ...accessFilter, ...filter });
 }
 
 export { findDoc };

@@ -74,7 +74,7 @@ async function getDocuments(user: IProfile, query: URLSearchParams, res: Respons
       ...replaceGithubIdWithUserObj(
         [
           ...new Set(
-            Object.keys(flattenObject(Document.schema.obj))
+            Object.keys(flattenObject(Document.schema.obj as Record<string, never>))
               .filter((key) => key.includes('people.obj'))
               .map((key) => key.replace('.type', '').replace('.default', '').replace('.obj', ''))
           ),
@@ -126,7 +126,7 @@ async function getDocument(id: string, user: IProfile, res: Response = null): Pr
       ...replaceGithubIdWithUserObj(
         [
           ...new Set(
-            Object.keys(flattenObject(Document.schema.obj))
+            Object.keys(flattenObject(Document.schema.obj as Record<string, never>))
               .filter((key) => key.includes('people.obj'))
               .map((key) => key.replace('.type', '').replace('.default', '').replace('.obj', ''))
           ),

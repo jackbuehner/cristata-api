@@ -179,7 +179,7 @@ const coreResolvers = {
 
       const Model = mongoose.model(collectionNames[0]);
 
-      const pipeline = [
+      const pipeline: mongoose.PipelineStage[] = [
         { $addFields: { in: collectionNamesPluralized[0] } },
         ...collectionNamesPluralized.map((collectionName) => ({
           $unionWith: {
@@ -190,7 +190,7 @@ const coreResolvers = {
         { $unwind: { path: '$history' } },
         {
           $project: {
-            _id: 1,
+            // _id: projected by default
             in: 1,
             name: 1,
             'permissions.teams': 1,

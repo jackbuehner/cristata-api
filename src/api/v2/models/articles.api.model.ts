@@ -69,7 +69,7 @@ async function getArticles(user: IProfile, query: URLSearchParams, res: Response
   const historyType = query.getAll('historyType');
 
   // aggregation pipline
-  const pipeline = [
+  const pipeline: mongoose.PipelineStage[] = [
     {
       // admin: full access
       // others: only get documents for which the user has access (by team or userID)
@@ -85,7 +85,7 @@ async function getArticles(user: IProfile, query: URLSearchParams, res: Response
     ...replaceGithubIdWithUserObj(
       [
         ...new Set(
-          Object.keys(flattenObject(Article.schema.obj))
+          Object.keys(flattenObject(Article.schema.obj as Record<string, never>))
             .filter((key) => key.includes('people.tree'))
             .filter((key) => !key.includes('id'))
             .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
@@ -306,7 +306,7 @@ async function getArticle(id: string, by: string, user: IProfile, res: Response 
     ...replaceGithubIdWithUserObj(
       [
         ...new Set(
-          Object.keys(flattenObject(Article.schema.obj))
+          Object.keys(flattenObject(Article.schema.obj as Record<string, never>))
             .filter((key) => key.includes('people.tree'))
             .filter((key) => !key.includes('id'))
             .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
@@ -590,6 +590,7 @@ async function deleteArticle(id: string, user: IProfile, canPublish = false, res
  */
 async function getStageCounts(res = null): Promise<void> {
   try {
+    // @ts-expect-error _id should be a string with reference to another variable
     const articleStageCounts = await Article.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
     res ? res.json(articleStageCounts) : null;
   } catch (error) {

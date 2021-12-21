@@ -14,12 +14,7 @@ import { Teams, Users } from '../config/database';
 const { username, password, host, database, options } = config.database.connection;
 
 // connect to mongoDB
-mongoose.connect(`mongodb+srv://${username}:${password}@${host}/${database}?${options}`, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
-  useCreateIndex: true,
-});
+mongoose.connect(`mongodb+srv://${username}:${password}@${host}/${database}?${options}`);
 
 type GitHubTeamNodeID = string;
 type GitHubUserID = number;

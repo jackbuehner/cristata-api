@@ -7,6 +7,7 @@ import { canDo, findDoc, requireAuthentication } from '.';
 interface HideDoc {
   model: string;
   args: {
+    by?: string;
     _id: mongoose.Types.ObjectId;
     hide?: boolean;
   };
@@ -22,7 +23,7 @@ async function hideDoc({ model, args, context, publishable }: HideDoc) {
   if (publishable === undefined) publishable = false;
 
   // get the document
-  const doc = await findDoc({ model, _id: args._id, context });
+  const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context });
 
   // if the document is currently published, do not modify unless user can publish
   if (publishable) {

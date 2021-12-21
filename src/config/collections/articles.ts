@@ -304,7 +304,7 @@ const articles: Collection = {
                     fullAccess: true,
                   })
                 )
-              ).people?.photo_created_by,
+              )?.people?.photo_created_by,
             };
           })
         );
@@ -359,7 +359,8 @@ const articles: Collection = {
       },
       articleStageCounts: async () => {
         const Model = mongoose.model<CollectionDoc>('Article');
-        return Model.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
+        // @ts-expect-error bug in mongoose: https://github.com/Automattic/mongoose/issues/11059
+        return await Model.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
       },
     },
     Mutation: {

@@ -91,7 +91,7 @@ async function getSatires(user: IProfile, query: URLSearchParams, res: Response 
     ...replaceGithubIdWithUserObj(
       [
         ...new Set(
-          Object.keys(flattenObject(Satire.schema.obj))
+          Object.keys(flattenObject(Satire.schema.obj as Record<string, never>))
             .filter((key) => key.includes('people.tree') && !key.includes('display_authors'))
             .filter((key) => !key.includes('id'))
             .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
@@ -236,7 +236,7 @@ async function getSatire(id: string, by: string, user: IProfile, res: Response =
     ...replaceGithubIdWithUserObj(
       [
         ...new Set(
-          Object.keys(flattenObject(Satire.schema.obj))
+          Object.keys(flattenObject(Satire.schema.obj as Record<string, never>))
             .filter((key) => key.includes('people.tree') && !key.includes('display_authors'))
             .filter((key) => !key.includes('id'))
             .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
@@ -398,6 +398,7 @@ async function deleteSatire(id: string, user: IProfile, canPublish = false, res 
  */
 async function getStageCounts(res = null): Promise<void> {
   try {
+    // @ts-expect-error _id should be a string with reference to another variable
     const satireStageCounts = await Satire.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
     res ? res.json(satireStageCounts) : null;
   } catch (error) {

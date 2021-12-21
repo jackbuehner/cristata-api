@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
  * @param collection name of the collection
  * @returns array of aggregation stages
  */
-function replaceGithubIdWithUserObj(flatKeys: string[], collection: string): { [key: string]: unknown }[] {
+function replaceGithubIdWithUserObj(flatKeys: string[], collection: string): mongoose.PipelineStage[] {
   const flatSchema = flattenObject(mongoose.model(collection).schema.obj);
 
   const replacementStages = flatKeys.map((key) => {
