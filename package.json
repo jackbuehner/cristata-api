@@ -54,6 +54,7 @@
     "graphql": "^15.7.1",
     "graphql-s2s": "^0.22.0",
     "graphql-subscriptions": "^2.0.0",
+    "helmet": "^4.6.0",
     "http-proxy-middleware": "^2.0.0",
     "merge-anything": "^4.0.1",
     "mongoose": "^5.12.15",
