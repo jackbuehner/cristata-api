@@ -20,15 +20,19 @@ async function findDocAndPrune({
   context,
   keep,
   fullAccess,
-}: FindDocsAndPrune): Promise<mongoose.Document> {
+}: FindDocsAndPrune): Promise<mongoose.Document | null> {
   const doc = await findDoc({ model, by, _id, filter, context, fullAccess });
 
-  const prunedDoc = pruneDocs({
-    input: [doc],
-    keep,
-  })[0];
+  if (doc) {
+    const prunedDoc = pruneDocs({
+      input: [doc],
+      keep,
+    })[0];
 
-  return prunedDoc;
+    return prunedDoc;
+  }
+
+  return null;
 }
 
 export { findDocAndPrune };
