@@ -23,8 +23,16 @@ const app = express();
 // secure app with helmet
 app.use(
   helmet({
-    // use default content security policy
-    contentSecurityPolicy: true,
+    // only allow self and resources required for graphql playground
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: [`'self'`],
+        styleSrc: [`'self'`, `'unsafe-inline'`, 'cdn.jsdelivr.net', 'fonts.googleapis.com'],
+        fontSrc: [`'self'`, 'fonts.gstatic.com'],
+        imgSrc: [`'self'`, 'data:', 'cdn.jsdelivr.net'],
+        scriptSrc: [`'self'`, `https: 'unsafe-inline'`, `cdn.jsdelivr.net`],
+      },
+    },
     // sets "Cross-Origin-Embedder-Policy: require-corp"
     // to prevent documents from loading cross-origin resources that do not
     // explicitly grant permission
@@ -66,6 +74,10 @@ app.use(
 app.set('query parser', (queryString: string) => {
   return new URLSearchParams(queryString);
 });
+
+// set the views and template engine
+app.set('view engine', 'pug');
+app.set('views', __dirname + '/views');
 
 // enable CORS for the app
 app.use(cors(corsConfig));
