@@ -102,6 +102,12 @@ const users: Collection = {
       group: Float
     }
 
+    type UserExistsResponse {
+      exists: String!
+      methods: [String]!
+      doc: PrunedUser
+    }
+
     type Query {
       """
       Get a user by _id. If _id is omitted, the API will return the current
@@ -126,6 +132,15 @@ const users: Collection = {
       collection.
       """
       userActionAccess: CollectionActionAccess
+      """
+      Returns whether the username exists in the database.
+      Also return the pruned user.
+      """
+      userExists(username: String!): UserExistsResponse!
+      """
+      Returns the sign-on methods for the username.
+      """
+      userMethods(username: String!): [String]!
     }
 
     type Mutation {
@@ -205,6 +220,20 @@ const users: Collection = {
           fullAccess: true,
         }),
       userActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'User', context }),
+      userExists: async (_, args, context: Context) => {
+        const user = await findDocAndPrune({
+          model: 'User',
+          _id: args.username,
+          by: 'slug',
+          context,
+          keep: PRUNED_USER_KEEP_FIELDS,
+          fullAccess: true,
+        });
+        return { exists: !!user, doc: user || null };
+      },
+      userMethods: async (_, args, context: Context) =>
+        (await findDoc({ model: 'User', _id: args.username, by: 'slug', context, fullAccess: true }))
+          ?.methods || [],
     },
     Mutation: {
       userCreate: async (_, args, context: Context) =>
