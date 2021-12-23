@@ -20,6 +20,11 @@ dotenv.config();
 // create express app
 const app = express();
 
+// use URL search params for query variable
+app.set('query parser', (queryString: string) => {
+  return new URLSearchParams(queryString);
+});
+
 // secure app with helmet
 app.use(
   helmet({
@@ -69,11 +74,6 @@ app.use(
     xssFilter: true,
   })
 );
-
-// use URL search params for query variable
-app.set('query parser', (queryString: string) => {
-  return new URLSearchParams(queryString);
-});
 
 // set the views and template engine
 app.set('view engine', 'pug');
