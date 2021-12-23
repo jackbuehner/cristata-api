@@ -55,15 +55,15 @@ const users: Collection = {
       timestamps: UserTimestamps
       photo: String
       github_id: Int
-      teams: Teams
+      teams: GHTeams
       group: Float
     }
 
-    type Teams {
+    type GHTeams {
       docs: [Team]
     }
 
-    type Team {
+    type GHTeam {
       _id: String!
       slug: String!
       name: String!
@@ -249,7 +249,7 @@ const users: Collection = {
       userDelete: async (_, args, context: Context) =>
         withPubSub('USER', 'DELETED', deleteDoc({ model: 'User', args, context })),
     },
-    Teams: {
+    GHTeams: {
       docs: async (teamIds: string[], __, context: Context) => {
         // get all of the teams
         const { data } = await GHAxios.post(
@@ -279,14 +279,14 @@ const users: Collection = {
         );
 
         // identify the edges (which contain the teams)
-        type TeamsEdgesType = Array<{
+        type GHTeamsEdgesType = Array<{
           node: {
             _id: string;
             slug: string;
             name: string;
           };
         }>;
-        const ghTeamsEdges: TeamsEdgesType = data.data.organization.teams.edges;
+        const ghTeamsEdges: GHTeamsEdgesType = data.data.organization.teams.edges;
 
         // TODO: enable pagination for when the org has more than 100 teams
 

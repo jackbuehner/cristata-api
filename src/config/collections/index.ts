@@ -1,4 +1,5 @@
 export { users } from './users';
+export { teams } from './teams';
 export { satire } from './satire';
 export { articles } from './articles';
 export { shorturls } from './shorturls';

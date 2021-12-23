@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { GitHubTeamNodeID, GitHubUserID } from '../mongodb/db';
 import {
   users,
+  teams,
   satire,
   articles,
   shorturls,
@@ -23,16 +24,7 @@ const database = {
     database: process.env.MONGO_DB_NAME,
     options: `retryWrites=true&w=majority`,
   },
-  collections: [
-    users,
-    satire,
-    articles,
-    shorturls,
-    settings,
-    photoRequests,
-    photos,
-    flush,
-  ],
+  collections: [users, teams, satire, articles, shorturls, settings, photoRequests, photos, flush],
 };
 
 const Teams = {
@@ -55,20 +47,9 @@ interface Collection {
   canPublish?: boolean;
   withPermissions?: boolean;
   typeDefs: string;
-  resolvers: IResolvers<
-    unknown,
-    Record<string, unknown>,
-    Record<string, unknown>,
-    unknown
-  >;
-  schemaFields: (
-    users: typeof Users,
-    teams: typeof Teams
-  ) => Record<string, unknown>;
-  permissions: (
-    users: typeof Users,
-    teams: typeof Teams
-  ) => CollectionPermissions;
+  resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
+  schemaFields: (users: typeof Users, teams: typeof Teams) => Record<string, unknown>;
+  permissions: (users: typeof Users, teams: typeof Teams) => CollectionPermissions;
 }
 
 type CollectionPermissionsType = {
