@@ -417,10 +417,10 @@ const articles: Collection = {
       },
     },
     people: {
-      authors: { type: [Number], default: [] },
+      authors: { type: [mongoose.Schema.Types.ObjectId], default: [] },
       editors: {
-        primary: { type: [Number] },
-        copy: { type: [Number] },
+        primary: { type: [mongoose.Schema.Types.ObjectId] },
+        copy: { type: [mongoose.Schema.Types.ObjectId] },
       },
     },
     stage: { type: Number, default: Stage.Planning },

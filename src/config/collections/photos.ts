@@ -175,7 +175,7 @@ const photos: Collection = {
     name: { type: String, required: true, default: 'Untitled photo' },
     people: {
       photo_created_by: { type: String },
-      uploaded_by: { type: Number },
+      uploaded_by: { type: mongoose.Schema.Types.ObjectId },
     },
     tags: { type: [String] },
     file_type: { type: String, default: undefined },

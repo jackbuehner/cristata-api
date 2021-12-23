@@ -100,7 +100,7 @@ const collectionTypeDefs = gql`
 
   type CollectionPermissions {
     teams: [String]!
-    users: [Int]!
+    users: [User]!
   }
 
   type PublishableCollection inherits Collection {
@@ -223,6 +223,9 @@ const coreResolvers = {
   },
   CollectionActivity: {
     user: ({ user }) => getUsers(user),
+  },
+  CollectionPermissions: {
+    users: ({ users }) => getUsers(users),
   },
 };
 

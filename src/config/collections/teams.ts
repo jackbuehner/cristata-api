@@ -130,8 +130,8 @@ const teams: Collection = {
   schemaFields: () => ({
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
-    members: { type: [mongoose.Types.ObjectId], required: true },
-    organizers: { type: [mongoose.Types.ObjectId], required: true },
+    members: { type: [mongoose.Schema.Types.ObjectId], required: true },
+    organizers: { type: [mongoose.Schema.Types.ObjectId], required: true },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },

@@ -63,17 +63,17 @@ const collectionSchemaFields = {
     modified_at: { type: Date, required: true, default: new Date().toISOString() },
   },
   people: {
-    created_by: { type: Number },
-    modified_by: { type: [Number] },
-    last_modified_by: { type: Number },
-    watching: { type: [Number] },
+    created_by: { type: mongoose.Schema.Types.ObjectId },
+    modified_by: { type: [mongoose.Schema.Types.ObjectId] },
+    last_modified_by: { type: mongoose.Schema.Types.ObjectId },
+    watching: { type: [mongoose.Schema.Types.ObjectId] },
   },
   hidden: { type: Boolean, required: true, default: false },
   locked: { type: Boolean, required: true, default: false },
   history: [
     {
       type: { type: String, required: true },
-      user: { type: Number, required: true },
+      user: { type: mongoose.Schema.Types.ObjectId, required: true },
       at: {
         type: Date,
         required: true,
@@ -89,15 +89,15 @@ const publishableCollectionSchemaFields = {
     updated_at: { type: Date, required: true, default: '0001-01-01T01:00:00.000+00:00' },
   },
   people: {
-    published_by: { type: [Number] },
-    last_published_by: { type: Number },
+    published_by: { type: [mongoose.Schema.Types.ObjectId] },
+    last_published_by: { type: mongoose.Schema.Types.ObjectId },
   },
 };
 
 const withPermissionsCollectionSchemaFields = {
   permissions: {
     teams: { type: [String] },
-    users: { type: [Number] },
+    users: { type: [mongoose.Schema.Types.ObjectId] },
   },
 };
 
@@ -135,6 +135,22 @@ config.database.collections.forEach((collection) => {
   // create the model based on the schema
   mongoose.model(collection.name, Schema);
 });
+
+// force a user with the name 'Unknown' and slug 'unknown-user-internal'
+(async () => {
+  const User = mongoose.model('User');
+  const unknownUserExists = !!(await User.findOne({ name: 'Unknown', slug: 'unknown-user-internal' }));
+  if (!unknownUserExists) {
+    const newUser = new User({
+      _id: new mongoose.Types.ObjectId('000000000000000000000000'),
+      name: 'Unknown',
+      slug: 'unknown-user-internal',
+      hidden: true,
+      locked: true,
+    });
+    await newUser.save();
+  }
+})();
 
 export type {
   CollectionSchemaFields,

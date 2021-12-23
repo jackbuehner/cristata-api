@@ -298,11 +298,11 @@ const satire: Collection = {
       },
     },
     people: {
-      authors: { type: [Number], default: [] },
+      authors: { type: [mongoose.Schema.Types.ObjectId], default: [] },
       display_authors: { type: [String], default: [] },
       editors: {
-        primary: { type: [Number] },
-        copy: { type: [Number] },
+        primary: { type: [mongoose.Schema.Types.ObjectId] },
+        copy: { type: [mongoose.Schema.Types.ObjectId] },
       },
     },
     stage: { type: Number, default: Stage.PLANNING },

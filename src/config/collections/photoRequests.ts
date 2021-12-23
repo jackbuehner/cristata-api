@@ -162,7 +162,7 @@ const photoRequests: Collection = {
       teams: { type: [String], default: [Teams.MANAGING_EDITOR] },
     },
     people: {
-      requested_by: { type: Number },
+      requested_by: { type: mongoose.Schema.Types.ObjectId },
     },
     stage: { type: Number, default: Stage.NEW },
     versions: { type: {} },
