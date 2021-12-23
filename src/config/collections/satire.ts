@@ -3,7 +3,6 @@ import { Collection } from '../database';
 import mongoose from 'mongoose';
 import {
   CollectionSchemaFields,
-  GitHubUserID,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
@@ -363,11 +362,11 @@ interface ISatireTimestamps {
 }
 
 interface ISatirePeople {
-  authors: GitHubUserID[];
+  authors: mongoose.Types.ObjectId[];
   display_authors: string[];
   editors: {
-    primary: GitHubUserID[];
-    copy: GitHubUserID[];
+    primary: mongoose.Types.ObjectId[];
+    copy: mongoose.Types.ObjectId[];
   };
 }
 

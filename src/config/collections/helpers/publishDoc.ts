@@ -31,18 +31,18 @@ async function publishDoc({ model, args, context }: PublishDoc) {
   // set the publish properties
   if (args.publish) {
     doc.timestamps.published_at = args.published_at;
-    doc.people.published_by = [...new Set([...doc.people.published_by, parseInt(context.profile.id)])];
-    doc.people.last_published_by = parseInt(context.profile.id);
+    doc.people.published_by = [...new Set([...doc.people.published_by, context.profile._id])];
+    doc.people.last_published_by = context.profile._id;
   }
 
   // set relevant collection metadata
-  doc.people.modified_by = [...new Set([...doc.people.modified_by, parseInt(context.profile.id)])];
-  doc.people.last_modified_by = parseInt(context.profile.id);
+  doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
+  doc.people.last_modified_by = context.profile._id;
   doc.history = [
     ...doc.history,
     {
       type: 'published',
-      user: parseInt(context.profile._id),
+      user: context.profile._id,
       at: new Date().toISOString(),
     },
   ];

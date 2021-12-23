@@ -1,1 +1,1 @@
-export {replaceGithubIdWithUserObj} from './replaceGithubIdWithUserObj'
+export { replaceObjectIdWithUserObj } from './replaceObjectIdWithUserObj';

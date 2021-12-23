@@ -17,7 +17,6 @@ const { username, password, host, database, options } = config.database.connecti
 mongoose.connect(`mongodb+srv://${username}:${password}@${host}/${database}?${options}`);
 
 type GitHubTeamNodeID = string;
-type GitHubUserID = number;
 
 interface CollectionSchemaFields {
   timestamps: {
@@ -25,16 +24,16 @@ interface CollectionSchemaFields {
     modified_at: string; // ISO string
   };
   people: {
-    created_by?: GitHubUserID;
-    modified_by: GitHubUserID[]; // mongoose always returns at least an empty array
-    last_modified_by?: GitHubUserID;
-    watching: GitHubUserID[]; // mongoose always returns at least an empty array
+    created_by?: mongoose.Types.ObjectId;
+    modified_by: mongoose.Types.ObjectId[]; // mongoose always returns at least an empty array
+    last_modified_by?: mongoose.Types.ObjectId;
+    watching: mongoose.Types.ObjectId[]; // mongoose always returns at least an empty array
   };
   hidden: boolean;
   locked: boolean;
   history: Array<{
     type: string;
-    user: GitHubUserID;
+    user: mongoose.Types.ObjectId;
     at: string; // ISO string
   }>;
 }
@@ -42,7 +41,7 @@ interface CollectionSchemaFields {
 interface WithPermissionsCollectionSchemaFields {
   permissions: {
     teams: GitHubTeamNodeID[];
-    users: GitHubUserID[];
+    users: mongoose.Types.ObjectId[];
   };
 }
 
@@ -52,8 +51,8 @@ interface PublishableCollectionSchemaFields {
     updated_at: string; // ISO string
   };
   people: {
-    published_by: GitHubUserID[]; // mongoose always returns at least an empty array
-    last_published_by?: GitHubUserID;
+    published_by: mongoose.Types.ObjectId[]; // mongoose always returns at least an empty array
+    last_published_by?: mongoose.Types.ObjectId;
   };
 }
 
@@ -141,6 +140,5 @@ export type {
   CollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
   PublishableCollectionSchemaFields,
-  GitHubUserID,
   GitHubTeamNodeID,
 };

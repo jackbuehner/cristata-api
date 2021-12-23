@@ -52,8 +52,8 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
         people: {
           ...currentDoc.people,
           ...data.people,
-          published_by: [...new Set([...currentDoc.people.published_by, parseInt(context.profile.id)])],
-          last_published_by: parseInt(context.profile.id),
+          published_by: [...new Set([...currentDoc.people.published_by, context.profile._id])],
+          last_published_by: context.profile._id,
         },
         timestamps: {
           ...currentDoc.timestamps,
@@ -69,8 +69,8 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
     people: {
       ...currentDoc.people,
       ...data.people,
-      modified_by: [...new Set([...currentDoc.people.modified_by, parseInt(context.profile.id)])], // adds the user to the array, and then removes duplicates
-      last_modified_by: parseInt(context.profile.id),
+      modified_by: [...new Set([...currentDoc.people.modified_by, context.profile._id])], // adds the user to the array, and then removes duplicates
+      last_modified_by: context.profile._id,
     },
     timestamps: {
       ...currentDoc.timestamps,
@@ -78,11 +78,8 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
       modified_at: new Date().toISOString(),
     },
     history: currentDoc.history
-      ? [
-          ...currentDoc.history,
-          { type: 'patched', user: parseInt(context.profile.id), at: new Date().toISOString() },
-        ]
-      : [{ type: 'patched', user: parseInt(context.profile.id), at: new Date().toISOString() }],
+      ? [...currentDoc.history, { type: 'patched', user: context.profile._id, at: new Date().toISOString() }]
+      : [{ type: 'patched', user: context.profile._id, at: new Date().toISOString() }],
     permissions: {
       ...currentDoc.permissions,
       ...data.permissions,

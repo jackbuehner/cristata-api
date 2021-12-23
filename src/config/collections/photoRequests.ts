@@ -1,7 +1,7 @@
 import { collectionPeopleResolvers, Context, getUsers, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
-import { CollectionSchemaFields, GitHubUserID, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
+import { CollectionSchemaFields, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
 import {
   createDoc,
   deleteDoc,
@@ -198,7 +198,7 @@ interface IPhotoRequest
 }
 
 interface IPhotoRequestPeople {
-  requested_by?: GitHubUserID;
+  requested_by?: mongoose.Types.ObjectId;
 }
 
 interface IPhotoRequestDoc extends IPhotoRequest, mongoose.Document {}

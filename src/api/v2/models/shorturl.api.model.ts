@@ -129,8 +129,8 @@ async function patchShortURL(
         },
         people: {
           ...data.people,
-          modified_by: [...new Set([...data.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
-          last_modified_by: parseInt(user.id),
+          modified_by: [...new Set([...data.people.modified_by, user._id])], // adds the user to the array, and then removes duplicates
+          last_modified_by: user._id,
         },
       };
 

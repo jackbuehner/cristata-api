@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
  * @param collection name of the collection
  * @returns array of aggregation stages
  */
-function replaceGithubIdWithUserObj(flatKeys: string[], collection: string): mongoose.PipelineStage[] {
+function replaceObjectIdWithUserObj(flatKeys: string[], collection: string): mongoose.PipelineStage[] {
   const flatSchema = flattenObject(mongoose.model(collection).schema.obj);
 
   const replacementStages = flatKeys.map((key) => {
@@ -20,7 +20,7 @@ function replaceGithubIdWithUserObj(flatKeys: string[], collection: string): mon
       $lookup: {
         from: 'users',
         localField: key,
-        foreignField: 'github_id',
+        foreignField: '_id',
         as: key,
       },
     };
@@ -55,4 +55,4 @@ function replaceGithubIdWithUserObj(flatKeys: string[], collection: string): mon
   return [...replacementStages, ...removeArrayStages];
 }
 
-export { replaceGithubIdWithUserObj };
+export { replaceObjectIdWithUserObj };

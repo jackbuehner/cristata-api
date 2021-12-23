@@ -7,8 +7,7 @@ import { slugify } from '../../../utils/slugify';
 import { ISettings } from '../../../mongodb/settings.model';
 import { IUserDoc } from '../../../mongodb/users.model';
 import { sendEmail } from '../../../utils/sendEmail';
-import { flattenObject } from '../../../utils/flattenObject';
-import { replaceGithubIdWithUserObj } from '../helpers';
+import { replaceObjectIdWithUserObj } from '../helpers';
 
 // load environmental variables
 dotenv.config();
@@ -37,16 +36,16 @@ async function newArticle(data: IArticle, user: IProfile, res: Response = null):
   const article = new Article({
     // set people data based on who created the document
     permissions: {
-      users: [parseInt(user.id)],
+      users: [user._id],
       teams: [Groups.COPY_EDITOR, Groups.MANAGING_EDITOR],
     },
     people: {
-      created_by: parseInt(user.id),
-      modified_by: [parseInt(user.id)],
-      last_modified_by: parseInt(user.id),
+      created_by: user._id,
+      modified_by: [user._id],
+      last_modified_by: user._id,
     },
     // set history data
-    history: [{ type: 'created', user: parseInt(user.id), at: new Date().toISOString() }],
+    history: [{ type: 'created', user: user._id, at: new Date().toISOString() }],
     // include the other data about the document (can overwrite people data)
     ...data,
   });
@@ -75,22 +74,17 @@ async function getArticles(user: IProfile, query: URLSearchParams, res: Response
       // others: only get documents for which the user has access (by team or userID)
       $match: user.teams.includes(adminTeamID)
         ? {}
-        : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': parseInt(user.id) }] },
+        : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] },
     },
     // filter by history type if defined
     {
       $match: historyType.length > 0 ? { history: { $elemMatch: { type: { $in: historyType } } } } : {},
     },
     // replace user ids in the people object with full profiles from the users colletion
-    ...replaceGithubIdWithUserObj(
-      [
-        ...new Set(
-          Object.keys(flattenObject(Article.schema.obj as Record<string, never>))
-            .filter((key) => key.includes('people.tree'))
-            .filter((key) => !key.includes('id'))
-            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
-        ),
-      ],
+    ...replaceObjectIdWithUserObj(
+      Object.keys((Article.schema.obj.people as { type: { obj: IArticleDoc['people'] } }).type.obj).map(
+        (key) => `people.${key}`
+      ),
       'Article'
     ),
   ];
@@ -186,7 +180,7 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
         $lookup: {
           from: 'users',
           localField: 'people.authors',
-          foreignField: 'github_id',
+          foreignField: '_id',
           as: 'people.authors',
         },
       },
@@ -239,7 +233,7 @@ async function getPublicArticle(slug: string, res: Response = null): Promise<voi
         $lookup: {
           from: 'users',
           localField: 'people.authors',
-          foreignField: 'github_id',
+          foreignField: '_id',
           as: 'people.authors',
         },
       },
@@ -287,7 +281,7 @@ async function getArticle(id: string, by: string, user: IProfile, res: Response 
     ? { [method]: method === '_id' ? new mongoose.Types.ObjectId(id) : id }
     : {
         [method]: method === '_id' ? new mongoose.Types.ObjectId(id) : id,
-        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': parseInt(user.id) }],
+        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }],
       };
 
   // not found message
@@ -303,15 +297,10 @@ async function getArticle(id: string, by: string, user: IProfile, res: Response 
       $match: filter,
     },
     // replace user ids in the people object with full profiles from the users colletion
-    ...replaceGithubIdWithUserObj(
-      [
-        ...new Set(
-          Object.keys(flattenObject(Article.schema.obj as Record<string, never>))
-            .filter((key) => key.includes('people.tree'))
-            .filter((key) => !key.includes('id'))
-            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
-        ),
-      ],
+    ...replaceObjectIdWithUserObj(
+      Object.keys((Article.schema.obj.people as { type: { obj: IArticleDoc['people'] } }).type.obj).map(
+        (key) => `people.${key}`
+      ),
       'Article'
     ),
   ];
@@ -385,8 +374,8 @@ async function patchArticle(
       people: {
         ...currentArticle.people,
         ...data.people,
-        modified_by: [...new Set([...currentArticle.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
-        last_modified_by: parseInt(user.id),
+        modified_by: [...new Set([...currentArticle.people.modified_by, user._id])], // adds the user to the array, and then removes duplicates
+        last_modified_by: user._id,
       },
       timestamps: {
         ...currentArticle.timestamps,
@@ -395,11 +384,8 @@ async function patchArticle(
       },
       // set history data
       history: currentArticle.history
-        ? [
-            ...currentArticle.history,
-            { type: historyType, user: parseInt(user.id), at: new Date().toISOString() },
-          ]
-        : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+        ? [...currentArticle.history, { type: historyType, user: user._id, at: new Date().toISOString() }]
+        : [{ type: historyType, user: user._id, at: new Date().toISOString() }],
       permissions: {
         ...currentArticle.permissions,
         ...data.permissions,
@@ -427,8 +413,8 @@ async function patchArticle(
     if (data.people.watching && data.stage && data.stage !== currentArticle.stage) {
       // get emails of watchers
       const watchersEmails = await Promise.all(
-        (data.people.watching || currentArticle.people.watching).map(async (github_id) => {
-          const profile = await mongoose.model<IUserDoc>('User').findOne({ github_id }); // get the profile, which may contain an email
+        (data.people.watching || currentArticle.people.watching).map(async (_id) => {
+          const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
           return profile.email;
         })
       );
@@ -438,8 +424,8 @@ async function patchArticle(
         [
           ...(data.people.authors || currentArticle.people.authors),
           ...(data.people.editors?.primary || currentArticle.people.editors?.primary),
-        ].map(async (github_id) => {
-          const profile = await mongoose.model<IUserDoc>('User').findOne({ github_id }); // get the profile, which may contain an email
+        ].map(async (_id) => {
+          const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
           return profile.email;
         })
       );
@@ -530,9 +516,9 @@ async function watchArticle(id: string, user: IProfile, watch: boolean, res: Res
   // get the current watchers, and then modify the array to either include or exclude the user based on whether they want to watch the article
   let watching = currentArticle.people.watching;
   if (watch) {
-    watching = [...new Set([...currentArticle.people.watching, parseInt(user.id)])]; // adds the user to the array, and then removes duplicates
+    watching = [...new Set([...currentArticle.people.watching, user._id])]; // adds the user to the array, and then removes duplicates
   } else {
-    watching = currentArticle.people.watching.filter((github_id) => github_id !== parseInt(user.id));
+    watching = currentArticle.people.watching.filter((_id) => _id !== user._id);
   }
 
   // attempt to patch the article

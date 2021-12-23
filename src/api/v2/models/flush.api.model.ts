@@ -2,10 +2,8 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Response } from 'express';
 import { IProfile } from '../../../passport';
-import { flattenObject } from '../../../utils/flattenObject';
-import { replaceGithubIdWithUserObj } from '../helpers';
+import { replaceObjectIdWithUserObj } from '../helpers';
 import { IFlush, IFlushDoc } from '../../../mongodb/flush.model';
-import { merge } from 'merge-anything';
 
 // load environmental variables
 dotenv.config();
@@ -25,16 +23,16 @@ async function newDocument(data: IFlush, user: IProfile, res: Response = null): 
     const doc = new Document({
       permissions: {
         ...data.permissions,
-        users: [parseInt(user.id)],
+        users: [user._id],
       },
       people: {
         ...data.people,
-        created_by: parseInt(user.id),
-        modified_by: [parseInt(user.id)],
-        last_modified_by: parseInt(user.id),
+        created_by: user._id,
+        modified_by: [user._id],
+        last_modified_by: user._id,
       },
       // set history data
-      history: [{ type: 'created', user: parseInt(user.id), at: new Date().toISOString() }],
+      history: [{ type: 'created', user: user._id, at: new Date().toISOString() }],
       // include the other data about the document
       ...data,
     });
@@ -64,21 +62,17 @@ async function getDocuments(user: IProfile, query: URLSearchParams, res: Respons
         // others: only get documents for which the user has access (by team or userID)
         $match: user.teams.includes(adminTeamID)
           ? {}
-          : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': parseInt(user.id) }] },
+          : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] },
       },
       // filter by history type if defined
       {
         $match: historyType.length > 0 ? { history: { $elemMatch: { type: { $in: historyType } } } } : {},
       },
       // replace user ids in the people object with full profiles from the users colletion
-      ...replaceGithubIdWithUserObj(
-        [
-          ...new Set(
-            Object.keys(flattenObject(Document.schema.obj as Record<string, never>))
-              .filter((key) => key.includes('people.obj'))
-              .map((key) => key.replace('.type', '').replace('.default', '').replace('.obj', ''))
-          ),
-        ],
+      ...replaceObjectIdWithUserObj(
+        Object.keys((Document.schema.obj.people as { type: { obj: IFlushDoc['people'] } }).type.obj).map(
+          (key) => `people.${key}`
+        ),
         'Flush'
       ),
     ];
@@ -107,7 +101,7 @@ async function getDocument(id: string, user: IProfile, res: Response = null): Pr
       ? { _id: new mongoose.Types.ObjectId(id) }
       : {
           _id: new mongoose.Types.ObjectId(id),
-          $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': parseInt(user.id) }],
+          $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }],
         };
 
     // not found message
@@ -123,15 +117,11 @@ async function getDocument(id: string, user: IProfile, res: Response = null): Pr
         $match: filter,
       },
       // replace user ids in the people object with full profiles from the users colletion
-      ...replaceGithubIdWithUserObj(
-        [
-          ...new Set(
-            Object.keys(flattenObject(Document.schema.obj as Record<string, never>))
-              .filter((key) => key.includes('people.obj'))
-              .map((key) => key.replace('.type', '').replace('.default', '').replace('.obj', ''))
-          ),
-        ],
-        'Article'
+      ...replaceObjectIdWithUserObj(
+        Object.keys((Document.schema.obj.people as { type: { obj: IFlushDoc['people'] } }).type.obj).map(
+          (key) => `people.${key}`
+        ),
+        'Flush'
       ),
     ];
 
@@ -199,8 +189,8 @@ async function patchDocument(
       people: {
         ...currentDoc.people,
         ...data.people,
-        modified_by: [...new Set([...currentDoc.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
-        last_modified_by: parseInt(user.id),
+        modified_by: [...new Set([...currentDoc.people.modified_by, user._id])], // adds the user to the array, and then removes duplicates
+        last_modified_by: user._id,
       },
       timestamps: {
         ...currentDoc.timestamps,
@@ -209,8 +199,8 @@ async function patchDocument(
       },
       // set history data
       history: currentDoc.history
-        ? [...currentDoc.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
-        : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+        ? [...currentDoc.history, { type: historyType, user: user._id, at: new Date().toISOString() }]
+        : [{ type: historyType, user: user._id, at: new Date().toISOString() }],
       permissions: {
         ...currentDoc.permissions,
         ...data.permissions,
@@ -254,9 +244,9 @@ async function watchDocument(id: string, user: IProfile, watch: boolean, res: Re
     // get the current watchers, and then modify the array to either include or exclude the user based on whether they want to watch the document
     let watching = currentDoc.people.watching;
     if (watch) {
-      watching = [...new Set([...currentDoc.people.watching, parseInt(user.id)])]; // adds the user to the array, and then removes duplicates
+      watching = [...new Set([...currentDoc.people.watching, user._id])]; // adds the user to the array, and then removes duplicates
     } else {
-      watching = currentDoc.people.watching.filter((github_id) => github_id !== parseInt(user.id));
+      watching = currentDoc.people.watching.filter((_id) => _id !== user._id);
     }
 
     // attempt to patch the document

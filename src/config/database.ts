@@ -1,6 +1,7 @@
 import { IResolvers } from '@graphql-tools/utils';
 import dotenv from 'dotenv';
-import { GitHubTeamNodeID, GitHubUserID } from '../mongodb/db';
+import { GitHubTeamNodeID } from '../mongodb/db';
+import mongoose from 'mongoose';
 import {
   users,
   teams,
@@ -39,7 +40,7 @@ const Teams = {
 };
 
 const Users = {
-  ANY: 0,
+  ANY: new mongoose.Types.ObjectId('000000000000000000000000'),
 };
 
 interface Collection {
@@ -54,7 +55,7 @@ interface Collection {
 
 type CollectionPermissionsType = {
   teams: GitHubTeamNodeID[];
-  users: GitHubUserID[];
+  users: mongoose.Types.ObjectId[];
 };
 
 type CollectionPermissionsActions = keyof CollectionPermissions;

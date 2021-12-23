@@ -40,13 +40,13 @@ async function lockDoc({ model, args, context, publishable }: LockDoc) {
   doc.locked = args.lock;
 
   // set relevant collection metadata
-  doc.people.modified_by = [...new Set([...doc.people.modified_by, parseInt(context.profile.id)])];
-  doc.people.last_modified_by = parseInt(context.profile.id);
+  doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
+  doc.people.last_modified_by = context.profile._id;
   doc.history = [
     ...doc.history,
     {
       type: 'locked',
-      user: parseInt(context.profile._id),
+      user: context.profile._id,
       at: new Date().toISOString(),
     },
   ];

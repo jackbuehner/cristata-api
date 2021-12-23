@@ -7,7 +7,6 @@ import { requireAuthentication } from './';
 interface CreateDoc {
   model: string;
   args: {
-    github_id?: number;
     name: string;
     [key: string]: unknown;
   };
@@ -20,15 +19,15 @@ async function createDoc({ model, args, context }: CreateDoc) {
 
   // add relevant collection metadata
   args.people = {
-    created_by: parseInt(context.profile._id),
-    modified_by: [parseInt(context.profile._id)],
-    last_modified_by: parseInt(context.profile._id),
-    watching: [parseInt(context.profile._id)],
+    created_by: context.profile._id,
+    modified_by: [context.profile._id],
+    last_modified_by: context.profile._id,
+    watching: [context.profile._id],
   };
   args.history = [
     {
       type: 'created',
-      user: parseInt(context.profile._id),
+      user: context.profile._id,
       at: new Date().toISOString(),
     },
   ];

@@ -16,12 +16,12 @@ async function newPhoto(data: IPhoto, user: IProfile, res: Response = null): Pro
   const photo = new Photo({
     // set people data based on who created the document
     people: {
-      uploaded_by: parseInt(user.id),
-      modified_by: [parseInt(user.id)],
-      last_modified_by: parseInt(user.id),
+      uploaded_by: user._id,
+      modified_by: [user._id],
+      last_modified_by: user._id,
     },
     // set history data
-    history: [{ type: 'created', user: parseInt(user.id), at: new Date().toISOString() }],
+    history: [{ type: 'created', user: user._id, at: new Date().toISOString() }],
     // include the other data about the document (can overwrite people data)
     ...data,
   });
@@ -111,8 +111,8 @@ async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Respons
     people: {
       ...currentPhoto.people,
       ...data.people,
-      modified_by: [...new Set([...currentPhoto.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
-      last_modified_by: parseInt(user.id),
+      modified_by: [...new Set([...currentPhoto.people.modified_by, user._id])], // adds the user to the array, and then removes duplicates
+      last_modified_by: user._id,
     },
     timestamps: {
       ...currentPhoto.timestamps,
@@ -121,8 +121,8 @@ async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Respons
     },
     // set history data
     history: currentPhoto.history
-      ? [...currentPhoto.history, { type: historyType, user: parseInt(user.id), at: new Date().toISOString() }]
-      : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+      ? [...currentPhoto.history, { type: historyType, user: user._id, at: new Date().toISOString() }]
+      : [{ type: historyType, user: user._id, at: new Date().toISOString() }],
     permissions: {
       ...currentPhoto.permissions,
       ...data.permissions,

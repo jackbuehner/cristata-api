@@ -70,7 +70,7 @@ interface IProfile extends IGitHubProfile {
   accessToken: string;
   two_factor_authentication: boolean;
   emails: string[];
-  _id?: string;
+  _id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -94,7 +94,7 @@ async function buildFullProfile(gitHubProfile: IGitHubProfile, accessToken: stri
     accessToken: accessToken,
     two_factor_authentication: gitHubProfile._json.two_factor_authentication,
     emails: [],
-    _id: foundUser?._id,
+    _id: foundUser?._id || new mongoose.Types.ObjectId('000000000000000000000000'),
     displayName: foundUser?.name || gitHubProfile.displayName || gitHubProfile.username,
   };
 
@@ -188,6 +188,115 @@ async function profileToDatabase(profile: IProfile) {
     } catch (error) {
       console.error(error);
     }
+  }
+}
+
+/**
+ * Get's the user's email(s) based on the strategy.
+ * Email(s) will always be an array of strings.
+ */
+async function getUserEmails(strategy: 'github', accessToken: string): Promise<string[]> {
+  if (strategy === 'github') {
+    return await axios
+      .get<{ email: string; [key: string]: unknown }[]>(`https://api.github.com/user/emails`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      .then((res) => {
+        const emails: string[] = [];
+        res.data.forEach((item) => {
+          emails.push(item.email);
+        });
+        return emails;
+      })
+      .catch((error) => {
+        console.error(error);
+        return [];
+      });
+  }
+}
+
+/**
+ * Get's the ids of the user's teams/groups based on the strategy.
+ */
+async function getUserTeams(strategy: 'github', accessToken: string): Promise<string[]> {
+  if (strategy === 'github') {
+    return await axios
+      .get<{ node_id: string; organization: { id: number } }[]>(`https://api.github.com/user/teams`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      .then((res) => {
+        // store array of all user teams
+        const teams = Array.from(res.data);
+        // get teams that are part of this org
+        const orgTeams = teams.filter((team) => team.organization.id === parseInt(process.env.GITHUB_ORG_ID));
+        // get team IDs and update the teams array in the full profile
+        const orgTeamsNodeIDs = orgTeams.map((team) => team.node_id);
+        return orgTeamsNodeIDs;
+      })
+      .catch((error) => {
+        console.error(error);
+        return [];
+      });
+  }
+}
+
+interface NormalUser {
+  provider: 'github';
+  id: string;
+  username: string;
+  emails: string[];
+  teams: string[];
+  two_factor_authentication: boolean;
+  accessToken: string;
+  errors: [string, string][];
+}
+
+async function normalizeGitHubUser(gitHubProfile: IGitHubProfile, accessToken: string): Promise<NormalUser> {
+  const errors: [string, string][] = [];
+
+  // check if user's list of organizations includes our org id
+  const isInOrg = await axios
+    .get<{ id: number }[]>(`https://api.github.com/user/orgs`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    .then((res) => {
+      const orgs = Array.from(res.data);
+      const orgData = orgs.filter((org) => org.id === parseInt(process.env.GITHUB_ORG_ID));
+      if (orgData.length === 1) return true;
+      return false;
+    })
+    .catch((error) => {
+      console.error(error);
+      return false;
+    });
+
+  // if the user is not in our org, push an error
+  if (isInOrg) errors.push(['MEMBER_ERROR', 'User is not a member of the GitHub organization']);
+
+  // return the normzalized user object
+  return {
+    provider: 'github',
+    id: gitHubProfile.id,
+    username: gitHubProfile.username,
+    emails: await getUserEmails('github', accessToken),
+    teams: await getUserTeams('github', accessToken),
+    two_factor_authentication: gitHubProfile._json.two_factor_authentication,
+    accessToken: accessToken,
+    errors: errors,
+  };
+}
+
+async function userToDatabase(user: NormalUser): Promise<void> {
+  try {
+    // if the user has any errors, do not add to the database
+    if (user.errors.length > 0) return;
+
+    // check if the user is already in the database
+    const User = mongoose.model<IUserDoc>('User'); // define model
+    const foundUser = user.provider === 'github' ? await User.findOne({ github_id: parseInt(user.id) }) : null;
+    const userAlreadyExists = !!foundUser;
+  } catch (error) {
+    console.error(error);
   }
 }
 

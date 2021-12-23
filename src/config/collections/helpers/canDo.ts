@@ -21,7 +21,7 @@ function canDo({ model, action, context }: CanDo): boolean {
     permissions[action]?.teams.includes(Teams.ANY) ||
     permissions[action]?.users.includes(Users.ANY) ||
     permissions[action]?.teams.some((team) => context.profile.teams.includes(team)) ||
-    permissions[action]?.users.includes(parseInt(context.profile.id))
+    permissions[action]?.users.includes(context.profile._id)
   );
 }
 

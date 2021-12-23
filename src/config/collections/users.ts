@@ -1,7 +1,7 @@
 import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
-import { CollectionSchemaFields, GitHubTeamNodeID, GitHubUserID } from '../../mongodb/db';
+import { CollectionSchemaFields, GitHubTeamNodeID } from '../../mongodb/db';
 import {
   createDoc,
   deleteDoc,
@@ -340,6 +340,8 @@ const users: Collection = {
     delete: { teams: [Teams.ADMIN], users: [] },
   }),
 };
+
+type GitHubUserID = number;
 
 interface IUser extends CollectionSchemaFields {
   name: string;

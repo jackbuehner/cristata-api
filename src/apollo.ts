@@ -207,7 +207,7 @@ const coreResolvers = {
             : {
                 $or: [
                   { 'permissions.teams': { $in: context.profile.teams } },
-                  { 'permissions.users': parseInt(context.profile.id) },
+                  { 'permissions.users': context.profile._id },
                 ],
               },
         },
@@ -226,18 +226,16 @@ const coreResolvers = {
   },
 };
 
-async function getUsers(userIds: string | string[]) {
+async function getUsers(_ids: mongoose.Types.ObjectId | mongoose.Types.ObjectId[]) {
   // if it is undefined
-  if (!userIds) return null;
-  // if it is an array of github ids
-  if (Array.isArray(userIds)) {
-    return await Promise.all(
-      userIds.map(async (github_id) => await mongoose.model('User').findOne({ github_id }))
-    );
+  if (!_ids) return null;
+  // if it is an array of ObjectId
+  if (Array.isArray(_ids)) {
+    return await Promise.all(_ids.map(async (_id) => await mongoose.model('User').findById(_id)));
   }
-  // if it just a single github id
-  const github_id = userIds;
-  return await mongoose.model('User').findOne({ github_id });
+  // if it just a single ObjectId
+  const _id = _ids;
+  return await mongoose.model('User').findById(_id);
 }
 
 const collectionPeopleResolvers = {

@@ -3,8 +3,7 @@ import mongoose from 'mongoose';
 import { Response } from 'express';
 import { EnumPhotoRequestStage, IPhotoRequest, IPhotoRequestDoc } from '../../../mongodb/photoRequests.model';
 import { IProfile } from '../../../passport';
-import { flattenObject } from '../../../utils/flattenObject';
-import { replaceGithubIdWithUserObj } from '../helpers';
+import { replaceObjectIdWithUserObj } from '../helpers';
 
 // load environmental variables
 dotenv.config();
@@ -33,16 +32,16 @@ async function newPhotoRequest(data: IPhotoRequest, user: IProfile, res: Respons
   const photoRequest = new PhotoRequest({
     // set people data based on who created the document
     permissions: {
-      users: [parseInt(user.id)],
+      users: [user._id],
       teams: [Groups.MANAGING_EDITOR],
     },
     people: {
-      created_by: parseInt(user.id),
-      modified_by: [parseInt(user.id)],
-      last_modified_by: parseInt(user.id),
+      created_by: user._id,
+      modified_by: [user._id],
+      last_modified_by: user._id,
     },
     // set history data
-    history: [{ type: 'created', user: parseInt(user.id), at: new Date().toISOString() }],
+    history: [{ type: 'created', user: user._id, at: new Date().toISOString() }],
     // include the other data about the document (can overwrite people data)
     ...data,
   });
@@ -81,15 +80,10 @@ async function getPhotoRequests(user: IProfile, query: URLSearchParams, res: Res
       $match: filter,
     },
     // replace user ids in the people object with full profiles from the users colletion
-    ...replaceGithubIdWithUserObj(
-      [
-        ...new Set(
-          Object.keys(flattenObject(PhotoRequest.schema.obj as Record<string, never>))
-            .filter((key) => key.includes('people.tree'))
-            .filter((key) => !key.includes('id'))
-            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
-        ),
-      ],
+    ...replaceObjectIdWithUserObj(
+      Object.keys(
+        (PhotoRequest.schema.obj.people as { type: { obj: IPhotoRequestDoc['people'] } }).type.obj
+      ).map((key) => `people.${key}`),
       'PhotoRequest'
     ),
   ];
@@ -134,15 +128,10 @@ async function getPhotoRequest(id: string, user: IProfile, res: Response = null)
       $match: filter,
     },
     // replace user ids in the people object with full profiles from the users colletion
-    ...replaceGithubIdWithUserObj(
-      [
-        ...new Set(
-          Object.keys(flattenObject(PhotoRequest.schema.obj as Record<string, never>))
-            .filter((key) => key.includes('people.tree'))
-            .filter((key) => !key.includes('id'))
-            .map((key) => key.replace('.type', '').replace('.default', '').replace('.tree', ''))
-        ),
-      ],
+    ...replaceObjectIdWithUserObj(
+      Object.keys(
+        (PhotoRequest.schema.obj.people as { type: { obj: IPhotoRequestDoc['people'] } }).type.obj
+      ).map((key) => `people.${key}`),
       'PhotoRequest'
     ),
   ];
@@ -204,8 +193,8 @@ async function patchPhotoRequest(
     people: {
       ...currentPhotoRequest.people,
       ...data.people,
-      modified_by: [...new Set([...currentPhotoRequest.people.modified_by, parseInt(user.id)])], // adds the user to the array, and then removes duplicates
-      last_modified_by: parseInt(user.id),
+      modified_by: [...new Set([...currentPhotoRequest.people.modified_by, user._id])], // adds the user to the array, and then removes duplicates
+      last_modified_by: user._id,
     },
     timestamps: {
       ...data.timestamps,
@@ -213,11 +202,8 @@ async function patchPhotoRequest(
     },
     // set history data
     history: currentPhotoRequest.history
-      ? [
-          ...currentPhotoRequest.history,
-          { type: historyType, user: parseInt(user.id), at: new Date().toISOString() },
-        ]
-      : [{ type: historyType, user: parseInt(user.id), at: new Date().toISOString() }],
+      ? [...currentPhotoRequest.history, { type: historyType, user: user._id, at: new Date().toISOString() }]
+      : [{ type: historyType, user: user._id, at: new Date().toISOString() }],
     permissions: {
       ...currentPhotoRequest.permissions,
       ...data.permissions,
