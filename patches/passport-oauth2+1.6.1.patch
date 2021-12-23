@@ -1,0 +1,65 @@
+diff --git a/node_modules/passport-oauth2/lib/strategy.js b/node_modules/passport-oauth2/lib/strategy.js
+index b05aacc..c2afb30 100644
+--- a/node_modules/passport-oauth2/lib/strategy.js
++++ b/node_modules/passport-oauth2/lib/strategy.js
+@@ -124,18 +124,26 @@ util.inherits(OAuth2Strategy, passport.Strategy);
+ /**
+  * Authenticate request by delegating to a service provider using OAuth 2.0.
+  *
+- * @param {Object} req
++ * @typedef {import('express').Request<ParamsDictionary, any, any, URLSearchParams>} Request
++ *
++ * @param {Request} req
+  * @api protected
+  */
+ OAuth2Strategy.prototype.authenticate = function(req, options) {
+   options = options || {};
+   var self = this;
+ 
+-  if (req.query && req.query.error) {
+-    if (req.query.error == 'access_denied') {
+-      return this.fail({ message: req.query.error_description });
++  // req.query is an instance of URLSearchParams
++  const error = {
++    message: req.query.get('error'),
++    description: req.query.get('description'),
++    uri: req.query.get('uri'),
++  }
++  if (error.message && error.description && error.uri) {
++    if (error.message == 'access_denied') {
++      return this.fail({ message: error.description });
+     } else {
+-      return this.error(new AuthorizationError(req.query.error_description, req.query.error, req.query.error_uri));
++      return this.error(new AuthorizationError(error.description, error.message, error.uri));
+     }
+   }
+ 
+@@ -156,15 +164,15 @@ OAuth2Strategy.prototype.authenticate = function(req, options) {
+     callbackURL: callbackURL
+   }
+ 
+-  if (req.query && req.query.code) {
++  // req.query is an instance of URLSearchParams
++  const code = req.query.get('code');
++  if (code) {
+     function loaded(err, ok, state) {
+       if (err) { return self.error(err); }
+       if (!ok) {
+         return self.fail(state, 403);
+       }
+ 
+-      var code = req.query.code;
+-
+       var params = self.tokenParams(options);
+       params.grant_type = 'authorization_code';
+       if (callbackURL) { params.redirect_uri = callbackURL; }
+@@ -213,7 +221,8 @@ OAuth2Strategy.prototype.authenticate = function(req, options) {
+       );
+     }
+ 
+-    var state = req.query.state;
++    // req.query is an instance of URLSearchParams
++    var state = req.query.get('state');
+     try {
+       var arity = this._stateStore.verify.length;
+       if (arity == 4) {

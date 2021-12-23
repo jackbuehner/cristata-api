@@ -55,5 +55,12 @@ router.get('/github/callback', (req: Request, res: Response, next: NextFunction)
     });
   })(req, res, next);
 });
+router.get(
+  '/github/callback',
+  passport.authenticate('github', { failureRedirect: '/auth/error' }),
+  (req: Request, res: Response) => {
+    res.redirect(process.env.PASSPORT_REDIRECT);
+  }
+);
 
 export { router as authRouter };
