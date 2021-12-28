@@ -9,6 +9,7 @@ import './shorturl.model';
 import './flush.model';
 import { merge } from 'merge-anything';
 import { Teams, Users } from '../config/database';
+import passportLocalMongoose from 'passport-local-mongoose';
 
 // destructure connection info from config
 const { username, password, host, database, options } = config.database.connection;
@@ -135,6 +136,31 @@ config.database.collections.forEach((collection) => {
 
   // add pagination to aggregation
   Schema.plugin(aggregatePaginate);
+
+  // plugin passport-local-mongoose to the users collection
+  if (collection.name === 'User')
+    Schema.plugin(passportLocalMongoose, {
+      saltlen: 36,
+      iterations: 26000,
+      keylen: 512,
+      digestAlgorithm: 'sha256',
+      interval: 100, // 0.1 seconds
+      maxInterval: 30000, // 5 minutes
+      usernameField: 'username',
+      passwordField: 'password',
+      usernameUnique: true,
+      saltField: 'p_salt',
+      hashField: 'p_hash',
+      attemptsField: 'p_attempts',
+      lastLoginField: 'p_last_login',
+      selectFields: ['_id'], // fields to be provided to the serializer function
+      usernameCaseInsensitive: false,
+      usernameLowerCase: true,
+      populateFields: undefined,
+      encoding: 'hex',
+      limitAttempts: false,
+      usernameQueryFields: ['slug'],
+    });
 
   // create the model based on the schema
   mongoose.model(collection.name, Schema);

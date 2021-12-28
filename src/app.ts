@@ -75,16 +75,13 @@ app.use(
   })
 );
 
-// set the views and template engine
-app.set('view engine', 'pug');
-app.set('views', __dirname + '/views');
-
 // enable CORS for the app
 app.use(cors(corsConfig));
 
-// parse incoming request body as applciation/json
+// parse incoming request body
 app.use(express.json());
 app.set('json spaces', 2); // pretty print
+app.use(express.urlencoded({ extended: true }));
 
 // store session in the client cookie
 app.use(

@@ -329,6 +329,7 @@ const users: Collection = {
     github_id: { type: Number },
     teams: { type: [String] },
     group: { type: Number, default: '5.10' },
+    methods: { type: [String], default: [] },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
@@ -345,6 +346,7 @@ type GitHubUserID = number;
 
 interface IUser extends CollectionSchemaFields {
   name: string;
+  username?: string; // from passpsort-local-mongoose
   slug: string;
   phone?: number;
   email?: string;
@@ -357,6 +359,7 @@ interface IUser extends CollectionSchemaFields {
   github_id: GitHubUserID;
   teams: GitHubTeamNodeID[];
   group?: number;
+  methods?: string[];
 }
 
 interface IUserTimestamps {
