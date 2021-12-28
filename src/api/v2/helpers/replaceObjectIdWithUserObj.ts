@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
  * @returns array of aggregation stages
  */
 function replaceObjectIdWithUserObj(flatKeys: string[], collection: string): mongoose.PipelineStage[] {
-  const flatSchema = flattenObject(mongoose.model(collection).schema.obj);
+  const flatSchema = flattenObject(mongoose.model(collection).schema.obj as Record<string, never>);
 
   const replacementStages = flatKeys.map((key) => {
     return {
