@@ -273,7 +273,7 @@ const users: Collection = {
           },
           {
             headers: {
-              Authorization: `Bearer ${context.profile.accessToken}`,
+              Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
             },
           }
         );
