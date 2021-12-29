@@ -60,7 +60,7 @@ const users: Collection = {
     }
 
     type GHTeams {
-      docs: [Team]
+      docs: [GHTeam]
     }
 
     type GHTeam {
