@@ -1,4 +1,4 @@
-import { Context, gql, pubsub } from '../../apollo';
+import { Context, getUsers, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields } from '../../mongodb/db';
@@ -48,6 +48,10 @@ const teams: Collection = {
       collection.
       """
       teamActionAccess: CollectionActionAccess
+      """
+      Lists the active users who are not assigned to any teams.
+      """
+      teamUnassignedUsers(): [User]
     }
 
     type Mutation {
@@ -106,6 +110,15 @@ const teams: Collection = {
       team: (_, args, context: Context) => findDoc({ model: 'Team', _id: args._id, context }),
       teams: (_, args, context: Context) => findDocs({ model: 'Team', args, context }),
       teamActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Team', context }),
+      teamUnassignedUsers: async () => {
+        const allMembers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('members');
+        const allOrganizers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('organizers');
+        const allAssigned = Array.from(new Set([...allMembers, ...allOrganizers]));
+        // find users who are not hidden, not retired, and are not assigned to a team
+        return await mongoose
+          .model('User')
+          .find({ _id: { $nin: allAssigned }, hidden: false, retired: { $ne: true } });
+      },
     },
     Mutation: {
       teamCreate: async (_, args, context: Context) =>
