@@ -23,8 +23,8 @@ const teams: Collection = {
     type Team inherits Collection {
       name: String!
       slug: String!
-      members: [ObjectID]!
-      organizers: [ObjectID]!
+      members: [User]!
+      organizers: [User]!
     }
 
     input TeamModifyInput {
@@ -125,6 +125,10 @@ const teams: Collection = {
       teamCreated: { subscribe: () => pubsub.asyncIterator(['TEAM_CREATED']) },
       teamModified: { subscribe: () => pubsub.asyncIterator(['TEAM_MODIFIED']) },
       teamDeleted: { subscribe: () => pubsub.asyncIterator(['TEAM_DELETED']) },
+    },
+    Team: {
+      members: ({ members }) => getUsers(members),
+      organizers: ({ organizers }) => getUsers(organizers),
     },
   },
   schemaFields: () => ({
