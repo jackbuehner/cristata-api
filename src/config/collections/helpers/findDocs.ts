@@ -23,11 +23,13 @@ async function findDocs({ model, args, context, fullAccess }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
-  const { _ids, filter, page, offset } = args;
-  let { limit, sort } = args;
+  const { _ids, filter, offset } = args;
+  let { limit, sort, page } = args;
 
   if (limit > 100) limit = 100; // never send more than 100 docs per page
   if (!sort) sort = { 'timestamps.created_at': 1 };
+
+  if (!offset && !page) page = 1; // default to page 1
 
   // access filter
   const accessFilter =
