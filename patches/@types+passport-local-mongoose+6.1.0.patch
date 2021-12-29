@@ -1,0 +1,12 @@
+diff --git a/node_modules/@types/passport-local-mongoose/index.d.ts b/node_modules/@types/passport-local-mongoose/index.d.ts
+index 64e2bb8..b88114c 100644
+--- a/node_modules/@types/passport-local-mongoose/index.d.ts
++++ b/node_modules/@types/passport-local-mongoose/index.d.ts
+@@ -4,7 +4,6 @@
+ // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+ // TypeScript Version: 3.7
+ 
+-/// <reference types="mongoose" />
+ /// <reference types="passport-local" />
+ 
+ declare module 'mongoose' {
