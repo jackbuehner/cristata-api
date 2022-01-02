@@ -260,7 +260,8 @@ async function userToDatabase(user: NormalUser): Promise<mongoose.Types.ObjectId
         user.provider === 'github'
           ? Array.from(new Set([...(foundUser.methods || []), 'github']))
           : foundUser.methods;
-      return (await foundUser.save())._id;
+      const doc = await foundUser.save();
+      return doc._id;
     } else {
       // create a new user based on the github profile
       const newUser = new User({
@@ -273,7 +274,8 @@ async function userToDatabase(user: NormalUser): Promise<mongoose.Types.ObjectId
           user.emails.find((email) => email.includes('@furman.edu')),
         methods: user.provider === 'github' ? ['github'] : [],
       });
-      return (await newUser.save())._id;
+      const doc = await newUser.save();
+      return doc._id;
     }
   } catch (error) {
     console.error(error);
