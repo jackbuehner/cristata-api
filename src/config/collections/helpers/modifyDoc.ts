@@ -30,7 +30,7 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
   const _id = new mongoose.Types.ObjectId(string_id as string);
 
   // if the current document does not exist OR the user does not have access, throw an error
-  const currentDoc = (await findDoc({ model, _id, context })).toObject() as unknown as CollectionSchemaFields &
+  const currentDoc = (await findDoc({ model, _id, context }))?.toObject() as unknown as CollectionSchemaFields &
     PublishableCollectionSchemaFields &
     WithPermissionsCollectionSchemaFields &
     Record<string, unknown>;
