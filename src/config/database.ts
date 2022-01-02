@@ -68,6 +68,7 @@ interface CollectionPermissions {
   lock: CollectionPermissionsType;
   watch: CollectionPermissionsType;
   publish?: CollectionPermissionsType;
+  deactivate?: CollectionPermissionsType; // users only
   delete: CollectionPermissionsType;
 }
 

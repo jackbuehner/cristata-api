@@ -3,6 +3,7 @@ import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, GitHubTeamNodeID } from '../../mongodb/db';
 import {
+  canDo,
   createDoc,
   deleteDoc,
   findDoc,
@@ -13,10 +14,12 @@ import {
   hideDoc,
   lockDoc,
   modifyDoc,
+  requireAuthentication,
   watchDoc,
   withPubSub,
 } from './helpers';
 import axios from 'axios';
+import { ForbiddenError } from 'apollo-server-errors';
 
 const PRUNED_USER_KEEP_FIELDS = [
   '_id',
@@ -57,6 +60,7 @@ const users: Collection = {
       github_id: Int
       teams: GHTeams
       group: Float
+      retired: Boolean
     }
 
     type GHTeams {
@@ -175,6 +179,11 @@ const users: Collection = {
       Deletes a user account.
       """
       userDelete(_id: ObjectID!): Void
+      """
+      Toggle whether aan existing user is deactivated.
+      This mutation deactivates by default.
+      """
+      userDeactivate(_id: ObjectID!, deactivate: Boolean): User
     }
 
     extend type Subscription {
@@ -248,6 +257,40 @@ const users: Collection = {
         withPubSub('USER', 'MODIFIED', watchDoc({ model: 'User', args, context })),
       userDelete: async (_, args, context: Context) =>
         withPubSub('USER', 'DELETED', deleteDoc({ model: 'User', args, context })),
+      userDeactivate: async (_, args, context: Context) =>
+        withPubSub(
+          'USER',
+          'MODIFIED',
+          (async () => {
+            requireAuthentication(context);
+
+            // set defaults
+            if (args.deactivate === undefined) args.deactivate = true;
+
+            // get the document
+            const doc = await findDoc({ model: 'User', _id: args._id, context });
+
+            // if the user cannot retire other users in the collection, return an error
+            if (!canDo({ action: 'deactivate', model: 'User', context }))
+              throw new ForbiddenError('you cannot deactivate users');
+
+            // set relevant collection metadata
+            doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
+            doc.people.last_modified_by = context.profile._id;
+            doc.retired = args.deactivate;
+            doc.history = [
+              ...doc.history,
+              {
+                type: args.deactivate ? 'deactivated' : 'activated',
+                user: context.profile._id,
+                at: new Date().toISOString(),
+              },
+            ];
+
+            // save the document
+            return await doc.save();
+          })()
+        ),
     },
     GHTeams: {
       docs: async (teamIds: string[], __, context: Context) => {
@@ -330,6 +373,7 @@ const users: Collection = {
     teams: { type: [String] },
     group: { type: Number, default: '5.10' },
     methods: { type: [String], default: [] },
+    retired: { type: Boolean, default: false },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
@@ -338,6 +382,7 @@ const users: Collection = {
     hide: { teams: [Teams.ANY], users: [] },
     lock: { teams: [Teams.ADMIN], users: [] },
     watch: { teams: [Teams.ANY], users: [] },
+    deactivate: { teams: [Teams.ADMIN, Teams.MANAGING_EDITOR], users: [] },
     delete: { teams: [Teams.ADMIN], users: [] },
   }),
 };
@@ -360,6 +405,7 @@ interface IUser extends CollectionSchemaFields {
   teams: GitHubTeamNodeID[];
   group?: number;
   methods?: string[];
+  retired?: boolean;
 }
 
 interface IUserTimestamps {
