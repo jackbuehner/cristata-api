@@ -18,7 +18,6 @@ import {
   watchDoc,
   withPubSub,
 } from './helpers';
-import axios from 'axios';
 import { ForbiddenError } from 'apollo-server-errors';
 
 const PRUNED_USER_KEEP_FIELDS = [
@@ -33,14 +32,6 @@ const PRUNED_USER_KEEP_FIELDS = [
   'slug',
   'group',
 ];
-
-// create an axios instance for the GitHub API
-const GHAxios = axios.create({
-  baseURL: 'https://api.github.com',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 const users: Collection = {
   name: 'User',
@@ -58,19 +49,9 @@ const users: Collection = {
       timestamps: UserTimestamps
       photo: String
       github_id: Int
-      teams: GHTeams
+      teams(_id: ObjectID!, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Team>
       group: Float
       retired: Boolean
-    }
-
-    type GHTeams {
-      docs: [GHTeam]
-    }
-
-    type GHTeam {
-      _id: String!
-      slug: String!
-      name: String!
     }
 
     type UserTimestamps inherits CollectionTimestamps {
@@ -292,60 +273,15 @@ const users: Collection = {
           })()
         ),
     },
-    GHTeams: {
-      docs: async (teamIds: string[], __, context: Context) => {
-        // get all of the teams
-        const { data } = await GHAxios.post(
-          `https://api.github.com/graphql`,
-          {
-            query: `
-            {
-              organization(login: "paladin-news") {
-                teams(first: 100, rootTeamsOnly: false) {
-                  edges {
-                    node {
-                      _id: id
-                      slug
-                      name
-                    }
-                  }
-                }
-              }
-            }      
-          `,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
-            },
-          }
-        );
-
-        // identify the edges (which contain the teams)
-        type GHTeamsEdgesType = Array<{
-          node: {
-            _id: string;
-            slug: string;
-            name: string;
-          };
-        }>;
-        const ghTeamsEdges: GHTeamsEdgesType = data.data.organization.teams.edges;
-
-        // TODO: enable pagination for when the org has more than 100 teams
-
-        // filter to only include nodes that match the user's teams
-        const teams = ghTeamsEdges
-          // map to only include nodes (instead of edges.nodes)
-          .map((edge) => {
-            return edge.node;
-          })
-          // exclude nodes that are not in the user's list of teams
-          .filter((node) => {
-            return teamIds.includes(node._id);
+    User: {
+      teams: async (_, args, context: Context) => {
+        const _id = new mongoose.Types.ObjectId(args._id);
+        const docs = await findDocs({
+          model: 'Team',
+          args: { filter: { $or: [{ organizers: _id }, { members: _id }] }, ...args },
+          context,
           });
-
-        // return the filtered teams nodes
-        return teams;
+        return docs;
       },
     },
     Subscription: {
