@@ -25,6 +25,10 @@ const hocuspocus = Hocuspocus.configure({
       }
 
       // find auth cookie
+      if (!request.headers.cookie) {
+        socket.end(); // end if no cookie is provided
+        return;
+      }
       const parsedCookies = parseCookies(request.headers.cookie);
       const { name, value, signature } = parsedCookies.find((cookie) => cookie.name === 'github-auth-session');
 
