@@ -42,7 +42,7 @@ function deserializeUser(
       if (error) {
         console.error(error);
         done(error);
-      } else {
+      } else if (doc) {
         done(null, {
           provider: user.provider,
           _id: user._id,
@@ -53,6 +53,8 @@ function deserializeUser(
           next_step: user.next_step,
           methods: doc.methods,
         });
+      } else {
+        done(new Error('doc is undefined'));
       }
     });
   }
