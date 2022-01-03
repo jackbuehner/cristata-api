@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 
 // create axios instance for GitHub projects
 const GHPAxios = axios.create({
@@ -41,13 +41,13 @@ function handleError(err: AxiosError, res: Response) {
  */
 async function getProject(
   id: string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null,
   callback: (data: unknown) => unknown = null
 ): Promise<void> {
   GHPAxios.get(`/projects/${id}`, {
     headers: {
-      Authorization: `Bearer ${user.accessToken}`,
+      Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
     },
   })
     .then(({ data }) => {
@@ -72,7 +72,7 @@ async function updateProject(
   name: string,
   body: string,
   state: 'open' | 'closed',
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null,
   callback: (data: unknown) => unknown = null
 ): Promise<void> {
@@ -85,7 +85,7 @@ async function updateProject(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )
@@ -105,13 +105,13 @@ async function updateProject(
  */
 async function getProjectColumns(
   id: string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null,
   callback: (data: Column[]) => unknown = null
 ): Promise<void> {
   GHPAxios.get(`/projects/${id}/columns`, {
     headers: {
-      Authorization: `Bearer ${user.accessToken}`,
+      Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
     },
   })
     .then(({ data }) => {
@@ -132,7 +132,7 @@ async function getProjectColumns(
 async function createProjectColumn(
   project_id: string,
   name: string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   GHPAxios.post(
@@ -142,7 +142,7 @@ async function createProjectColumn(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )
@@ -159,10 +159,14 @@ async function createProjectColumn(
  * @param user express user profile
  * @param res express response object
  */
-async function getProjectColumn(column_id: string, user: IProfile, res: Response = null): Promise<void> {
+async function getProjectColumn(
+  column_id: string,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<void> {
   GHPAxios.get(`/projects/columns/${column_id}`, {
     headers: {
-      Authorization: `Bearer ${user.accessToken}`,
+      Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
     },
   })
     .then(({ data }) => {
@@ -182,7 +186,7 @@ async function getProjectColumn(column_id: string, user: IProfile, res: Response
 async function renameProjectColumn(
   column_id: string,
   name: string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   GHPAxios.patch(
@@ -192,7 +196,7 @@ async function renameProjectColumn(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )
@@ -209,10 +213,14 @@ async function renameProjectColumn(
  * @param user express user profile
  * @param res express response object
  */
-async function deleteProjectColumn(column_id: string, user: IProfile, res: Response = null): Promise<void> {
+async function deleteProjectColumn(
+  column_id: string,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<void> {
   GHPAxios.delete(`/projects/columns/${column_id}`, {
     headers: {
-      Authorization: `Bearer ${user.accessToken}`,
+      Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
     },
   })
     .then(({ data }) => {
@@ -230,13 +238,13 @@ async function deleteProjectColumn(column_id: string, user: IProfile, res: Respo
  */
 async function getProjectCards(
   column_id: string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null,
   callback: (data: Card[]) => unknown = null
 ): Promise<void> {
   GHPAxios.get(`/projects/columns/${column_id}/cards`, {
     headers: {
-      Authorization: `Bearer ${user.accessToken}`,
+      Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
     },
   })
     .then(({ data }) => {
@@ -253,10 +261,10 @@ async function getProjectCards(
  * @param user express user profile
  * @param res express response object
  */
-async function getProjectCard(card_id: string, user: IProfile, res: Response = null): Promise<void> {
+async function getProjectCard(card_id: string, user: IDeserializedUser, res: Response = null): Promise<void> {
   GHPAxios.get(`/projects/columns/cards/${card_id}`, {
     headers: {
-      Authorization: `Bearer ${user.accessToken}`,
+      Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
     },
   })
     .then(({ data }) => {
@@ -276,7 +284,7 @@ async function getProjectCard(card_id: string, user: IProfile, res: Response = n
 async function createProjectCard(
   column_id: string,
   note: string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   GHPAxios.post(
@@ -286,7 +294,7 @@ async function createProjectCard(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )
@@ -309,7 +317,7 @@ async function updateProjectCard(
   card_id: string,
   note: string | null,
   archived: boolean,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   GHPAxios.patch(
@@ -320,7 +328,7 @@ async function updateProjectCard(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )
@@ -337,10 +345,14 @@ async function updateProjectCard(
  * @param user express user profile
  * @param res express response object
  */
-async function deleteProjectCard(card_id: string, user: IProfile, res: Response = null): Promise<void> {
+async function deleteProjectCard(
+  card_id: string,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<void> {
   GHPAxios.delete(`/projects/columns/cards/${card_id}`, {
     headers: {
-      Authorization: `Bearer ${user.accessToken}`,
+      Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
     },
   })
     .then((response: AxiosResponse) => {
@@ -362,7 +374,7 @@ async function moveProjectCard(
   card_id: string,
   column_id: string,
   position: 'top' | 'bottom' | string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   GHPAxios.post(
@@ -373,7 +385,7 @@ async function moveProjectCard(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )
@@ -468,7 +480,11 @@ interface FullProject extends Project {
  * @param user express user profile
  * @param res express response object
  */
-async function getFullProject(project_id: string, user: IProfile, res: Response = null): Promise<void> {
+async function getFullProject(
+  project_id: string,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<void> {
   try {
     // store full project
     let fullProject: FullProject;
@@ -507,7 +523,7 @@ async function getFullProject(project_id: string, user: IProfile, res: Response 
                 await axios
                   .get(card.content_url, {
                     headers: {
-                      Authorization: `Bearer ${user.accessToken}`,
+                      Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
                     },
                   })
                   .then(({ data }) => {

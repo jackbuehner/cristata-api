@@ -10,7 +10,7 @@ import { config } from './config';
 import mongoose from 'mongoose';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphqls2s } from 'graphql-s2s';
-import { IProfile } from './passport';
+import { IDeserializedUser } from './passport';
 import { merge } from 'merge-anything';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { PubSub } from 'graphql-subscriptions';
@@ -303,7 +303,7 @@ async function apollo(app: Application, server: Server): Promise<void> {
       return {
         config: config,
         isAuthenticated: req.isAuthenticated(),
-        profile: req.user as IProfile,
+        profile: req.user as IDeserializedUser,
       };
     };
 
@@ -360,7 +360,7 @@ async function apollo(app: Application, server: Server): Promise<void> {
 interface Context {
   config: typeof config;
   isAuthenticated: boolean;
-  profile?: IProfile;
+  profile?: IDeserializedUser;
 }
 
 export type { Context };

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { Response } from 'express';
 import { IPhoto, IPhotoDoc } from '../../../mongodb/photos.model';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 
 // define model
 const Photo = mongoose.model<IPhotoDoc>('Photo');
@@ -12,7 +12,7 @@ const Photo = mongoose.model<IPhotoDoc>('Photo');
  * @param data data permitted/required by the schema
  * @param user - the getting user's profile
  */
-async function newPhoto(data: IPhoto, user: IProfile, res: Response = null): Promise<void> {
+async function newPhoto(data: IPhoto, user: IDeserializedUser, res: Response = null): Promise<void> {
   const photo = new Photo({
     // set people data based on who created the document
     people: {
@@ -39,7 +39,7 @@ async function newPhoto(data: IPhoto, user: IProfile, res: Response = null): Pro
  *
  * @param user - the getting user's profile
  */
-async function getPhotos(user: IProfile, query: URLSearchParams, res: Response = null): Promise<void> {
+async function getPhotos(user: IDeserializedUser, query: URLSearchParams, res: Response = null): Promise<void> {
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
@@ -67,7 +67,7 @@ async function getPhotos(user: IProfile, query: URLSearchParams, res: Response =
  * @param user - the getting user's profile
  * @param res - the response for an HTTP request
  */
-async function getPhoto(id: string, user: IProfile, res: Response = null): Promise<IPhotoDoc> {
+async function getPhoto(id: string, user: IDeserializedUser, res: Response = null): Promise<IPhotoDoc> {
   // get the document
   try {
     const photo = await Photo.findById(id, {});
@@ -91,7 +91,12 @@ async function getPhoto(id: string, user: IProfile, res: Response = null): Promi
  * @param user - the patching user's profile
  * @param res - the response for an HTTP request
  */
-async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Response = null): Promise<void> {
+async function patchPhoto(
+  id: string,
+  data: IPhoto,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<void> {
   // if the current document does not exist, do not continue (use POST to create an document)
   const currentPhoto = (await getPhoto(id, user)).toObject();
   if (!currentPhoto) {
@@ -146,7 +151,7 @@ async function patchPhoto(id: string, data: IPhoto, user: IProfile, res: Respons
  * @param user - the deleting user's profile
  * @param res - the response for an HTTP request
  */
-async function deletePhoto(id: string, user: IProfile, res = null): Promise<void> {
+async function deletePhoto(id: string, user: IDeserializedUser, res = null): Promise<void> {
   // atempt to delete article
   try {
     await Photo.deleteOne({ _id: id });

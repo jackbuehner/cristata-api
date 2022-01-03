@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 
 // load environmental variables
 dotenv.config();
@@ -56,7 +56,7 @@ async function getTeamDiscussions(
   teamSlug: string,
   last = '10',
   before: string | undefined,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   let result;
@@ -126,7 +126,7 @@ async function getTeamDiscussions(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )
@@ -143,7 +143,7 @@ async function getTeamDiscussions(
 async function getTeamDiscussion(
   teamSlug: string,
   discussionNumber: string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   let result;
@@ -207,7 +207,7 @@ async function getTeamDiscussion(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )
@@ -224,7 +224,7 @@ async function getTeamDiscussion(
 async function getTeamDiscussionComments(
   teamSlug: string,
   discussionNumber: string,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   let result;
@@ -276,7 +276,7 @@ async function getTeamDiscussionComments(
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )

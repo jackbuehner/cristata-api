@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 
 /**
  * Send the appropriate error code and message
@@ -27,10 +27,8 @@ function handleError(err: AxiosError, res: Response) {
 /**
  * Create an invitation for a user by email.
  */
-async function postOrgInvitation(user: IProfile, res: Response = null): Promise<void> {
-  const approvedEmail = user.emails.find(
-    (email) => email.includes('@thepaladin.news') || email.includes('@furman.edu')
-  );
+async function postOrgInvitation(user: IDeserializedUser, res: Response = null): Promise<void> {
+  const approvedEmail = user.email.includes('@thepaladin.news') || user.email.includes('@furman.edu');
 
   if (approvedEmail) {
     axios

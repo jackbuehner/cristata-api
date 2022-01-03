@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import { replaceObjectIdWithUserObj } from '../helpers';
 import { IFlush, IFlushDoc } from '../../../mongodb/flush.model';
 
@@ -18,7 +18,7 @@ const Document = mongoose.model<IFlushDoc>('Flush');
  * @param data data permitted/required by the schema
  * @param user - the getting user's profile
  */
-async function newDocument(data: IFlush, user: IProfile, res: Response = null): Promise<void> {
+async function newDocument(data: IFlush, user: IDeserializedUser, res: Response = null): Promise<void> {
   try {
     const doc = new Document({
       permissions: {
@@ -50,7 +50,11 @@ async function newDocument(data: IFlush, user: IProfile, res: Response = null): 
  *
  * @param user - the getting user's profile
  */
-async function getDocuments(user: IProfile, query: URLSearchParams, res: Response = null): Promise<void> {
+async function getDocuments(
+  user: IDeserializedUser,
+  query: URLSearchParams,
+  res: Response = null
+): Promise<void> {
   try {
     // expose history type to the filter
     const historyType = query.getAll('historyType');
@@ -93,7 +97,7 @@ async function getDocuments(user: IProfile, query: URLSearchParams, res: Respons
  * @param user - the getting user's profile
  * @param res - the response for an HTTP request
  */
-async function getDocument(id: string, user: IProfile, res: Response = null): Promise<IFlushDoc> {
+async function getDocument(id: string, user: IDeserializedUser, res: Response = null): Promise<IFlushDoc> {
   try {
     // admin: full access
     // others: only get documents for which the user has access (by team or userID)
@@ -147,7 +151,7 @@ async function getDocument(id: string, user: IProfile, res: Response = null): Pr
 async function patchDocument(
   id: string,
   data: IFlush,
-  user: IProfile,
+  user: IDeserializedUser,
   canPublish = false,
   res: Response = null
 ): Promise<void> {
@@ -174,7 +178,7 @@ async function patchDocument(
     // others: only patch documents for which the user has access (by team or userID)
     const filter = user.teams.includes(adminTeamID)
       ? { _id: id }
-      : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+      : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
     // determine the history type to set based on the stage or hidden status
     const historyType = data.hidden ? 'hidden' : data.timestamps?.published_at ? 'published' : 'patched';
@@ -224,7 +228,12 @@ async function patchDocument(
  * @param watch - whether to watch the article
  * @param res - the response for an HTTP request
  */
-async function watchDocument(id: string, user: IProfile, watch: boolean, res: Response = null): Promise<void> {
+async function watchDocument(
+  id: string,
+  user: IDeserializedUser,
+  watch: boolean,
+  res: Response = null
+): Promise<void> {
   try {
     // if the current document does not exist, do not continue
     const currentDoc = (await getDocument(id, user)).toObject();
@@ -239,7 +248,7 @@ async function watchDocument(id: string, user: IProfile, watch: boolean, res: Re
     // others: only watch documents for which the user has access (by team or userID)
     const filter = user.teams.includes(adminTeamID)
       ? { _id: id }
-      : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+      : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
     // get the current watchers, and then modify the array to either include or exclude the user based on whether they want to watch the document
     let watching = currentDoc.people.watching;

@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Response } from 'express';
 import { EnumSatireStage, ISatire, ISatireDoc } from '../../../mongodb/satire.model';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import { slugify } from '../../../utils/slugify';
 import { replaceObjectIdWithUserObj } from '../helpers';
 
@@ -29,7 +29,7 @@ const Satire = mongoose.model<ISatireDoc>('Satire');
  * @param data data permitted/required by the schema
  * @param user - the getting user's profile
  */
-async function newSatire(data: ISatire, user: IProfile, res: Response = null): Promise<void> {
+async function newSatire(data: ISatire, user: IDeserializedUser, res: Response = null): Promise<void> {
   const satire = new Satire({
     // set people data based on who created the document
     permissions: {
@@ -60,7 +60,11 @@ async function newSatire(data: ISatire, user: IProfile, res: Response = null): P
  *
  * @param user - the getting user's profile
  */
-async function getSatires(user: IProfile, query: URLSearchParams, res: Response = null): Promise<void> {
+async function getSatires(
+  user: IDeserializedUser,
+  query: URLSearchParams,
+  res: Response = null
+): Promise<void> {
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
@@ -68,7 +72,7 @@ async function getSatires(user: IProfile, query: URLSearchParams, res: Response 
   // others: only get documents for which the user has access (by team or userID)
   const filter: Record<string, unknown> = user.teams.includes(adminTeamID)
     ? {}
-    : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
   if (historyType.length > 0) {
     filter.history = { $elemMatch: { type: { $in: historyType } } };
   }
@@ -80,7 +84,7 @@ async function getSatires(user: IProfile, query: URLSearchParams, res: Response 
       // others: only get documents for which the user has access (by team or userID)
       $match: user.teams.includes(adminTeamID)
         ? {}
-        : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] },
+        : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] },
     },
     // filter by history type if defined
     {
@@ -201,7 +205,12 @@ async function getPublicSatire(slug: string, res: Response = null): Promise<void
  * @param user - the getting user's profile
  * @param res - the response for an HTTP request
  */
-async function getSatire(id: string, by: string, user: IProfile, res: Response = null): Promise<ISatireDoc> {
+async function getSatire(
+  id: string,
+  by: string,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<ISatireDoc> {
   // if by is name, use 'name' as method; otherwise, use '_id' as method
   const method = by === 'name' ? 'name' : '_id';
 
@@ -211,7 +220,7 @@ async function getSatire(id: string, by: string, user: IProfile, res: Response =
     ? { [method]: method === '_id' ? new mongoose.Types.ObjectId(id) : id }
     : {
         [method]: method === '_id' ? new mongoose.Types.ObjectId(id) : id,
-        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }],
+        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }],
       };
 
   // not found message
@@ -258,7 +267,7 @@ async function getSatire(id: string, by: string, user: IProfile, res: Response =
 async function patchSatire(
   id: string,
   data: ISatire,
-  user: IProfile,
+  user: IDeserializedUser,
   canPublish = false,
   res: Response = null
 ): Promise<void> {
@@ -285,7 +294,7 @@ async function patchSatire(
   // others: only patch documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: id }
-    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
   // determine the history type to set based on the stage or hidden status
   const historyType = data.hidden
@@ -351,7 +360,12 @@ async function patchSatire(
  * @param canPublish - whether the user has publish permissions
  * @param res - the response for an HTTP request
  */
-async function deleteSatire(id: string, user: IProfile, canPublish = false, res = null): Promise<void> {
+async function deleteSatire(
+  id: string,
+  user: IDeserializedUser,
+  canPublish = false,
+  res = null
+): Promise<void> {
   // if the satire's current state is uploaded or published, do not patch satire unless user canPublish
   const currentSatire = (await getSatire(id, 'id', user)).toObject();
   if (currentSatire) {
@@ -368,7 +382,7 @@ async function deleteSatire(id: string, user: IProfile, canPublish = false, res 
   // others: can only delete documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: id }
-    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
   // atempt to delete satire
   try {

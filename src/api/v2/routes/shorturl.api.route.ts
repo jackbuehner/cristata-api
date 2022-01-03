@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import('../models/shorturl.api.model');
 import {
   getShortURL,
@@ -44,11 +44,11 @@ async function handleAuth(
   req: Request,
   res: Response,
   permissionsType: string,
-  callback: (user: IProfile) => unknown
+  callback: (user: IDeserializedUser) => unknown
 ) {
   try {
     if (req.isAuthenticated() || permissions[permissionsType].isPublic) {
-      const user = req.isAuthenticated() ? (req.user as IProfile) : undefined;
+      const user = req.isAuthenticated() ? (req.user as IDeserializedUser) : undefined;
 
       // check authorization
       let isAuthorized = false;
@@ -60,7 +60,7 @@ async function handleAuth(
         isAuthorized = true;
       } else if (
         permissions[permissionsType].teams.some((team: string) => user.teams.includes(team)) ||
-        permissions[permissionsType].users.includes(user.id)
+        permissions[permissionsType].users.includes(user._id)
       ) {
         // at least one of the user's teams  is inside the authorized teams array from the config
         // or the user's id is included in the users array in the config

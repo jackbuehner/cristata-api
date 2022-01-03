@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 
 /**
  * Send the appropriate error code and message
@@ -26,14 +26,14 @@ function handleError(err: AxiosError, res: Response) {
 /**
  * Get a list of projects in the organization
  */
-async function getOrgProjects(user: IProfile, res: Response = null): Promise<void> {
+async function getOrgProjects(user: IDeserializedUser, res: Response = null): Promise<void> {
   axios
     .get('/orgs/paladin-news/projects', {
       baseURL: 'https://api.github.com',
       headers: {
         //Accept: 'application/vnd.github.v3+json',
         Accept: 'application/vnd.github.inertia-preview+json', // preview required for projects api
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     })
     .then(({ data }: AxiosResponse) => {

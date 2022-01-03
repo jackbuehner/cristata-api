@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Response } from 'express';
 import { EnumArticleStage, IArticle, IArticleDoc } from '../../../mongodb/articles.model';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import { slugify } from '../../../utils/slugify';
 import { ISettings } from '../../../mongodb/settings.model';
 import { IUserDoc } from '../../../mongodb/users.model';
@@ -32,7 +32,7 @@ const Article = mongoose.model<IArticleDoc>('Article');
  * @param data data permitted/required by the schema
  * @param user - the getting user's profile
  */
-async function newArticle(data: IArticle, user: IProfile, res: Response = null): Promise<void> {
+async function newArticle(data: IArticle, user: IDeserializedUser, res: Response = null): Promise<void> {
   const article = new Article({
     // set people data based on who created the document
     permissions: {
@@ -63,7 +63,11 @@ async function newArticle(data: IArticle, user: IProfile, res: Response = null):
  *
  * @param user - the getting user's profile
  */
-async function getArticles(user: IProfile, query: URLSearchParams, res: Response = null): Promise<void> {
+async function getArticles(
+  user: IDeserializedUser,
+  query: URLSearchParams,
+  res: Response = null
+): Promise<void> {
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
@@ -271,7 +275,12 @@ async function getPublicArticle(slug: string, res: Response = null): Promise<voi
  * @param user - the getting user's profile
  * @param res - the response for an HTTP request
  */
-async function getArticle(id: string, by: string, user: IProfile, res: Response = null): Promise<IArticleDoc> {
+async function getArticle(
+  id: string,
+  by: string,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<IArticleDoc> {
   // if by is name, use 'name' as method; otherwise, use '_id' as method
   const method = by === 'name' ? 'name' : '_id';
 
@@ -328,7 +337,7 @@ async function getArticle(id: string, by: string, user: IProfile, res: Response 
 async function patchArticle(
   id: string,
   data: IArticle,
-  user: IProfile,
+  user: IDeserializedUser,
   canPublish = false,
   res: Response = null
 ): Promise<void> {
@@ -357,7 +366,7 @@ async function patchArticle(
     // others: only patch documents for which the user has access (by team or userID)
     const filter = user.teams.includes(adminTeamID)
       ? { _id: id }
-      : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+      : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
     // determine the history type to set based on the stage or hidden status
     const historyType = data.hidden
@@ -497,7 +506,12 @@ async function patchArticle(
  * @param watch - whether to watch the article
  * @param res - the response for an HTTP request
  */
-async function watchArticle(id: string, user: IProfile, watch: boolean, res: Response = null): Promise<void> {
+async function watchArticle(
+  id: string,
+  user: IDeserializedUser,
+  watch: boolean,
+  res: Response = null
+): Promise<void> {
   // if the current document does not exist, do not continue
   const currentArticle = (await getArticle(id, 'id', user)).toObject();
   if (!currentArticle) {
@@ -511,7 +525,7 @@ async function watchArticle(id: string, user: IProfile, watch: boolean, res: Res
   // others: only watch documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: id }
-    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
   // get the current watchers, and then modify the array to either include or exclude the user based on whether they want to watch the article
   let watching = currentArticle.people.watching;
@@ -539,7 +553,12 @@ async function watchArticle(id: string, user: IProfile, watch: boolean, res: Res
  * @param canPublish - whether the user has publish permissions
  * @param res - the response for an HTTP request
  */
-async function deleteArticle(id: string, user: IProfile, canPublish = false, res = null): Promise<void> {
+async function deleteArticle(
+  id: string,
+  user: IDeserializedUser,
+  canPublish = false,
+  res = null
+): Promise<void> {
   // if the article's current state is uploaded or published, do not patch article unless user canPublish
   const currentArticle = (await getArticle(id, 'id', user)).toObject();
   if (currentArticle) {
@@ -557,7 +576,7 @@ async function deleteArticle(id: string, user: IProfile, canPublish = false, res
   // others: can only delete documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: id }
-    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
   // atempt to delete article
   try {

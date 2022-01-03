@@ -22,6 +22,7 @@ passport.serializeUser((user: Record<string, unknown>, done) => {
 interface IDeserializedUser {
   provider: string;
   _id: mongoose.Types.ObjectId;
+  name: string;
   username: string;
   email: string;
   teams: string[];
@@ -46,6 +47,7 @@ function deserializeUser(
         done(null, {
           provider: user.provider,
           _id: user._id,
+          name: doc.name,
           username: doc.username,
           email: doc.email,
           teams: doc.teams,
@@ -105,15 +107,6 @@ interface IGitHubProfile {
     updated_at: string;
     two_factor_authentication: boolean;
   };
-}
-
-interface IProfile extends IGitHubProfile {
-  member_status: boolean;
-  teams: string[];
-  accessToken: string;
-  two_factor_authentication: boolean;
-  emails: string[];
-  _id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -310,5 +303,4 @@ passport.use(
 
 passport.use(mongoose.model('User').createStrategy());
 
-export { IProfile };
 export type { IDeserializedUser };

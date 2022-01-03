@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import '../../../mongodb/users.model';
 import {
   getUsers,
@@ -40,11 +40,11 @@ async function handleAuth(
   req: Request,
   res: Response,
   permissionsType: string,
-  callback: (user: IProfile) => unknown
+  callback: (user: IDeserializedUser) => unknown
 ) {
   try {
     if (req.isAuthenticated() || permissions[permissionsType].isPublic) {
-      const user = req.user as IProfile;
+      const user = req.user as IDeserializedUser;
 
       // check authorization
       let isAuthorized = false;
@@ -56,12 +56,12 @@ async function handleAuth(
         isAuthorized = true;
       } else if (
         permissions[permissionsType].teams.some((team: string) => user.teams.includes(team)) ||
-        permissions[permissionsType].users.includes(user.id)
+        permissions[permissionsType].users.includes(user._id)
       ) {
         // at least one of the user's teams  is inside the authorized teams array from the config
         // or the user's id is included in the users array in the config
         isAuthorized = true;
-      } else if (permissionsType === 'patch' && req.params.user_id.split('_')[1] === user.id) {
+      } else if (permissionsType === 'patch' && req.params.user_id === user._id.toHexString()) {
         // if the user is trying patch their own profile, allow them
         isAuthorized = true;
       }

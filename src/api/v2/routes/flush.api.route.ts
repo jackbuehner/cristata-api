@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import {
   getDocument,
   getDocuments,
@@ -42,16 +42,16 @@ async function handleAuth(
   req: Request,
   res: Response,
   permissionsType: string,
-  callback: (user: IProfile, canPublish: boolean) => unknown
+  callback: (user: IDeserializedUser, canPublish: boolean) => unknown
 ) {
   try {
     if (req.isAuthenticated() || permissions[permissionsType].isPublic) {
-      const user = req.isAuthenticated() ? (req.user as IProfile) : undefined;
+      const user = req.isAuthenticated() ? (req.user as IDeserializedUser) : undefined;
 
       // check if the user can publish (automatically false if user undefined)
       const canPublish = user
         ? permissions['publish'].teams.some((team: string) => user.teams.includes(team)) ||
-          permissions['publish'].users.includes(user.id)
+          permissions['publish'].users.includes(user._id)
         : false;
 
       // check authorization
@@ -64,7 +64,7 @@ async function handleAuth(
         isAuthorized = true;
       } else if (
         permissions[permissionsType].teams.some((team: string) => user.teams.includes(team)) ||
-        permissions[permissionsType].users.includes(user.id)
+        permissions[permissionsType].users.includes(user._id)
       ) {
         // at least one of the user's teams  is inside the authorized teams array from the config
         // or the user's id is included in the users array in the config

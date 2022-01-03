@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import('../models/photoRequests.api.model');
 import {
   newPhotoRequest,
@@ -11,12 +11,12 @@ import {
 const photoRequestsRouter = Router();
 
 /**
- * Returns true if the object is a profile match the `IProfile` interface.
+ * Returns true if the object is a profile match the `IDeserializedUser` interface.
  * This is called a type predicate. It helps the typescript compiler know the
  * type of the object.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function instanceOfProfile(object): object is IProfile {
+function instanceOfProfile(object): object is IDeserializedUser {
   return 'member' in object;
 }
 
@@ -52,11 +52,11 @@ async function handleAuth(
   req: Request,
   res: Response,
   permissionsType: string,
-  callback: (user: IProfile) => unknown
+  callback: (user: IDeserializedUser) => unknown
 ) {
   try {
     if (req.isAuthenticated()) {
-      const user = req.user as IProfile;
+      const user = req.user as IDeserializedUser;
 
       // check authorization
       let isAuthorized = false;
@@ -68,7 +68,7 @@ async function handleAuth(
         isAuthorized = true;
       } else if (
         permissions[permissionsType].teams.some((team: string) => user.teams.includes(team)) ||
-        permissions[permissionsType].users.includes(user.id)
+        permissions[permissionsType].users.includes(user._id)
       ) {
         // at least one of the user's teams  is inside the authorized teams array from the config
         // or the user's id is included in the users array in the config

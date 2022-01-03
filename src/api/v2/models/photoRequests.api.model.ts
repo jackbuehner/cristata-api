@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Response } from 'express';
 import { EnumPhotoRequestStage, IPhotoRequest, IPhotoRequestDoc } from '../../../mongodb/photoRequests.model';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import { replaceObjectIdWithUserObj } from '../helpers';
 
 // load environmental variables
@@ -28,7 +28,11 @@ const PhotoRequest = mongoose.model<IPhotoRequestDoc>('PhotoRequest');
  * @param data data permitted/required by the schema
  * @param user - the getting user's profile
  */
-async function newPhotoRequest(data: IPhotoRequest, user: IProfile, res: Response = null): Promise<void> {
+async function newPhotoRequest(
+  data: IPhotoRequest,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<void> {
   const photoRequest = new PhotoRequest({
     // set people data based on who created the document
     permissions: {
@@ -59,7 +63,11 @@ async function newPhotoRequest(data: IPhotoRequest, user: IProfile, res: Respons
  *
  * @param user - the getting user's profile
  */
-async function getPhotoRequests(user: IProfile, query: URLSearchParams, res: Response = null): Promise<void> {
+async function getPhotoRequests(
+  user: IDeserializedUser,
+  query: URLSearchParams,
+  res: Response = null
+): Promise<void> {
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
@@ -67,7 +75,7 @@ async function getPhotoRequests(user: IProfile, query: URLSearchParams, res: Res
   // others: only get documents for which the user has access (by team or userID)
   const filter: Record<string, unknown> = user.teams.includes(adminTeamID)
     ? {}
-    : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    : { $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
   if (historyType.length > 0) {
     filter.history = { $elemMatch: { type: { $in: historyType } } };
   }
@@ -105,14 +113,18 @@ async function getPhotoRequests(user: IProfile, query: URLSearchParams, res: Res
  * @param user - the getting user's profile
  * @param res - the response for an HTTP request
  */
-async function getPhotoRequest(id: string, user: IProfile, res: Response = null): Promise<IPhotoRequestDoc> {
+async function getPhotoRequest(
+  id: string,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<IPhotoRequestDoc> {
   // admin: full access
   // others: only get documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: new mongoose.Types.ObjectId(id) }
     : {
         _id: new mongoose.Types.ObjectId(id),
-        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }],
+        $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }],
       };
 
   // not found message
@@ -161,7 +173,7 @@ async function getPhotoRequest(id: string, user: IProfile, res: Response = null)
 async function patchPhotoRequest(
   id: string,
   data: IPhotoRequest,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   // if the current document does not exist, do not continue (use POST to create an document)
@@ -178,7 +190,7 @@ async function patchPhotoRequest(
   // others: only patch documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: id }
-    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
   // determine the history type to set based on the stage or hidden status
   const historyType = data.hidden
@@ -227,12 +239,12 @@ async function patchPhotoRequest(
  * @param user - the deleting user's profile
  * @param res - the response for an HTTP request
  */
-async function deletePhotoRequest(id: string, user: IProfile, res = null): Promise<void> {
+async function deletePhotoRequest(id: string, user: IDeserializedUser, res = null): Promise<void> {
   // admin: can delete any document
   // others: can only delete documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
     ? { _id: id }
-    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user.id }] };
+    : { _id: id, $or: [{ 'permissions.teams': { $in: user.teams } }, { 'permissions.users': user._id }] };
 
   // atempt to delete article
   try {

@@ -94,6 +94,7 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
               const du: IDeserializedUser = {
                 provider: user.provider,
                 _id: user._id,
+                name: doc.name,
                 username: doc.username,
                 email: doc.email,
                 teams: doc.teams,

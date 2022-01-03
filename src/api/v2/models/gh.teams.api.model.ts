@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { Response } from 'express';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 
 // create axios instance for GitHub projects
 const GHPAxios = axios.create({
@@ -36,7 +36,7 @@ function handleError(err: AxiosError, res: Response) {
  * Get the first 100 teams and each team's first 100 child teams from a GitHub
  * organization.
  */
-async function getTeams(user: IProfile, res: Response = null): Promise<void> {
+async function getTeams(user: IDeserializedUser, res: Response = null): Promise<void> {
   let result;
   await GHPAxios.post(
     `https://api.github.com/graphql`,
@@ -66,7 +66,7 @@ async function getTeams(user: IProfile, res: Response = null): Promise<void> {
     },
     {
       headers: {
-        Authorization: `Bearer ${user.accessToken}`,
+        Authorization: `Bearer ${process.env.GITHUB_ADMIN_PERSONAL_ACCESS_TOKEN}`,
       },
     }
   )

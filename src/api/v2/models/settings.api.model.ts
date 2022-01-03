@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Response } from 'express';
 import { ISettings, ISettingsDoc } from '../../../mongodb/settings.model';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 
 // load environmental variables
 dotenv.config();
@@ -17,7 +17,7 @@ const Settings = mongoose.model<ISettingsDoc>('Settings');
  * @param data data permitted/required by the schema
  * @param user - the getting user's profile
  */
-async function newSetting(data: ISettings, user: IProfile, res: Response = null): Promise<void> {
+async function newSetting(data: ISettings, user: IDeserializedUser, res: Response = null): Promise<void> {
   try {
     if (user.teams.includes(adminTeamID)) {
       const settings = new Settings({ ...data });
@@ -39,7 +39,12 @@ async function newSetting(data: ISettings, user: IProfile, res: Response = null)
  * @param user - the getting user's profile
  * @param res - the response for an HTTP request
  */
-async function getSetting(id: string, by: string, user: IProfile, res: Response = null): Promise<void> {
+async function getSetting(
+  id: string,
+  by: string,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<void> {
   // if by is name, use 'name' as method; otherwise, use '_id' as method
   const method = by === 'name' ? 'name' : '_id';
 
@@ -65,7 +70,7 @@ async function getSetting(id: string, by: string, user: IProfile, res: Response 
  * @param user - the getting user's profile
  * @param res - the response for an HTTP request
  */
-async function getSettings(user: IProfile, res: Response = null): Promise<void> {
+async function getSettings(user: IDeserializedUser, res: Response = null): Promise<void> {
   try {
     if (user.teams.includes(adminTeamID)) {
       const settings = await Settings.find({});
@@ -85,7 +90,12 @@ async function getSettings(user: IProfile, res: Response = null): Promise<void> 
  * @param user - the patching user's profile
  * @param res - the response for an HTTP request
  */
-async function patchSetting(id: string, data: ISettings, user: IProfile, res: Response = null): Promise<void> {
+async function patchSetting(
+  id: string,
+  data: ISettings,
+  user: IDeserializedUser,
+  res: Response = null
+): Promise<void> {
   try {
     if (user.teams.includes(adminTeamID)) {
       await Settings.updateOne({ _id: id }, { $set: data });
@@ -104,7 +114,7 @@ async function patchSetting(id: string, data: ISettings, user: IProfile, res: Re
  * @param user - the deleting user's profile
  * @param res - the response for an HTTP request
  */
-async function deleteSetting(id: string, user: IProfile, res = null): Promise<void> {
+async function deleteSetting(id: string, user: IDeserializedUser, res = null): Promise<void> {
   try {
     if (user.teams.includes(adminTeamID)) {
       await Settings.deleteOne({ _id: id });

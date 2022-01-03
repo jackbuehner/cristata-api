@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { Response } from 'express';
 import { IShortURL, IShortURLDoc } from '../../../mongodb/shorturl.model';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 import { customAlphabet } from 'nanoid/async';
 
 const generateCode = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 7);
@@ -24,7 +24,7 @@ const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');
  * @param data data permitted/required by the schema
  * @param user the getting user's profile
  */
-async function newShortURL(data: IShortURL, user: IProfile, res: Response = null): Promise<void> {
+async function newShortURL(data: IShortURL, user: IDeserializedUser, res: Response = null): Promise<void> {
   try {
     if (user.teams.includes(shortURLTeamID)) {
       // generate a code
@@ -115,7 +115,7 @@ async function getShortURLs(res: Response = null): Promise<void> {
 async function patchShortURL(
   code: string,
   data: IShortURL,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   try {
@@ -158,7 +158,7 @@ async function patchShortURL(
  * @param user - the deleting user's profile
  * @param res - the response for an HTTP request
  */
-async function deleteShortURL(code: string, user: IProfile, res = null): Promise<void> {
+async function deleteShortURL(code: string, user: IDeserializedUser, res = null): Promise<void> {
   try {
     if (user.teams.includes(shortURLTeamID)) {
       // delete the short url document

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { Response } from 'express';
 import { IUser, IUserDoc } from '../../../mongodb/users.model';
-import { IProfile } from '../../../passport';
+import { IDeserializedUser } from '../../../passport';
 
 // define model
 const User = mongoose.model<IUserDoc>('User');
@@ -25,11 +25,11 @@ async function getUsers(res: Response = null): Promise<void> {
 /**
  * Get a user in the user collection.
  */
-async function getUser(id: string, authUser: IProfile, res: Response = null): Promise<void> {
+async function getUser(id: string, authUser: IDeserializedUser, res: Response = null): Promise<void> {
   try {
     const user =
       id === 'me'
-        ? await User.findOne({ github_id: parseInt(authUser.id) })
+        ? await User.findById(authUser._id)
         : mongoose.Types.ObjectId.isValid(id)
         ? await User.findById(id)
         : await User.findOne({ github_id: parseInt(id) });
@@ -47,7 +47,7 @@ async function patchUser(
   id: string,
   github_id: string,
   data: IUser,
-  user: IProfile,
+  user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
   // attempt to patch the article
@@ -79,11 +79,11 @@ async function patchUser(
 /**
  * Get a user photo in the user collection.
  */
-async function getUserPhoto(id: string, authUser: IProfile, res: Response = null): Promise<void> {
+async function getUserPhoto(id: string, authUser: IDeserializedUser, res: Response = null): Promise<void> {
   try {
     const user =
       id === 'me'
-        ? await User.findOne({ github_id: parseInt(authUser.id) })
+        ? await User.findById(authUser._id)
         : mongoose.Types.ObjectId.isValid(id)
         ? await User.findById(id)
         : await User.findOne({ github_id: parseInt(id) });
