@@ -25,6 +25,14 @@ function sendEmail(
   message: string,
   from = process.env.EMAIL_DEFAULT_FROM
 ): void {
+  const Data = `
+    ${message}
+    <p style="color: #aaaaaa">
+      Powered by Cristata
+      <br />
+      <span style="font-size: 12px; line-height: 12px;">© Jack Buehner</span>
+    </p>
+  `;
   const params = {
     Destination: {
       ToAddresses: typeof to === 'string' ? [to] : to,
@@ -33,7 +41,7 @@ function sendEmail(
       Body: {
         Html: {
           Charset: 'UTF-8',
-          Data: message,
+          Data,
         },
       },
       Subject: {
