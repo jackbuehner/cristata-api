@@ -1,6 +1,6 @@
 import { Context, gql, pubsub } from '../../apollo';
 import { Collection } from '../database';
-import mongoose from 'mongoose';
+import mongoose, { PassportLocalDocument } from 'mongoose';
 import { CollectionSchemaFields, GitHubTeamNodeID } from '../../mongodb/db';
 import {
   canDo,
@@ -19,6 +19,8 @@ import {
   withPubSub,
 } from './helpers';
 import { ForbiddenError } from 'apollo-server-errors';
+import generator from 'generate-password';
+import { sendEmail } from '../../utils/sendEmail';
 
 const PRUNED_USER_KEEP_FIELDS = [
   '_id',
@@ -53,6 +55,7 @@ const users: Collection = {
       teams(_id: ObjectID!, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Team>
       group: Float
       retired: Boolean
+      flags: [String]!
     }
 
     type UserTimestamps inherits CollectionTimestamps {
@@ -89,7 +92,7 @@ const users: Collection = {
     }
 
     type UserExistsResponse {
-      exists: String!
+      exists: Boolean!
       methods: [String]!
       doc: PrunedUser
     }
@@ -133,7 +136,7 @@ const users: Collection = {
       """
       Create a new user.
       """
-      userCreate(github_id: Int, name: String!): User
+      userCreate(name: String!, email: String!, current_title: String!, username: String!, slug: String!, phone: String): User
       """
       Modify an existing user.
       """
@@ -161,6 +164,10 @@ const users: Collection = {
       Deletes a user account.
       """
       userDelete(_id: ObjectID!): Void
+      """
+      Change the password for the current user.
+      """
+      userPasswordChange(oldPassword: String!, newPassword: String!): User
       """
       Toggle whether aan existing user is deactivated.
       This mutation deactivates by default.
@@ -212,23 +219,89 @@ const users: Collection = {
         }),
       userActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'User', context }),
       userExists: async (_, args, context: Context) => {
-        const user = await findDocAndPrune({
+        const findArgs = {
           model: 'User',
           _id: args.username,
-          by: 'slug',
           context,
           keep: PRUNED_USER_KEEP_FIELDS,
           fullAccess: true,
-        });
-        return { exists: !!user, doc: user || null };
+        };
+        // find user by username or slug
+        const user =
+          ((await findDocAndPrune({ ...findArgs, by: 'username' })) as IUserDoc | undefined) ||
+          ((await findDocAndPrune({ ...findArgs, by: 'slug' })) as IUserDoc | undefined);
+        return { exists: !!user, doc: user || null, methods: user?.methods };
       },
-      userMethods: async (_, args, context: Context) =>
-        (await findDoc({ model: 'User', _id: args.username, by: 'slug', context, fullAccess: true }))
-          ?.methods || [],
+      userMethods: async (_, args, context: Context) => {
+        const findArgs = { model: 'User', _id: args.username, context, fullAccess: true };
+        const user =
+          ((await findDoc({ ...findArgs, by: 'username' })) as unknown as IUserDoc | undefined) ||
+          ((await findDoc({ ...findArgs, by: 'slug' })) as unknown as IUserDoc | undefined);
+        return user?.methods || [];
+      },
     },
     Mutation: {
-      userCreate: async (_, args, context: Context) =>
-        withPubSub('USER', 'CREATED', createDoc({ model: 'User', args, context })),
+      userCreate: async (_, args, context: Context) => {
+        // step 1: create temporary password
+        const password = generator.generate({
+          length: 24,
+          numbers: true,
+          symbols: true,
+          excludeSimilarCharacters: true,
+          exclude: '<>', // these cannot be sent via html
+          strict: true,
+        });
+
+        // step 2: create the user document
+        let user = (await createDoc({ model: 'User', args, context })) as IUser & PassportLocalDocument;
+
+        // step 3: set the temporary password
+        await user.setPassword(password);
+        user.methods = ['local'];
+        user = await user.save();
+
+        // step 4: flag password as temporary (expires after 48 hours)
+        const expiresAt = new Date().getTime() + 1000 * 60 * 60 * 48; // Unix milliseconds 48 hours from now
+        user.flags = [`TEMPORARY_PASSWORD_${expiresAt}`];
+        user = await user.save();
+
+        // step 5: send email to new user
+        const email = `
+          <h1 style="font-size: 20px;">
+            The Paladin Network
+          </h1>
+          <p>
+            <a href="${context.profile.email}">${context.profile.name}</a> has added you to <i>The Paladin</i>'s instance of Cristata.
+            <br />
+            To finish activating your account, sign in with your temporary password at <a href="https://thepaladin.cristata.app/sign-in">https://thepaladin.cristata.app/sign-in</a>.
+          </p>
+          <p>
+            <span>
+              <b>Username: </b>
+              ${user.username}
+            </span>
+            <br />
+            <span>
+              <b>Temporary password: </b>
+              ${password}
+            </span>
+            </p>
+          <p>
+            You have 48 hours to sign in with this temporary password.
+            <br />
+            If you fail to sign in before the password expires, contact <a href="${context.profile.email}">${context.profile.name}</a> to receive another temporary password.
+          </p>
+        `;
+        sendEmail(
+          user.email,
+          `Activate your Cristata account`,
+          email,
+          `The Paladin Network <noreply@thepaladin.news>`
+        );
+
+        // return the user
+        return withPubSub('USER', 'CREATED', user.save());
+      },
       userModify: (_, { _id, input }, context: Context) =>
         withPubSub('USER', 'MODIFIED', modifyDoc({ model: 'User', data: { ...input, _id }, context })),
       userHide: async (_, args, context: Context) =>
@@ -239,6 +312,14 @@ const users: Collection = {
         withPubSub('USER', 'MODIFIED', watchDoc({ model: 'User', args, context })),
       userDelete: async (_, args, context: Context) =>
         withPubSub('USER', 'DELETED', deleteDoc({ model: 'User', args, context })),
+      userPasswordChange: async (_, { oldPassword, newPassword }, context: Context) => {
+        const Model = mongoose.model<IUser & PassportLocalDocument>('User');
+        const user = await Model.findById(context.profile._id);
+        const changedUser = (await user.changePassword(oldPassword, newPassword)) as IUser &
+          PassportLocalDocument;
+        changedUser.flags = changedUser.flags.filter((flag) => !flag.includes('TEMPORARY_PASSWORD'));
+        return changedUser.save();
+      },
       userDeactivate: async (_, args, context: Context) =>
         withPubSub(
           'USER',
@@ -281,7 +362,7 @@ const users: Collection = {
           model: 'Team',
           args: { filter: { $or: [{ organizers: _id }, { members: _id }] }, ...args },
           context,
-          });
+        });
         return docs;
       },
     },
@@ -311,6 +392,7 @@ const users: Collection = {
     group: { type: Number, default: '5.10' },
     methods: { type: [String], default: [] },
     retired: { type: Boolean, default: false },
+    flags: { type: [String], default: [] },
   }),
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
@@ -343,6 +425,7 @@ interface IUser extends CollectionSchemaFields {
   group?: number;
   methods?: string[];
   retired?: boolean;
+  flags: string[];
 }
 
 interface IUserTimestamps {

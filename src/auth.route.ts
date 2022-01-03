@@ -3,7 +3,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import { IUserDoc } from './mongodb/users.model';
-import { IDeserializedUser } from './passport';
+import { getPasswordStatus, IDeserializedUser } from './passport';
 import { isArray } from './utils/isArray';
 
 // load environmental variables
@@ -20,7 +20,7 @@ dotenv.config();
  */
 const handleError = (error: Error, req: Request, res: Response, descriptive = false, code = 500) => {
   console.error(error);
-  if (descriptive) res.status(code).json(error.message);
+  if (descriptive) res.status(code).json({ error: error.message });
   if (req.body.redirect === false) res.status(500).json({ error: 'error authenticating' });
   else res.redirect(req.baseUrl + '/error');
 };
@@ -72,9 +72,21 @@ router.get('/github/callback', (req: Request, res: Response, next: NextFunction)
 
 // authenticate using the local strategy
 router.post('/local', (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('local', (err, user) => {
+  passport.authenticate('local', (err: Error | null, user, authErr: Error) => {
     // handle error
-    if (err) handleError(err, req, res);
+    if (err) handleError(err, req, res, true);
+    // handle authentication error
+    else if (authErr) {
+      // map error names to status codes
+      const code = {
+        IncorrectPasswordError: 401,
+        IncorrectUsernameError: 401,
+        NoSaltValueStored: 500,
+        AttemptTooSoonError: 429,
+        TooManyAttemptsError: 429,
+      };
+      handleError(authErr, req, res, true, code[authErr.name]);
+    }
     // don't sign in if user is missing after authentication
     else if (!user) {
       if (req.body.redirect === false) res.json({ error: 'user is missing' });
@@ -91,6 +103,8 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
               console.error(error);
               res.json({ error: error });
             } else {
+              const { temporary, expired } = getPasswordStatus(doc.flags);
+              if (expired) res.status(401).json({ error: 'password is expired' });
               const du: IDeserializedUser = {
                 provider: user.provider,
                 _id: user._id,
@@ -99,7 +113,7 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
                 email: doc.email,
                 teams: doc.teams,
                 two_factor_authentication: false,
-                next_step: user.next_step,
+                next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
                 methods: doc.methods,
               };
               res.json({ data: du });

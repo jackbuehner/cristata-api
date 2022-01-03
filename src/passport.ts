@@ -44,17 +44,21 @@ function deserializeUser(
         console.error(error);
         done(error);
       } else if (doc) {
-        done(null, {
-          provider: user.provider,
-          _id: user._id,
-          name: doc.name,
-          username: doc.username,
-          email: doc.email,
-          teams: doc.teams,
-          two_factor_authentication: false,
-          next_step: user.next_step,
-          methods: doc.methods,
-        });
+        const { temporary, expired } = getPasswordStatus(doc.flags);
+        if (expired) done(new Error('password is expired'));
+        else {
+          done(null, {
+            provider: user.provider,
+            _id: user._id,
+            name: doc.name,
+            username: doc.username,
+            email: doc.email,
+            teams: doc.teams,
+            two_factor_authentication: false,
+            next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
+            methods: doc.methods,
+          });
+        }
       } else {
         done(new Error('doc is undefined'));
       }
@@ -62,6 +66,27 @@ function deserializeUser(
   }
 }
 passport.deserializeUser(deserializeUser);
+
+/**
+ * Get whether the user's password is a tempoary password and whether it is expired.
+ * @param flags - flag from db.user
+ * @returns
+ */
+function getPasswordStatus(flags: string[]): { temporary: boolean; expired: boolean } {
+  const tempPasswordFlag: string | undefined = flags.find((flag) => {
+    if (flag.includes('TEMPORARY_PASSWORD')) return true;
+    return false;
+  });
+  const isPasswordExpired = (() => {
+    if (tempPasswordFlag) {
+      const [, , ms] = tempPasswordFlag.split('_'); // get the time the password expires
+      // if the password expired before now, return true
+      if (new Date(ms) <= new Date()) return true;
+    }
+    return false;
+  })();
+  return { temporary: !!tempPasswordFlag, expired: isPasswordExpired };
+}
 
 interface IGitHubProfile {
   id: string;
@@ -303,4 +328,5 @@ passport.use(
 
 passport.use(mongoose.model('User').createStrategy());
 
+export { getPasswordStatus };
 export type { IDeserializedUser };
