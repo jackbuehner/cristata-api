@@ -40,6 +40,7 @@ const users: Collection = {
   typeDefs: gql`
     type User inherits Collection, WithPermissions {
       name: String!
+      username: String
       slug: String!
       phone: String
       email: String
