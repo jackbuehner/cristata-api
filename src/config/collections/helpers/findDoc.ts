@@ -7,7 +7,7 @@ import { CollectionDoc, requireAuthentication } from '.';
 interface FindDoc {
   model: string;
   by?: string;
-  _id: mongoose.Types.ObjectId;
+  _id: mongoose.Types.ObjectId | string | number | Date;
   filter?: FilterQuery<unknown>;
   context: Context;
   fullAccess?: boolean;

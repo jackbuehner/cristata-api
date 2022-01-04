@@ -5,7 +5,7 @@ import { Context } from '../../../apollo';
 interface FindDocsAndPrune {
   model: string;
   by?: string;
-  _id: mongoose.Types.ObjectId;
+  _id: mongoose.Types.ObjectId | string | number | Date;
   filter?: FilterQuery<unknown>;
   context: Context;
   keep: string[];
