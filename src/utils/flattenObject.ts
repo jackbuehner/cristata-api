@@ -1,3 +1,5 @@
+import { isValidObjectId } from 'mongoose';
+
 const PROHIBITED_KEYS = ['$__', '$op', '$init', '$__parent', '$isSingleNested'];
 
 /**
@@ -29,7 +31,7 @@ function flattenObject(
       null;
     }
     // if the key is an object, flatten the object with this function
-    else if (Object.prototype.toString.call(obj[key]) === '[object Object]') {
+    else if (Object.prototype.toString.call(obj[key]) === '[object Object]' && !isValidObjectId(obj[key])) {
       Object.assign(flattened, flattenObject(obj[key], [...roots, key], sep, tier + 1));
     }
     // otherwise, add to flattened object
