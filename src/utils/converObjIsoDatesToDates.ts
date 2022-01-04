@@ -1,3 +1,4 @@
+import { isValidObjectId } from 'mongoose';
 import { isIsoDateString } from './isIsoDateString';
 import { isObject } from './isObject';
 
@@ -16,7 +17,7 @@ function converObjIsoDatesToDates(obj: Record<string | number, unknown>): Record
     }
 
     // if the value is an object, send it through this function again
-    else if (isObject(value)) {
+    else if (isObject(value) && !isValidObjectId(value)) {
       copy[key] = converObjIsoDatesToDates(value);
     }
 
@@ -29,7 +30,7 @@ function converObjIsoDatesToDates(obj: Record<string | number, unknown>): Record
         }
 
         // if the value is an object, send it through the function
-        else if (isObject(valueItem)) {
+        else if (isObject(valueItem) && !isValidObjectId(valueItem)) {
           return converObjIsoDatesToDates(valueItem);
         }
 
