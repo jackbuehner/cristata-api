@@ -1,23 +1,26 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
-import { ApolloServerPluginDrainHttpServer, ContextFunction } from 'apollo-server-core';
-import { Server } from 'http';
-import ws from 'ws';
-import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
-import { Application } from 'express';
-import { GraphQLScalarType, execute, subscribe } from 'graphql';
-import { config } from './config';
-import mongoose, { isValidObjectId } from 'mongoose';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import {
+  ApolloServerPluginDrainHttpServer,
+  ApolloServerPluginLandingPageGraphQLPlayground,
+  ContextFunction,
+} from 'apollo-server-core';
+import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
+import { GraphQLRequestContext, GraphQLRequestListener } from 'apollo-server-plugin-base';
+import { Application } from 'express';
+import { execute, GraphQLScalarType, subscribe } from 'graphql';
 import { graphqls2s } from 'graphql-s2s';
-import { IDeserializedUser } from './passport';
-import { merge } from 'merge-anything';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { PubSub } from 'graphql-subscriptions';
+import { Server } from 'http';
+import { merge } from 'merge-anything';
+import mongoose from 'mongoose';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import ws from 'ws';
+import { config } from './config';
 import { corsConfig } from './middleware/cors';
+import { IDeserializedUser } from './passport';
 import { converObjIsoDatesToDates } from './utils/converObjIsoDatesToDates';
 import { convertStringsToObjIds } from './utils/convertStringsToObjIds';
-import { isObjectId } from './utils/isObjectId';
 export const gql = (s: TemplateStringsArray): string => `${s}`;
 
 const dateScalar = new GraphQLScalarType({
@@ -332,6 +335,18 @@ async function apollo(app: Application, server: Server): Promise<void> {
             return {
               async drainServer() {
                 apolloWSS.close();
+              },
+            };
+          },
+        },
+        {
+          // log errors
+          async requestDidStart(): Promise<GraphQLRequestListener | void> {
+            return {
+              async didEncounterErrors(requestContext: GraphQLRequestContext) {
+                console.error('Apollo::didEncounterErrors::request', requestContext.request);
+                console.error('Apollo::didEncounterErrors::context', requestContext.context);
+                console.error('Apollo::didEncounterErrors::errors', requestContext.errors);
               },
             };
           },
