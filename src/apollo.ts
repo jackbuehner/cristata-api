@@ -7,7 +7,7 @@ import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-co
 import { Application } from 'express';
 import { GraphQLScalarType, execute, subscribe } from 'graphql';
 import { config } from './config';
-import mongoose from 'mongoose';
+import mongoose, { isValidObjectId } from 'mongoose';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphqls2s } from 'graphql-s2s';
 import { IDeserializedUser } from './passport';
@@ -17,6 +17,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { corsConfig } from './middleware/cors';
 import { converObjIsoDatesToDates } from './utils/converObjIsoDatesToDates';
 import { convertStringsToObjIds } from './utils/convertStringsToObjIds';
+import { isObjectId } from './utils/isObjectId';
 export const gql = (s: TemplateStringsArray): string => `${s}`;
 
 const dateScalar = new GraphQLScalarType({

@@ -108,6 +108,10 @@ const users: Collection = {
       """
       userPublic(_id: ObjectID!): PrunedUser
       """
+      Get a user by slug with confidential information pruned.
+      """
+      userPublicBySlug(slug: String!): PrunedUser
+      """
       Get a set of users. If _ids is omitted, the API will return all users.
       """
       users(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<User>
@@ -204,6 +208,15 @@ const users: Collection = {
         findDocAndPrune({
           model: 'User',
           _id: args._id,
+          context,
+          keep: PRUNED_USER_KEEP_FIELDS,
+          fullAccess: true,
+        }),
+      userPublicBySlug: (_, args, context: Context) =>
+        findDocAndPrune({
+          model: 'User',
+          _id: args.slug,
+          by: 'slug',
           context,
           keep: PRUNED_USER_KEEP_FIELDS,
           fullAccess: true,
