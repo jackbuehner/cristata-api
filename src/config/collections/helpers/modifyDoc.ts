@@ -16,25 +16,29 @@ interface ModifyDoc {
   data: CollectionDoc;
   context: Context;
   publishable?: boolean;
+  fullAccess?: boolean;
 }
 
-async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
+async function modifyDoc({ model, data, context, publishable, fullAccess }: ModifyDoc) {
   requireAuthentication(context);
   const Model = mongoose.model<typeof data>(model);
 
   // set defaults
   if (publishable === undefined) publishable = false;
+  if (fullAccess === undefined) fullAccess = false;
 
   // remove _id from the data object and convert it to an object id
   const { _id: string_id } = data;
   const _id = new mongoose.Types.ObjectId(string_id as string);
 
   // if the user does not have permission to modify, throw an error
-  if (!canDo({ action: 'modify', model, context }))
+  if (!fullAccess && !canDo({ action: 'modify', model, context }))
     throw new ForbiddenError('you cannot modify documents in this collection');
 
   // if the current document does not exist OR the user does not have access, throw an error
-  const currentDoc = (await findDoc({ model, _id, context }))?.toObject() as unknown as CollectionSchemaFields &
+  const currentDoc = (
+    await findDoc({ model, _id, context, fullAccess })
+  )?.toObject() as unknown as CollectionSchemaFields &
     PublishableCollectionSchemaFields &
     WithPermissionsCollectionSchemaFields &
     Record<string, unknown>;
@@ -48,7 +52,7 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
   if (publishable) {
     const isPublished = !!currentDoc.timestamps.published_at;
 
-    if (isPublished && !canDo({ action: 'publish', model, context }))
+    if (isPublished && !fullAccess && !canDo({ action: 'publish', model, context }))
       throw new ForbiddenError('you cannot modify published documents in this collection');
     else if (isPublished) {
       // set updated published document metadata
