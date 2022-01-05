@@ -147,7 +147,14 @@ const collectionTypeDefs = gql`
     hide: Boolean!
     lock: Boolean!
     watch: Boolean!
-    publish: Boolean # not all collections allow publishing
+    """
+    Only for collectins that allow publishing
+    """
+    publish: Boolean
+    """
+    Only for the users collection
+    """
+    deactivate: Boolean
     delete: Boolean!
   }
 

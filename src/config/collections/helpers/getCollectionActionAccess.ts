@@ -14,6 +14,7 @@ interface GetCollectionActionAccessReturn {
   lock: boolean;
   watch: boolean;
   publish: boolean;
+  deactivate: boolean | null;
   delete: boolean;
 }
 
@@ -29,6 +30,7 @@ function getCollectionActionAccess({
     lock: canDo({ model, action: 'lock', context }),
     watch: canDo({ model, action: 'watch', context }),
     publish: canDo({ model, action: 'publish', context }),
+    deactivate: model === 'User' ? canDo({ model, action: 'publish', context }) : null,
     delete: canDo({ model, action: 'delete', context }),
   };
 }
