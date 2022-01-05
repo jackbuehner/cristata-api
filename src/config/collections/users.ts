@@ -203,6 +203,8 @@ const users: Collection = {
           model: 'User',
           _id: args._id || new mongoose.Types.ObjectId(context.profile._id),
           context,
+          // if the auth user is in the database and has no next_step instuctions, give them access to find any users
+          accessRule: context.profile._id && !context.profile.next_step ? {} : undefined,
         }),
       userPublic: (_, args, context: Context) =>
         findDocAndPrune({
@@ -221,7 +223,14 @@ const users: Collection = {
           keep: PRUNED_USER_KEEP_FIELDS,
           fullAccess: true,
         }),
-      users: (_, args, context: Context) => findDocs({ model: 'User', args, context }),
+      users: (_, args, context: Context) =>
+        findDocs({
+          model: 'User',
+          args,
+          context,
+          // if the auth user is in the database and has no next_step instuctions, give them access to find all users
+          accessRule: context.profile._id && !context.profile.next_step ? {} : undefined,
+        }),
       usersPublic: async (_, args, context: Context) =>
         findDocsAndPrune({
           model: 'User',
