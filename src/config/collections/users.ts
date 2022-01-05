@@ -324,8 +324,19 @@ const users: Collection = {
         // return the user
         return withPubSub('USER', 'CREATED', user.save());
       },
-      userModify: (_, { _id, input }, context: Context) =>
-        withPubSub('USER', 'MODIFIED', modifyDoc({ model: 'User', data: { ...input, _id }, context })),
+      userModify: (_, { _id, input }, context: Context) => {
+        const isSelf = _id.toHexString() === context.profile._id;
+        return withPubSub(
+          'USER',
+          'MODIFIED',
+          modifyDoc({
+            model: 'User',
+            data: { ...input, _id },
+            context,
+            fullAccess: isSelf,
+          })
+        );
+      },
       userHide: async (_, args, context: Context) =>
         withPubSub('USER', 'MODIFIED', hideDoc({ model: 'User', args, context })),
       userLock: async (_, args, context: Context) =>
@@ -419,7 +430,7 @@ const users: Collection = {
   permissions: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
     create: { teams: [Teams.ANY], users: [] },
-    modify: { teams: [Teams.ANY], users: [] },
+    modify: { teams: [Teams.ADMIN, Teams.MANAGING_EDITOR], users: [] },
     hide: { teams: [Teams.ANY], users: [] },
     lock: { teams: [Teams.ADMIN], users: [] },
     watch: { teams: [Teams.ANY], users: [] },
