@@ -104,6 +104,7 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
               res.json({ error: error });
             } else {
               const { temporary, expired } = getPasswordStatus(doc.flags);
+              if (doc.retired) res.status(401).json({ error: 'account is deactivated' });
               if (expired) res.status(401).json({ error: 'password is expired' });
               const du: IDeserializedUser = {
                 provider: user.provider,

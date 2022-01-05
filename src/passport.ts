@@ -45,6 +45,7 @@ function deserializeUser(
         done(error);
       } else if (doc) {
         const { temporary, expired } = getPasswordStatus(doc.flags);
+        if (doc.retired) done(new Error('account is deactivated'));
         if (expired) done(new Error('password is expired'));
         else {
           done(null, {
