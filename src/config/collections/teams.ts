@@ -107,17 +107,35 @@ const teams: Collection = {
   `,
   resolvers: {
     Query: {
-      team: (_, args, context: Context) => findDoc({ model: 'Team', _id: args._id, context }),
-      teams: (_, args, context: Context) => findDocs({ model: 'Team', args, context }),
+      team: (_, args, context: Context) =>
+        findDoc({
+          model: 'Team',
+          _id: args._id,
+          context,
+          // if the user is in the database and has not next_step instuctions, give them access to find any team
+          accessRule: context.profile._id && !context.profile.next_step ? {} : undefined,
+        }),
+      teams: (_, args, context: Context) =>
+        findDocs({
+          model: 'Team',
+          args,
+          context,
+          // if the user is in the database and has not next_step instuctions, give them access to find all teams
+          accessRule: context.profile._id && !context.profile.next_step ? {} : undefined,
+        }),
       teamActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Team', context }),
-      teamUnassignedUsers: async () => {
-        const allMembers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('members');
-        const allOrganizers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('organizers');
-        const allAssigned = Array.from(new Set([...allMembers, ...allOrganizers]));
-        // find users who are not hidden, not retired, and are not assigned to a team
-        return await mongoose
-          .model('User')
-          .find({ _id: { $nin: allAssigned }, hidden: false, retired: { $ne: true } });
+      teamUnassignedUsers: async (_, __, context: Context) => {
+        // allow any database user without next_step instructions to list unassigned users
+        if (context.profile._id && !context.profile.next_step) {
+          const allMembers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('members');
+          const allOrganizers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('organizers');
+          const allAssigned = Array.from(new Set([...allMembers, ...allOrganizers]));
+          // find users who are not hidden, not retired, and are not assigned to a team
+          return await mongoose
+            .model('User')
+            .find({ _id: { $nin: allAssigned }, hidden: false, retired: { $ne: true } });
+        }
+        return [];
       },
     },
     Mutation: {
