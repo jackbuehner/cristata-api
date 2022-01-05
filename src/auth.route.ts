@@ -1,9 +1,7 @@
 import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
-import mongoose from 'mongoose';
 import passport from 'passport';
-import { IUserDoc } from './mongodb/users.model';
-import { getPasswordStatus, IDeserializedUser } from './passport';
+import { deserializeUser } from './passport';
 import { isArray } from './utils/isArray';
 
 // load environmental variables
@@ -96,30 +94,14 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
       req.logIn(user, (err) => {
         if (err) handleError(err, req, res);
         else if (req.body.redirect === false) {
-          // return the deserialized user
-          mongoose.model('User').findById(user._id, null, {}, (error, resdoc) => {
-            const doc = resdoc as IUserDoc;
-            if (error) {
-              console.error(error);
-              res.json({ error: error });
-            } else {
-              const { temporary, expired } = getPasswordStatus(doc.flags);
-              if (doc.retired) res.status(401).json({ error: 'account is deactivated' });
-              if (expired) res.status(401).json({ error: 'password is expired' });
-              const du: IDeserializedUser = {
-                provider: user.provider,
-                _id: user._id,
-                name: doc.name,
-                username: doc.username,
-                email: doc.email,
-                teams: doc.teams,
-                two_factor_authentication: false,
-                next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
-                methods: doc.methods,
-              };
-              res.json({ data: du });
+          deserializeUser({ _id: user._id, provider: user.provider, next_step: user.next_step }).then(
+            (result) => {
+              // error message
+              if (typeof result === 'string') res.status(401).json({ error: result });
+              // user object
+              else res.json({ data: result });
             }
-          });
+          );
         } else res.redirect(process.env.PASSPORT_REDIRECT);
       });
     }

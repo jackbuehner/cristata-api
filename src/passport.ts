@@ -375,5 +375,5 @@ passport.use(
 
 passport.use(mongoose.model('User').createStrategy());
 
-export { getPasswordStatus };
+export { getPasswordStatus, deserializeUser };
 export type { IDeserializedUser };
