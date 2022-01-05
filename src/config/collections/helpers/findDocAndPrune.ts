@@ -10,6 +10,7 @@ interface FindDocsAndPrune {
   context: Context;
   keep: string[];
   fullAccess?: boolean;
+  accessRule?: FilterQuery<unknown>;
 }
 
 async function findDocAndPrune({
@@ -20,8 +21,9 @@ async function findDocAndPrune({
   context,
   keep,
   fullAccess,
+  accessRule,
 }: FindDocsAndPrune): Promise<mongoose.Document | null> {
-  const doc = await findDoc({ model, by, _id, filter, context, fullAccess });
+  const doc = await findDoc({ model, by, _id, filter, context, fullAccess, accessRule });
 
   if (doc) {
     const prunedDoc = pruneDocs({

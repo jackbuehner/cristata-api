@@ -11,9 +11,10 @@ interface FindDoc {
   filter?: FilterQuery<unknown>;
   context: Context;
   fullAccess?: boolean;
+  accessRule?: FilterQuery<unknown>;
 }
 
-async function findDoc({ model, by, _id, filter, context, fullAccess }: FindDoc) {
+async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule }: FindDoc) {
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
@@ -21,6 +22,8 @@ async function findDoc({ model, by, _id, filter, context, fullAccess }: FindDoc)
   const accessFilter =
     fullAccess || context.profile.teams.includes(Teams.ADMIN)
       ? {}
+      : accessRule
+      ? accessRule
       : {
           $or: [
             { 'permissions.teams': { $in: context.profile.teams } },

@@ -15,6 +15,7 @@ interface FindDocsAndPrune {
   context: Context;
   keep: string[];
   fullAccess?: boolean;
+  accessRule?: FilterQuery<unknown>;
 }
 
 async function findDocsAndPrune<ReturnDocType>({
@@ -23,8 +24,9 @@ async function findDocsAndPrune<ReturnDocType>({
   context,
   keep,
   fullAccess,
+  accessRule,
 }: FindDocsAndPrune): Promise<PaginatedDocs<ReturnDocType>> {
-  const paged: PaginatedDocs = await findDocs({ model, args, context, fullAccess });
+  const paged: PaginatedDocs = await findDocs({ model, args, context, fullAccess, accessRule });
 
   const pruncedDocs = pruneDocs({
     input: paged.docs,
