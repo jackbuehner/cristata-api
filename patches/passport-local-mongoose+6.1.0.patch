@@ -1,5 +1,5 @@
 diff --git a/node_modules/passport-local-mongoose/lib/authenticate.js b/node_modules/passport-local-mongoose/lib/authenticate.js
-index 7acea78..500de72 100644
+index 7acea78..b2d41a0 100644
 --- a/node_modules/passport-local-mongoose/lib/authenticate.js
 +++ b/node_modules/passport-local-mongoose/lib/authenticate.js
 @@ -48,15 +48,15 @@ function authenticate(user, password, options, cb) {
@@ -16,7 +16,7 @@ index 7acea78..500de72 100644
 -        return cb(null, user);
        }
 +      // add local method to the user's methods
-+      user.set('methods', Array.from(new Set([...user.methods, 'local'])));
++      user.set('methods', Array.from(new Set([...(user.methods || []), 'local'])));
 +      user.save(function(saveErr, user) {
 +        if (saveErr) {
 +          return cb(saveErr);
