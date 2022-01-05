@@ -82,7 +82,7 @@ function getPasswordStatus(flags: string[]): { temporary: boolean; expired: bool
     if (tempPasswordFlag) {
       const [, , ms] = tempPasswordFlag.split('_'); // get the time the password expires
       // if the password expired before now, return true
-      if (new Date(ms) <= new Date()) return true;
+      if (new Date(parseInt(ms)) <= new Date()) return true;
     }
     return false;
   })();
