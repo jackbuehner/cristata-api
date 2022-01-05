@@ -29,6 +29,10 @@ async function modifyDoc({ model, data, context, publishable }: ModifyDoc) {
   const { _id: string_id } = data;
   const _id = new mongoose.Types.ObjectId(string_id as string);
 
+  // if the user does not have permission to modify, throw an error
+  if (!canDo({ action: 'modify', model, context }))
+    throw new ForbiddenError('you cannot modify documents in this collection');
+
   // if the current document does not exist OR the user does not have access, throw an error
   const currentDoc = (await findDoc({ model, _id, context }))?.toObject() as unknown as CollectionSchemaFields &
     PublishableCollectionSchemaFields &
