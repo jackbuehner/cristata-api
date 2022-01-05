@@ -6,6 +6,7 @@ const GitHubStrategy = passportGitHub.Strategy;
 import mongoose from 'mongoose';
 import { IUserDoc } from './mongodb/users.model';
 import { isArray } from './utils/isArray';
+import { ITeamDoc } from './config/collections/teams';
 
 // load environmental variables
 dotenv.config();
@@ -31,39 +32,84 @@ interface IDeserializedUser {
   methods: string[];
 }
 
-function deserializeUser(
+async function deserializeUser(
   user: { _id: mongoose.Types.ObjectId; provider: string; next_step?: string },
-  done: (err: Error | null, user?: false | Express.User) => void
-): void {
-  if (!user._id) done(new Error('serialized user missing _id'));
-  else if (!user.provider) done(new Error('serialized user missing provider'));
-  else {
-    mongoose.model('User').findById(user._id, null, {}, (error, res) => {
-      const doc = res as IUserDoc;
-      if (error) {
-        console.error(error);
-        done(error);
-      } else if (doc) {
-        const { temporary, expired } = getPasswordStatus(doc.flags);
-        if (doc.retired) done(new Error('account is deactivated'));
-        if (expired) done(new Error('password is expired'));
-        else {
-          done(null, {
-            provider: user.provider,
-            _id: user._id,
-            name: doc.name,
-            username: doc.username,
-            email: doc.email,
-            teams: doc.teams,
-            two_factor_authentication: false,
-            next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
-            methods: doc.methods,
-          });
-        }
-      } else {
-        done(new Error('doc is undefined'));
-      }
-    });
+  done?: (err: Error | null, user?: false | null | Express.User) => void
+): Promise<string | IDeserializedUser> {
+  try {
+    // handle missing _id
+    if (!user._id) {
+      const message = 'serialized user missing _id';
+      console.error(message);
+      done?.(new Error(message));
+      return message;
+    }
+
+    // hanlde missing provider
+    if (!user.provider) {
+      const message = 'serialized user missing provider';
+      console.error(message);
+      done?.(new Error(message));
+      return message;
+    }
+
+    // get the user document
+    const doc = (await mongoose.model('User').findById(user._id)) as IUserDoc;
+
+    // handle if doc is undefined
+    if (!doc) {
+      const message = 'doc is undefined';
+      console.error(message);
+      done?.(new Error(message));
+      return message;
+    }
+
+    // confirm that temporary account password is not expired
+    const { temporary, expired } = getPasswordStatus(doc.flags);
+    if (expired) {
+      const message = 'password is expired';
+      console.error(message);
+      done?.(new Error(message));
+      return message;
+    }
+
+    // ensure that account is not deactivated
+    if (doc.retired) {
+      const message = 'account is deactivated';
+      console.error(message);
+      done?.(new Error(message));
+      return message;
+    }
+
+    // find the user's teams
+    let teams = (await mongoose
+      .model('Team')
+      .find({ $or: [{ organizers: user._id }, { members: user._id }] })) as ITeamDoc[];
+
+    // if teams is undefined or null, log error and set to empty array
+    if (!teams) {
+      console.error('teams was undefined or null');
+      teams = [];
+    }
+
+    // return the user
+    const du = {
+      provider: user.provider,
+      _id: user._id,
+      name: doc.name,
+      username: doc.username,
+      email: doc.email,
+      teams: teams.map((team) => team._id),
+      two_factor_authentication: false,
+      next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
+      methods: doc.methods,
+    };
+    done?.(null, du);
+    return du;
+  } catch (error) {
+    console.error(error);
+    done?.(error);
+    return error.message;
   }
 }
 passport.deserializeUser(deserializeUser);
