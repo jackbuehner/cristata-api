@@ -22,6 +22,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
 import { sendEmail } from '../../utils/sendEmail';
 import { getPasswordStatus } from '../../utils/getPasswordStatus';
+import { slugify } from '../../utils/slugify';
 
 const PRUNED_USER_KEEP_FIELDS = [
   '_id',
@@ -182,6 +183,15 @@ const users: Collection = {
       Resend an invitation for a user with a temporary password.
       """
       userResendInvite(_id: ObjectID!): User
+      """
+      Migrate a user without a local account.
+      
+      Sends a email with the new user's new username and temporary password.
+
+      The user must sign in with the local account at least once within 48
+      hours to prevent their account from becoming inaccessable.
+      """
+      userMigrateToPassword(_id: ObjectID!): User
     }
 
     extend type Subscription {
@@ -448,6 +458,86 @@ const users: Collection = {
         sendEmail(
           user.email,
           `Activate your Cristata account`,
+          email,
+          `The Paladin Network <noreply@thepaladin.news>`
+        );
+
+        // return the user
+        return await user.save();
+      },
+      userMigrateToPassword: async (_, args, context: Context) => {
+        let user = (await findDoc({ model: 'User', _id: args._id, context })) as unknown as IUser &
+          PassportLocalDocument;
+        const { temporary } = getPasswordStatus(user.flags);
+        const isLocal = user.methods.includes('local');
+        if (temporary || isLocal)
+          throw new ForbiddenError('you cannot migrate a user who already has a local account');
+
+        if (!user.email) throw new ForbiddenError('you cannot migrate a user without an email address');
+
+        // step 0: create a username
+        if (!user.username) {
+          user.username = slugify(user.name || '', '.');
+          user = await user.save();
+        }
+
+        // step 1: create temporary password
+        const password = generator.generate({
+          length: 24,
+          numbers: true,
+          symbols: true,
+          excludeSimilarCharacters: true,
+          exclude: '<>', // these cannot be sent via html
+          strict: true,
+        });
+
+        // step 2: set the temporary password
+        await user.setPassword(password);
+        user.methods = [...(user.methods || []), 'local'];
+        user = await user.save();
+
+        // step 3: flag password as temporary (expires after 48 hours)
+        const expiresAt = new Date().getTime() + 1000 * 60 * 60 * 48; // Unix milliseconds 48 hours from now
+        user.flags = [`TEMPORARY_PASSWORD_${expiresAt}`];
+        user = await user.save();
+
+        // step 4: send email to reinvited user
+        const email = `
+            <h1 style="font-size: 20px;">
+              The Paladin Network
+            </h1>
+            <p>
+              <span style="font-size: 18px;">To finish migrating your account, <a href="${
+                process.env.PASSPORT_REDIRECT
+              }?ue=${encodeURIComponent(Buffer.from(user.username).toString('base64'))}&pe=${encodeURIComponent(
+          Buffer.from(password).toString('base64')
+        )}">click here</a>.</span>
+              
+            </p>
+            <p>
+              Alternatively, you may sign in with the following temporary credentials at <a href="${
+                process.env.PASSPORT_REDIRECT
+              }">${process.env.PASSPORT_REDIRECT}</a>:
+              <br />
+              <span>
+                <b>Username: </b>
+                ${user.username}
+              </span>
+              <br />
+              <span>
+                <b>Temporary password: </b>
+                ${password}
+              </span>
+              </p>
+            <p>
+              You have 48 hours to sign in with this temporary password.
+              <br />
+              If you fail to sign in before the password expires, you will lose access to your account.
+            </p>
+          `;
+        sendEmail(
+          user.email,
+          `Complete your Cristata account migration`,
           email,
           `The Paladin Network <noreply@thepaladin.news>`
         );
