@@ -3,7 +3,7 @@
  *
  * _Adapted from codeguy's gist at https://gist.github.com/codeguy/6684588_
  */
-function slugify(str: string): string {
+function slugify(str: string, replacement = '-'): string {
   str = str.replace(/^\s+|\s+$/g, ''); // trim
   str = str.toLowerCase();
 
@@ -16,8 +16,8 @@ function slugify(str: string): string {
 
   str = str
     .replace(/[^a-z0-9 -]/g, '') // remove invalid chars
-    .replace(/\s+/g, '-') // collapse whitespace and replace by -
-    .replace(/-+/g, '-'); // collapse dashes
+    .replace(/\s+/g, replacement) // collapse whitespace and replace by -
+    .replace(new RegExp(`[${replacement}]+`, 'g'), replacement); // collapse replacement
 
   return str;
 }
