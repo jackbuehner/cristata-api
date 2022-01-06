@@ -4,10 +4,11 @@ import { Response } from 'express';
 import { IDeserializedUser } from '../../../passport';
 import { replaceObjectIdWithUserObj } from '../helpers';
 import { IFlush, IFlushDoc } from '../../../mongodb/flush.model';
+import { Teams } from '../../../config/database';
 
 // load environmental variables
 dotenv.config();
-const adminTeamID = process.env.GITHUB_ORG_ADMIN_TEAM_ID;
+const adminTeamID = Teams.ADMIN;
 
 // define model
 const Document = mongoose.model<IFlushDoc>('Flush');

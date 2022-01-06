@@ -99,7 +99,7 @@ async function deserializeUser(
       name: doc.name,
       username: doc.username,
       email: doc.email,
-      teams: teams.map((team) => team._id),
+      teams: teams.map((team) => team._id.toHexString()),
       two_factor_authentication: false,
       next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
       methods: doc.methods,

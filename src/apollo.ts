@@ -17,6 +17,7 @@ import mongoose from 'mongoose';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import ws from 'ws';
 import { config } from './config';
+import { Teams } from './config/database';
 import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
 import { converObjIsoDatesToDates } from './utils/converObjIsoDatesToDates';
@@ -213,7 +214,7 @@ const coreResolvers = {
         },
         { $sort: { at: -1 } },
         {
-          $match: context.profile.teams.includes(process.env.GITHUB_ORG_ADMIN_TEAM_ID)
+          $match: context.profile.teams.includes(Teams.ADMIN)
             ? {}
             : {
                 $or: [

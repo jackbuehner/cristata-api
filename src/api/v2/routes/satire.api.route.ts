@@ -12,6 +12,7 @@ import {
   patchSatire,
   getStageCounts,
 } from '../models/satire.api.model';
+import { Teams } from '../../../config/database';
 const satireRouter = Router();
 
 /**
@@ -22,11 +23,6 @@ const satireRouter = Router();
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function instanceOfProfile(object): object is IDeserializedUser {
   return 'member' in object;
-}
-
-enum Teams {
-  ADMIN = 'MDQ6VGVhbTQ2NDI0MTc=',
-  ANY = 'any',
 }
 
 enum Users {
@@ -73,7 +69,7 @@ async function handleAuth(
 
       // check if the user can publish (automatically false if user undefined)
       const canPublish = user
-        ? permissions['publish'].teams.some((team: string) => user.teams.includes(team)) ||
+        ? permissions['publish'].teams.some((team) => user.teams.includes(team)) ||
           permissions['publish'].users.includes(user._id)
         : false;
 
@@ -86,7 +82,7 @@ async function handleAuth(
         // if `ANY` is specified in the permissions config for `permissionsType`
         isAuthorized = true;
       } else if (
-        permissions[permissionsType].teams.some((team: string) => user.teams.includes(team)) ||
+        permissions[permissionsType].teams.some((team) => user.teams.includes(team)) ||
         permissions[permissionsType].users.includes(user._id)
       ) {
         // at least one of the user's teams  is inside the authorized teams array from the config

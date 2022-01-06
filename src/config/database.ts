@@ -1,6 +1,5 @@
 import { IResolvers } from '@graphql-tools/utils';
 import dotenv from 'dotenv';
-import { GitHubTeamNodeID } from '../mongodb/db';
 import mongoose from 'mongoose';
 import {
   users,
@@ -29,13 +28,12 @@ const database = {
 };
 
 const Teams = {
-  ADMIN: 'MDQ6VGVhbTQ2NDI0MTc=',
-  BOARD: 'MDQ6VGVhbTQ3MzA5ODU=',
-  MANAGING_EDITOR: 'MDQ6VGVhbTQ5MDMxMTY=',
-  COPY_EDITOR: 'MDQ6VGVhbTQ4MzM5MzU=',
-  STAFF_WRITER: 'MDQ6VGVhbTQ5MDMxMTg=',
-  CONTRIBUTOR: 'MDQ6VGVhbTQ5MDMxMjA=',
-  SHORTURL: 'T_kwDOBCVTT84ATx29',
+  ADMIN: '000000000000000000000001',
+  BOARD: '000000000000000000000002',
+  MANAGING_EDITOR: '000000000000000000000003',
+  COPY_EDITOR: '000000000000000000000004',
+  SHORTURL: '000000000000000000000008',
+  FLUSH: '000000000000000000000009',
   ANY: 'any',
 };
 
@@ -54,7 +52,7 @@ interface Collection {
 }
 
 type CollectionPermissionsType = {
-  teams: GitHubTeamNodeID[];
+  teams: string[];
   users: mongoose.Types.ObjectId[];
 };
 

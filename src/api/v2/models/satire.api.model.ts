@@ -5,20 +5,11 @@ import { EnumSatireStage, ISatire, ISatireDoc } from '../../../mongodb/satire.mo
 import { IDeserializedUser } from '../../../passport';
 import { slugify } from '../../../utils/slugify';
 import { replaceObjectIdWithUserObj } from '../helpers';
+import { Teams } from '../../../config/database';
 
 // load environmental variables
 dotenv.config();
-const adminTeamID = process.env.GITHUB_ORG_ADMIN_TEAM_ID;
-
-// permissions groups
-enum Groups {
-  ADMIN = 'MDQ6VGVhbTQ2NDI0MTc=',
-  BOARD = 'MDQ6VGVhbTQ3MzA5ODU=',
-  MANAGING_EDITOR = 'MDQ6VGVhbTQ5MDMxMTY=',
-  COPY_EDITOR = 'MDQ6VGVhbTQ4MzM5MzU=',
-  STAFF_WRITER = 'MDQ6VGVhbTQ5MDMxMTg=',
-  CONTRIBUTOR = 'MDQ6VGVhbTQ5MDMxMjA=',
-}
+const adminTeamID = Teams.ADMIN;
 
 // define model
 const Satire = mongoose.model<ISatireDoc>('Satire');
@@ -34,7 +25,7 @@ async function newSatire(data: ISatire, user: IDeserializedUser, res: Response =
     // set people data based on who created the document
     permissions: {
       users: [user._id],
-      teams: [Groups.COPY_EDITOR, Groups.MANAGING_EDITOR],
+      teams: [Teams.COPY_EDITOR, Teams.MANAGING_EDITOR],
     },
     people: {
       created_by: user._id,

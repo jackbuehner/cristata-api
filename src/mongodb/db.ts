@@ -183,6 +183,53 @@ config.database.collections.forEach((collection) => {
   }
 })();
 
+// force the following teams to exist
+const requiredTeams = [
+  {
+    name: 'Administrators',
+    slug: 'admin',
+    _id: new mongoose.Types.ObjectId('000000000000000000000001'),
+  },
+  {
+    name: 'Board',
+    slug: 'board',
+    _id: new mongoose.Types.ObjectId('000000000000000000000002'),
+  },
+  {
+    name: 'Managing Editors',
+    slug: 'managing-editors',
+    _id: new mongoose.Types.ObjectId('000000000000000000000003'),
+  },
+  {
+    name: 'Editing Team',
+    slug: 'editing-team',
+    _id: new mongoose.Types.ObjectId('000000000000000000000004'),
+  },
+  {
+    name: 'Short URL Creators',
+    slug: 'shorturl',
+    _id: new mongoose.Types.ObjectId('000000000000000000000008'),
+  },
+  {
+    name: 'The Royal Flush',
+    slug: 'flusher',
+    _id: new mongoose.Types.ObjectId('000000000000000000000009'),
+  },
+];
+
+const Team = mongoose.model('Team');
+requiredTeams.forEach(async (team) => {
+  const exists = !!(await Team.findOne({ _id: team._id }));
+  if (!exists) {
+    const newTeam = new Team({
+      _id: team._id,
+      name: team.name,
+      slug: team.slug,
+    });
+    await newTeam.save();
+  }
+});
+
 export type {
   CollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,

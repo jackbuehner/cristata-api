@@ -4,12 +4,13 @@ import { Response } from 'express';
 import { IShortURL, IShortURLDoc } from '../../../mongodb/shorturl.model';
 import { IDeserializedUser } from '../../../passport';
 import { customAlphabet } from 'nanoid/async';
+import { Teams } from '../../../config/database';
 
 const generateCode = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 7);
 
 // load environmental variables
 dotenv.config();
-const shortURLTeamID = process.env.GITHUB_ORG_SHORTURL_TEAM_ID;
+const shortURLTeamID = Teams.SHORTURL;
 
 // define model
 const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');

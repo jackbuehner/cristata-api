@@ -3,10 +3,11 @@ import mongoose from 'mongoose';
 import { Response } from 'express';
 import { ISettings, ISettingsDoc } from '../../../mongodb/settings.model';
 import { IDeserializedUser } from '../../../passport';
+import { Teams } from '../../../config/database';
 
 // load environmental variables
 dotenv.config();
-const adminTeamID = process.env.GITHUB_ORG_ADMIN_TEAM_ID;
+const adminTeamID = Teams.ADMIN;
 
 // define model
 const Settings = mongoose.model<ISettingsDoc>('Settings');

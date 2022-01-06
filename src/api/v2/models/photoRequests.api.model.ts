@@ -4,20 +4,11 @@ import { Response } from 'express';
 import { EnumPhotoRequestStage, IPhotoRequest, IPhotoRequestDoc } from '../../../mongodb/photoRequests.model';
 import { IDeserializedUser } from '../../../passport';
 import { replaceObjectIdWithUserObj } from '../helpers';
+import { Teams } from '../../../config/database';
 
 // load environmental variables
 dotenv.config();
-const adminTeamID = process.env.GITHUB_ORG_ADMIN_TEAM_ID;
-
-// permissions groups
-enum Groups {
-  ADMIN = 'MDQ6VGVhbTQ2NDI0MTc=',
-  BOARD = 'MDQ6VGVhbTQ3MzA5ODU=',
-  MANAGING_EDITOR = 'MDQ6VGVhbTQ5MDMxMTY=',
-  COPY_EDITOR = 'MDQ6VGVhbTQ4MzM5MzU=',
-  STAFF_WRITER = 'MDQ6VGVhbTQ5MDMxMTg=',
-  CONTRIBUTOR = 'MDQ6VGVhbTQ5MDMxMjA=',
-}
+const adminTeamID = Teams.ADMIN;
 
 // define model
 const PhotoRequest = mongoose.model<IPhotoRequestDoc>('PhotoRequest');
@@ -37,7 +28,7 @@ async function newPhotoRequest(
     // set people data based on who created the document
     permissions: {
       users: [user._id],
-      teams: [Groups.MANAGING_EDITOR],
+      teams: [Teams.MANAGING_EDITOR],
     },
     people: {
       created_by: user._id,

@@ -8,13 +8,8 @@ import {
   newShortURL,
   deleteShortURL,
 } from '../models/shorturl.api.model';
+import { Teams } from '../../../config/database';
 const shorturlRouter = Router();
-
-enum Teams {
-  ADMIN = 'MDQ6VGVhbTQ2NDI0MTc=',
-  SHORTURL = 'T_kwDOBCVTT84ATx29',
-  ANY = 'any',
-}
 
 enum Users {
   ANY = 0,
@@ -59,7 +54,7 @@ async function handleAuth(
         // if `ANY` is specified in the permissions config for `permissionsType`
         isAuthorized = true;
       } else if (
-        permissions[permissionsType].teams.some((team: string) => user.teams.includes(team)) ||
+        permissions[permissionsType].teams.some((team) => user.teams.includes(team)) ||
         permissions[permissionsType].users.includes(user._id)
       ) {
         // at least one of the user's teams  is inside the authorized teams array from the config
