@@ -161,7 +161,7 @@ const collectionTypeDefs = gql`
 
   type CollectionActivity {
     _id: ObjectID!,
-    name: String!,
+    name: String,
     in: String!,
     user: User, # the user id in the database is sometimes missing or corrupted
     action: String!,
