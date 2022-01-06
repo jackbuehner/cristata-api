@@ -206,6 +206,11 @@ const requiredTeams = [
     _id: new mongoose.Types.ObjectId('000000000000000000000004'),
   },
   {
+    name: 'Social Media',
+    slug: 'social-media',
+    _id: new mongoose.Types.ObjectId('000000000000000000000007'),
+  },
+  {
     name: 'Short URL Creators',
     slug: 'shorturl',
     _id: new mongoose.Types.ObjectId('000000000000000000000008'),
