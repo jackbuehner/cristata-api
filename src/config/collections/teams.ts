@@ -3,17 +3,19 @@ import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields } from '../../mongodb/db';
 import {
+  canDo,
   createDoc,
-  deleteDoc,
   findDoc,
   findDocs,
   getCollectionActionAccess,
   hideDoc,
   lockDoc,
   modifyDoc,
+  requireAuthentication,
   watchDoc,
   withPubSub,
 } from './helpers';
+import { ForbiddenError } from 'apollo-server-errors';
 
 const teams: Collection = {
   name: 'Team',
@@ -149,8 +151,23 @@ const teams: Collection = {
         withPubSub('TEAM', 'MODIFIED', lockDoc({ model: 'Team', args, context })),
       teamWatch: async (_, args, context: Context) =>
         withPubSub('TEAM', 'MODIFIED', watchDoc({ model: 'Team', args, context })),
-      teamDelete: async (_, args, context: Context) =>
-        withPubSub('TEAM', 'DELETED', deleteDoc({ model: 'Team', args, context })),
+      teamDelete: async (_, args, context: Context) => {
+        requireAuthentication(context);
+        const Model = mongoose.model<ITeamDoc>('Team');
+
+        // get the document
+        const doc = await Model.findById(args._id);
+
+        // if the user is not an admin or an organizer, return an error
+        const isOrganizer =
+          canDo({ model: 'Team', action: 'delete', context }) ||
+          doc.organizers.map((o) => o.toHexString()).includes(context.profile._id.toHexString());
+        if (!isOrganizer) throw new ForbiddenError('you must be an organizer for this team');
+
+        // delete the document
+        await Model.deleteOne({ _id: args._id });
+        return withPubSub('TEAM', 'DELETED', args._id);
+      },
     },
     Subscription: {
       teamCreated: { subscribe: () => pubsub.asyncIterator(['TEAM_CREATED']) },
