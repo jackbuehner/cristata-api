@@ -21,6 +21,7 @@ import {
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
 import { sendEmail } from '../../utils/sendEmail';
+import { getPasswordStatus } from '../../utils/getPasswordStatus';
 
 const PRUNED_USER_KEEP_FIELDS = [
   '_id',
@@ -177,6 +178,10 @@ const users: Collection = {
       This mutation deactivates by default.
       """
       userDeactivate(_id: ObjectID!, deactivate: Boolean): User
+      """
+      Resend an invitation for a user with a temporary password.
+      """
+      userResendInvite(_id: ObjectID!): User
     }
 
     extend type Subscription {
@@ -387,6 +392,69 @@ const users: Collection = {
             return await doc.save();
           })()
         ),
+      userResendInvite: async (_, args, context: Context) => {
+        let user = (await findDoc({ model: 'User', _id: args._id, context })) as unknown as IUser &
+          PassportLocalDocument;
+        const { temporary } = getPasswordStatus(user.flags);
+        if (!temporary)
+          throw new ForbiddenError('you cannot resend an invite for a user who already has an account');
+
+        // step 1: create temporary password
+        const password = generator.generate({
+          length: 24,
+          numbers: true,
+          symbols: true,
+          excludeSimilarCharacters: true,
+          exclude: '<>', // these cannot be sent via html
+          strict: true,
+        });
+
+        // step 2: set the temporary password
+        await user.setPassword(password);
+        user = await user.save();
+
+        // step 3: flag password as temporary (expires after 48 hours)
+        const expiresAt = new Date().getTime() + 1000 * 60 * 60 * 48; // Unix milliseconds 48 hours from now
+        user.flags = [`TEMPORARY_PASSWORD_${expiresAt}`];
+        user = await user.save();
+
+        // step 4: send email to reinvited user
+        const email = `
+            <h1 style="font-size: 20px;">
+              The Paladin Network
+            </h1>
+            <p>
+              <a href="${context.profile.email}">${context.profile.name}</a> has reinvited you to <i>The Paladin</i>'s instance of Cristata.
+              <br />
+              To finish activating your account, sign in with your temporary password at <a href="https://thepaladin.cristata.app/sign-in">https://thepaladin.cristata.app/sign-in</a>.
+            </p>
+            <p>
+              <span>
+                <b>Username: </b>
+                ${user.username}
+              </span>
+              <br />
+              <span>
+                <b>Temporary password: </b>
+                ${password}
+              </span>
+              </p>
+            <p>
+              You have 48 hours to sign in with this temporary password.
+              <br />
+              If you fail to sign in before the password expires, contact <a href="${context.profile.email}">${context.profile.name}</a> to receive another temporary password.
+            </p>
+          `;
+        sendEmail(
+          user.email,
+          `Activate your Cristata account`,
+          email,
+          `The Paladin Network <noreply@thepaladin.news>`
+        );
+
+        // return the user
+        return await user.save();
+      },
     },
     User: {
       teams: async (_, args, context: Context) => {
