@@ -289,7 +289,7 @@ const satire: Collection = {
     name: { type: String, required: true, default: 'New Satire' },
     slug: { type: String },
     permissions: {
-      teams: { type: [String], default: [Teams.MANAGING_EDITOR] },
+      teams: { type: [String], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR] },
     },
     timestamps: {
       target_publish_at: {

@@ -277,7 +277,7 @@ const flush: Collection = {
       }),
     ],
     permissions: {
-      teams: { type: [String], default: [Teams.ADMIN] },
+      teams: { type: [String], default: [Teams.FLUSH] },
     },
     timestamps: {
       week: {

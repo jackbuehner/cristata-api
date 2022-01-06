@@ -364,7 +364,15 @@ const articles: Collection = {
     },
     Mutation: {
       articleCreate: async (_, args, context: Context) =>
-        withPubSub('ARTICLE', 'CREATED', createDoc({ model: 'Article', args, context })),
+        withPubSub(
+          'ARTICLE',
+          'CREATED',
+          createDoc({
+            model: 'Article',
+            args: { ...args, permissions: { users: [context.profile._id] } },
+            context,
+          })
+        ),
       articleModify: (_, { _id, input }, context: Context) =>
         withPubSub('ARTICLE', 'MODIFIED', modifyDoc({ model: 'Article', data: { ...input, _id }, context })),
       articleHide: async (_, args, context: Context) =>
@@ -408,7 +416,7 @@ const articles: Collection = {
     name: { type: String, required: true, default: 'New Article' },
     slug: { type: String },
     permissions: {
-      teams: { type: [String], default: [Teams.MANAGING_EDITOR] },
+      teams: { type: [String], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR] },
     },
     timestamps: {
       target_publish_at: {
