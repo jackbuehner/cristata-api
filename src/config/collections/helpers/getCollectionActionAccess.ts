@@ -30,7 +30,7 @@ function getCollectionActionAccess({
     lock: canDo({ model, action: 'lock', context }),
     watch: canDo({ model, action: 'watch', context }),
     publish: canDo({ model, action: 'publish', context }),
-    deactivate: model === 'User' ? canDo({ model, action: 'publish', context }) : null,
+    deactivate: model === 'User' ? canDo({ model, action: 'deactivate', context }) : null,
     delete: canDo({ model, action: 'delete', context }),
   };
 }
