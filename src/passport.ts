@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import { IUserDoc } from './mongodb/users.model';
 import { isArray } from './utils/isArray';
 import { ITeamDoc } from './config/collections/teams';
+import { getPasswordStatus } from './utils/getPasswordStatus';
 
 // load environmental variables
 dotenv.config();
@@ -113,27 +114,6 @@ async function deserializeUser(
   }
 }
 passport.deserializeUser(deserializeUser);
-
-/**
- * Get whether the user's password is a tempoary password and whether it is expired.
- * @param flags - flag from db.user
- * @returns
- */
-function getPasswordStatus(flags: string[]): { temporary: boolean; expired: boolean } {
-  const tempPasswordFlag: string | undefined = flags.find((flag) => {
-    if (flag.includes('TEMPORARY_PASSWORD')) return true;
-    return false;
-  });
-  const isPasswordExpired = (() => {
-    if (tempPasswordFlag) {
-      const [, , ms] = tempPasswordFlag.split('_'); // get the time the password expires
-      // if the password expired before now, return true
-      if (new Date(parseInt(ms)) <= new Date()) return true;
-    }
-    return false;
-  })();
-  return { temporary: !!tempPasswordFlag, expired: isPasswordExpired };
-}
 
 interface IGitHubProfile {
   id: string;
@@ -375,5 +355,5 @@ passport.use(
 
 passport.use(mongoose.model('User').createStrategy());
 
-export { getPasswordStatus, deserializeUser };
+export { deserializeUser };
 export type { IDeserializedUser };
