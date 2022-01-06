@@ -33,7 +33,7 @@ interface IDeserializedUser {
 }
 
 async function deserializeUser(
-  user: { _id: mongoose.Types.ObjectId; provider: string; next_step?: string },
+  user: { _id: string; provider: string; next_step?: string },
   done?: (err: Error | null, user?: false | null | Express.User) => void
 ): Promise<string | IDeserializedUser> {
   try {
@@ -95,7 +95,7 @@ async function deserializeUser(
     // return the user
     const du = {
       provider: user.provider,
-      _id: user._id,
+      _id: new mongoose.Types.ObjectId(user._id),
       name: doc.name,
       username: doc.username,
       email: doc.email,
