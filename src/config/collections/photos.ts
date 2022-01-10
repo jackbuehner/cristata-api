@@ -141,8 +141,9 @@ const photos: Collection = {
           model: 'Photo',
           _id: args._id,
           context,
+          accessRule: {},
         }),
-      photos: (_, args, context: Context) => findDocs({ model: 'Photo', args, context }),
+      photos: (_, args, context: Context) => findDocs({ model: 'Photo', args, context, accessRule: {} }),
       photoActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Photo', context }),
     },
     Mutation: {
