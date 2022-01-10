@@ -1,5 +1,5 @@
 import { Context, getUsers, gql, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
-import { Collection } from '../database';
+import { Collection, Teams } from '../database';
 import mongoose from 'mongoose';
 import {
   CollectionSchemaFields,
@@ -269,7 +269,13 @@ const articles: Collection = {
   `,
   resolvers: {
     Query: {
-      article: (_, args, context: Context) => findDoc({ model: 'Article', _id: args._id, context }),
+      article: (_, args, context: Context) =>
+        findDoc({
+          model: 'Article',
+          _id: args._id,
+          context,
+          accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
+        }),
       articlePublic: (_, args, context: Context) =>
         findDocAndPrune({
           model: 'Article',
@@ -279,7 +285,13 @@ const articles: Collection = {
           keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
         }),
-      articles: (_, args, context: Context) => findDocs({ model: 'Article', args, context }),
+      articles: (_, args, context: Context) =>
+        findDocs({
+          model: 'Article',
+          args,
+          context,
+          accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
+        }),
       articlesPublic: async (_, args, context: Context) => {
         const articles = await findDocsAndPrune({
           model: 'Article',
