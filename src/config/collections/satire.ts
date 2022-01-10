@@ -1,5 +1,5 @@
 import { Context, getUsers, gql, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
-import { Collection } from '../database';
+import { Collection, Teams } from '../database';
 import mongoose from 'mongoose';
 import {
   CollectionSchemaFields,
@@ -202,6 +202,7 @@ const satire: Collection = {
           model: 'Satire',
           _id: args._id,
           context,
+          accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
         }),
       satirePublic: (_, args, context: Context) =>
         findDocAndPrune({
@@ -225,7 +226,13 @@ const satire: Collection = {
           ],
           fullAccess: true,
         }),
-      satires: (_, args, context: Context) => findDocs({ model: 'Satire', args, context }),
+      satires: (_, args, context: Context) =>
+        findDocs({
+          model: 'Satire',
+          args,
+          context,
+          accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
+        }),
       satiresPublic: async (_, args, context: Context) =>
         findDocsAndPrune({
           model: 'Satire',
