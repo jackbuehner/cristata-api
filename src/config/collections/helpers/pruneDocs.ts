@@ -10,9 +10,7 @@ interface PruneDocs<T> {
 
 function pruneDocs<T extends mongoose.Document[]>({ input, keep }: PruneDocs<T>): mongoose.Document[] {
   const pruned = input.map((obj) => {
-    const flatObj = flattenObject(
-      (obj?.toObject ? obj.toObject() : obj) as unknown as { [key: string]: never }
-    );
+    const flatObj = flattenObject((obj?.toObject?.() || obj || {}) as unknown as { [key: string]: never });
     const keepProps = keep.map((key) =>
       unflattenObject({
         [key]:
