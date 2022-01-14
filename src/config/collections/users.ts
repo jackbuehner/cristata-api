@@ -289,6 +289,18 @@ const users: Collection = {
           strict: true,
         });
 
+        // check that slug is unique, and replace slug and username if it is not unique
+        let exists = !!(await findDoc({ model: 'User', by: 'slug', _id: args.slug, context }))
+        let number = 0;
+        const baseSlug: string = args.slug;
+        const baseUsername: string = args.username;
+        while (exists) {
+          number += 1;
+          args.slug = baseSlug + number
+          args.username = baseUsername + number
+          exists = !!(await findDoc({ model: 'User', by: 'slug', _id: args.slug, context }))
+        }
+
         // step 2: create the user document
         let user = (await createDoc({ model: 'User', args, context })) as IUser & PassportLocalDocument;
 
