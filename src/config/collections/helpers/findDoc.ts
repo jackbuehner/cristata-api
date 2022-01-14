@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
 import mongoose, { FilterQuery } from 'mongoose';
-import { Teams } from '../../database';
+import { Teams, Users } from '../../database';
 import { CollectionDoc, requireAuthentication } from '.';
 
 interface FindDoc {
@@ -26,8 +26,9 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
       ? accessRule
       : {
           $or: [
-            { 'permissions.teams': { $in: context.profile.teams } },
+            { 'permissions.teams': { $in: [...context.profile.teams, Teams.ANY] } },
             { 'permissions.users': context.profile._id },
+            { 'permissions.users': Users.ANY },
           ],
         };
 

@@ -1,5 +1,5 @@
 import { collectionPeopleResolvers, Context, getUsers, gql, pubsub } from '../../apollo';
-import { Collection } from '../database';
+import { Collection, Teams } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
 import {
@@ -177,6 +177,9 @@ const photos: Collection = {
     people: {
       photo_created_by: { type: String },
       uploaded_by: { type: mongoose.Schema.Types.ObjectId },
+    },
+    permissions: {
+      teams: { type: [String], default: [Teams.ANY] },
     },
     tags: { type: [String] },
     file_type: { type: String, default: undefined },
