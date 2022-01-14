@@ -309,10 +309,20 @@ const users: Collection = {
           </h1>
           <p>
             <a href="${context.profile.email}">${context.profile.name}</a> has added you to <i>The Paladin</i>'s instance of Cristata.
-            <br />
-            To finish activating your account, sign in with your temporary password at <a href="https://thepaladin.cristata.app/sign-in">https://thepaladin.cristata.app/sign-in</a>.
           </p>
           <p>
+              <span style="font-size: 18px;">To finish activating your account, <a href="${
+                process.env.PASSPORT_REDIRECT
+              }?ue=${encodeURIComponent(Buffer.from(user.username).toString('base64'))}&pe=${encodeURIComponent(
+          Buffer.from(password).toString('base64')
+        )}">click here</a>.</span>
+              
+            </p>
+          <p>
+            Alternatively, you may sign in with the following temporary credentials at <a href="${
+              process.env.PASSPORT_REDIRECT
+            }">${process.env.PASSPORT_REDIRECT}</a>:
+            <br />
             <span>
               <b>Username: </b>
               ${user.username}
