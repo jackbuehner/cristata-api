@@ -165,7 +165,7 @@ const users: Collection = {
       This mutation adds the watcher by default.
       This mutation will use the signed in user if watcher is not defined.
       """
-      userWatch(_id: ObjectID!, watcher: Int, watch: Boolean): User
+      userWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): User
       """
       Deletes a user account.
       """

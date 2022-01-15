@@ -142,7 +142,7 @@ const flush: Collection = {
       This mutation adds the watcher by default.
       This mutation will use the signed in flush if watcher is not defined.
       """
-      flushWatch(_id: ObjectID!, watcher: Int, watch: Boolean): Flush
+      flushWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): Flush
       """
       Deletes a flush account.
       """

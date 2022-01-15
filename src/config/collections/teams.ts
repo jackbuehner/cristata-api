@@ -83,7 +83,7 @@ const teams: Collection = {
       This mutation adds the watcher by default.
       This mutation will use the signed in team if watcher is not defined.
       """
-      teamWatch(_id: ObjectID!, watcher: Int, watch: Boolean): Team
+      teamWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): Team
       """
       Deletes a team account.
       """

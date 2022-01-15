@@ -40,7 +40,7 @@ const photoRequests: Collection = {
     }
 
     input PhotoRequestModifyInputPeople {
-      requested_by: Int
+      requested_by: ObjectID
     }
 
     type Query {
@@ -86,7 +86,7 @@ const photoRequests: Collection = {
       This mutation adds the watcher by default.
       This mutation will use the signed in photoRequest if watcher is not defined.
       """
-      photoRequestWatch(_id: ObjectID!, watcher: Int, watch: Boolean): PhotoRequest
+      photoRequestWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): PhotoRequest
       """
       Deletes a photoRequest account.
       """

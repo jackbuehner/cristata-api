@@ -77,7 +77,7 @@ const shorturls: Collection = {
       This mutation adds the watcher by default.
       This mutation will use the signed in shorturl if watcher is not defined.
       """
-      shorturlWatch(code: String!, watcher: Int, watch: Boolean): ShortURL
+      shorturlWatch(code: String!, watcher: ObjectID, watch: Boolean): ShortURL
       """
       Deletes a shorturl account.
       """

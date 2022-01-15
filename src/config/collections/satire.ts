@@ -97,14 +97,14 @@ const satire: Collection = {
     }
 
     input SatireModifyInputPeople {
-      authors: [Int]
+      authors: [ObjectID]
       display_authors: [String]
       editors: SatireModifyInputPeopleEditors
     }
 
     input SatireModifyInputPeopleEditors {
-      primary: [Int]
-      copy: [Int]
+      primary: [ObjectID]
+      copy: [ObjectID]
     }
 
     input SatireModifyInputTimestamps {
@@ -167,7 +167,7 @@ const satire: Collection = {
       This mutation adds the watcher by default.
       This mutation will use the signed in satire if watcher is not defined.
       """
-      satireWatch(_id: ObjectID!, watcher: Int, watch: Boolean): Satire
+      satireWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): Satire
       """
       Deletes a satire account.
       """

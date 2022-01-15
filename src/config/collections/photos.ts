@@ -60,7 +60,7 @@ const photos: Collection = {
 
     input PhotoModifyInputPeople {
       photo_created_by: String
-      uploaded_by: Int
+      uploaded_by: ObjectID
     }
 
     type Query {
@@ -106,7 +106,7 @@ const photos: Collection = {
       This mutation adds the watcher by default.
       This mutation will use the signed in photo if watcher is not defined.
       """
-      photoWatch(_id: ObjectID!, watcher: Int, watch: Boolean): Photo
+      photoWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): Photo
       """
       Deletes a photo account.
       """

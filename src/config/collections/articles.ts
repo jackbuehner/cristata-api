@@ -239,7 +239,7 @@ const articles: Collection = {
       This mutation adds the watcher by default.
       This mutation will use the signed in article if watcher is not defined.
       """
-      articleWatch(_id: ObjectID!, watcher: Int, watch: Boolean): Article
+      articleWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): Article
       """
       Deletes a article account.
       """
