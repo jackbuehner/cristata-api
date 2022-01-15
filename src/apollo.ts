@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import aws from 'aws-sdk';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
+  ApolloError,
   ApolloServerPluginDrainHttpServer,
   ApolloServerPluginLandingPageGraphQLPlayground,
   ContextFunction,
@@ -22,6 +24,7 @@ import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
 import { converObjIsoDatesToDates } from './utils/converObjIsoDatesToDates';
 import { convertStringsToObjIds } from './utils/convertStringsToObjIds';
+import { requireAuthentication } from './config/collections/helpers';
 export const gql = (s: TemplateStringsArray): string => `${s}`;
 
 const dateScalar = new GraphQLScalarType({
@@ -168,11 +171,20 @@ const collectionTypeDefs = gql`
     at: Date!, #// TODO: this might not actually always be there
   }
 
+  type S3SignedResponse {
+    signedRequest: String!,
+    location: String!,
+  }
+
   type Query {
     """
-      Get the recent activity in the specified collections
-      """
-      collectionActivity(limit: Int!, collections: [String], exclude: [String], page: Int): Paged<CollectionActivity>
+    Get the recent activity in the specified collections
+    """
+    collectionActivity(limit: Int!, collections: [String], exclude: [String], page: Int): Paged<CollectionActivity>
+    """
+    Get a signed s3 URL for uploading photos and documents to an existing s3 bucket.
+    """
+    s3Sign(fileName: String!, fileType: String!, s3Bucket: String!): S3SignedResponse
   }
 `;
 
@@ -232,6 +244,33 @@ const coreResolvers = {
       // The types for the plugin have not been updated for newer versions of mongoose.
       return Model.aggregatePaginate(aggregate, { page, limit });
     },
+    s3Sign: async (_, { fileName, fileType, s3Bucket }, context: Context) => {
+      requireAuthentication(context);
+      const s3 = new aws.S3();
+
+      const s3Params = {
+        Bucket: s3Bucket,
+        Key: fileName,
+        Expires: 300, // 5 minutes for upload (some photos are big)
+        ContentType: fileType,
+        ACL: 'public-read',
+      };
+
+      // wrap the s3 callback in a promise so we can return values from the callback
+      return await new Promise((resolve) => {
+        // get a signed url for putting a file in an s3 bucket
+        s3.getSignedUrl('putObject', s3Params, (err, signedRequest) => {
+          if (err) {
+            console.error(err);
+            throw new ApolloError(err.message, 'AWS_S3_ERROR')
+          }
+          resolve({
+            signedRequest,
+            location: `https://${s3Bucket}.s3.amazonaws.com/${fileName}`,
+          })
+        });
+      });
+    }
   },
   CollectionActivity: {
     user: ({ user }) => getUsers(user),
