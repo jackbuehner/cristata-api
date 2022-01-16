@@ -152,13 +152,13 @@ const articles: Collection = {
     }
 
     input ArticleModifyInputPeople {
-      authors: [Int]
+      authors: [ObjectID]
       editors: ArticleModifyInputPeopleEditors
     }
 
     input ArticleModifyInputPeopleEditors {
-      primary: [Int]
-      copy: [Int]
+      primary: [ObjectID]
+      copy: [ObjectID]
     }
 
     input ArticleModifyInputTimestamps {
