@@ -18,6 +18,7 @@ const settings: Collection = {
   withPermissions: false,
   typeDefs: gql`
     type Settings {
+      _id: ObjectID!
       name: String!
       setting: JSON!
     }
