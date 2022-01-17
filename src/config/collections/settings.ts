@@ -24,11 +24,6 @@ const settings: Collection = {
       setting: JSON!
     }
 
-    input SettingsModifyInput {
-      name: String
-      setting: JSON
-    }
-
     type Query {
       """
       Get a setting by id.
@@ -53,7 +48,7 @@ const settings: Collection = {
       """
       Modify an existing setting.
       """
-      settingModify(_id: ObjectID!, input: SettingsModifyInput!): Settings
+      settingModify(_id: ObjectID!, input: JSON!): Settings
     }
 
     extend type Subscription {
