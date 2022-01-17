@@ -11,6 +11,7 @@ import {
   withPubSub,
 } from './helpers';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
+import { merge } from 'merge-anything';
 
 const settings: Collection = {
   name: 'Settings',
@@ -118,10 +119,13 @@ const settings: Collection = {
                 'DOCUMENT_NOT_FOUND'
               );
 
+            // merge the new settings object into the old settings object
+            const setting = merge(currentDoc.setting, input.setting);
+
             // attempt to patch the document
             return await mongoose
               .model('Settings')
-              .findByIdAndUpdate(_id, { $set: { setting: input.setting } }, { returnOriginal: false });
+              .findByIdAndUpdate(_id, { $set: { setting } }, { returnOriginal: false });
           })()
         ),
     },
