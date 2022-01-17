@@ -11,15 +11,23 @@ import {
 } from '../../../mongodb/db';
 import { merge } from 'merge-anything';
 
-interface ModifyDoc {
+interface ModifyDoc<DocType, DataType> {
   model: string;
   data: CollectionDoc;
   context: Context;
   publishable?: boolean;
   fullAccess?: boolean;
+  modify?: (currentDoc: DocType, data: DataType) => Promise<void>;
 }
 
-async function modifyDoc({ model, data, context, publishable, fullAccess }: ModifyDoc) {
+async function modifyDoc<DocType, DataType>({
+  model,
+  data,
+  context,
+  publishable,
+  fullAccess,
+  modify,
+}: ModifyDoc<DocType, DataType>) {
   requireAuthentication(context);
   const Model = mongoose.model<typeof data>(model);
 
@@ -38,10 +46,7 @@ async function modifyDoc({ model, data, context, publishable, fullAccess }: Modi
   // if the current document does not exist OR the user does not have access, throw an error
   const currentDoc = (
     await findDoc({ model, _id, context, fullAccess })
-  )?.toObject() as unknown as CollectionSchemaFields &
-    PublishableCollectionSchemaFields &
-    WithPermissionsCollectionSchemaFields &
-    Record<string, unknown>;
+  )?.toObject() as unknown as CurrentDocType;
   if (!currentDoc)
     throw new ApolloError(
       'the document you are trying to modify does not exist or you do not have access',
@@ -102,8 +107,16 @@ async function modifyDoc({ model, data, context, publishable, fullAccess }: Modi
     if (willBePublished && !data.slug) data.slug = slugify(`${data.name || currentDoc.name}`);
   }
 
+  // execute the modify function
+  await modify?.(currentDoc as DocType, data as unknown as DataType);
+
   // attempt to patch the article
   return await Model.findByIdAndUpdate(_id, { $set: data }, { returnOriginal: false });
 }
+
+type CurrentDocType = CollectionSchemaFields &
+  PublishableCollectionSchemaFields &
+  WithPermissionsCollectionSchemaFields &
+  Record<string, unknown>;
 
 export { modifyDoc };

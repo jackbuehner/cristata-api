@@ -23,9 +23,11 @@ import {
   watchDoc,
   withPubSub,
 } from './helpers';
-import { PRUNED_USER_KEEP_FIELDS } from './users';
+import { IUserDoc, PRUNED_USER_KEEP_FIELDS } from './users';
 import { isArray } from '../../utils/isArray';
 import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
+import { slugify } from '../../utils/slugify';
+import { sendEmail } from '../../utils/sendEmail';
 
 const PRUNED_ARTICLE_KEEP_FIELDS = [
   '_id',
@@ -144,6 +146,7 @@ const articles: Collection = {
       video_replaces_photo: Boolean
       photo_caption: String
       body: String
+      show_comments: Boolean
       legacy_html: Boolean
       people: ArticleModifyInputPeople
       timestamps: ArticleModifyInputTimestamps
@@ -385,8 +388,97 @@ const articles: Collection = {
             context,
           })
         ),
-      articleModify: (_, { _id, input }, context: Context) =>
-        withPubSub('ARTICLE', 'MODIFIED', modifyDoc({ model: 'Article', data: { ...input, _id }, context })),
+      articleModify: async (_, { _id, input }, context: Context) =>
+        await withPubSub(
+          'ARTICLE',
+          'MODIFIED',
+          modifyDoc({
+            model: 'Article',
+            data: { ...input, _id },
+            context,
+            modify: async (currentDoc: IArticle, data: IArticleInput) => {
+              // set the slug if the document is being published and does not already have one
+              if (data.stage === Stage.Published && (!data.slug || !currentDoc.slug)) {
+                data.slug = slugify(input.name || currentDoc.name);
+              }
+
+              // send email alerts to the watchers if the stage changes
+              if (currentDoc.people.watching && data.stage && data.stage !== currentDoc.stage) {
+                // get emails of watchers
+                const watchersEmails = await Promise.all(
+                  (currentDoc.people.watching || currentDoc.people.watching).map(async (_id) => {
+                    const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
+                    return profile.email;
+                  })
+                );
+
+                // get emails of authors and primary editors (if there are any) - mandatory watchers
+                const mandatoryWatchersEmails = await Promise.all(
+                  [
+                    ...(data.people.authors || currentDoc.people.authors),
+                    ...(data.people.editors?.primary || currentDoc.people.editors?.primary),
+                  ].map(async (_id) => {
+                    const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
+                    return profile.email;
+                  })
+                );
+
+                const email = (reason?: string) => {
+                  return `
+            <h1 style="font-size: 20px;">
+              The Paladin Network
+            </h1>
+            <p>
+              The stage has been changed for an article you are watching on Cristata.
+              <br />
+              To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${_id}">https://thepaladin.cristata.app/cms/item/articles/${_id}</a>.
+            </p>
+            <p>
+              <span>
+                <b>Headline: </b>
+                ${data.name || currentDoc.name}
+              </span>
+              <br />
+              <span>
+                <b>New Stage: </b>
+                ${Stage[data.stage as Stage]}
+              </span>
+              <br />
+              <span>
+                <b>Unique ID: </b>
+                ${_id}
+              </span>
+            </p>
+            ${
+              reason
+                ? `
+                  <p style="color: #888888">
+                    You receievd this email because ${reason}.
+                  </p>
+                `
+                : ''
+            }
+            <p style="color: #aaaaaa">
+              Powered by Cristata
+            </p>
+          `;
+                };
+
+                // send email
+                sendEmail(
+                  watchersEmails,
+                  `[Stage: ${Stage[data.stage as Stage]}] ${data.name || currentDoc.name}`,
+                  email(`you clicked the 'Watch" button for this article in Cristata`)
+                );
+                sendEmail(
+                  mandatoryWatchersEmails,
+                  `[Stage: ${Stage[data.stage as Stage]}] ${data.name || currentDoc.name}`,
+                  email(`you are an are an author or editor for this article`)
+                );
+              }
+            },
+          })
+        ),
       articleHide: async (_, args, context: Context) =>
         withPubSub('ARTICLE', 'MODIFIED', hideDoc({ model: 'Article', args, context })),
       articleLock: async (_, args, context: Context) =>
@@ -519,6 +611,12 @@ interface IArticle
     commented_at: string;
     content: string;
   }>;
+}
+
+interface IArticleInput
+  extends Omit<Omit<Omit<Omit<IArticle, 'versions'>, 'legacy_comments'>, 'timestamps'>, 'people'> {
+  timestamps?: IArticleTimestamps;
+  people?: IArticlePeople;
 }
 
 interface IArticleTimestamps {
