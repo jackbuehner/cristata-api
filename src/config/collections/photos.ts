@@ -43,7 +43,7 @@ const photos: Collection = {
       uploaded_by: User
     }
 
-    input PhotoModifyInput {
+    input PhotoModifyInput inherits WithPermissionsInput {
       name: String
       tags: [String]
       file_type: String

@@ -81,7 +81,7 @@ const satire: Collection = {
       updated_at: Date!
     }
 
-    input SatireModifyInput {
+    input SatireModifyInput inherits WithPermissionsInput {
       name: String
       slug: String
       stage: Float

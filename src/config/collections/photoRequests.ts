@@ -32,7 +32,7 @@ const photoRequests: Collection = {
       requested_by: User
     }
 
-    input PhotoRequestModifyInput {
+    input PhotoRequestModifyInput inherits WithPermissionsInput {
       name: String
       stage: Float
       article_id: ObjectID

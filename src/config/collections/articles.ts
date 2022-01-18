@@ -134,7 +134,7 @@ const articles: Collection = {
       count: Int!
     }
 
-    input ArticleModifyInput {
+    input ArticleModifyInput inherits WithPermissionsInput {
       name: String
       slug: String
       stage: Float

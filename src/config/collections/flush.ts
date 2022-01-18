@@ -71,7 +71,7 @@ const flush: Collection = {
       week: Date!
     }
 
-    input FlushModifyInput {
+    input FlushModifyInput inherits WithPermissionsInput {
       events: [FlushModifyInputEvent]
       articles: FlushModifyInputArticles
       timestamps: FlushModifyInputTimestamps
