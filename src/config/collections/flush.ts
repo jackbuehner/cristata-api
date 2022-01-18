@@ -201,7 +201,7 @@ const flush: Collection = {
     },
     Mutation: {
       flushCreate: async (_, args, context: Context) =>
-        withPubSub('FLUSH', 'CREATED', createDoc({ model: 'Flush', args, context })),
+        withPubSub('FLUSH', 'CREATED', createDoc({ model: 'Flush', args, context, withPermissions: true })),
       flushModify: (_, { _id, input }, context: Context) =>
         withPubSub('FLUSH', 'MODIFIED', modifyDoc({ model: 'Flush', data: { ...input, _id }, context })),
       flushHide: async (_, args, context: Context) =>

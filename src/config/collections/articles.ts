@@ -384,8 +384,9 @@ const articles: Collection = {
           'CREATED',
           createDoc({
             model: 'Article',
-            args: { ...args, permissions: { users: [context.profile._id] } },
+            args,
             context,
+            withPermissions: true,
           })
         ),
       articleModify: async (_, { _id, input }, context: Context) =>
