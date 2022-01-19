@@ -25,10 +25,14 @@ router.get('/user-photo/:user_id', async (req, res) => {
     const user = await User.findById(user_id);
 
     // pipe the request to the user photo url
-    const externalReq = https.request(user.photo, (externalRes) => {
-      externalRes.pipe(res);
-    });
-    externalReq.end();
+    if (user.photo) {
+      const externalReq = https.request(user.photo, (externalRes) => {
+        externalRes.pipe(res);
+      });
+      externalReq.end();
+    } else {
+      res.status(404).end();
+    }
   } catch (error) {
     console.error(error);
     res.status(400).json(error);
