@@ -46,8 +46,10 @@ app.use(
     // documents do not share a browsing context group with cross-origin
     // documents
     crossOriginOpenerPolicy: true,
-    // sets "Cross-Origin-Resource-Policy: same-origin"
-    crossOriginResourcePolicy: true,
+    // sets "Cross-Origin-Resource-Policy: same-site"
+    crossOriginResourcePolicy: {
+      policy: 'same-site',
+    },
     // allow prefetching since the server does not have external URLS to
     // untrusted websites
     dnsPrefetchControl: {
