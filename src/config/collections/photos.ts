@@ -43,7 +43,7 @@ const photos: Collection = {
       uploaded_by: User
     }
 
-    input PhotoModifyInput {
+    input PhotoModifyInput inherits WithPermissionsInput {
       name: String
       tags: [String]
       file_type: String
@@ -148,7 +148,7 @@ const photos: Collection = {
     },
     Mutation: {
       photoCreate: async (_, args, context: Context) =>
-        withPubSub('PHOTO', 'CREATED', createDoc({ model: 'Photo', args, context })),
+        withPubSub('PHOTO', 'CREATED', createDoc({ model: 'Photo', args, context, withPermissions: true })),
       photoModify: (_, { _id, input }, context: Context) =>
         withPubSub('PHOTO', 'MODIFIED', modifyDoc({ model: 'Photo', data: { ...input, _id }, context })),
       photoHide: async (_, args, context: Context) =>

@@ -81,7 +81,7 @@ const satire: Collection = {
       updated_at: Date!
     }
 
-    input SatireModifyInput {
+    input SatireModifyInput inherits WithPermissionsInput {
       name: String
       slug: String
       stage: Float
@@ -264,7 +264,7 @@ const satire: Collection = {
     },
     Mutation: {
       satireCreate: async (_, args, context: Context) =>
-        withPubSub('SATIRE', 'CREATED', createDoc({ model: 'Satire', args, context })),
+        withPubSub('SATIRE', 'CREATED', createDoc({ model: 'Satire', args, context, withPermissions: true })),
       satireModify: (_, { _id, input }, context: Context) =>
         withPubSub('SATIRE', 'MODIFIED', modifyDoc({ model: 'Satire', data: { ...input, _id }, context })),
       satireHide: async (_, args, context: Context) =>

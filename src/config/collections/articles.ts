@@ -134,7 +134,7 @@ const articles: Collection = {
       count: Int!
     }
 
-    input ArticleModifyInput {
+    input ArticleModifyInput inherits WithPermissionsInput {
       name: String
       slug: String
       stage: Float
@@ -384,8 +384,9 @@ const articles: Collection = {
           'CREATED',
           createDoc({
             model: 'Article',
-            args: { ...args, permissions: { users: [context.profile._id] } },
+            args,
             context,
+            withPermissions: true,
           })
         ),
       articleModify: async (_, { _id, input }, context: Context) =>

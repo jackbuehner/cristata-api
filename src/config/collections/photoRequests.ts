@@ -32,7 +32,7 @@ const photoRequests: Collection = {
       requested_by: User
     }
 
-    input PhotoRequestModifyInput {
+    input PhotoRequestModifyInput inherits WithPermissionsInput {
       name: String
       stage: Float
       article_id: ObjectID
@@ -128,7 +128,11 @@ const photoRequests: Collection = {
     },
     Mutation: {
       photoRequestCreate: async (_, args, context: Context) =>
-        withPubSub('PHOTOREQUEST', 'CREATED', createDoc({ model: 'PhotoRequest', args, context })),
+        withPubSub(
+          'PHOTOREQUEST',
+          'CREATED',
+          createDoc({ model: 'PhotoRequest', args, context, withPermissions: true })
+        ),
       photoRequestModify: (_, { _id, input }, context: Context) =>
         withPubSub(
           'PHOTOREQUEST',

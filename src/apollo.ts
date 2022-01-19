@@ -111,6 +111,15 @@ const collectionTypeDefs = gql`
     users: [User]!
   }
 
+  input WithPermissionsInput {
+    permissions: CollectionPermissionsInput
+  }
+
+  input CollectionPermissionsInput {
+    teams: [ObjectID]
+    users: [ObjectID]
+  }
+
   type PublishableCollection inherits Collection {
     timestamps: PublishableCollectionTimestamps
     people: PublishableCollectionPeople
@@ -262,15 +271,15 @@ const coreResolvers = {
         s3.getSignedUrl('putObject', s3Params, (err, signedRequest) => {
           if (err) {
             console.error(err);
-            throw new ApolloError(err.message, 'AWS_S3_ERROR')
+            throw new ApolloError(err.message, 'AWS_S3_ERROR');
           }
           resolve({
             signedRequest,
             location: `https://${s3Bucket}.s3.amazonaws.com/${fileName}`,
-          })
+          });
         });
       });
-    }
+    },
   },
   CollectionActivity: {
     user: ({ user }) => getUsers(user),
