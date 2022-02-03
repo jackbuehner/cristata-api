@@ -11,6 +11,7 @@ interface FindDocsAndPrune {
     page?: number;
     offset?: number;
     limit: number;
+    pipeline2?: mongoose.PipelineStage[];
   };
   context: Context;
   keep: string[];
