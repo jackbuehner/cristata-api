@@ -28,6 +28,7 @@ import { isArray } from '../../utils/isArray';
 import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
 import { slugify } from '../../utils/slugify';
 import { sendEmail } from '../../utils/sendEmail';
+import { ISettings } from './settings';
 
 const PRUNED_ARTICLE_KEEP_FIELDS = [
   '_id',
@@ -192,7 +193,7 @@ const articles: Collection = {
       Get a set of articles with confidential information pruned. If _ids is
       omitted, the API will return all articles.
       """
-      articlesPublic(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<PrunedArticle>
+      articlesPublic(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!, featured: Boolean): Paged<PrunedArticle>
       """
       Get the permissions of the currently authenticated user for this
       collection.
@@ -296,13 +297,42 @@ const articles: Collection = {
           accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
         }),
       articlesPublic: async (_, args, context: Context) => {
+        // get the ids of the featured articles
+        const featuredIds: mongoose.Types.ObjectId[] = [];
+        if (args.featured === true) {
+          const result = (
+            await mongoose.model<ISettings>('Settings').findOne({ name: 'featured-articles' })
+          ).toObject();
+          const ids = result.setting as Record<string, mongoose.Types.ObjectId>;
+          featuredIds.push(new mongoose.Types.ObjectId(ids.first));
+          featuredIds.push(new mongoose.Types.ObjectId(ids.second));
+          featuredIds.push(new mongoose.Types.ObjectId(ids.third));
+          featuredIds.push(new mongoose.Types.ObjectId(ids.fourth));
+        }
+
+        // build a pipeline to only get the featured articles
+        // (empty filter if featured !== true)
+        const pipeline2: mongoose.PipelineStage[] =
+          featuredIds.length > 0
+            ? [
+                {
+                  $addFields: { featured_order: { $indexOfArray: [featuredIds, '$_id'] } }, // assign starting at 0
+                },
+                { $match: { featured_order: { $gte: 0 } } }, // eclude all articles exept ones within the featuredIds array
+              ]
+            : [];
+        const sort = featuredIds.length > 0 ? { featured_order: 1, ...args.sort } : args.sort;
+
+        // get the articles
         const articles = await findDocsAndPrune({
           model: 'Article',
-          args: { ...args, filter: { ...args.filter, stage: Stage.Published } },
+          args: { ...args, filter: { ...args.filter, stage: Stage.Published }, pipeline2, sort },
           context,
           keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
         });
+
+        // get add photo credit to each public article
         const docs = await Promise.all(
           articles.docs.map(async (prunedArticle) => {
             return {
