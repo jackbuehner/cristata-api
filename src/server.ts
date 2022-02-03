@@ -66,36 +66,53 @@ const hocuspocus = Hocuspocus.configure({
   },
 
   onRequest: async ({ request, response }) => {
-    // when a request is made to the server, load the app
-    app(request, response);
+    try {
+      // when a request is made to the server, load the app
+      app(request, response);
+    } catch (error) {
+      response.destroy();
+      console.error(error);
+    }
   },
 
   onListen: async () => {
-    apollo(app, hocuspocus.httpServer);
+    try {
+      apollo(app, hocuspocus.httpServer);
+    } catch (error) {
+      console.error(error);
+    }
   },
 
   // don't allow client to stay connect if it is out of date
   onConnect: async ({ requestParameters }) => {
-    const isClientUpdated = requestParameters.get('version') >= process.env.CLIENT_MINIMUM_VERSION;
-    if (!isClientUpdated) {
-      throw 'Client out of date!';
+    try {
+      const isClientUpdated = requestParameters.get('version') >= process.env.CLIENT_MINIMUM_VERSION;
+      if (!isClientUpdated) {
+        throw 'Client out of date!';
+      }
+    } catch (error) {
+      console.error(error);
     }
   },
 });
 
 // start the http server and hocuspocus websocket server
-hocuspocus
-  .listen()
-  .then(() =>
-    console.log(
-      `Cristata server listening on port ${process.env.PORT}! API, authentication, webhooks, and hocuspocus are running.`
+try {
+  hocuspocus
+    .listen()
+    .then(() =>
+      console.log(
+        `Cristata server listening on port ${process.env.PORT}! API, authentication, webhooks, and hocuspocus are running.`
+      )
     )
-  )
-  .catch((err: Error) =>
-    console.error(
-      `Failed to start Cristata  server on port ${process.env.PORT}! Message: ${JSON.stringify(err)}`
-    )
-  );
+    .catch((err: Error) =>
+      console.error(
+        `Failed to start Cristata  server on port ${process.env.PORT}! Message: ${JSON.stringify(err)}`
+      )
+    );
+} catch (error) {
+  console.error(error);
+}
 
 // keep errors silent
 process.on('unhandledRejection', () => null);
