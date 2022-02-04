@@ -280,15 +280,37 @@ const articles: Collection = {
           context,
           accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
         }),
-      articlePublic: (_, args, context: Context) =>
-        findDocAndPrune({
+      articlePublic: async (_, args, context: Context) => {
+        // get the article
+        const prunedArticle = await findDocAndPrune({
           model: 'Article',
           _id: args._id,
           filter: { stage: Stage.Published },
           context,
           keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
-        }),
+        });
+
+        // add photo credit
+        const constructedPrunedArticle = {
+          ...prunedArticle,
+          photo_credit: JSON.parse(
+            JSON.stringify(
+              await findDoc({
+                model: 'Photo',
+                by: 'photo_url',
+                //@ts-expect-error photo_path exists on prunedArticle
+                _id: prunedArticle.photo_path,
+                context,
+                fullAccess: true,
+              })
+            )
+          )?.people?.photo_created_by,
+        };
+
+        // return the article
+        return constructedPrunedArticle;
+      },
       articles: (_, args, context: Context) =>
         findDocs({
           model: 'Article',
@@ -354,7 +376,8 @@ const articles: Collection = {
         );
         return { ...articles, docs };
       },
-      articleBySlugPublic: (_, args, context: Context) => {
+      articleBySlugPublic: async (_, args, context: Context) => {
+        // create filter to find newest article with matching slug
         const filter = args.date
           ? {
               'timestamps.published_at': {
@@ -366,7 +389,9 @@ const articles: Collection = {
           : {
               stage: Stage.Published,
             };
-        return findDocAndPrune({
+
+        // get the article
+        const prunedArticle = await findDocAndPrune({
           model: 'Article',
           by: 'slug',
           _id: args.slug,
@@ -375,6 +400,26 @@ const articles: Collection = {
           keep: PRUNED_ARTICLE_KEEP_FIELDS,
           fullAccess: true,
         });
+
+        // add photo credit
+        const constructedPrunedArticle = {
+          ...prunedArticle,
+          photo_credit: JSON.parse(
+            JSON.stringify(
+              await findDoc({
+                model: 'Photo',
+                by: 'photo_url',
+                //@ts-expect-error photo_path exists on prunedArticle
+                _id: prunedArticle.photo_path,
+                context,
+                fullAccess: true,
+              })
+            )
+          )?.people?.photo_created_by,
+        };
+
+        // return the article
+        return constructedPrunedArticle;
       },
       articleActionAccess: (_, __, context: Context) =>
         getCollectionActionAccess({ model: 'Article', context }),
