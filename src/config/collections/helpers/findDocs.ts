@@ -75,7 +75,7 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
     { $match: accessFilter },
     { $match: _ids ? { _id: { $in: _ids } } : {} },
     { $match: filter ? filter : {} },
-    ...args.pipeline2,
+    ...(args.pipeline2 || []),
   ];
 
   const aggregate = Model.aggregate(pipeline);
