@@ -5,17 +5,16 @@ import { CollectionSchemaFields } from '../../mongodb/db';
 import {
   canDo,
   createDoc,
+  deleteDoc,
   findDoc,
   findDocs,
   getCollectionActionAccess,
   hideDoc,
   lockDoc,
   modifyDoc,
-  requireAuthentication,
   watchDoc,
   withPubSub,
 } from './helpers';
-import { ForbiddenError } from 'apollo-server-errors';
 
 const teams: Collection = {
   name: 'Team',
@@ -49,7 +48,7 @@ const teams: Collection = {
       Get the permissions of the currently authenticated user for this
       collection.
       """
-      teamActionAccess: CollectionActionAccess
+      teamActionAccess(_id: ObjectID): CollectionActionAccess
       """
       Lists the active users who are not assigned to any teams.
       """
@@ -109,26 +108,13 @@ const teams: Collection = {
   `,
   resolvers: {
     Query: {
-      team: (_, args, context: Context) =>
-        findDoc({
-          model: 'Team',
-          _id: args._id,
-          context,
-          // if the user is in the database and has not next_step instuctions, give them access to find any team
-          accessRule: context.profile._id && !context.profile.next_step ? {} : undefined,
-        }),
-      teams: (_, args, context: Context) =>
-        findDocs({
-          model: 'Team',
-          args,
-          context,
-          // if the user is in the database and has not next_step instuctions, give them access to find all teams
-          accessRule: context.profile._id && !context.profile.next_step ? {} : undefined,
-        }),
-      teamActionAccess: (_, __, context: Context) => getCollectionActionAccess({ model: 'Team', context }),
+      team: (_, args, context: Context) => findDoc({ model: 'Team', _id: args._id, context }),
+      teams: (_, args, context: Context) => findDocs({ model: 'Team', args, context }),
+      teamActionAccess: (_, args, context: Context) =>
+        getCollectionActionAccess({ model: 'Team', context, args }),
       teamUnassignedUsers: async (_, __, context: Context) => {
-        // allow any database user without next_step instructions to list unassigned users
-        if (context.profile._id && !context.profile.next_step) {
+        // allow any user with GET user permissions to get users who are not assigned to any teams
+        if (canDo({ model: 'User', action: 'get', context })) {
           const allMembers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('members');
           const allOrganizers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('organizers');
           const allAssigned = Array.from(new Set([...allMembers, ...allOrganizers]));
@@ -151,23 +137,8 @@ const teams: Collection = {
         withPubSub('TEAM', 'MODIFIED', lockDoc({ model: 'Team', args, context })),
       teamWatch: async (_, args, context: Context) =>
         withPubSub('TEAM', 'MODIFIED', watchDoc({ model: 'Team', args, context })),
-      teamDelete: async (_, args, context: Context) => {
-        requireAuthentication(context);
-        const Model = mongoose.model<ITeamDoc>('Team');
-
-        // get the document
-        const doc = await Model.findById(args._id);
-
-        // if the user is not an admin or an organizer, return an error
-        const isOrganizer =
-          canDo({ model: 'Team', action: 'delete', context }) ||
-          doc.organizers.map((o) => o.toHexString()).includes(context.profile._id.toHexString());
-        if (!isOrganizer) throw new ForbiddenError('you must be an organizer for this team');
-
-        // delete the document
-        await Model.deleteOne({ _id: args._id });
-        return withPubSub('TEAM', 'DELETED', args._id);
-      },
+      teamDelete: async (_, args, context: Context) =>
+        withPubSub('TEAM', 'DELETED', deleteDoc({ model: 'Team', args, context })),
     },
     Subscription: {
       teamCreated: { subscribe: () => pubsub.asyncIterator(['TEAM_CREATED']) },
@@ -185,15 +156,27 @@ const teams: Collection = {
     members: { type: [mongoose.Schema.Types.ObjectId], required: true },
     organizers: { type: [mongoose.Schema.Types.ObjectId], required: true },
   }),
-  permissions: (Users, Teams) => ({
-    get: { teams: [Teams.ANY], users: [] },
-    create: { teams: [Teams.MANAGING_EDITOR], users: [] },
-    modify: { teams: [Teams.ANY], users: [] },
-    hide: { teams: [Teams.MANAGING_EDITOR], users: [] },
-    lock: { teams: [], users: [] },
-    watch: { teams: [], users: [] },
-    delete: { teams: [Teams.ADMIN], users: [] },
-  }),
+  permissions: (Users, Teams, context: Context, doc: ITeam | undefined) => {
+    // add user to the organizers array if they are an organizer for the team
+    const organizers = [];
+    const isOrganizer = doc?.organizers.map((o) => o.toHexString()).includes(context.profile._id.toHexString());
+    if (isOrganizer) organizers.push(context.profile._id);
+
+    // add user to the members array if they are an member of the team
+    const members = [];
+    const isMember = doc?.members.map((o) => o.toHexString()).includes(context.profile._id.toHexString());
+    if (isMember) members.push(context.profile._id);
+
+    return {
+      get: { teams: [Teams.ANY], users: [...organizers, ...members] },
+      create: { teams: [Teams.MANAGING_EDITOR], users: [] },
+      modify: { teams: [Teams.ADMIN], users: [...organizers] },
+      hide: { teams: [Teams.MANAGING_EDITOR], users: [...organizers] },
+      lock: { teams: [], users: [] },
+      watch: { teams: [], users: [] },
+      delete: { teams: [Teams.ADMIN], users: [...organizers] },
+    };
+  },
 };
 
 interface ITeam extends CollectionSchemaFields {
