@@ -25,8 +25,8 @@ async function watchDoc({ model, args, context }: WatchDoc) {
   const doc = await findDoc({ model, _id: args._id, context });
 
   // if the user cannot hide documents in the collection, return an error
-  if (!canDo({ action: 'watch', model, context }))
-    throw new ForbiddenError('you cannot watch documents in this collection');
+  if (!canDo({ action: 'watch', model, context, doc: doc as never }))
+    throw new ForbiddenError('you cannot watch this document');
 
   // update document watchers
   if (args.watch) {

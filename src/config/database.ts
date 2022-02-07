@@ -1,4 +1,5 @@
 import { IResolvers } from '@graphql-tools/utils';
+import { Context } from 'apollo-server-core';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import {
@@ -48,7 +49,12 @@ interface Collection {
   typeDefs: string;
   resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
   schemaFields: (users: typeof Users, teams: typeof Teams) => Record<string, unknown>;
-  permissions: (users: typeof Users, teams: typeof Teams) => CollectionPermissions;
+  permissions: (
+    users: typeof Users,
+    teams: typeof Teams,
+    context: Context,
+    doc?: unknown
+  ) => CollectionPermissions;
 }
 
 type CollectionPermissionsType = {

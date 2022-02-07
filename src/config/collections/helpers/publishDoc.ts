@@ -25,8 +25,8 @@ async function publishDoc({ model, args, context }: PublishDoc) {
   const doc = await findDoc({ model, _id: args._id, context });
 
   //if the user cannot hide documents in the collection, return an error
-  if (!canDo({ action: 'publish', model, context }))
-    throw new ForbiddenError('you cannot publish documents in this collection');
+  if (!canDo({ action: 'publish', model, context, doc: doc as never }))
+    throw new ForbiddenError('you cannot publish this document');
 
   // set the publish properties
   if (args.publish) {

@@ -1,4 +1,9 @@
 import { Context } from '../../../apollo';
+import {
+  CollectionSchemaFields,
+  PublishableCollectionSchemaFields,
+  WithPermissionsCollectionSchemaFields,
+} from '../../../mongodb/db';
 import { CollectionPermissionsActions, Teams, Users } from '../../database';
 import { requireAuthentication } from './';
 
@@ -6,15 +11,16 @@ interface CanDo {
   model: string;
   action: CollectionPermissionsActions;
   context: Context;
+  doc?: DocType;
 }
 
-function canDo({ model, action, context }: CanDo): boolean {
+function canDo({ model, action, context, doc }: CanDo): boolean {
   requireAuthentication(context);
 
   // get the permsissions for the collection
   const permissions = context.config.database.collections
     .find((collection) => collection.name === model)
-    .permissions(Users, Teams);
+    .permissions(Users, Teams, context, doc);
 
   // return whether the action can be done
   return (
@@ -24,5 +30,10 @@ function canDo({ model, action, context }: CanDo): boolean {
     permissions[action]?.users.includes(context.profile._id)
   );
 }
+
+type DocType = CollectionSchemaFields &
+  PublishableCollectionSchemaFields &
+  WithPermissionsCollectionSchemaFields &
+  Record<string, unknown>;
 
 export { canDo };
