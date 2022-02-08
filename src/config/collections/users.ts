@@ -214,13 +214,7 @@ const users: Collection = {
   resolvers: {
     Query: {
       user: (_, args, context: Context) =>
-        findDoc({
-          model: 'User',
-          _id: args._id || new mongoose.Types.ObjectId(context.profile._id),
-          context,
-          // if the auth user is in the database and has no next_step instuctions, give them access to find any users
-          accessRule: context.profile._id && !context.profile.next_step ? {} : undefined,
-        }),
+        findDoc({ model: 'User', _id: args._id || new mongoose.Types.ObjectId(context.profile._id), context }),
       userPublic: (_, args, context: Context) =>
         findDocAndPrune({
           model: 'User',
@@ -238,14 +232,7 @@ const users: Collection = {
           keep: PRUNED_USER_KEEP_FIELDS,
           fullAccess: true,
         }),
-      users: (_, args, context: Context) =>
-        findDocs({
-          model: 'User',
-          args,
-          context,
-          // if the auth user is in the database and has no next_step instuctions, give them access to find all users
-          accessRule: context.profile._id && !context.profile.next_step ? {} : undefined,
-        }),
+      users: (_, args, context: Context) => findDocs({ model: 'User', args, context }),
       usersPublic: async (_, args, context: Context) =>
         findDocsAndPrune({
           model: 'User',
@@ -290,15 +277,15 @@ const users: Collection = {
         });
 
         // check that slug is unique, and replace slug and username if it is not unique
-        let exists = !!(await findDoc({ model: 'User', by: 'slug', _id: args.slug, context }))
+        let exists = !!(await findDoc({ model: 'User', by: 'slug', _id: args.slug, context }));
         let number = 0;
         const baseSlug: string = args.slug;
         const baseUsername: string = args.username;
         while (exists) {
           number += 1;
-          args.slug = baseSlug + number
-          args.username = baseUsername + number
-          exists = !!(await findDoc({ model: 'User', by: 'slug', _id: args.slug, context }))
+          args.slug = baseSlug + number;
+          args.username = baseUsername + number;
+          exists = !!(await findDoc({ model: 'User', by: 'slug', _id: args.slug, context }));
         }
 
         // step 2: create the user document
@@ -320,7 +307,9 @@ const users: Collection = {
             The Paladin Network
           </h1>
           <p>
-            <a href="${context.profile.email}">${context.profile.name}</a> has added you to <i>The Paladin</i>'s instance of Cristata.
+            <a href="${context.profile.email}">${
+          context.profile.name
+        }</a> has added you to <i>The Paladin</i>'s instance of Cristata.
           </p>
           <p>
               <span style="font-size: 18px;">To finish activating your account, <a href="${
@@ -348,7 +337,9 @@ const users: Collection = {
           <p>
             You have 48 hours to sign in with this temporary password.
             <br />
-            If you fail to sign in before the password expires, contact <a href="${context.profile.email}">${context.profile.name}</a> to receive another temporary password.
+            If you fail to sign in before the password expires, contact <a href="${context.profile.email}">${
+          context.profile.name
+        }</a> to receive another temporary password.
           </p>
         `;
         sendEmail(
@@ -362,7 +353,7 @@ const users: Collection = {
         return withPubSub('USER', 'CREATED', user.save());
       },
       userModify: (_, { _id, input }, context: Context) => {
-        const isSelf = _id.toHexString() === context.profile._id;
+        const isSelf = _id === context.profile._id;
         return withPubSub(
           'USER',
           'MODIFIED',
