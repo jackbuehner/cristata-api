@@ -49,7 +49,7 @@ interface Collection {
   typeDefs: string;
   resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
   schemaFields: (users: typeof Users, teams: typeof Teams) => Record<string, unknown>;
-  permissions: (
+  actionAccess: (
     users: typeof Users,
     teams: typeof Teams,
     context: Context,

@@ -322,7 +322,7 @@ const satire: Collection = {
     versions: { type: {} },
     legacy_html: { type: Boolean, default: false },
   }),
-  permissions: (Users, Teams) => ({
+  actionAccess: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
     create: { teams: [Teams.ANY], users: [] },
     modify: { teams: [Teams.ANY], users: [] },

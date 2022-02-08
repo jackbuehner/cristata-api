@@ -156,7 +156,7 @@ const teams: Collection = {
     members: { type: [mongoose.Schema.Types.ObjectId], required: true },
     organizers: { type: [mongoose.Schema.Types.ObjectId], required: true },
   }),
-  permissions: (Users, Teams, context: Context, doc: ITeam | undefined) => {
+  actionAccess: (Users, Teams, context: Context, doc: ITeam | undefined) => {
     // add user to the organizers array if they are an organizer for the team
     const organizers = [];
     const isOrganizer = doc?.organizers.map((o) => o.toHexString()).includes(context.profile._id.toHexString());

@@ -598,7 +598,7 @@ const users: Collection = {
     retired: { type: Boolean, default: false },
     flags: { type: [String], default: [] },
   }),
-  permissions: (Users, Teams) => ({
+  actionAccess: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
     create: { teams: [Teams.ANY], users: [] },
     modify: { teams: [Teams.ADMIN, Teams.MANAGING_EDITOR], users: [] },

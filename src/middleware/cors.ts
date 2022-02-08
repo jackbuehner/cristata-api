@@ -10,6 +10,7 @@ const allowedOrigins = [
   'https://thepaladin.news',
   'https://new.thepaladin.news',
   'https://dev.thepaladin.news',
+  'https://4000-gray-guineafowl-g1n8eq87.ws-us30.gitpod.io',
 ];
 
 const corsConfig: cors.CorsOptions = {

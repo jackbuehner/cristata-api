@@ -635,7 +635,7 @@ const articles: Collection = {
       ],
     },
   }),
-  permissions: (Users, Teams) => ({
+  actionAccess: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
     create: { teams: [Teams.ANY], users: [] },
     modify: { teams: [Teams.ANY], users: [] },

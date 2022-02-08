@@ -172,7 +172,7 @@ const photoRequests: Collection = {
     versions: { type: {} },
     article_id: { type: mongoose.Types.ObjectId },
   }),
-  permissions: (Users, Teams) => ({
+  actionAccess: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
     create: { teams: [Teams.ANY], users: [] },
     modify: { teams: [Teams.ANY], users: [] },

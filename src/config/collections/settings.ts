@@ -133,7 +133,7 @@ const settings: Collection = {
     name: { type: String, required: true },
     setting: new mongoose.Schema({}, { strict: false }),
   }),
-  permissions: (Users, Teams) => ({
+  actionAccess: (Users, Teams) => ({
     get: { teams: [Teams.ADMIN], users: [] },
     create: { teams: [Teams.ADMIN], users: [] },
     modify: { teams: [Teams.ADMIN], users: [] },

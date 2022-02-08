@@ -160,7 +160,7 @@ const shorturls: Collection = {
     code: { type: String, required: true, unique: true },
     domain: { type: String, required: true },
   }),
-  permissions: (Users, Teams) => ({
+  actionAccess: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
     create: { teams: [Teams.SHORTURL], users: [] },
     modify: { teams: [Teams.SHORTURL], users: [] },

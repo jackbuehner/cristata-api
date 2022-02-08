@@ -291,7 +291,7 @@ const flush: Collection = {
     },
     left_advert_photo_url: { type: String },
   }),
-  permissions: (Users, Teams) => ({
+  actionAccess: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
     create: { teams: [Teams.ANY], users: [] },
     modify: { teams: [Teams.ANY], users: [] },

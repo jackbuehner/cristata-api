@@ -192,7 +192,7 @@ const photos: Collection = {
     legacy_caption: { type: String },
     legacy_thumbnail_id: { type: String },
   }),
-  permissions: (Users, Teams) => ({
+  actionAccess: (Users, Teams) => ({
     get: { teams: [Teams.ANY], users: [] },
     create: { teams: [Teams.ANY], users: [] },
     modify: { teams: [Teams.ANY], users: [] },
