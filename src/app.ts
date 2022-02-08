@@ -1,5 +1,6 @@
 import './mongodb/db';
 import './passport';
+import compression from 'compression';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -93,6 +94,9 @@ app.use(
     domain: process.env.BASE_DOMAIN,
   })
 );
+
+// use text compression for responses
+app.use(compression())
 
 // initialize passport
 app.use(passport.initialize({ userProperty: 'user' }));
