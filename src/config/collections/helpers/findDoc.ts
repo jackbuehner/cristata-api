@@ -18,9 +18,12 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
+   // whether the collection docs contain the standard teams and user permissions object
+   const withStandardPermissions = context.config.database.collections.find(col => col.name === model).withPermissions
+
   // access filter
   const accessFilter =
-    fullAccess || context.profile.teams.includes(Teams.ADMIN)
+    fullAccess || !withStandardPermissions || context.profile.teams.includes(Teams.ADMIN)
       ? {}
       : accessRule
       ? accessRule

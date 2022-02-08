@@ -33,9 +33,12 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
 
   if (!offset && !page) page = 1; // default to page 1
 
+  // whether the collection docs contain the standard teams and user permissions object
+  const withStandardPermissions = context.config.database.collections.find(col => col.name === model).withPermissions
+
   // access filter
   const accessFilter =
-    fullAccess || context.profile.teams.includes(Teams.ADMIN)
+    fullAccess || !withStandardPermissions || context.profile.teams.includes(Teams.ADMIN)
       ? {}
       : accessRule
       ? accessRule
