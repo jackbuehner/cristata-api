@@ -353,7 +353,7 @@ const users: Collection = {
         return withPubSub('USER', 'CREATED', user.save());
       },
       userModify: (_, { _id, input }, context: Context) => {
-        const isSelf = _id === context.profile._id;
+        const isSelf = _id.toHexString() === context.profile._id.toHexString();
         return withPubSub(
           'USER',
           'MODIFIED',
