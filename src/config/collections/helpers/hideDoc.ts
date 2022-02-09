@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
-import { ForbiddenError } from 'apollo-server-errors';
+import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
 
 interface HideDoc {
@@ -24,6 +24,13 @@ async function hideDoc({ model, args, context, publishable }: HideDoc) {
 
   // get the document
   const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context });
+
+  // throw error if user cannot view the doc
+  if (!doc)
+    throw new ApolloError(
+      'the document you are trying to hide does not exist or you do not have access',
+      'DOCUMENT_NOT_FOUND'
+    );
 
   // if the document is currently published, do not modify unless user can publish
   if (publishable) {
