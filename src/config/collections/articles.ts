@@ -316,7 +316,6 @@ const articles: Collection = {
           model: 'Article',
           args,
           context,
-          accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
         }),
       articlesPublic: async (_, args, context: Context) => {
         // get the ids of the featured articles
@@ -635,16 +634,20 @@ const articles: Collection = {
       ],
     },
   }),
-  actionAccess: (Users, Teams) => ({
-    get: { teams: [Teams.ANY], users: [] },
-    create: { teams: [Teams.ANY], users: [] },
-    modify: { teams: [Teams.ANY], users: [] },
-    hide: { teams: [Teams.ANY], users: [] },
-    lock: { teams: [Teams.ADMIN], users: [] },
-    watch: { teams: [Teams.ANY], users: [] },
-    publish: { teams: [Teams.ADMIN], users: [] },
-    delete: { teams: [Teams.ADMIN], users: [] },
-  }),
+  actionAccess: (Users, Teams, context: Context) => {
+    const users = []
+    if (context.profile.teams.includes(Teams.MANAGING_EDITOR)) users.push(context.profile._id)
+    return {
+      get: { teams: [Teams.ANY], users: [...users] },
+      create: { teams: [Teams.ANY], users: [] },
+      modify: { teams: [Teams.ANY], users: [] },
+      hide: { teams: [Teams.ANY], users: [] },
+      lock: { teams: [Teams.ADMIN], users: [] },
+      watch: { teams: [Teams.ANY], users: [] },
+      publish: { teams: [Teams.ADMIN], users: [] },
+      delete: { teams: [Teams.ADMIN], users: [] },
+    }
+  },
 };
 
 enum Stage {
