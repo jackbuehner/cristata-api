@@ -35,6 +35,8 @@ const PRUNED_ARTICLE_KEEP_FIELDS = [
   'timestamps.published_at',
   'timestamps.updated_at',
   'people.authors',
+  'people.editors.primary',
+  'people.editors.copy',
   'name',
   'categories',
   'tags',
@@ -53,6 +55,17 @@ const PRUNED_ARTICLE_KEEP_FIELDS = [
   'layout',
   'template',
 ];
+
+async function getPrunedUser(arr: []) {
+  // if there are no users, return an empty array
+  if (arr.length === 0) return [];
+  // otherwise, get and prune the user profile for each user
+  const users = await getUsers(arr);
+  return pruneDocs({
+    input: isArray(users) ? users : [users],
+    keep: PRUNED_USER_KEEP_FIELDS,
+  });
+}
 
 const articles: Collection = {
   name: 'Article',
@@ -123,6 +136,12 @@ const articles: Collection = {
 
     type PrunedArticlePeople {
       authors: [PrunedUser]!
+      editors: PrunedArticleEditors!
+    }
+
+    type PrunedArticleEditors {
+      primary: [PrunedUser]!
+      copy: [PrunedUser]!
     }
 
     type PrunedArticleTimestamps {
@@ -574,16 +593,11 @@ const articles: Collection = {
       copy: ({ copy }) => getUsers(copy),
     },
     PrunedArticlePeople: {
-      authors: async ({ authors }) => {
-        // if there are no authers, return an empty array
-        if (authors.length === 0) return [];
-        // otherwise, get and prune the user profile for each author
-        const users = await getUsers(authors);
-        return pruneDocs({
-          input: isArray(users) ? users : [users],
-          keep: PRUNED_USER_KEEP_FIELDS,
-        });
-      },
+      authors: async ({ authors }) => getPrunedUser(authors),
+    },
+    PrunedArticleEditors: {
+      primary: ({ primary }) => getPrunedUser(primary),
+      copy: ({ copy }) => getPrunedUser(copy),
     },
     Subscription: {
       articleCreated: { subscribe: () => pubsub.asyncIterator(['ARTICLE_CREATED']) },
@@ -635,8 +649,8 @@ const articles: Collection = {
     },
   }),
   actionAccess: (Users, Teams, context: Context) => {
-    const users = []
-    if (context.profile.teams.includes(Teams.MANAGING_EDITOR)) users.push(context.profile._id)
+    const users = [];
+    if (context.profile.teams.includes(Teams.MANAGING_EDITOR)) users.push(context.profile._id);
     return {
       get: { teams: [Teams.ANY], users: [...users] },
       create: { teams: [Teams.ANY], users: [] },
@@ -646,7 +660,7 @@ const articles: Collection = {
       watch: { teams: [Teams.ANY], users: [] },
       publish: { teams: [Teams.ADMIN], users: [] },
       delete: { teams: [Teams.ADMIN], users: [] },
-    }
+    };
   },
 };
 
