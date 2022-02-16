@@ -10,6 +10,7 @@ import {
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
 import { merge } from 'merge-anything';
+import { convertNullPrototype } from '../../../utils/convertNullPrototype';
 
 interface ModifyDoc<DocType, DataType> {
   model: string;
@@ -49,6 +50,9 @@ async function modifyDoc<DocType, DataType>({
       'DOCUMENT_NOT_FOUND'
     );
 
+  // merge the current doc and new data
+  data = merge(currentDoc, convertNullPrototype(data));
+
   // if the user does not have permission to modify, throw an error
   if (!fullAccess && !canDo({ action: 'modify', model, context, doc: currentDoc }))
     throw new ForbiddenError('you cannot modify this document');
@@ -63,14 +67,10 @@ async function modifyDoc<DocType, DataType>({
       // set updated published document metadata
       data = merge(data, {
         people: {
-          ...currentDoc.people,
-          ...data.people,
           published_by: [...new Set([...currentDoc.people.published_by, context.profile._id])],
           last_published_by: context.profile._id,
         },
         timestamps: {
-          ...currentDoc.timestamps,
-          ...data.timestamps,
           updated_at: new Date().toISOString(),
         },
       });
@@ -80,23 +80,15 @@ async function modifyDoc<DocType, DataType>({
   // set modification metadata
   data = merge(data, {
     people: {
-      ...currentDoc.people,
-      ...data.people,
       modified_by: [...new Set([...currentDoc.people.modified_by, context.profile._id])], // adds the user to the array, and then removes duplicates
       last_modified_by: context.profile._id,
     },
     timestamps: {
-      ...currentDoc.timestamps,
-      ...data.timestamps,
       modified_at: new Date().toISOString(),
     },
     history: currentDoc.history
       ? [...currentDoc.history, { type: 'patched', user: context.profile._id, at: new Date().toISOString() }]
       : [{ type: 'patched', user: context.profile._id, at: new Date().toISOString() }],
-    permissions: {
-      ...currentDoc.permissions,
-      ...data.permissions,
-    },
   });
 
   // set the slug if the document is becoming published and it does not already have one
