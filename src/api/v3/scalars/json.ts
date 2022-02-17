@@ -2,7 +2,7 @@ import { GraphQLScalarType } from 'graphql';
 import { converObjIsoDatesToDates } from '../../../utils/converObjIsoDatesToDates';
 import { convertStringsToObjIds } from '../../../utils/convertStringsToObjIds';
 
-const JSON = new GraphQLScalarType({
+const json = new GraphQLScalarType({
   name: 'JSON',
   description: 'JSON string',
   serialize(value) {
@@ -13,4 +13,4 @@ const JSON = new GraphQLScalarType({
   },
 });
 
-export { JSON };
+export { json };

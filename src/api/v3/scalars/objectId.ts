@@ -1,7 +1,7 @@
 import { GraphQLScalarType } from 'graphql';
 import mongoose from 'mongoose';
 
-const ObjectId = new GraphQLScalarType({
+const objectId = new GraphQLScalarType({
   name: 'ObjectID',
   description: 'mongoose ObjectID scalar type',
   serialize(ObjectID: mongoose.Types.ObjectId) {
@@ -12,4 +12,4 @@ const ObjectId = new GraphQLScalarType({
   },
 });
 
-export { ObjectId };
+export { objectId };

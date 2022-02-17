@@ -8,4 +8,4 @@ const Void = new GraphQLScalarType({
   parseLiteral: () => null,
 });
 
-export { Void };
+export { Void as void };
