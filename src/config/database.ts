@@ -3,15 +3,16 @@ import { Context } from 'apollo-server-core';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import {
-  users,
-  teams,
-  satire,
   articles,
-  shorturls,
-  settings,
+  externalAccounts,
+  flush,
   photoRequests,
   photos,
-  flush,
+  satire,
+  settings,
+  shorturls,
+  teams,
+  users,
 } from './collections';
 
 // load environmental variables
@@ -25,7 +26,18 @@ const database = {
     database: process.env.MONGO_DB_NAME,
     options: `retryWrites=true&w=majority`,
   },
-  collections: [users, teams, satire, articles, shorturls, settings, photoRequests, photos, flush],
+  collections: [
+    users,
+    teams,
+    satire,
+    articles,
+    shorturls,
+    settings,
+    photoRequests,
+    photos,
+    flush,
+    externalAccounts,
+  ],
 };
 
 const Teams = {
