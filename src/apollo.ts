@@ -24,7 +24,7 @@ import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
 import { converObjIsoDatesToDates } from './utils/converObjIsoDatesToDates';
 import { convertStringsToObjIds } from './utils/convertStringsToObjIds';
-import { requireAuthentication } from './config/collections/helpers';
+import { requireAuthentication } from './api/v3/helpers';
 export const gql = (s: TemplateStringsArray): string => `${s}`;
 
 const dateScalar = new GraphQLScalarType({

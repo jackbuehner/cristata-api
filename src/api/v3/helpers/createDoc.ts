@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
-import { requireAuthentication } from './';
+import { requireAuthentication } from '.';
 
 interface CreateDoc {
   model: string;

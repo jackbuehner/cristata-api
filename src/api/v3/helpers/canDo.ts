@@ -4,8 +4,8 @@ import {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
-import { CollectionPermissionsActions, Teams, Users } from '../../database';
-import { requireAuthentication } from './';
+import { CollectionPermissionsActions, Teams, Users } from '../../../config/database';
+import { requireAuthentication } from '.';
 
 interface CanDo {
   model: string;

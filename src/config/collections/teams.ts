@@ -14,7 +14,7 @@ import {
   modifyDoc,
   watchDoc,
   withPubSub,
-} from './helpers';
+} from '../../api/v3/helpers';
 
 const teams: Collection = {
   name: 'Team',

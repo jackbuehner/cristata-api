@@ -13,7 +13,7 @@ import {
   modifyDoc,
   watchDoc,
   withPubSub,
-} from './helpers';
+} from '../../api/v3/helpers';
 import { customAlphabet } from 'nanoid';
 import { UserInputError } from 'apollo-server-errors';
 

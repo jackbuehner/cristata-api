@@ -21,7 +21,7 @@ import {
   publishDoc,
   watchDoc,
   withPubSub,
-} from './helpers';
+} from '../../api/v3/helpers';
 
 const satire: Collection = {
   name: 'Satire',

@@ -20,7 +20,7 @@ import {
   publishDoc,
   watchDoc,
   withPubSub,
-} from './helpers';
+} from '../../api/v3/helpers';
 import { PRUNED_ARTICLE_KEEP_FIELDS } from './articles';
 
 const flush: Collection = {

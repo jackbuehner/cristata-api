@@ -9,7 +9,7 @@ import {
   getCollectionActionAccess,
   requireAuthentication,
   withPubSub,
-} from './helpers';
+} from '../../api/v3/helpers';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
 

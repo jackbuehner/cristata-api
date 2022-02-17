@@ -17,7 +17,7 @@ import {
   requireAuthentication,
   watchDoc,
   withPubSub,
-} from './helpers';
+} from '../../api/v3/helpers';
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
 import { sendEmail } from '../../utils/sendEmail';

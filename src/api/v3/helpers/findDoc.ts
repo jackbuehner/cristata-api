@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
 import mongoose, { FilterQuery } from 'mongoose';
-import { Teams, Users } from '../../database';
+import { Teams, Users } from '../../../config/database';
 import { CollectionDoc, requireAuthentication } from '.';
 
 interface FindDoc {
@@ -18,8 +18,10 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
-   // whether the collection docs contain the standard teams and user permissions object
-   const withStandardPermissions = context.config.database.collections.find(col => col.name === model).withPermissions
+  // whether the collection docs contain the standard teams and user permissions object
+  const withStandardPermissions = context.config.database.collections.find(
+    (col) => col.name === model
+  ).withPermissions;
 
   // access filter
   const accessFilter =

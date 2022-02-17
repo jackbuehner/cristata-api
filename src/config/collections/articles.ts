@@ -22,7 +22,7 @@ import {
   publishDoc,
   watchDoc,
   withPubSub,
-} from './helpers';
+} from '../../api/v3/helpers';
 import { IUserDoc, PRUNED_USER_KEEP_FIELDS } from './users';
 import { isArray } from '../../utils/isArray';
 import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
