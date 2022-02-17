@@ -1,11 +1,4 @@
-import { Context, getUsers, gql, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
-import { Collection, Teams } from '../database';
 import mongoose from 'mongoose';
-import {
-  CollectionSchemaFields,
-  PublishableCollectionSchemaFields,
-  WithPermissionsCollectionSchemaFields,
-} from '../../mongodb/db';
 import {
   CollectionDoc,
   createDoc,
@@ -22,6 +15,14 @@ import {
   watchDoc,
   withPubSub,
 } from '../../api/v3/helpers';
+import { Context, getUsers, gql, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
+import {
+  CollectionSchemaFields,
+  PublishableCollectionSchemaFields,
+  WithPermissionsCollectionSchemaFields,
+} from '../../mongodb/db';
+import { slugify } from '../../utils/slugify';
+import { Collection, Teams } from '../database';
 
 const satire: Collection = {
   name: 'Satire',
@@ -266,7 +267,21 @@ const satire: Collection = {
       satireCreate: async (_, args, context: Context) =>
         withPubSub('SATIRE', 'CREATED', createDoc({ model: 'Satire', args, context, withPermissions: true })),
       satireModify: (_, { _id, input }, context: Context) =>
-        withPubSub('SATIRE', 'MODIFIED', modifyDoc({ model: 'Satire', data: { ...input, _id }, context })),
+        withPubSub(
+          'SATIRE',
+          'MODIFIED',
+          modifyDoc({
+            model: 'Satire',
+            data: { ...input, _id },
+            context,
+            modify: async (currentDoc: ISatire, data: Partial<ISatire>) => {
+              // set the slug if the document is being published and does not already have one
+              if (data.stage === Stage.PUBLISHED && (!data.slug || !currentDoc.slug)) {
+                data.slug = slugify(input.name || currentDoc.name);
+              }
+            },
+          })
+        ),
       satireHide: async (_, args, context: Context) =>
         withPubSub('SATIRE', 'MODIFIED', hideDoc({ model: 'Satire', args, context })),
       satireLock: async (_, args, context: Context) =>
