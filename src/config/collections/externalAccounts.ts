@@ -1,4 +1,4 @@
-import { Context, gql } from '../../apollo';
+import { Context } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields } from '../../mongodb/db';
@@ -8,6 +8,7 @@ import {
   findDoc,
   findDocs,
   getCollectionActionAccess,
+  gql,
   hideDoc,
   modifyDoc,
 } from '../../api/v3/helpers';

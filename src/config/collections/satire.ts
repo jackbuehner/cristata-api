@@ -8,6 +8,8 @@ import {
   findDocs,
   findDocsAndPrune,
   getCollectionActionAccess,
+  getUsers,
+  gql,
   hideDoc,
   lockDoc,
   modifyDoc,
@@ -15,7 +17,7 @@ import {
   watchDoc,
   withPubSub,
 } from '../../api/v3/helpers';
-import { Context, getUsers, gql, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
+import { Context, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
 import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,

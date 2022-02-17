@@ -1,4 +1,4 @@
-import { Context, getUsers, gql, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
+import { Context, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
 import { Collection, Teams } from '../database';
 import mongoose from 'mongoose';
 import {
@@ -15,6 +15,8 @@ import {
   findDocs,
   findDocsAndPrune,
   getCollectionActionAccess,
+  getUsers,
+  gql,
   hideDoc,
   lockDoc,
   modifyDoc,

@@ -1,4 +1,4 @@
-import { Context, gql, pubsub } from '../../apollo';
+import { Context, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose, { PassportLocalDocument } from 'mongoose';
 import { CollectionSchemaFields, GitHubTeamNodeID } from '../../mongodb/db';
@@ -11,6 +11,7 @@ import {
   findDocs,
   findDocsAndPrune,
   getCollectionActionAccess,
+  gql,
   hideDoc,
   lockDoc,
   modifyDoc,

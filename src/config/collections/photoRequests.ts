@@ -1,4 +1,4 @@
-import { collectionPeopleResolvers, Context, getUsers, gql, pubsub } from '../../apollo';
+import { collectionPeopleResolvers, Context, pubsub } from '../../apollo';
 import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
@@ -8,6 +8,8 @@ import {
   findDoc,
   findDocs,
   getCollectionActionAccess,
+  getUsers,
+  gql,
   hideDoc,
   lockDoc,
   modifyDoc,

@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import aws from 'aws-sdk';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
-  ApolloError,
   ApolloServerPluginDrainHttpServer,
   ApolloServerPluginLandingPageGraphQLPlayground,
   ContextFunction,
@@ -10,317 +8,18 @@ import {
 import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
 import { GraphQLRequestContext, GraphQLRequestListener } from 'apollo-server-plugin-base';
 import { Application } from 'express';
-import { execute, GraphQLScalarType, subscribe } from 'graphql';
+import { execute, subscribe } from 'graphql';
 import { graphqls2s } from 'graphql-s2s';
 import { PubSub } from 'graphql-subscriptions';
 import { Server } from 'http';
 import { merge } from 'merge-anything';
-import mongoose from 'mongoose';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import ws from 'ws';
 import { config } from './config';
-import { Teams } from './config/database';
 import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
-import { converObjIsoDatesToDates } from './utils/converObjIsoDatesToDates';
-import { convertStringsToObjIds } from './utils/convertStringsToObjIds';
-import { requireAuthentication } from './api/v3/helpers';
-export const gql = (s: TemplateStringsArray): string => `${s}`;
-
-const dateScalar = new GraphQLScalarType({
-  name: 'Date',
-  description: 'ISO date string scalar type',
-  serialize(value) {
-    return new Date(value).toISOString();
-  },
-  parseValue(value) {
-    return new Date(value).toISOString();
-  },
-});
-
-const mongooseObjectIdScalar = new GraphQLScalarType({
-  name: 'ObjectID',
-  description: 'mongoose ObjectID scalar type',
-  serialize(ObjectID: mongoose.Types.ObjectId) {
-    return ObjectID.toHexString(); // Convert outgoing ObjectID to hex string
-  },
-  parseValue(_id) {
-    return new mongoose.Types.ObjectId(_id); // Convert incoming hex string id to mongoose ObjectID
-  },
-});
-
-const jsonScalar = new GraphQLScalarType({
-  name: 'JSON',
-  description: 'JSON string',
-  serialize(value) {
-    return JSON.stringify(value);
-  },
-  parseValue(value) {
-    return converObjIsoDatesToDates(convertStringsToObjIds(JSON.parse(value)));
-  },
-});
-
-const voidScalar = new GraphQLScalarType({
-  name: 'Void',
-  description: 'Void custom scalar',
-  serialize: () => null,
-  parseValue: () => null,
-  parseLiteral: () => null,
-});
-
-const coreTypeDefs = gql`
-  scalar Date
-  scalar ObjectID
-  scalar JSON
-  scalar Void
-
-  type Paged<T> {
-    docs: [T]!
-    totalDocs: Int
-    limit: Int
-    page: Int
-    totalPages: Int
-    pagingCounter: Int
-    hasPrevPage: Boolean
-    hasNextPage: Boolean
-    prevPage: Int
-    nextPage: Int
-  }
-
-  type Subscription {
-    void: Void 
-  }
-`;
-
-const collectionTypeDefs = gql`
-  type Collection {
-    _id: ObjectID!
-    timestamps: CollectionTimestamps
-    people: CollectionPeople
-    hidden: Boolean!
-    locked: Boolean!
-    history: [CollectionHistory]
-  }
-
-  type WithPermissions {
-    permissions: CollectionPermissions!
-  }
-
-  type CollectionPermissions {
-    teams: [String]!
-    users: [User]!
-  }
-
-  input WithPermissionsInput {
-    permissions: CollectionPermissionsInput
-  }
-
-  input CollectionPermissionsInput {
-    teams: [ObjectID]
-    users: [ObjectID]
-  }
-
-  type PublishableCollection inherits Collection {
-    timestamps: PublishableCollectionTimestamps
-    people: PublishableCollectionPeople
-  }
-
-  type CollectionTimestamps {
-    created_at: Date!
-    modified_at: Date!
-  }
-
-  type PublishableCollectionTimestamps inherits CollectionTimestamps {
-    published_at: Date!
-    updated_at: Date!
-  }
-
-  type CollectionPeople {
-    created_by: User
-    modified_by: [User]
-    last_modified_by: User
-    watching: [User]
-  }
-
-  type PublishableCollectionPeople inherits CollectionPeople {
-    published_by: [User]
-    last_published_by: User
-  }
-
-  type CollectionHistory {
-    type: String!
-    user: User
-    at: Date!
-  }
-
-  type CollectionActionAccess {
-    get: Boolean!
-    create: Boolean!
-    modify: Boolean!
-    hide: Boolean!
-    lock: Boolean!
-    watch: Boolean!
-    """
-    Only for collectins that allow publishing
-    """
-    publish: Boolean
-    """
-    Only for the users collection
-    """
-    deactivate: Boolean
-    delete: Boolean!
-  }
-
-  type CollectionActivity {
-    _id: ObjectID!,
-    name: String,
-    in: String!,
-    user: User, # the user id in the database is sometimes missing or corrupted
-    action: String!,
-    at: Date!, #// TODO: this might not actually always be there
-  }
-
-  type S3SignedResponse {
-    signedRequest: String!,
-    location: String!,
-  }
-
-  type Query {
-    """
-    Get the recent activity in the specified collections
-    """
-    collectionActivity(limit: Int!, collections: [String], exclude: [String], page: Int): Paged<CollectionActivity>
-    """
-    Get a signed s3 URL for uploading photos and documents to an existing s3 bucket.
-    """
-    s3Sign(fileName: String!, fileType: String!, s3Bucket: String!): S3SignedResponse
-  }
-`;
-
-const coreResolvers = {
-  Date: dateScalar,
-  ObjectID: mongooseObjectIdScalar,
-  JSON: jsonScalar,
-  Void: voidScalar,
-  Query: {
-    collectionActivity: async (_, { limit, collections, exclude, page }, context: Context) => {
-      let collectionNames = config.database.collections.map((col) => col.name);
-      if (collections) collectionNames = collectionNames.filter((name) => collections.includes(name));
-      else if (exclude) collectionNames = collectionNames.filter((name) => !exclude.includes(name));
-
-      const collectionNamesPluralized = collectionNames.map((name) => mongoose.pluralize()(name));
-
-      const Model = mongoose.model(collectionNames[0]);
-
-      const pipeline: mongoose.PipelineStage[] = [
-        { $addFields: { in: collectionNamesPluralized[0] } },
-        ...collectionNamesPluralized.map((collectionName) => ({
-          $unionWith: {
-            coll: collectionName,
-            pipeline: [{ $addFields: { in: collectionName } }],
-          },
-        })),
-        { $unwind: { path: '$history' } },
-        {
-          $project: {
-            // _id: projected by default
-            in: 1,
-            name: 1,
-            'permissions.teams': 1,
-            'permissions.users': 1,
-            user: '$history.user',
-            action: '$history.type',
-            at: '$history.at',
-          },
-        },
-        { $sort: { at: -1 } },
-        {
-          $match: context.profile.teams.includes(Teams.ADMIN)
-            ? {}
-            : {
-                $or: [
-                  { 'permissions.teams': { $in: context.profile.teams } },
-                  { 'permissions.users': context.profile._id },
-                ],
-              },
-        },
-        { $limit: limit },
-      ];
-
-      const aggregate = Model.aggregate(pipeline);
-
-      // @ts-expect-error aggregatePaginate DOES exist.
-      // The types for the plugin have not been updated for newer versions of mongoose.
-      return Model.aggregatePaginate(aggregate, { page, limit });
-    },
-    s3Sign: async (_, { fileName, fileType, s3Bucket }, context: Context) => {
-      requireAuthentication(context);
-      const s3 = new aws.S3();
-
-      const s3Params = {
-        Bucket: s3Bucket,
-        Key: fileName,
-        Expires: 300, // 5 minutes for upload (some photos are big)
-        ContentType: fileType,
-        ACL: 'public-read',
-      };
-
-      // wrap the s3 callback in a promise so we can return values from the callback
-      return await new Promise((resolve) => {
-        // get a signed url for putting a file in an s3 bucket
-        s3.getSignedUrl('putObject', s3Params, (err, signedRequest) => {
-          if (err) {
-            console.error(err);
-            throw new ApolloError(err.message, 'AWS_S3_ERROR');
-          }
-          resolve({
-            signedRequest,
-            location: `https://${s3Bucket}.s3.amazonaws.com/${fileName}`,
-          });
-        });
-      });
-    },
-  },
-  CollectionActivity: {
-    user: ({ user }) => getUsers(user),
-  },
-  CollectionPermissions: {
-    users: ({ users }) => getUsers(users),
-  },
-};
-
-async function getUsers(_ids: mongoose.Types.ObjectId | mongoose.Types.ObjectId[]) {
-  // if it is undefined
-  if (!_ids) return null;
-  // if it is an array of ObjectId
-  if (Array.isArray(_ids)) {
-    return await Promise.all(_ids.map(async (_id) => await mongoose.model('User').findById(_id)));
-  }
-  // if it just a single ObjectId
-  const _id = _ids;
-  return await mongoose.model('User').findById(_id);
-}
-
-const collectionPeopleResolvers = {
-  created_by: ({ created_by }) => getUsers(created_by),
-  modified_by: ({ modified_by }) => getUsers(modified_by),
-  last_modified_by: ({ last_modified_by }) => getUsers(last_modified_by),
-  watching: ({ watching }) => getUsers(watching),
-};
-
-const publishableCollectionPeopleResolvers = {
-  ...collectionPeopleResolvers,
-  published_by: ({ published_by }) => getUsers(published_by),
-  last_published_by: ({ last_published_by }) => getUsers(last_published_by),
-};
-
-const collectionResolvers = {
-  CollectionPeople: collectionPeopleResolvers,
-  PublishableCollectionPeople: publishableCollectionPeopleResolvers,
-  CollectionHistory: {
-    user: ({ user }) => getUsers(user),
-  },
-};
+import { collectionTypeDefs, coreTypeDefs, s3TypeDefs } from './api/v3/typeDefs';
+import { collectionResolvers, coreResolvers, s3Resolvers } from './api/v3/resolvers';
 
 // initialize a subscription server for graphql subscriptions
 const apolloWSS = new ws.Server({ noServer: true, path: '/v3' });
@@ -341,6 +40,7 @@ async function apollo(app: Application, server: Server): Promise<void> {
         [
           coreTypeDefs,
           collectionTypeDefs,
+          s3TypeDefs,
           ...config.database.collections.map((collection) => collection.typeDefs),
         ].join()
       ),
@@ -348,6 +48,7 @@ async function apollo(app: Application, server: Server): Promise<void> {
 
     const resolvers = merge(
       coreResolvers,
+      s3Resolvers,
       collectionResolvers,
       ...config.database.collections.map((collection) => collection.resolvers)
     );
@@ -435,13 +136,15 @@ interface Context {
   profile?: IDeserializedUser;
 }
 
+const collectionPeopleResolvers = collectionResolvers.CollectionPeople;
+const publishableCollectionPeopleResolvers = collectionResolvers.PublishableCollectionPeople;
+
 export type { Context };
 export {
   apollo,
   apolloWSS,
   collectionPeopleResolvers,
   collectionTypeDefs,
-  getUsers,
   publishableCollectionPeopleResolvers,
   pubsub,
 };

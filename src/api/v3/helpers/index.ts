@@ -20,6 +20,8 @@ export { findDocsAndPrune } from './findDocsAndPrune';
 export { getCollectionActionAccess } from './getCollectionActionAccess';
 export { publishDoc } from './publishDoc';
 export { withPubSub } from './withPubSub';
+export { getUsers } from './getUsers';
+export { gql } from './gql';
 
 type CollectionDoc = CollectionSchemaFields &
   Partial<PublishableCollectionSchemaFields> &
