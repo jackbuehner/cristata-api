@@ -12,9 +12,6 @@ const generateCode = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 7);
 dotenv.config();
 const shortURLTeamID = Teams.SHORTURL;
 
-// define model
-const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');
-
 /**
  * Post a new short url.
  *
@@ -26,6 +23,8 @@ const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');
  * @param user the getting user's profile
  */
 async function newShortURL(data: IShortURL, user: IDeserializedUser, res: Response = null): Promise<void> {
+  const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');
+
   try {
     if (user.teams.includes(shortURLTeamID)) {
       // generate a code
@@ -61,6 +60,8 @@ async function newShortURL(data: IShortURL, user: IDeserializedUser, res: Respon
  * @param res - the response for an HTTP request
  */
 async function getShortURL(code: string, res: Response = null): Promise<void> {
+  const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');
+
   try {
     // find the document using the shorturl code
     const document = await ShortURL.findOne({ code });
@@ -86,6 +87,8 @@ async function getShortURL(code: string, res: Response = null): Promise<void> {
  * @param res - the response for an HTTP request
  */
 async function getShortURLs(res: Response = null): Promise<void> {
+  const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');
+
   try {
     // get all shorturl documents by passing an empty filter ({})
     const documents = await ShortURL.find({});
@@ -119,6 +122,8 @@ async function patchShortURL(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
+  const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');
+
   try {
     if (user.teams.includes(shortURLTeamID)) {
       // add timestamps and user id to the changed data
@@ -160,6 +165,8 @@ async function patchShortURL(
  * @param res - the response for an HTTP request
  */
 async function deleteShortURL(code: string, user: IDeserializedUser, res = null): Promise<void> {
+  const ShortURL = mongoose.model<IShortURLDoc>('ShortURL');
+
   try {
     if (user.teams.includes(shortURLTeamID)) {
       // delete the short url document

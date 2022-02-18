@@ -3,9 +3,6 @@ import { Response } from 'express';
 import { IPhoto, IPhotoDoc } from '../../../mongodb/photos.model';
 import { IDeserializedUser } from '../../../passport';
 
-// define model
-const Photo = mongoose.model<IPhotoDoc>('Photo');
-
 /**
  * Post a new photo.
  *
@@ -13,6 +10,8 @@ const Photo = mongoose.model<IPhotoDoc>('Photo');
  * @param user - the getting user's profile
  */
 async function newPhoto(data: IPhoto, user: IDeserializedUser, res: Response = null): Promise<void> {
+  const Photo = mongoose.model<IPhotoDoc>('Photo');
+
   const photo = new Photo({
     // set people data based on who created the document
     people: {
@@ -40,6 +39,8 @@ async function newPhoto(data: IPhoto, user: IDeserializedUser, res: Response = n
  * @param user - the getting user's profile
  */
 async function getPhotos(user: IDeserializedUser, query: URLSearchParams, res: Response = null): Promise<void> {
+  const Photo = mongoose.model<IPhotoDoc>('Photo');
+
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
@@ -68,6 +69,8 @@ async function getPhotos(user: IDeserializedUser, query: URLSearchParams, res: R
  * @param res - the response for an HTTP request
  */
 async function getPhoto(id: string, user: IDeserializedUser, res: Response = null): Promise<IPhotoDoc> {
+  const Photo = mongoose.model<IPhotoDoc>('Photo');
+
   // get the document
   try {
     const photo = await Photo.findById(id, {});
@@ -97,6 +100,8 @@ async function patchPhoto(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
+  const Photo = mongoose.model<IPhotoDoc>('Photo');
+
   // if the current document does not exist, do not continue (use POST to create an document)
   const currentPhoto = (await getPhoto(id, user)).toObject();
   if (!currentPhoto) {
@@ -152,6 +157,8 @@ async function patchPhoto(
  * @param res - the response for an HTTP request
  */
 async function deletePhoto(id: string, user: IDeserializedUser, res = null): Promise<void> {
+  const Photo = mongoose.model<IPhotoDoc>('Photo');
+
   // atempt to delete article
   try {
     await Photo.deleteOne({ _id: id });

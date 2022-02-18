@@ -11,9 +11,6 @@ import { Teams } from '../../../config/database';
 dotenv.config();
 const adminTeamID = Teams.ADMIN;
 
-// define model
-const Satire = mongoose.model<ISatireDoc>('Satire');
-
 /**
  * Post a new satire.
  *
@@ -21,6 +18,8 @@ const Satire = mongoose.model<ISatireDoc>('Satire');
  * @param user - the getting user's profile
  */
 async function newSatire(data: ISatire, user: IDeserializedUser, res: Response = null): Promise<void> {
+  const Satire = mongoose.model<ISatireDoc>('Satire');
+
   const satire = new Satire({
     // set people data based on who created the document
     permissions: {
@@ -56,6 +55,8 @@ async function getSatires(
   query: URLSearchParams,
   res: Response = null
 ): Promise<void> {
+  const Satire = mongoose.model<ISatireDoc>('Satire');
+
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
@@ -131,6 +132,8 @@ const publicUnset = [
  * Get all of the published satire in the satire collection.
  */
 async function getPublicSatires(query: URLSearchParams, res: Response = null): Promise<void> {
+  const Satire = mongoose.model<ISatireDoc>('Satire');
+
   // expose queries
   const authors = query.getAll('author').map((author) => parseInt(author)); // convert each string to an integer
   const page = parseInt(query.get('page')) || 1;
@@ -167,6 +170,8 @@ async function getPublicSatires(query: URLSearchParams, res: Response = null): P
  * Get all a published satire from the satire collection.
  */
 async function getPublicSatire(slug: string, res: Response = null): Promise<void> {
+  const Satire = mongoose.model<ISatireDoc>('Satire');
+
   try {
     const satire = await Satire.aggregate([
       {
@@ -202,6 +207,8 @@ async function getSatire(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<ISatireDoc> {
+  const Satire = mongoose.model<ISatireDoc>('Satire');
+
   // if by is name, use 'name' as method; otherwise, use '_id' as method
   const method = by === 'name' ? 'name' : '_id';
 
@@ -262,6 +269,8 @@ async function patchSatire(
   canPublish = false,
   res: Response = null
 ): Promise<void> {
+  const Satire = mongoose.model<ISatireDoc>('Satire');
+
   // if the current document does not exist, do not continue (use POST to create an document)
   const currentSatire = (await getSatire(id, 'id', user)).toObject();
   if (!currentSatire) {
@@ -357,6 +366,8 @@ async function deleteSatire(
   canPublish = false,
   res = null
 ): Promise<void> {
+  const Satire = mongoose.model<ISatireDoc>('Satire');
+
   // if the satire's current state is uploaded or published, do not patch satire unless user canPublish
   const currentSatire = (await getSatire(id, 'id', user)).toObject();
   if (currentSatire) {
@@ -391,6 +402,8 @@ async function deleteSatire(
  * @param res - the response for an HTTP request
  */
 async function getStageCounts(res = null): Promise<void> {
+  const Satire = mongoose.model<ISatireDoc>('Satire');
+
   try {
     // @ts-expect-error _id should be a string with reference to another variable
     const satireStageCounts = await Satire.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);

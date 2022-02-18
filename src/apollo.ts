@@ -15,11 +15,11 @@ import { Server } from 'http';
 import { merge } from 'merge-anything';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import ws from 'ws';
-import { config } from './config';
 import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
 import { collectionTypeDefs, coreTypeDefs, s3TypeDefs } from './api/v3/typeDefs';
 import { collectionResolvers, coreResolvers, s3Resolvers } from './api/v3/resolvers';
+import { Configuration } from './types/config';
 
 // initialize a subscription server for graphql subscriptions
 const apolloWSS = new ws.Server({ noServer: true, path: '/v3' });
@@ -33,7 +33,7 @@ const pubsub = new PubSub();
  * @param app express app
  * @param server http server
  */
-async function apollo(app: Application, server: Server): Promise<void> {
+async function apollo(app: Application, server: Server, config: Configuration): Promise<void> {
   try {
     const typeDefs = [
       graphqls2s.transpileSchema(
@@ -131,7 +131,7 @@ async function apollo(app: Application, server: Server): Promise<void> {
 }
 
 interface Context {
-  config: typeof config;
+  config: Configuration;
   isAuthenticated: boolean;
   profile?: IDeserializedUser;
 }

@@ -10,9 +10,6 @@ import { Teams } from '../../../config/database';
 dotenv.config();
 const adminTeamID = Teams.ADMIN;
 
-// define model
-const PhotoRequest = mongoose.model<IPhotoRequestDoc>('PhotoRequest');
-
 /**
  * Post a new photo reqeust.
  *
@@ -24,6 +21,8 @@ async function newPhotoRequest(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
+  const PhotoRequest = mongoose.model<IPhotoRequestDoc>('PhotoRequest');
+
   const photoRequest = new PhotoRequest({
     // set people data based on who created the document
     permissions: {
@@ -59,6 +58,8 @@ async function getPhotoRequests(
   query: URLSearchParams,
   res: Response = null
 ): Promise<void> {
+  const PhotoRequest = mongoose.model<IPhotoRequestDoc>('PhotoRequest');
+
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
@@ -109,6 +110,8 @@ async function getPhotoRequest(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<IPhotoRequestDoc> {
+  const PhotoRequest = mongoose.model<IPhotoRequestDoc>('PhotoRequest');
+
   // admin: full access
   // others: only get documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)
@@ -167,6 +170,8 @@ async function patchPhotoRequest(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
+  const PhotoRequest = mongoose.model<IPhotoRequestDoc>('PhotoRequest');
+
   // if the current document does not exist, do not continue (use POST to create an document)
   const currentPhotoRequest = (await getPhotoRequest(id, user)).toObject();
   if (!currentPhotoRequest) {
@@ -231,6 +236,8 @@ async function patchPhotoRequest(
  * @param res - the response for an HTTP request
  */
 async function deletePhotoRequest(id: string, user: IDeserializedUser, res = null): Promise<void> {
+  const PhotoRequest = mongoose.model<IPhotoRequestDoc>('PhotoRequest');
+
   // admin: can delete any document
   // others: can only delete documents for which the user has access (by team or userID)
   const filter = user.teams.includes(adminTeamID)

@@ -9,9 +9,6 @@ import { Teams } from '../../../config/database';
 dotenv.config();
 const adminTeamID = Teams.ADMIN;
 
-// define model
-const Settings = mongoose.model<ISettingsDoc>('Settings');
-
 /**
  * Post a new setting.
  *
@@ -19,6 +16,8 @@ const Settings = mongoose.model<ISettingsDoc>('Settings');
  * @param user - the getting user's profile
  */
 async function newSetting(data: ISettings, user: IDeserializedUser, res: Response = null): Promise<void> {
+  const Settings = mongoose.model<ISettingsDoc>('Settings');
+
   try {
     if (user.teams.includes(adminTeamID)) {
       const settings = new Settings({ ...data });
@@ -46,6 +45,8 @@ async function getSetting(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
+  const Settings = mongoose.model<ISettingsDoc>('Settings');
+
   // if by is name, use 'name' as method; otherwise, use '_id' as method
   const method = by === 'name' ? 'name' : '_id';
 
@@ -72,6 +73,8 @@ async function getSetting(
  * @param res - the response for an HTTP request
  */
 async function getSettings(user: IDeserializedUser, res: Response = null): Promise<void> {
+  const Settings = mongoose.model<ISettingsDoc>('Settings');
+
   try {
     if (user.teams.includes(adminTeamID)) {
       const settings = await Settings.find({});
@@ -97,6 +100,8 @@ async function patchSetting(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
+  const Settings = mongoose.model<ISettingsDoc>('Settings');
+
   try {
     if (user.teams.includes(adminTeamID)) {
       await Settings.updateOne({ _id: id }, { $set: data });
@@ -116,6 +121,8 @@ async function patchSetting(
  * @param res - the response for an HTTP request
  */
 async function deleteSetting(id: string, user: IDeserializedUser, res = null): Promise<void> {
+  const Settings = mongoose.model<ISettingsDoc>('Settings');
+
   try {
     if (user.teams.includes(adminTeamID)) {
       await Settings.deleteOne({ _id: id });

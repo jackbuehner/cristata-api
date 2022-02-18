@@ -14,7 +14,7 @@ import {
 
 import { applyUpdate, encodeStateAsUpdate } from 'yjs';
 import { MongodbPersistence } from 'y-mongodb';
-import { config } from '../config';
+import { Configuration } from '../types/config';
 
 export class HocuspocusMongoDB implements Extension {
   provider: MongodbPersistence;
@@ -22,7 +22,7 @@ export class HocuspocusMongoDB implements Extension {
   /**
    * Constructor
    */
-  constructor() {
+  constructor(config: Configuration) {
     // destructure connection info from config
     const { username, password, host, database, options } = config.database.connection;
 

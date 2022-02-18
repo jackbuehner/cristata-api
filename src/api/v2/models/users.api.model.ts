@@ -3,9 +3,6 @@ import { Response } from 'express';
 import { IUser, IUserDoc } from '../../../mongodb/users.model';
 import { IDeserializedUser } from '../../../passport';
 
-// define model
-const User = mongoose.model<IUserDoc>('User');
-
 // NOTE: there is no POST method for a new user because it is
 // automatically handled in passport.ts
 
@@ -13,6 +10,8 @@ const User = mongoose.model<IUserDoc>('User');
  * Get all of the users in the user collection.
  */
 async function getUsers(res: Response = null): Promise<void> {
+  const User = mongoose.model<IUserDoc>('User');
+
   try {
     const users = await User.find();
     res ? res.json(users) : null;
@@ -26,6 +25,8 @@ async function getUsers(res: Response = null): Promise<void> {
  * Get a user in the user collection.
  */
 async function getUser(id: string, authUser: IDeserializedUser, res: Response = null): Promise<void> {
+  const User = mongoose.model<IUserDoc>('User');
+
   try {
     const user =
       id === 'me'
@@ -50,6 +51,8 @@ async function patchUser(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<void> {
+  const User = mongoose.model<IUserDoc>('User');
+
   // attempt to patch the article
   try {
     const currentVersion = (await User.findById(id)).toObject();
@@ -80,6 +83,8 @@ async function patchUser(
  * Get a user photo in the user collection.
  */
 async function getUserPhoto(id: string, authUser: IDeserializedUser, res: Response = null): Promise<void> {
+  const User = mongoose.model<IUserDoc>('User');
+
   try {
     const user =
       id === 'me'
@@ -98,6 +103,8 @@ async function getUserPhoto(id: string, authUser: IDeserializedUser, res: Respon
  * Get select information about a user
  */
 async function getPublicUser(slug: string, res: Response = null): Promise<void> {
+  const User = mongoose.model<IUserDoc>('User');
+
   try {
     const user = await User.aggregate([
       {
@@ -119,6 +126,8 @@ async function getPublicUser(slug: string, res: Response = null): Promise<void> 
  * Get select information about all users
  */
 async function getPublicUsers(query: URLSearchParams, res: Response = null): Promise<void> {
+  const User = mongoose.model<IUserDoc>('User');
+
   // expose queries
   const gte = parseInt(query.get('gte')) || 0;
   const lt = parseInt(query.get('lt')) || 100;

@@ -14,9 +14,6 @@ import { Teams } from '../../../config/database';
 dotenv.config();
 const adminTeamID = Teams.ADMIN;
 
-// define model
-const Article = mongoose.model<IArticleDoc>('Article');
-
 /**
  * Post a new article.
  *
@@ -24,6 +21,8 @@ const Article = mongoose.model<IArticleDoc>('Article');
  * @param user - the getting user's profile
  */
 async function newArticle(data: IArticle, user: IDeserializedUser, res: Response = null): Promise<void> {
+  const Article = mongoose.model<IArticleDoc>('Article');
+
   const article = new Article({
     // set people data based on who created the document
     permissions: {
@@ -59,6 +58,8 @@ async function getArticles(
   query: URLSearchParams,
   res: Response = null
 ): Promise<void> {
+  const Article = mongoose.model<IArticleDoc>('Article');
+
   // expose history type to the filter
   const historyType = query.getAll('historyType');
 
@@ -126,6 +127,8 @@ const publicUnset = [
  * Get all of the published articles in the articles collection.
  */
 async function getPublicArticles(query: URLSearchParams, res: Response = null): Promise<void> {
+  const Article = mongoose.model<IArticleDoc>('Article');
+
   // expose queries
   const categories = query.getAll('category');
   const authors = query.getAll('author').map((author) => parseInt(author)); // convert each string to an integer
@@ -213,6 +216,8 @@ async function getPublicArticles(query: URLSearchParams, res: Response = null): 
  * Get all a published article from the articles collection.
  */
 async function getPublicArticle(slug: string, res: Response = null): Promise<void> {
+  const Article = mongoose.model<IArticleDoc>('Article');
+
   try {
     const article = await Article.aggregate([
       {
@@ -272,6 +277,8 @@ async function getArticle(
   user: IDeserializedUser,
   res: Response = null
 ): Promise<IArticleDoc> {
+  const Article = mongoose.model<IArticleDoc>('Article');
+
   // if by is name, use 'name' as method; otherwise, use '_id' as method
   const method = by === 'name' ? 'name' : '_id';
 
@@ -332,6 +339,8 @@ async function patchArticle(
   canPublish = false,
   res: Response = null
 ): Promise<void> {
+  const Article = mongoose.model<IArticleDoc>('Article');
+
   try {
     // if the current document does not exist, do not continue (use POST to create an document)
     const currentArticle = (await getArticle(id, 'id', user)).toObject();
@@ -503,6 +512,8 @@ async function watchArticle(
   watch: boolean,
   res: Response = null
 ): Promise<void> {
+  const Article = mongoose.model<IArticleDoc>('Article');
+
   // if the current document does not exist, do not continue
   const currentArticle = (await getArticle(id, 'id', user)).toObject();
   if (!currentArticle) {
@@ -550,6 +561,8 @@ async function deleteArticle(
   canPublish = false,
   res = null
 ): Promise<void> {
+  const Article = mongoose.model<IArticleDoc>('Article');
+
   // if the article's current state is uploaded or published, do not patch article unless user canPublish
   const currentArticle = (await getArticle(id, 'id', user)).toObject();
   if (currentArticle) {

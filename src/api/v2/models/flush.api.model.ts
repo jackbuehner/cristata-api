@@ -10,9 +10,6 @@ import { Teams } from '../../../config/database';
 dotenv.config();
 const adminTeamID = Teams.ADMIN;
 
-// define model
-const Document = mongoose.model<IFlushDoc>('Flush');
-
 /**
  * Post a new document.
  *
@@ -20,6 +17,8 @@ const Document = mongoose.model<IFlushDoc>('Flush');
  * @param user - the getting user's profile
  */
 async function newDocument(data: IFlush, user: IDeserializedUser, res: Response = null): Promise<void> {
+  const Document = mongoose.model<IFlushDoc>('Flush');
+
   try {
     const doc = new Document({
       permissions: {
@@ -56,6 +55,8 @@ async function getDocuments(
   query: URLSearchParams,
   res: Response = null
 ): Promise<void> {
+  const Document = mongoose.model<IFlushDoc>('Flush');
+
   try {
     // expose history type to the filter
     const historyType = query.getAll('historyType');
@@ -99,6 +100,8 @@ async function getDocuments(
  * @param res - the response for an HTTP request
  */
 async function getDocument(id: string, user: IDeserializedUser, res: Response = null): Promise<IFlushDoc> {
+  const Document = mongoose.model<IFlushDoc>('Flush');
+
   try {
     // admin: full access
     // others: only get documents for which the user has access (by team or userID)
@@ -156,6 +159,8 @@ async function patchDocument(
   canPublish = false,
   res: Response = null
 ): Promise<void> {
+  const Document = mongoose.model<IFlushDoc>('Flush');
+
   try {
     // if the current document does not exist, do not continue (use POST to create an document)
     const currentDoc = (await getDocument(id, user)).toObject();
@@ -235,6 +240,8 @@ async function watchDocument(
   watch: boolean,
   res: Response = null
 ): Promise<void> {
+  const Document = mongoose.model<IFlushDoc>('Flush');
+
   try {
     // if the current document does not exist, do not continue
     const currentDoc = (await getDocument(id, user)).toObject();
