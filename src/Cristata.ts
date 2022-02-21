@@ -154,4 +154,4 @@ class Cristata {
 // keep errors silent
 process.on('unhandledRejection', () => null);
 
-export { Cristata };
+export default Cristata;
