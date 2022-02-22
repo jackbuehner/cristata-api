@@ -1,14 +1,9 @@
+import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
-import './articles.model';
-import './photoRequests.model';
-import './photos.model';
-import './settings.model';
-import './shorturl.model';
-import './flush.model';
-import { merge } from 'merge-anything';
-import { Teams, Users } from '../config/database';
+import passport from 'passport';
 import passportLocalMongoose from 'passport-local-mongoose';
+import { Teams, Users } from '../config/database';
 import { Configuration } from '../types/config';
 
 async function db(config: Configuration): Promise<void> {

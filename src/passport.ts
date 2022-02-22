@@ -1,13 +1,13 @@
+import axios from 'axios';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import passport from 'passport';
 import passportGitHub from 'passport-github2';
-import axios from 'axios';
 const GitHubStrategy = passportGitHub.Strategy;
-import mongoose from 'mongoose';
-import { IUserDoc } from './mongodb/users.model';
-import { isArray } from './utils/isArray';
 import { ITeamDoc } from './config/collections/teams';
+import { IUserDoc } from './config/collections/users';
 import { getPasswordStatus } from './utils/getPasswordStatus';
+import { isArray } from './utils/isArray';
 
 // load environmental variables
 dotenv.config();
