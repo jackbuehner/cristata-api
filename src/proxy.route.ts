@@ -16,7 +16,7 @@ const router = Router();
 
 // create a CORS proxy
 const proxy = corsAnywhere.createServer({
-  originWhitelist: [], // allow all origins
+  originWhitelist: allowedOrigins, // only allow specified origins
   requireHeader: [], // don't require headers
   removeHeaders: ['cookie', 'cookie2'], // do not forward cookies
 });
