@@ -43,11 +43,24 @@ export class HocuspocusMongoDB implements Extension {
     await this.store(data.documentName, newUpdates);
     applyUpdate(data.document, encodeStateAsUpdate(persistedDocument));
 
+    // force the document to update once the newUpdates and persistedDocument
+    // are merged together
+    const map = data.document.getMap('__forceUpdate');
+    const counter = map.get('couter') || 0;
+    map.set('counter', counter + 1);
+
     // use the documents update handler directly instead of using the onChange hook
     // to skip the first change that's triggered by the applyUpdate above
     data.document.on('update', (update: Uint8Array) => {
       this.store(data.documentName, update);
     });
+  }
+
+  /**
+   * Check equality of two ArrayBuffers
+   */
+  areArrayBuffersEqual(first: Uint8Array, second: Uint8Array): boolean {
+    return first.length === second.length && first.every((value, index) => value === second[index]);
   }
 
   /**
