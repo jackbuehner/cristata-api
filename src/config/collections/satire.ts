@@ -6,6 +6,7 @@ import {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
+import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
 import { slugify } from '../../utils/slugify';
 import { Collection, Teams } from '../database';
 
@@ -16,7 +17,6 @@ const satire = (helpers: Helpers): Collection => {
     findDoc,
     findDocAndPrune,
     findDocs,
-    findDocsAndPrune,
     getCollectionActionAccess,
     getUsers,
     gql,
@@ -66,6 +66,7 @@ const satire = (helpers: Helpers): Collection => {
       type PrunedSatire {
         _id: ObjectID!
         name: String!
+        slug: String
         tags: [String]!
         description: String!
         photo_path: String!
@@ -125,6 +126,13 @@ const satire = (helpers: Helpers): Collection => {
         Get a satire by _id with confidential information pruned.
         """
         satirePublic(_id: ObjectID!): PrunedSatire
+        """
+        Get a satire by slug with confidential information pruned.
+  
+        Provide the date of the article to ensure that the correct article is provided
+        (in case the slug is not unique).
+        """
+        satireBySlugPublic(slug: String!, date: Date): PrunedSatire
         """
         Get a set of satires. If _ids is omitted, the API will return all satires.
         """
@@ -231,17 +239,26 @@ const satire = (helpers: Helpers): Collection => {
             ],
             fullAccess: true,
           }),
-        satires: (_, args, context: Context) =>
-          findDocs({
+        satireBySlugPublic: async (_, args, context: Context) => {
+          // create filter to find newest article with matching slug
+          const filter = args.date
+            ? {
+                'timestamps.published_at': {
+                  $gte: dateAtTimeZero(args.date),
+                  $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
+                },
+                stage: Stage.PUBLISHED,
+              }
+            : {
+                stage: Stage.PUBLISHED,
+              };
+
+          // get the satire
+          const prunedSatire = await findDocAndPrune({
             model: 'Satire',
-            args,
-            context,
-            accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
-          }),
-        satiresPublic: async (_, args, context: Context) =>
-          findDocsAndPrune({
-            model: 'Satire',
-            args,
+            by: 'slug',
+            _id: args.slug,
+            filter: filter,
             context,
             keep: [
               '_id',
@@ -259,7 +276,37 @@ const satire = (helpers: Helpers): Collection => {
               'slug',
             ],
             fullAccess: true,
+          });
+
+          // add photo credit
+          const constructedPrunedSatire = {
+            ...prunedSatire,
+            photo_credit: JSON.parse(
+              JSON.stringify(
+                await findDoc({
+                  model: 'Photo',
+                  by: 'photo_url',
+                  //@ts-expect-error photo_path exists on prunedSatire
+                  _id: prunedSatire.photo_path,
+                  context,
+                  fullAccess: true,
+                })
+              )
+            )?.people?.photo_created_by,
+          };
+
+          // return the article
+          return constructedPrunedSatire;
+        },
+        satires: (_, args, context: Context) =>
+          findDocs({
+            model: 'Satire',
+            args,
+            context,
+            accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
           }),
+        satiresPublic: (_, args, context: Context) =>
+          findDocs({ model: 'Satire', args, context, fullAccess: true }),
         satireActionAccess: (_, __, context: Context) =>
           getCollectionActionAccess({ model: 'Satire', context }),
         satireStageCounts: async () => {
