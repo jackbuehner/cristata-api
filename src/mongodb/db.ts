@@ -121,6 +121,11 @@ async function db(config: Configuration): Promise<void> {
 
     // create the model based on the schema
     mongoose.model(collection.name, Schema);
+
+    // activate the passport strategy for mongoose users
+    if (collection.name === 'User') {
+      passport.use(mongoose.model('User').createStrategy());
+    }
   });
 
   // force a user with the name 'Unknown' and slug 'unknown-user-internal'

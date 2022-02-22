@@ -353,7 +353,5 @@ passport.use(
   )
 );
 
-//passport.use(mongoose.model('User').createStrategy());
-
 export { deserializeUser };
 export type { IDeserializedUser };
