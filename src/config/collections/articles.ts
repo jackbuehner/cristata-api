@@ -38,6 +38,7 @@ const PRUNED_ARTICLE_KEEP_FIELDS = [
   'featured_order',
   'layout',
   'template',
+  'claps',
 ];
 
 async function getPrunedUser(arr: []) {
@@ -94,6 +95,7 @@ const articles = (helpers: Helpers): Collection => {
         layout: String!
         template: String!
         legacy_comments: [ArticleLegacyComments]
+        claps: Int
       }
   
       type ArticlePeople inherits PublishableCollectionPeople {
@@ -135,6 +137,7 @@ const articles = (helpers: Helpers): Collection => {
         timestamps: PrunedArticleTimestamps
         layout: String!
         template: String!
+        claps: Int
       }
   
       type PrunedArticlePeople {
@@ -274,6 +277,10 @@ const articles = (helpers: Helpers): Collection => {
         Publishes an existing article.
         """
         articlePublish(_id: ObjectID!, published_at: Date, publish: Boolean): Article
+        """
+        Add claps to an article
+        """
+        articleAddApplause(_id: ObjectID!, newClaps: Int!): Article
       }
   
       extend type Subscription {
@@ -586,6 +593,11 @@ const articles = (helpers: Helpers): Collection => {
           withPubSub('ARTICLE', 'DELETED', deleteDoc({ model: 'Article', args, context })),
         articlePublish: async (_, args, context: Context) =>
           withPubSub('ARTICLE', 'MODIFIED', publishDoc({ model: 'Article', args, context })),
+        articleAddApplause: async (_, { _id, newClaps }, context: Context) => {
+          const doc = await findDoc({ model: 'Article', _id, context, fullAccess: true });
+          doc.claps += newClaps;
+          return withPubSub('ARTICLE', 'MODIFIED', doc.save());
+        },
       },
       ArticlePeople: {
         ...publishableCollectionPeopleResolvers,
@@ -650,6 +662,7 @@ const articles = (helpers: Helpers): Collection => {
           },
         ],
       },
+      claps: { type: Number, default: 0 },
     }),
     actionAccess: (Users, Teams, context: Context) => {
       const users = [];
@@ -708,6 +721,7 @@ interface IArticle
     commented_at: string;
     content: string;
   }>;
+  claps?: number;
 }
 
 interface IArticleInput
