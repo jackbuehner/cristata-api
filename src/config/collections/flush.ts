@@ -9,8 +9,9 @@ import type {
 } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
 import { PRUNED_ARTICLE_KEEP_FIELDS } from './articles';
+import { UsersType, TeamsType } from '../../types/config';
 
-const flush = (helpers: Helpers): Collection => {
+const flush = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const {
     createDoc,
     deleteDoc,
@@ -271,7 +272,7 @@ const flush = (helpers: Helpers): Collection => {
         flushDeleted: { subscribe: () => pubsub.asyncIterator(['SHORTURL_DELETED']) },
       },
     },
-    schemaFields: (Users, Teams) => ({
+    schemaFields: {
       volume: { type: Number, default: 1 },
       issue: { type: Number, default: 1 },
       events: [
@@ -295,8 +296,8 @@ const flush = (helpers: Helpers): Collection => {
         more: [{ type: mongoose.Types.ObjectId }],
       },
       left_advert_photo_url: { type: String },
-    }),
-    actionAccess: (Users, Teams) => ({
+    },
+    actionAccess: () => ({
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ANY], users: [] },

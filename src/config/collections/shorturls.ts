@@ -5,8 +5,9 @@ import { CollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
 import { customAlphabet } from 'nanoid';
 import { UserInputError } from 'apollo-server-errors';
+import { TeamsType, UsersType } from '../../types/config';
 
-const shorturls = (helpers: Helpers): Collection => {
+const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const {
     createDoc,
     deleteDoc,
@@ -163,12 +164,8 @@ const shorturls = (helpers: Helpers): Collection => {
         shorturlDeleted: { subscribe: () => pubsub.asyncIterator(['SHORTURL_DELETED']) },
       },
     },
-    schemaFields: () => ({
-      original_url: { type: String, required: true },
-      code: { type: String, required: true, unique: true },
-      domain: { type: String, required: true },
-    }),
-    actionAccess: (Users, Teams) => ({
+    schemaFields,
+    actionAccess: () => ({
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.SHORTURL], users: [] },
       modify: { teams: [Teams.SHORTURL], users: [] },

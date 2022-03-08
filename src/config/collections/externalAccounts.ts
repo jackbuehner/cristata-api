@@ -3,8 +3,9 @@ import type { Collection } from '../database';
 import mongoose from 'mongoose';
 import type { CollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
+import { UsersType, TeamsType } from '../../types/config';
 
-const externalAccounts = (helpers: Helpers): Collection => {
+const externalAccounts = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const { createDoc, deleteDoc, findDoc, findDocs, getCollectionActionAccess, gql, hideDoc, modifyDoc } =
     helpers;
 
@@ -94,12 +95,12 @@ const externalAccounts = (helpers: Helpers): Collection => {
           deleteDoc({ model: 'ExternalAccount', args, context }),
       },
     },
-    schemaFields: () => ({
+    schemaFields: {
       service_url: { type: String, required: true },
       username: { type: String, required: true },
       password: { type: String, required: true },
-    }),
-    actionAccess: (Users, Teams) => ({
+    },
+    actionAccess: () => ({
       get: { teams: [Teams.ADMIN], users: [] },
       create: { teams: [Teams.ADMIN], users: [] },
       modify: { teams: [Teams.ADMIN], users: [] },

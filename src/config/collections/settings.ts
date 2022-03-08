@@ -5,8 +5,9 @@ import { CollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
+import { UsersType, TeamsType } from '../../types/config';
 
-const settings = (helpers: Helpers): Collection => {
+const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const { canDo, findDoc, findDocs, getCollectionActionAccess, gql, requireAuthentication, withPubSub } =
     helpers;
 
@@ -126,11 +127,11 @@ const settings = (helpers: Helpers): Collection => {
         settingModified: { subscribe: () => pubsub.asyncIterator(['SETTING_MODIFIED']) },
       },
     },
-    schemaFields: () => ({
+    schemaFields: {
       name: { type: String, required: true },
       setting: new mongoose.Schema({}, { strict: false }),
-    }),
-    actionAccess: (Users, Teams) => ({
+    },
+    actionAccess: () => ({
       get: { teams: [Teams.ADMIN], users: [] },
       create: { teams: [Teams.ADMIN], users: [] },
       modify: { teams: [Teams.ADMIN], users: [] },

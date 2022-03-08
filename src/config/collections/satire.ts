@@ -6,11 +6,12 @@ import {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
+import { UsersType, TeamsType } from '../../types/config';
 import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
 import { slugify } from '../../utils/slugify';
-import { Collection, Teams } from '../database';
+import { Collection } from '../database';
 
-const satire = (helpers: Helpers): Collection => {
+const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const {
     createDoc,
     deleteDoc,
@@ -359,7 +360,7 @@ const satire = (helpers: Helpers): Collection => {
         satireDeleted: { subscribe: () => pubsub.asyncIterator(['SATIRE_DELETED']) },
       },
     },
-    schemaFields: (Users, Teams) => ({
+    schemaFields: {
       name: { type: String, required: true, default: 'New Satire' },
       slug: { type: String },
       permissions: {
@@ -388,8 +389,8 @@ const satire = (helpers: Helpers): Collection => {
       body: { type: String },
       versions: { type: {} },
       legacy_html: { type: Boolean, default: false },
-    }),
-    actionAccess: (Users, Teams) => ({
+    },
+    actionAccess: () => ({
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ANY], users: [] },

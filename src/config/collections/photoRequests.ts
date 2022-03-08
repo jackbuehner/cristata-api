@@ -3,8 +3,9 @@ import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
+import { TeamsType, UsersType } from '../../types/config';
 
-const photoRequests = (helpers: Helpers): Collection => {
+const photoRequests = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const {
     createDoc,
     deleteDoc,
@@ -165,7 +166,7 @@ const photoRequests = (helpers: Helpers): Collection => {
         photoRequestDeleted: { subscribe: () => pubsub.asyncIterator(['PHOTOREQUEST_DELETED']) },
       },
     },
-    schemaFields: (Users, Teams) => ({
+    schemaFields: {
       name: { type: String, required: true, default: 'New photo request' },
       permissions: {
         teams: { type: [String], default: [Teams.MANAGING_EDITOR] },
@@ -176,8 +177,8 @@ const photoRequests = (helpers: Helpers): Collection => {
       stage: { type: Number, default: Stage.NEW },
       versions: { type: {} },
       article_id: { type: mongoose.Types.ObjectId },
-    }),
-    actionAccess: (Users, Teams) => ({
+    },
+    actionAccess: () => ({
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ANY], users: [] },

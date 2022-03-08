@@ -1,10 +1,11 @@
 import { collectionPeopleResolvers, Context, pubsub } from '../../apollo';
-import { Collection, Teams } from '../database';
+import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
+import { UsersType, TeamsType } from '../../types/config';
 
-const photos = (helpers: Helpers): Collection => {
+const photos = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const {
     createDoc,
     deleteDoc,
@@ -177,7 +178,7 @@ const photos = (helpers: Helpers): Collection => {
         photoDeleted: { subscribe: () => pubsub.asyncIterator(['PHOTO_DELETED']) },
       },
     },
-    schemaFields: () => ({
+    schemaFields: {
       name: { type: String, required: true, default: 'Untitled photo' },
       people: {
         photo_created_by: { type: String },
@@ -196,8 +197,8 @@ const photos = (helpers: Helpers): Collection => {
       versions: { type: {} },
       legacy_caption: { type: String },
       legacy_thumbnail_id: { type: String },
-    }),
-    actionAccess: (Users, Teams) => ({
+    },
+    actionAccess: () => ({
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ANY], users: [] },

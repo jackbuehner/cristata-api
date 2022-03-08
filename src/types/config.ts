@@ -28,8 +28,8 @@ interface Collection {
   withPermissions?: boolean;
   typeDefs: string;
   resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
-  schemaFields: (users: UsersType, teams: TeamsType) => Record<string, unknown>;
-  actionAccess: (users: UsersType, teams: TeamsType, context: Context, doc?: unknown) => CollectionPermissions;
+  schemaFields: Record<string, unknown>;
+  actionAccess: (context: Context, doc?: unknown) => CollectionPermissions;
 }
 
 type TeamsType = Record<string, string>;

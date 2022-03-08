@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import passport from 'passport';
 import passportLocalMongoose from 'passport-local-mongoose';
-import { Teams, Users } from '../config/database';
 import { Configuration } from '../types/config';
 
 async function db(config: Configuration): Promise<void> {
@@ -67,7 +66,7 @@ async function db(config: Configuration): Promise<void> {
     // merge preset schema fields per the config with fiels from the collection config
     const basicSchemaFields = merge(
       collectionSchemaFields,
-      collection.schemaFields(Users, Teams),
+      collection.schemaFields,
       collection.canPublish ? publishableCollectionSchemaFields : {},
       collection.withPermissions ? withPermissionsCollectionSchemaFields : {}
     );

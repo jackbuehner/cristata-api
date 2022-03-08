@@ -3,8 +3,9 @@ import { Collection } from '../database';
 import mongoose from 'mongoose';
 import { CollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
+import { UsersType, TeamsType } from '../../types/config';
 
-const teams = (helpers: Helpers): Collection => {
+const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const {
     canDo,
     createDoc,
@@ -157,13 +158,13 @@ const teams = (helpers: Helpers): Collection => {
         organizers: ({ organizers }) => getUsers(organizers),
       },
     },
-    schemaFields: () => ({
+    schemaFields: {
       name: { type: String, required: true },
       slug: { type: String, required: true, unique: true },
       members: { type: [mongoose.Schema.Types.ObjectId], required: true },
       organizers: { type: [mongoose.Schema.Types.ObjectId], required: true },
-    }),
-    actionAccess: (Users, Teams, context: Context, doc: ITeam | undefined) => {
+    },
+    actionAccess: (context: Context, doc: ITeam | undefined) => {
       // add user to the organizers array if they are an organizer for the team
       const organizers = [];
       const isOrganizer = doc?.organizers

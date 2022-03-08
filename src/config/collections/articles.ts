@@ -1,5 +1,5 @@
 import { Context, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
-import { Collection, Teams } from '../database';
+import { Collection } from '../database';
 import mongoose from 'mongoose';
 import {
   CollectionSchemaFields,
@@ -13,6 +13,7 @@ import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
 import { slugify } from '../../utils/slugify';
 import { sendEmail } from '../../utils/sendEmail';
 import { ISettings } from './settings';
+import { UsersType, TeamsType } from '../../types/config';
 
 const PRUNED_ARTICLE_KEEP_FIELDS = [
   '_id',
@@ -52,7 +53,7 @@ async function getPrunedUser(arr: []) {
   });
 }
 
-const articles = (helpers: Helpers): Collection => {
+const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const {
     createDoc,
     deleteDoc,
@@ -620,7 +621,7 @@ const articles = (helpers: Helpers): Collection => {
         articleDeleted: { subscribe: () => pubsub.asyncIterator(['ARTICLE_DELETED']) },
       },
     },
-    schemaFields: (Users, Teams) => ({
+    schemaFields: {
       name: { type: String, required: true, default: 'New Article' },
       slug: { type: String },
       permissions: {
@@ -663,8 +664,8 @@ const articles = (helpers: Helpers): Collection => {
         ],
       },
       claps: { type: Number, default: 0 },
-    }),
-    actionAccess: (Users, Teams, context: Context) => {
+    },
+    actionAccess: (context: Context) => {
       const users = [];
       if (context.profile.teams.includes(Teams.MANAGING_EDITOR)) users.push(context.profile._id);
       return {
