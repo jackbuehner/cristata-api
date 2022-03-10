@@ -550,4 +550,4 @@ function genSubscriptions(typeName: string, oneAccessorName: string, oneAccessor
   }`;
 }
 
-export { genTypeDefs };
+export { genTypeDefs, calcAccessor };

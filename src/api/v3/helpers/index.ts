@@ -23,6 +23,7 @@ import { publishDoc } from './publishDoc';
 import { withPubSub } from './withPubSub';
 import { getUsers } from './getUsers';
 import { gql } from './gql';
+import { genResolvers } from './generators/genResolvers';
 
 const helpers = {
   createDoc,
@@ -44,6 +45,7 @@ const helpers = {
   withPubSub,
   getUsers,
   gql,
+  generators: { genResolvers },
 };
 
 type Helpers = typeof helpers;
@@ -75,4 +77,5 @@ export { publishDoc };
 export { withPubSub };
 export { getUsers };
 export { gql };
+export { genResolvers };
 export default helpers;

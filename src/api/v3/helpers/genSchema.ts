@@ -133,9 +133,32 @@ type SchemaDefaultValueType =
   | boolean
   | mongoose.Types.ObjectId
   | mongoose.Types.ObjectId[]
+  | mongoose.Types.Decimal128
+  | mongoose.Types.Decimal128[]
   | { code: 'alphanumeric'; length: number };
 
 type SchemaType = MongooseSchemaType | [GraphSchemaType, MongooseSchemaType];
+
+function isCustomGraphSchemaType(toCheck: string): boolean {
+  const builtIn = [
+    'String',
+    'Int',
+    'Float',
+    'Boolean',
+    'ObjectId',
+    'Date',
+    'JSON',
+    '[String]',
+    '[Int]',
+    '[Float]',
+    '[Boolean]',
+    '[ObjectId]',
+    '[Date]',
+    '[JSON]',
+  ];
+
+  return !builtIn.includes(toCheck);
+}
 
 type GraphSchemaType =
   | 'String'
@@ -187,4 +210,4 @@ export type {
   SchemaType,
   SchemaDefaultValueType,
 };
-export { genSchema, isTypeTuple, isSchemaDef };
+export { genSchema, isCustomGraphSchemaType, isTypeTuple, isSchemaDef };
