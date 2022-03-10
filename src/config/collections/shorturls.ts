@@ -13,8 +13,8 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
     deleteDoc,
     findDoc,
     findDocs,
+    genSchema,
     getCollectionActionAccess,
-    gql,
     hideDoc,
     lockDoc,
     modifyDoc,
@@ -22,90 +22,37 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
     withPubSub,
   } = helpers;
 
+  const name = 'ShortURL';
+  const canPublish = false;
+  const withPermissions = false;
+  const withSubscription = true;
+
+  const { typeDefs, schemaFields } = genSchema({
+    name,
+    canPublish,
+    withPermissions,
+    withSubscription,
+    Users,
+    Teams,
+    schemaDef: {
+      original_url: { type: String, required: true, modifiable: true },
+      code: {
+        type: String,
+        required: true,
+        modifiable: true,
+        unique: true,
+        default: { code: 'alphanumeric', length: 7 },
+      },
+      domain: { type: String, required: true, modifiable: true },
+    },
+    by: { one: ['code', mongoose.Schema.Types.String], many: ['_id', mongoose.Schema.Types.ObjectId] },
+  });
+
   return {
-    name: 'ShortURL',
-    canPublish: false,
-    withPermissions: false,
-    typeDefs: gql`
-      type ShortURL inherits Collection {
-        original_url: String!
-        code: String!
-        domain: String!
-      }
-  
-      input ShortURLModifyInput {
-        original_url: String
-        code: String
-        domain: String
-      }
-  
-      type Query {
-        """
-        Get a shorturl by code.
-        """
-        shorturl(code: String!): ShortURL
-        """
-        Get a set of shorturls. If _ids is omitted, the API will return all shorturls.
-        """
-        shorturls(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<ShortURL>
-        """
-        Get the permissions of the currently authenticated user for this
-        collection.
-        """
-        shorturlActionAccess: CollectionActionAccess
-      }
-  
-      type Mutation {
-        """
-        Create a new shorturl.
-        """
-        shorturlCreate(original_url: String!, code: String, domain: String!): ShortURL
-        """
-        Modify an existing shorturl.
-        """
-        shorturlModify(code: String!, input: ShortURLModifyInput!): ShortURL
-        """
-        Toggle whether the hidden property is set to true for an existing shorturl.
-        This mutation sets hidden: true by default.
-        Hidden shorturls should not be presented to clients; this should be used as
-        a deletion that retains the data in case it is needed later.
-        """
-        shorturlHide(code: String!, hide: Boolean): ShortURL
-        """
-        Toggle whether the locked property is set to true for an existing shorturl.
-        This mutation sets locked: true by default.
-        Locked shorturls should only be editable by the server and by admins.
-        """
-        shorturlLock(code: String!, lock: Boolean): ShortURL
-        """
-        Add a watcher to a shorturl.
-        This mutation adds the watcher by default.
-        This mutation will use the signed in shorturl if watcher is not defined.
-        """
-        shorturlWatch(code: String!, watcher: ObjectID, watch: Boolean): ShortURL
-        """
-        Deletes a shorturl account.
-        """
-        shorturlDelete(code: String!): Void
-      }
-  
-      extend type Subscription {
-        """
-        Sends shorturl documents when they are created.
-        """
-        shorturlCreated(): ShortURL
-        """
-        Sends the updated shorturl document when it changes.
-        If _id is omitted, the server will send changes for all shorturls.
-        """
-        shorturlModified(code: String): ShortURL
-        """
-        Sends shorturl _id when it is deleted.
-        If _id is omitted, the server will send _ids for all deleted shorturls.
-        """
-        shorturlDeleted(code: String): ShortURL
-      }
-    `,
+    name,
+    canPublish,
+    withPermissions,
+    typeDefs,
     resolvers: {
       Query: {
         shorturl: (_, args, context: Context) =>
@@ -181,9 +128,6 @@ interface IShortURL extends CollectionSchemaFields {
   original_url: string;
   code: string;
   domain: string;
-  hidden: boolean;
-  name: string;
-  slug: string;
 }
 
 interface IShortURLDoc extends IShortURL, mongoose.Document {}

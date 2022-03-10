@@ -18,6 +18,7 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
     findDoc,
     findDocAndPrune,
     findDocs,
+    genSchema,
     getCollectionActionAccess,
     getUsers,
     gql,
@@ -29,186 +30,75 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
     withPubSub,
   } = helpers;
 
+  const name = 'Satire';
+  const canPublish = true;
+  const withPermissions = true;
+  const withSubscription = true;
+
+  const { typeDefs, schemaFields } = genSchema({
+    name,
+    canPublish,
+    withPermissions,
+    withSubscription,
+    Users,
+    Teams,
+    schemaDef: {
+      name: { type: String, required: true, modifiable: true, public: true, default: 'New Satire' },
+      slug: { type: String, modifiable: true, public: true },
+      stage: { type: mongoose.Schema.Types.Decimal128, modifiable: true, default: Stage.PLANNING },
+      tags: { type: [String], modifiable: true, public: true, default: [] },
+      description: { type: String, required: true, modifiable: true, public: true, default: '' },
+      photo_path: { type: String, required: true, modifiable: true, public: true, default: '' },
+      photo_credit: { type: String, required: true, modifiable: true, public: true, default: '' }, // ref: { model: 'Photo', by: 'photo_url', path: '$doc.people.display_authors' }
+      photo_caption: { type: String, required: true, modifiable: true, public: true, default: '' },
+      body: { type: String, modifiable: true, public: true },
+      legacy_html: { type: Boolean, required: true, modifiable: true, public: true, default: false },
+      people: {
+        authors: {
+          type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+          required: true,
+          modifiable: true,
+          default: [],
+        },
+        display_authors: { type: [String], required: true, modifiable: true, public: true, default: [] },
+        editors: {
+          primary: {
+            type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+            required: true,
+            modifiable: true,
+            default: [],
+          },
+          copy: {
+            type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+            required: true,
+            modifiable: true,
+            default: [],
+          },
+        },
+      },
+      timestamps: {
+        target_publish_at: { type: Date, modifiable: true, default: '0001-01-01T01:00:00.000+00:00' },
+      },
+      permissions: {
+        teams: { type: [String], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR] },
+      },
+    },
+  });
+
   return {
-    name: 'Satire',
-    canPublish: true,
-    withPermissions: true,
-    typeDefs: gql`
-      type Satire inherits PublishableCollection, WithPermissions {
-        name: String!
-        slug: String
-        stage: Float
-        tags: [String]
-        description: String!
-        photo_path: String!
-        photo_credit: String!
-        photo_caption: String!
-        body: String
-        legacy_html: Boolean!
-        people: SatirePeople
-        timestamps: SatireTimestamps
-      }
-  
-      type SatirePeople inherits PublishableCollectionPeople {
-        authors: [User]!
-        display_authors: [String]!
-        editors: SatireEditors!
-      }
-  
-      type SatireEditors {
-        primary: [User]!
-        copy: [User]!
-      }
-  
-      type SatireTimestamps inherits PublishableCollectionTimestamps {
-        target_publish_at: Date
-      }
-  
-      type PrunedSatire {
-        _id: ObjectID!
-        name: String!
-        slug: String
-        tags: [String]!
-        description: String!
-        photo_path: String!
-        photo_credit: String!
-        photo_caption: String!
-        body: String
-        legacy_html: Boolean!
-        people: PrunedSatirePeople
-        timestamps: PrunedSatireTimestamps
-      }
-  
-      type PrunedSatirePeople {
-        display_authors: [String]!
-      }
-  
-      type PrunedSatireTimestamps {
-        published_at: Date!
-        updated_at: Date!
-      }
-  
-      input SatireModifyInput inherits WithPermissionsInput {
-        name: String
-        slug: String
-        stage: Float
-        tags: [String]
-        description: String
-        photo_path: String
-        photo_credit: String
-        photo_caption: String
-        body: String
-        legacy_html: Boolean
-        people: SatireModifyInputPeople
-        timestamps: SatireModifyInputTimestamps
-      }
-  
-      input SatireModifyInputPeople {
-        authors: [ObjectID]
-        display_authors: [String]
-        editors: SatireModifyInputPeopleEditors
-      }
-  
-      input SatireModifyInputPeopleEditors {
-        primary: [ObjectID]
-        copy: [ObjectID]
-      }
-  
-      input SatireModifyInputTimestamps {
-        target_publish_at: Date
-      }
-  
-      type Query {
-        """
-        Get a satire by _id.
-        """
-        satire(_id: ObjectID!): Satire
-        """
-        Get a satire by _id with confidential information pruned.
-        """
-        satirePublic(_id: ObjectID!): PrunedSatire
-        """
-        Get a satire by slug with confidential information pruned.
-  
-        Provide the date of the article to ensure that the correct article is provided
-        (in case the slug is not unique).
-        """
-        satireBySlugPublic(slug: String!, date: Date): PrunedSatire
-        """
-        Get a set of satires. If _ids is omitted, the API will return all satires.
-        """
-        satires(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Satire>
-        """
-        Get a set of satires with confidential information pruned. If _ids is
-        omitted, the API will return all satires.
-        """
-        satiresPublic(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<PrunedSatire>
-        """
-        Get the permissions of the currently authenticated user for this
-        collection.
-        """
-        satireActionAccess: CollectionActionAccess
-        """
-        Get the number of articles in each stage.
-        """
-        satireStageCounts: [StageCount]
-      }
-  
-      type Mutation {
-        """
-        Create a new satire.
-        """
-        satireCreate(name: String!): Satire
-        """
-        Modify an existing satire.
-        """
-        satireModify(_id: ObjectID!, input: SatireModifyInput!): Satire
-        """
-        Toggle whether the hidden property is set to true for an existing satire.
-        This mutation sets hidden: true by default.
-        Hidden satires should not be presented to clients; this should be used as
-        a deletion that retains the data in case it is needed later.
-        """
-        satireHide(_id: ObjectID!, hide: Boolean): Satire
-        """
-        Toggle whether the locked property is set to true for an existing satire.
-        This mutation sets locked: true by default.
-        Locked satires should only be editable by the server and by admins.
-        """
-        satireLock(_id: ObjectID!, lock: Boolean): Satire
-        """
-        Add a watcher to a satire.
-        This mutation adds the watcher by default.
-        This mutation will use the signed in satire if watcher is not defined.
-        """
-        satireWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): Satire
-        """
-        Deletes a satire account.
-        """
-        satireDelete(_id: ObjectID!): Void
-        """
-        Publishes an existing satire.
-        """
-        satirePublish(_id: ObjectID!, published_at: Date, publish: Boolean): Satire
-      }
-  
-      extend type Subscription {
-        """
-        Sends satire documents when they are created.
-        """
-        satireCreated(): Satire
-        """
-        Sends the updated satire document when it changes.
-        If _id is omitted, the server will send changes for all satires.
-        """
-        satireModified(_id: ObjectID): Satire
-        """
-        Sends satire _id when it is deleted.
-        If _id is omitted, the server will send _ids for all deleted satires.
-        """
-        satireDeleted(_id: ObjectID): Satire
-      }
-    `,
+    name,
+    canPublish,
+    withPermissions,
+    typeDefs:
+      typeDefs +
+      gql`
+        type Query {
+          """
+          Get the number of articles in each stage.
+          """
+          satireStageCounts: [StageCount]
+        }
+      `,
     resolvers: {
       Query: {
         satire: (_, args, context: Context) =>
@@ -350,7 +240,7 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         ...publishableCollectionPeopleResolvers,
         authors: ({ authors }) => getUsers(authors),
       },
-      SatireEditors: {
+      SatirePeopleEditors: {
         primary: ({ primary }) => getUsers(primary),
         copy: ({ copy }) => getUsers(copy),
       },
@@ -360,36 +250,7 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         satireDeleted: { subscribe: () => pubsub.asyncIterator(['SATIRE_DELETED']) },
       },
     },
-    schemaFields: {
-      name: { type: String, required: true, default: 'New Satire' },
-      slug: { type: String },
-      permissions: {
-        teams: { type: [String], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR] },
-      },
-      timestamps: {
-        target_publish_at: {
-          type: Date,
-          default: '0001-01-01T01:00:00.000+00:00',
-        },
-      },
-      people: {
-        authors: { type: [mongoose.Schema.Types.ObjectId], default: [] },
-        display_authors: { type: [String], default: [] },
-        editors: {
-          primary: { type: [mongoose.Schema.Types.ObjectId] },
-          copy: { type: [mongoose.Schema.Types.ObjectId] },
-        },
-      },
-      stage: { type: Number, default: Stage.PLANNING },
-      tags: { type: [String] },
-      description: { type: String, default: '' },
-      photo_path: { type: String, default: '' },
-      photo_credit: { type: String, default: '' },
-      photo_caption: { type: String, default: '' },
-      body: { type: String },
-      versions: { type: {} },
-      legacy_html: { type: Boolean, default: false },
-    },
+    schemaFields,
     actionAccess: () => ({
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },

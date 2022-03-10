@@ -8,13 +8,39 @@ import { merge } from 'merge-anything';
 import { UsersType, TeamsType } from '../../types/config';
 
 const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
-  const { canDo, findDoc, findDocs, getCollectionActionAccess, gql, requireAuthentication, withPubSub } =
-    helpers;
+  const {
+    canDo,
+    findDoc,
+    findDocs,
+    getCollectionActionAccess,
+    gql,
+    genSchema,
+    requireAuthentication,
+    withPubSub,
+  } = helpers;
+
+  const name = 'Settings';
+  const canPublish = false;
+  const withPermissions = false;
+  const withSubscription = true;
+
+  const { schemaFields } = genSchema({
+    name,
+    canPublish,
+    withPermissions,
+    withSubscription,
+    Users,
+    Teams,
+    schemaDef: {
+      name: { type: String, required: true, modifiable: false, unique: true },
+      setting: { type: JSON, required: true, modifiable: true, strict: false },
+    },
+  });
 
   return {
-    name: 'Settings',
-    canPublish: false,
-    withPermissions: false,
+    name,
+    canPublish,
+    withPermissions,
     typeDefs: gql`
       type Settings {
         _id: ObjectID!
@@ -127,10 +153,7 @@ const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
         settingModified: { subscribe: () => pubsub.asyncIterator(['SETTING_MODIFIED']) },
       },
     },
-    schemaFields: {
-      name: { type: String, required: true },
-      setting: new mongoose.Schema({}, { strict: false }),
-    },
+    schemaFields,
     actionAccess: () => ({
       get: { teams: [Teams.ADMIN], users: [] },
       create: { teams: [Teams.ADMIN], users: [] },
