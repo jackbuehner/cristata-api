@@ -48,7 +48,7 @@ function genTypeDefs(input: GenSchemaInput): string {
       oneAccessorType,
       manyAccessorName,
       manyAccessorType,
-      hasPublic,
+      hasPublic && input.publicRules !== false,
       hasSlug
     )}
     ${genMutations(

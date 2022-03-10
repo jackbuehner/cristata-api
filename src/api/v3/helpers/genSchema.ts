@@ -61,6 +61,23 @@ interface GenSchemaInput {
    * The baseline teams that can be used in the config.
    */
   Teams: TeamsType;
+  /**
+   * Specify rules for public queries.
+   *
+   * Use `false` to disallow public queries.
+   *
+   * `filter`: MongoDB filter to sort out documents that need to remain private
+   *           (use `{}` for no filter)
+   *
+   * `slugDateField`: the field to use to ensure that the publicBySlug query returns the
+   *                  correct slug
+   */
+  publicRules:
+    | false
+    | {
+        filter: mongoose.FilterQuery<unknown>;
+        slugDateField?: string;
+      };
 }
 
 /**
