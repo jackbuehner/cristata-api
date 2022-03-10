@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
-import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
+import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar, FloatScalar } from '../scalars';
 import mongoose from 'mongoose';
 import { getUsers } from '../helpers';
 import { Teams } from '../../../config/database';
@@ -10,6 +10,7 @@ const core = {
   ObjectID: ObjectIdScalar,
   JSON: JsonScalar,
   Void: VoidScalar,
+  Float: FloatScalar,
   Query: {
     collectionActivity: async (_, { limit, collections, exclude, page }, context: Context) => {
       let collectionNames = context.config.database.collections.map((col) => col.name);
