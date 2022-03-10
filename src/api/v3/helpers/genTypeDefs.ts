@@ -246,6 +246,7 @@ function genTypes(
         const isPlainCollection = typeInheritance?.indexOf('Collection') === 0;
         const isPeopleField = fieldName === 'people';
         const isTimestampsField = fieldName === 'timestamps';
+        const isPermissionsField = fieldName === 'permissions';
 
         let nextTypeInheritance: string;
         if (isPeopleField) {
@@ -254,6 +255,8 @@ function genTypes(
         } else if (isTimestampsField) {
           if (isPublishableCollection) nextTypeInheritance = `PublishableCollectionTimestamps`;
           else if (isPlainCollection) nextTypeInheritance = `CollectionTimestamps`;
+        } else if (isPermissionsField) {
+          nextTypeInheritance = `CollectionPermissions`;
         }
 
         return genTypes(Object.entries(fieldDef), `${typeName}${capitalize(fieldName)}`, nextTypeInheritance);
