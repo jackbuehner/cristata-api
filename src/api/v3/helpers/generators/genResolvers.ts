@@ -13,8 +13,8 @@ import {
   isTypeTuple,
   SchemaDef,
   SchemaDefType,
-} from '../genSchema';
-import { calcAccessor } from '../genTypeDefs';
+} from './genSchema';
+import { calcAccessor } from './genTypeDefs';
 import { getUsers } from '../getUsers';
 import { merge } from 'merge-anything';
 import { capitalize } from '../../../../utils/capitalize';

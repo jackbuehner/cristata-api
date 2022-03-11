@@ -1,8 +1,8 @@
 import mongoose, { SchemaDefinition } from 'mongoose';
-import { TeamsType, UsersType } from '../../../types/config';
+import { TeamsType, UsersType } from '../../../../types/config';
 import { genTypeDefs } from './genTypeDefs';
 import { genSchemaFields } from './genSchemaFields';
-import { hasKey } from '../../../utils/hasKey';
+import { hasKey } from '../../../../utils/hasKey';
 
 function genSchema(input: GenSchemaInput): { typeDefs: string; schemaFields: SchemaDefinition } {
   const typeDefs = genTypeDefs(input);

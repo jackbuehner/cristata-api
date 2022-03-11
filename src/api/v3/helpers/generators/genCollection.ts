@@ -1,10 +1,10 @@
 import { Helpers } from '..';
 import { Context } from '../../../../apollo';
 import { Collection, CollectionPermissions } from '../../../../config/database';
-import { GenSchemaInput } from '../genSchema';
+import { GenSchemaInput } from './genSchema';
 
 function genCollection(input: GenCollectionInput): Collection {
-  const { typeDefs, schemaFields } = input.helpers.genSchema(input);
+  const { typeDefs, schemaFields } = input.helpers.generators.genSchema(input);
   const resolvers = input.helpers.generators.genResolvers(input);
 
   return {

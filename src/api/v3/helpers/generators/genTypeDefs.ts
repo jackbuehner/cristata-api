@@ -1,4 +1,4 @@
-import { isObject } from '../../../utils/isObject';
+import { isObject } from '../../../../utils/isObject';
 import {
   GenSchemaInput,
   GraphSchemaType,
@@ -10,8 +10,8 @@ import {
   SchemaType,
 } from './genSchema';
 import mongoose from 'mongoose';
-import { capitalize } from '../../../utils/capitalize';
-import { hasKey } from '../../../utils/hasKey';
+import { capitalize } from '../../../../utils/capitalize';
+import { hasKey } from '../../../../utils/hasKey';
 
 /**
  * Generate the type definitions for the GraphQL schema.

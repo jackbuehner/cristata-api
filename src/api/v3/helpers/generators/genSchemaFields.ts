@@ -1,9 +1,9 @@
 import { merge } from 'merge-anything';
 import { Schema, SchemaDefinition } from 'mongoose';
 import { customAlphabet } from 'nanoid';
-import { hasKey } from '../../../utils/hasKey';
-import { isArray } from '../../../utils/isArray';
-import { isObjectId } from '../../../utils/isObjectId';
+import { hasKey } from '../../../../utils/hasKey';
+import { isArray } from '../../../../utils/isArray';
+import { isObjectId } from '../../../../utils/isObjectId';
 import {
   GenSchemaInput,
   isSchemaDef,
