@@ -184,16 +184,17 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         helpers.deleteDoc({ model: name, args, context })
       );
     },
-    [`${name.toLowerCase()}Publish`]: input.canPublish
-      ? async (parent, args, context: Context) => {
-          return await helpers.withPubSub(
-            name.toUpperCase(),
-            'DELETED',
-            helpers.publishDoc({ model: name, args, context })
-          );
-        }
-      : undefined,
   } as c;
+
+  if (input.canPublish) {
+    Mutation[`${name.toLowerCase()}Publish`] = (async (parent, args, context: Context) => {
+      return await helpers.withPubSub(
+        name.toUpperCase(),
+        'DELETED',
+        helpers.publishDoc({ model: name, args, context })
+      );
+    }) as (doc: never) => Promise<never[]>;
+  }
 
   const Subscription = {
     [`${name.toLowerCase()}Created`]: {
