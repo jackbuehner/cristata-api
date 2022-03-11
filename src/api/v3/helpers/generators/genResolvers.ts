@@ -1,4 +1,4 @@
-import { Helpers } from '..';
+import { CollectionDoc, Helpers } from '..';
 import {
   collectionPeopleResolvers,
   Context,
@@ -20,6 +20,7 @@ import { merge } from 'merge-anything';
 import { capitalize } from '../../../../utils/capitalize';
 import { hasKey } from '../../../../utils/hasKey';
 import { dateAtTimeZero } from '../../../../utils/dateAtTimeZero';
+import { findAndReplace } from 'find-and-replace-anything';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 function genResolvers({ name, helpers, ...input }: GenResolversInput) {
@@ -118,6 +119,26 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         });
       }) as unknown as (doc: never) => Promise<never[]>;
     }
+  }
+
+  if (input.customQueries) {
+    input.customQueries.forEach(query => {
+      const customQueryName = name.toLowerCase() + capitalize(query.name);
+
+      Query[customQueryName] = (async (parent, args, context: Context) => {
+        helpers.requireAuthentication(context)
+
+        const Model = mongoose.model<CollectionDoc>(name)
+        const argNames = query.accepts.split(',').map(field => field.split(':')[0])
+        
+        let populatedPipline = query.pipeline;
+        argNames.forEach(name => {
+          populatedPipline = findAndReplace(populatedPipline, `%${name}%`, args[name])
+        })
+
+        return await Model.aggregate(populatedPipline);
+      }) as unknown as (doc: never) => Promise<never[]>;
+    })
   }
 
   const Mutation = {

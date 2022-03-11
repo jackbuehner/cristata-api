@@ -78,6 +78,44 @@ interface GenSchemaInput {
         filter: mongoose.FilterQuery<unknown>;
         slugDateField?: string;
       };
+  /**
+   * Create custom queries based on MongoDB aggregation pipelines.
+   */
+  customQueries?: Array<{
+    /**
+     * camelCase name of the custom query.
+     *
+     * The query name will be capitalized and the name of the collection
+     * will be prepended to the query name.
+     *
+     * For example, `'stageCounts'` becomes `'satireStageCounts'`.
+     */
+    name: string;
+    /**
+     * The description of the query. Be sure to use a helpful description
+     * so someone else can know what this query does. Can be seen in
+     * GraphQL introspection.
+     */
+    description: string;
+    /**
+     * A string list of arguments for the query.
+     *
+     * Example: `name: String!, slug: String`
+     */
+    accepts?: string;
+    /**
+     * An un-named object type that represents the returned values from the
+     * pipeline.
+     *
+     * Example: `{ _id: Float!, count: Int! }`
+     */
+    returns: string;
+    /**
+     * A MongoDB aggregation pipeline.
+     * [Pipeline stage reference](https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/#aggregation-pipeline-stages)
+     */
+    pipeline: mongoose.PipelineStage[];
+  }>;
 }
 
 /**

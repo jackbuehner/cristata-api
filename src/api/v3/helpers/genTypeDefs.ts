@@ -31,7 +31,7 @@ function genTypeDefs(input: GenSchemaInput): string {
       (input.schemaDef.slug as SchemaDef).type === mongoose.Schema.Types.String);
 
   return `
-    ${genTypes(schema, typeName, typeInheritance)}
+    ${genTypes(schema, typeName, typeInheritance, input.customQueries)}
     ${
       hasPublic
         ? genPrunedTypes(
@@ -48,6 +48,7 @@ function genTypeDefs(input: GenSchemaInput): string {
       oneAccessorType,
       manyAccessorName,
       manyAccessorType,
+      input.customQueries,
       hasPublic && input.publicRules !== false,
       hasSlug
     )}
@@ -223,7 +224,8 @@ const Schema = {
 function genTypes(
   schema: Array<[string, SchemaDefType | SchemaDef]>,
   typeName: string,
-  typeInheritance = undefined
+  typeInheritance = undefined,
+  customQueries: GenSchemaInput['customQueries'] = undefined
 ) {
   const schemaTop = schema.filter(([, fieldDef]) => isSchemaDef(fieldDef)) as Array<[string, SchemaDef]>;
   const schemaNext = schema.filter(([, fieldDef]) => !isSchemaDef(fieldDef)) as Array<[string, SchemaDefType]>;
@@ -261,7 +263,19 @@ function genTypes(
 
         return genTypes(Object.entries(fieldDef), `${typeName}${capitalize(fieldName)}`, nextTypeInheritance);
       })
-      .join('')}
+      .join('\n')}
+
+      ${
+        customQueries
+          ? customQueries.map((query) => {
+              const name = typeName + capitalize(query.name);
+              const typeObject = query.returns.replace('{', '{\n').replace('}', '\n}').replace(/,/g, '\n').replace('[', '').replace(']', '');
+              return `
+            type ${name} ${typeObject}
+            `;
+            }).join('\n')
+          : ``
+      }
   `;
 }
 
@@ -379,6 +393,7 @@ function genQueries(
   oneAccessorType: string,
   manyAccessorName: string,
   manyAccessorType: string,
+  customQueries: GenSchemaInput['customQueries'],
   usePublicQueries = false,
   usePublicBySlugQuery = false
 ): string {
@@ -429,6 +444,22 @@ function genQueries(
               : ``
           }
         `
+          : ``
+      }
+
+      ${
+        customQueries
+          ? customQueries.map((query) => {
+              const name = typeName.toLowerCase() + capitalize(query.name);
+              const args = query.accepts;
+              const returnsArray = query.returns.includes('[') && query.returns.includes(']')
+              return `
+            """
+            ${query.description}
+            """
+            ${name}(${args}): ${returnsArray ? `[${capitalize(name)}]` : capitalize(name)}
+            `;
+            }).join('\n')
           : ``
       }
     }
