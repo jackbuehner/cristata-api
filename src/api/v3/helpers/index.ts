@@ -23,6 +23,7 @@ import { publishDoc } from './publishDoc';
 import { withPubSub } from './withPubSub';
 import { getUsers } from './getUsers';
 import { gql } from './gql';
+import { genCollection } from './generators/genCollection';
 import { genResolvers } from './generators/genResolvers';
 
 const helpers = {
@@ -45,7 +46,7 @@ const helpers = {
   withPubSub,
   getUsers,
   gql,
-  generators: { genResolvers },
+  generators: { genCollection, genResolvers },
 };
 
 type Helpers = typeof helpers;
