@@ -8,39 +8,35 @@ import { merge } from 'merge-anything';
 import { UsersType, TeamsType } from '../../types/config';
 
 const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
-  const {
-    canDo,
-    findDoc,
-    findDocs,
-    getCollectionActionAccess,
-    gql,
-    genSchema,
-    requireAuthentication,
-    withPubSub,
-  } = helpers;
+  const { canDo, findDoc, findDocs, getCollectionActionAccess, gql, requireAuthentication, withPubSub } =
+    helpers;
 
-  const name = 'Settings';
-  const canPublish = false;
-  const withPermissions = false;
-  const withSubscription = true;
-
-  const { schemaFields } = genSchema({
-    name,
-    canPublish,
-    withPermissions,
-    withSubscription,
-    Users,
-    Teams,
+  const collection = helpers.generators.genCollection({
+    name: 'Settings',
+    canPublish: false,
+    withPermissions: false,
+    withSubscription: true,
+    publicRules: false,
     schemaDef: {
       name: { type: String, required: true, modifiable: false, unique: true },
       setting: { type: JSON, required: true, modifiable: true, strict: false },
     },
+    Users,
+    Teams,
+    helpers,
+    actionAccess: () => ({
+      get: { teams: [Teams.ADMIN], users: [] },
+      create: { teams: [Teams.ADMIN], users: [] },
+      modify: { teams: [Teams.ADMIN], users: [] },
+      hide: { teams: [], users: [] },
+      lock: { teams: [], users: [] },
+      watch: { teams: [], users: [] },
+      delete: { teams: [], users: [] },
+    }),
   });
 
   return {
-    name,
-    canPublish,
-    withPermissions,
+    ...collection,
     typeDefs: gql`
       type Settings {
         _id: ObjectID!
@@ -153,7 +149,6 @@ const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
         settingModified: { subscribe: () => pubsub.asyncIterator(['SETTING_MODIFIED']) },
       },
     },
-    schemaFields,
     actionAccess: () => ({
       get: { teams: [Teams.ADMIN], users: [] },
       create: { teams: [Teams.ADMIN], users: [] },
