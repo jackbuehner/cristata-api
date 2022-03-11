@@ -28,9 +28,9 @@ function canDo({ model, action, context, doc }: CanDo): boolean {
   // return whether the action can be done
   return (
     permissions[action]?.teams.includes(Teams.ANY) ||
-    permissions[action]?.users.includes(Users.ANY) ||
+    permissions[action]?.users.map((_id) => _id.toHexString()).includes(Users.ANY.toHexString()) ||
     permissions[action]?.teams.some((team) => context.profile.teams.includes(team)) ||
-    permissions[action]?.users.includes(context.profile._id)
+    permissions[action]?.users.map((_id) => _id.toHexString()).includes(context.profile._id.toHexString())
   );
 }
 
