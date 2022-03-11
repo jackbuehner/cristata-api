@@ -52,6 +52,7 @@ interface CollectionPermissions {
   publish?: CollectionPermissionsType;
   deactivate?: CollectionPermissionsType; // users only
   delete: CollectionPermissionsType;
+  bypassDocPermissions?: CollectionPermissionsType;
 }
 
 export type {
