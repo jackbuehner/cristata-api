@@ -5,6 +5,8 @@ import passport from 'passport';
 import passportLocalMongoose from 'passport-local-mongoose';
 import { Configuration } from '../types/config';
 
+mongoose.Schema.Types.String.checkRequired((v) => v !== null && v !== undefined);
+
 async function db(config: Configuration): Promise<void> {
   // destructure connection info from config
   const { username, password, host, database, options } = config.database.connection;
