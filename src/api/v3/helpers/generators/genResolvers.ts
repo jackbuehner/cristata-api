@@ -122,23 +122,23 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
   }
 
   if (input.customQueries) {
-    input.customQueries.forEach(query => {
+    input.customQueries.forEach((query) => {
       const customQueryName = name.toLowerCase() + capitalize(query.name);
 
       Query[customQueryName] = (async (parent, args, context: Context) => {
-        helpers.requireAuthentication(context)
+        helpers.requireAuthentication(context);
 
-        const Model = mongoose.model<CollectionDoc>(name)
-        const argNames = query.accepts.split(',').map(field => field.split(':')[0])
-        
+        const Model = mongoose.model<CollectionDoc>(name);
+        const argNames = query.accepts?.split(',').map((field) => field.split(':')[0]) || [];
+
         let populatedPipline = query.pipeline;
-        argNames.forEach(name => {
-          populatedPipline = findAndReplace(populatedPipline, `%${name}%`, args[name])
-        })
+        argNames.forEach((name) => {
+          populatedPipline = findAndReplace(populatedPipline, `%${name}%`, args[name]);
+        });
 
         return await Model.aggregate(populatedPipline);
       }) as unknown as (doc: never) => Promise<never[]>;
-    })
+    });
   }
 
   const Mutation = {

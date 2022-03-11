@@ -267,13 +267,20 @@ function genTypes(
 
       ${
         customQueries
-          ? customQueries.map((query) => {
-              const name = typeName + capitalize(query.name);
-              const typeObject = query.returns.replace('{', '{\n').replace('}', '\n}').replace(/,/g, '\n').replace('[', '').replace(']', '');
-              return `
+          ? customQueries
+              .map((query) => {
+                const name = typeName + capitalize(query.name);
+                const typeObject = query.returns
+                  .replace('{', '{\n')
+                  .replace('}', '\n}')
+                  .replace(/,/g, '\n')
+                  .replace('[', '')
+                  .replace(']', '');
+                return `
             type ${name} ${typeObject}
             `;
-            }).join('\n')
+              })
+              .join('\n')
           : ``
       }
   `;
@@ -449,17 +456,19 @@ function genQueries(
 
       ${
         customQueries
-          ? customQueries.map((query) => {
-              const name = typeName.toLowerCase() + capitalize(query.name);
-              const args = query.accepts;
-              const returnsArray = query.returns.includes('[') && query.returns.includes(']')
-              return `
+          ? customQueries
+              .map((query) => {
+                const name = typeName.toLowerCase() + capitalize(query.name);
+                const args = query.accepts;
+                const returnsArray = query.returns.includes('[') && query.returns.includes(']');
+                return `
             """
             ${query.description}
             """
-            ${name}(${args}): ${returnsArray ? `[${capitalize(name)}]` : capitalize(name)}
+            ${name}${args ? `(${args})` : ``}: ${returnsArray ? `[${capitalize(name)}]` : capitalize(name)}
             `;
-            }).join('\n')
+              })
+              .join('\n')
           : ``
       }
     }
