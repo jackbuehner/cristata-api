@@ -6,15 +6,20 @@ import { isArray } from '../../../../utils/isArray';
 import {
   GenSchemaInput,
   isSchemaDef,
+  isSchemaDefOrType,
   isTypeTuple,
   MongooseSchemaType,
+  NestedSchemaDefType,
   SchemaDef,
   SchemaDefaultValueType,
   SchemaDefType,
 } from './genSchema';
 
 function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
-  const schema = Object.entries(input.schemaDef);
+  const schema = Object.entries(input.schemaDef).filter(
+    (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
+      isSchemaDefOrType(schemaDefItem[1])
+  );
 
   const genSchema = (schema: [string, SchemaDefType | SchemaDef][]) => {
     // merge the array of schema objects into a single object
@@ -53,7 +58,11 @@ function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
         // schema definitions, so each key-value pair needs to be individually
         // processed and returned a an object containing the schema
         else {
-          return { [fieldName]: genSchema(Object.entries(fieldDef)) };
+          const schema = Object.entries(fieldDef).filter(
+            (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
+              isSchemaDefOrType(schemaDefItem[1])
+          );
+          return { [fieldName]: genSchema(schema) };
         }
       })
     );

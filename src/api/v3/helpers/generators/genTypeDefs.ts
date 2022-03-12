@@ -3,10 +3,14 @@ import {
   GenSchemaInput,
   GraphSchemaType,
   isSchemaDef,
+  isSchemaDefOrType,
+  isSchemaRef,
   isTypeTuple,
   MongooseSchemaType,
+  NestedSchemaDefType,
   SchemaDef,
   SchemaDefType,
+  SchemaRef,
   SchemaType,
 } from './genSchema';
 import mongoose from 'mongoose';
@@ -18,12 +22,16 @@ import { hasKey } from '../../../../utils/hasKey';
  */
 function genTypeDefs(input: GenSchemaInput): string {
   const schema = Object.entries(input.schemaDef);
+  const schemaSansRefs = schema.filter(
+    (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
+      isSchemaDefOrType(schemaDefItem[1])
+  );
   const typeName = input.name;
   const typeInheritance = getTypeInheritance(input.canPublish, input.withPermissions);
   const inputInheritance = getInputInheritance(input.canPublish, input.withPermissions);
   const [oneAccessorName, oneAccessorType] = calcAccessor('one', input.by);
   const [manyAccessorName, manyAccessorType] = calcAccessor('many', input.by);
-  const onlyOneModifiable = schema.filter(([, fieldDef]) => fieldDef.modifiable).length === 1;
+  const onlyOneModifiable = schemaSansRefs.filter(([, fieldDef]) => fieldDef.modifiable).length === 1;
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
   const hasSlug =
     hasKey('slug', input.schemaDef) &&
@@ -41,7 +49,7 @@ function genTypeDefs(input: GenSchemaInput): string {
           )
         : ``
     }
-    ${genInputs(schema, typeName, inputInheritance)}
+    ${genInputs(schemaSansRefs, typeName, inputInheritance)}
     ${genQueries(
       typeName,
       oneAccessorName,
@@ -53,7 +61,7 @@ function genTypeDefs(input: GenSchemaInput): string {
       hasSlug
     )}
     ${genMutations(
-      schema,
+      schemaSansRefs,
       typeName,
       oneAccessorName,
       oneAccessorType,
@@ -222,19 +230,31 @@ const Schema = {
  * Generates the types for the collection type definitions.
  */
 function genTypes(
-  schema: Array<[string, SchemaDefType | SchemaDef]>,
+  schema: Array<[string, SchemaDefType | SchemaDef | SchemaRef]>,
   typeName: string,
   typeInheritance = undefined,
   customQueries: GenSchemaInput['customQueries'] = undefined
 ) {
-  const schemaTop = schema.filter(([, fieldDef]) => isSchemaDef(fieldDef)) as Array<[string, SchemaDef]>;
-  const schemaNext = schema.filter(([, fieldDef]) => !isSchemaDef(fieldDef)) as Array<[string, SchemaDefType]>;
+  const schemaTop = schema.filter((field): field is [string, SchemaDef] => isSchemaDef(field[1]));
+  const schemaTopRefs = schema.filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<[string, SchemaRef]>;
+  const schemaNext = schema.filter(
+    ([, fieldDef]) => isSchemaDefOrType(fieldDef) && !isSchemaDef(fieldDef)
+  ) as Array<[string, SchemaDefType]>;
 
   return `
     type ${typeName} ${typeInheritance ? `inherits ${typeInheritance}` : ``} {
       ${
         // list the field and type for each schema definition
         schemaTop?.map(([fieldName, fieldDef]) => `${fieldName}: ${calcGraphFieldType(fieldDef)}`).join('\n')
+      }
+      ${
+        // list the field and type for each schema reference
+        schemaTopRefs
+          ?.map(
+            ([fieldName, fieldRef]) =>
+              `${fieldName}: ${calcGraphFieldType({ type: fieldRef.fieldType, required: false })}`
+          )
+          .join('\n')
       }
       ${
         // list the field and type for each set of nested schema definitions
@@ -290,14 +310,19 @@ function genTypes(
  * Generates the pruned types for the collection type definitions.
  */
 function genPrunedTypes(
-  schema: Array<[string, SchemaDefType | SchemaDef]>,
+  schema: Array<[string, SchemaDefType | SchemaDef | SchemaRef]>,
   typeName: string,
   isPublishable: boolean
 ) {
   const schemaTopPublic = (
     schema.filter(([, fieldDef]) => isSchemaDef(fieldDef)) as Array<[string, SchemaDef]>
   ).filter(([, fieldDef]) => !!fieldDef.public);
-  const schemaNext = schema.filter(([, fieldDef]) => !isSchemaDef(fieldDef)) as Array<[string, SchemaDefType]>;
+  const schemaTopRefsPublic = schema
+    .filter((field): field is [string, SchemaRef] => isSchemaRef(field[1]))
+    .filter(([, fieldDef]) => !!fieldDef.public);
+  const schemaNext = schema.filter(
+    (field): field is [string, SchemaDefType] => isSchemaDefOrType(field[1]) && !isSchemaDef(field[1])
+  );
 
   return `
     type ${typeName.includes(`Pruned`) ? `` : `Pruned`}${typeName} {
@@ -306,6 +331,15 @@ function genPrunedTypes(
         schemaTopPublic
           ?.map(([fieldName, fieldDef]) => `${fieldName}: ${calcGraphFieldType(fieldDef)}`)
           .join('\n') || `void: Void`
+      }
+      ${
+        // list the field and type for each schema definition
+        schemaTopRefsPublic
+          ?.map(
+            ([fieldName, fieldRef]) =>
+              `${fieldName}: ${calcGraphFieldType({ type: fieldRef.fieldType, required: false })}`
+          )
+          .join('\n')
       }
       ${
         // list the field and type for each set of nested schema definitions
@@ -331,8 +365,13 @@ function genPrunedTypes(
           );
         }
 
+        const schema = Object.entries(fieldDef).filter(
+          (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
+            isSchemaDefOrType(schemaDefItem[1])
+        );
+
         return genPrunedTypes(
-          Object.entries(fieldDef),
+          schema,
           `${typeName.includes(`Pruned`) ? `` : `Pruned`}${typeName}${capitalize(fieldName)}`,
           isPublishable
         );
@@ -382,8 +421,12 @@ function genInputs(
 
     ${schemaNext
       ?.map(([fieldName, fieldDef]) => {
+        const schema = Object.entries(fieldDef).filter(
+          (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
+            isSchemaDefOrType(schemaDefItem[1])
+        );
         return genInputs(
-          Object.entries(fieldDef),
+          schema,
           `${typeName}${typeName.includes('ModifyInput') ? `` : `ModifyInput`}${capitalize(fieldName)}`
         );
       })

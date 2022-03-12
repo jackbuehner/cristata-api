@@ -132,8 +132,50 @@ function isTypeTuple(toCheck: unknown): toCheck is [GraphSchemaType, MongooseSch
   );
 }
 
+interface SchemaRef {
+  /**
+   * The collection from which the data for this field comes.
+   */
+  model: string;
+  /**
+   * The identifying field on the referenced collection.
+   * It must match the `match` field from the current collection.
+   */
+  by: string;
+  /**
+   * The identifying field on the current collection.
+   * It must match the `by` field from the referenced collection.
+   */
+  matches: string;
+  /**
+   * The field from the referenced collection document
+   * that contains the value to be used for this field.
+   */
+  field: string;
+  fieldType: SchemaType;
+  public?: boolean;
+}
+
+/**
+ * Checks that the input is a schema references instead
+ * of an object containing schema definitions.
+ */
+function isSchemaRef(
+  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef
+): toCheck is SchemaRef {
+  return (
+    hasKey('model', toCheck) &&
+    typeof toCheck.model === 'string' &&
+    hasKey('by', toCheck) &&
+    typeof toCheck.by === 'string' &&
+    hasKey('matches', toCheck) &&
+    typeof toCheck.matches === 'string' &&
+    hasKey('field', toCheck) &&
+    typeof toCheck.field === 'string'
+  );
+}
+
 interface SchemaDef {
-  // TODO: split into gtype and mtype
   type: SchemaType;
   required?: boolean;
   unique?: boolean;
@@ -168,14 +210,27 @@ type SetterValueType =
   | { code: 'alphanumeric'; length: number };
 
 // allow nesting schema definitions inside objects
-type SchemaDefType = { [key: string]: SchemaDef | SchemaDefType };
+type SchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType | SchemaRef };
+type NestedSchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType };
 
 /**
  * Checks that the input is a schema definition instead
  * of an object containing schema definitions.
  */
-function isSchemaDef(toCheck: SchemaDefType | SchemaDef): toCheck is SchemaDef {
+function isSchemaDef(
+  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef
+): toCheck is SchemaDef {
   return hasKey('type', toCheck);
+}
+
+/**
+ * Checks that the input is a schema definition instead
+ * of an object containing schema definitions.
+ */
+function isSchemaDefOrType(
+  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef
+): toCheck is SchemaDefType | NestedSchemaDefType | SchemaDef {
+  return !isSchemaRef(toCheck);
 }
 
 type SchemaDefaultValueType =
@@ -255,10 +310,12 @@ export type {
   GenSchemaInput,
   GraphSchemaType,
   MongooseSchemaType,
+  NestedSchemaDefType,
   SchemaDef,
   SchemaDefType,
+  SchemaRef,
   SchemaType,
   SchemaDefaultValueType,
   SetterValueType,
 };
-export { genSchema, isCustomGraphSchemaType, isTypeTuple, isSchemaDef };
+export { genSchema, isCustomGraphSchemaType, isTypeTuple, isSchemaDef, isSchemaRef, isSchemaDefOrType };

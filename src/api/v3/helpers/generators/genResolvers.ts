@@ -10,9 +10,12 @@ import {
   GenSchemaInput,
   isCustomGraphSchemaType,
   isSchemaDef,
+  isSchemaDefOrType,
+  isSchemaRef,
   isTypeTuple,
   SchemaDef,
   SchemaDefType,
+  SchemaRef,
 } from './genSchema';
 import { calcAccessor } from './genTypeDefs';
 import { getUsers } from '../getUsers';
@@ -22,6 +25,32 @@ import { hasKey } from '../../../../utils/hasKey';
 import { dateAtTimeZero } from '../../../../utils/dateAtTimeZero';
 import { findAndReplace } from 'find-and-replace-anything';
 import { conditionallyModifyDocField } from './conditionallyModifyDocField';
+import { constructDocFromRef } from './constructDocFromRef';
+
+async function construct(doc: mongoose.Document, schemaRefs: [string, SchemaRef][], context: Context) {
+  // construct a document that includes
+  // all referenced fields
+  let constructedDoc = doc.toObject?.() || doc;
+  await schemaRefs.reduce(
+    async (promise, [fieldName, refSpec]) => {
+      // wait for the last async function to finish.
+      await promise;
+      constructedDoc = await constructDocFromRef({
+        parentDoc: constructedDoc,
+        model: refSpec.model,
+        by: refSpec.by,
+        from: refSpec.matches,
+        field: refSpec.field,
+        to: fieldName,
+        context,
+      });
+    },
+    // use an already resolved Promise for the first iteration,
+    Promise.resolve()
+  );
+
+  return constructedDoc;
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 function genResolvers({ name, helpers, ...input }: GenResolversInput) {
@@ -31,13 +60,22 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
     hasKey('slug', input.schemaDef) &&
     ((input.schemaDef.slug as SchemaDef).type === String ||
       (input.schemaDef.slug as SchemaDef).type === mongoose.Schema.Types.String);
+  const schemaRefs = Object.entries(input.schemaDef).filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<
+    [string, SchemaRef]
+  >;
 
   const Query = {
     /**
      * Finds a single document by the accessor specified in the config.
      */
     [name.toLowerCase()]: async (parent, args, context: Context) => {
-      return await helpers.findDoc({ model: name, by: oneAccessorName, _id: args[oneAccessorName], context });
+      const doc = await helpers.findDoc({
+        model: name,
+        by: oneAccessorName,
+        _id: args[oneAccessorName],
+        context,
+      });
+      return await construct(doc, schemaRefs, context);
     },
     /**
      * Finds multiple documents by _id.
@@ -45,7 +83,15 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      * TODO: search by a custom accessor (`manyAccessorName`)
      */
     [`${name.toLowerCase()}s`]: async (parent, args, context: Context) => {
-      return await helpers.findDocs({ model: name, args, context });
+      const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
+        model: name,
+        args,
+        context,
+      });
+      return {
+        ...paged,
+        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context))),
+      };
     },
     /**
      * Get the action access ofor the collection.
@@ -64,14 +110,18 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      * fields unless they are marked `public: true`.
      */
     Query[`${name.toLowerCase()}Public`] = (async (parent, args, context: Context) => {
-      return await helpers.findDoc({
-        model: name,
-        by: oneAccessorName,
-        _id: args[oneAccessorName],
-        filter: publicRules.filter,
-        context,
-        fullAccess: true,
-      });
+      return await construct(
+        await helpers.findDoc({
+          model: name,
+          by: oneAccessorName,
+          _id: args[oneAccessorName],
+          filter: publicRules.filter,
+          context,
+          fullAccess: true,
+        }),
+        schemaRefs,
+        context
+      );
     }) as unknown as (doc: never) => Promise<never[]>;
 
     /**
@@ -83,12 +133,16 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      * fields unless they are marked `public: true`.
      */
     Query[`${name.toLowerCase()}sPublic`] = (async (parent, args, context: Context) => {
-      return await helpers.findDocs({
+      const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
         model: name,
         args: { ...args, filter: { ...args.filter, ...publicRules.filter } },
         context,
         fullAccess: true,
       });
+      return {
+        ...paged,
+        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context))),
+      };
     }) as unknown as (doc: never) => Promise<never[]>;
 
     if (hasSlug && publicRules.slugDateField) {
@@ -110,7 +164,8 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
             }
           : publicRules.filter;
 
-        return await helpers.findDoc({
+        // get the doc
+        const doc = await helpers.findDoc({
           model: name,
           by: 'slug',
           _id: args.slug,
@@ -118,6 +173,9 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
           context,
           fullAccess: true,
         });
+
+        // return a fully constructed doc
+        return await construct(doc, schemaRefs, context);
       }) as unknown as (doc: never) => Promise<never[]>;
     }
   }
@@ -291,9 +349,9 @@ function genCustomResolvers(input: GenResolversInput): c {
     } as c;
 
     // identify the nested schemas
-    const nestedSchemaDefs = Object.entries(schemaDef).filter(([, def]) => !isSchemaDef(def)) as Array<
-      [string, SchemaDefType]
-    >;
+    const nestedSchemaDefs = Object.entries(schemaDef).filter(
+      ([, def]) => isSchemaDefOrType(def) && !isSchemaDef(def)
+    ) as Array<[string, SchemaDefType]>;
 
     // generate custom resolvers for the nested schemas
     const nestedCustomResolvers = merge(
