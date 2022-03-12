@@ -21,6 +21,7 @@ import { capitalize } from '../../../../utils/capitalize';
 import { hasKey } from '../../../../utils/hasKey';
 import { dateAtTimeZero } from '../../../../utils/dateAtTimeZero';
 import { findAndReplace } from 'find-and-replace-anything';
+import { conditionallyModifyDocField } from './conditionallyModifyDocField';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 function genResolvers({ name, helpers, ...input }: GenResolversInput) {
@@ -141,19 +142,35 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
     });
   }
 
+  const gc = { name, helpers, ...input };
   const Mutation = {
     [`${name.toLowerCase()}Create`]: async (parent, args, context: Context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'CREATED',
-        helpers.createDoc({ model: name, args, context, withPermissions: input.withPermissions })
+        helpers.createDoc<mongoose.LeanDocument<mongoose.Document>>({
+          model: name,
+          args,
+          context,
+          withPermissions: input.withPermissions,
+          modify: async (currentDoc, data) => {
+            conditionallyModifyDocField(currentDoc, data, gc);
+          },
+        })
       );
     },
     [`${name.toLowerCase()}Modify`]: async (parent, { _id, input }, context: Context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
-        helpers.modifyDoc({ model: name, data: { ...input, _id }, context })
+        helpers.modifyDoc<mongoose.Document, mongoose.LeanDocument<mongoose.Document>>({
+          model: name,
+          data: { ...input, _id },
+          context,
+          modify: async (currentDoc, data) => {
+            conditionallyModifyDocField(currentDoc, data, gc);
+          },
+        })
       );
     },
     [`${name.toLowerCase()}Hide`]: async (parent, args, context: Context) => {

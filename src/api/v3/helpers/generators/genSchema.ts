@@ -3,6 +3,7 @@ import { TeamsType, UsersType } from '../../../../types/config';
 import { genTypeDefs } from './genTypeDefs';
 import { genSchemaFields } from './genSchemaFields';
 import { hasKey } from '../../../../utils/hasKey';
+import { SetterCondition } from './conditionallyModifyDocField';
 
 function genSchema(input: GenSchemaInput): { typeDefs: string; schemaFields: SchemaDefinition } {
   const typeDefs = genTypeDefs(input);
@@ -150,7 +151,21 @@ interface SchemaDef {
   default?: SchemaDefaultValueType;
   modifiable?: boolean;
   public?: boolean;
+  setter?: {
+    condition: SetterCondition;
+    value: SetterValueType;
+  };
 }
+
+type SetterValueType =
+  | string
+  | number
+  | boolean
+  | string[]
+  | number[]
+  | boolean[]
+  | { slugify: string; separator?: string }
+  | { code: 'alphanumeric'; length: number };
 
 // allow nesting schema definitions inside objects
 type SchemaDefType = { [key: string]: SchemaDef | SchemaDefType };
@@ -244,5 +259,6 @@ export type {
   SchemaDefType,
   SchemaType,
   SchemaDefaultValueType,
+  SetterValueType,
 };
 export { genSchema, isCustomGraphSchemaType, isTypeTuple, isSchemaDef };
