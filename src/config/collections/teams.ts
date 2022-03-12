@@ -4,7 +4,6 @@ import mongoose from 'mongoose';
 import { CollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
 import { UsersType, TeamsType } from '../../types/config';
-import { merge } from 'merge-anything';
 
 const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const collection = helpers.generators.genCollection({
@@ -22,6 +21,99 @@ const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
     Users,
     Teams,
     helpers,
+    customQueries: [
+      {
+        name: 'unassignedUsers',
+        description: 'Lists the active users who are not assigned to any teams.',
+        pipeline: [
+          {
+            $group: {
+              _id: null,
+              allMembers: {
+                $addToSet: '$members',
+              },
+              allOrganizers: {
+                $addToSet: '$organizers',
+              },
+            },
+          },
+          {
+            $addFields: {
+              allMembers: {
+                $reduce: {
+                  input: '$allMembers',
+                  initialValue: [],
+                  in: {
+                    $setUnion: ['$$value', '$$this'],
+                  },
+                },
+              },
+              allOrganizers: {
+                $reduce: {
+                  input: '$allOrganizers',
+                  initialValue: [],
+                  in: {
+                    $setUnion: ['$$value', '$$this'],
+                  },
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'users',
+              let: {
+                allMembers: '$allMembers',
+                allOrganizers: '$allOrganizers',
+              },
+              pipeline: [
+                {
+                  $match: {
+                    hidden: false,
+                    retired: {
+                      $ne: true,
+                    },
+                  },
+                },
+                {
+                  $addFields: {
+                    inTeamMembers: {
+                      $in: ['$_id', '$$allMembers'],
+                    },
+                  },
+                },
+                {
+                  $addFields: {
+                    inTeamOrganizers: {
+                      $in: ['$_id', '$$allOrganizers'],
+                    },
+                  },
+                },
+                {
+                  $match: {
+                    inTeamMembers: false,
+                    inTeamOrganizers: false,
+                  },
+                },
+                {
+                  $unset: ['inTeamMembers', 'inTeamOrganizers'],
+                },
+              ],
+              as: 'users',
+            },
+          },
+          {
+            $unwind: '$users',
+          },
+          {
+            $replaceRoot: {
+              newRoot: '$users',
+            },
+          },
+        ],
+        returns: '[User]',
+      },
+    ],
     actionAccess: (context: Context, doc: ITeam | undefined) => {
       // add user to the organizers array if they are an organizer for the team
       const organizers = [];
@@ -44,32 +136,6 @@ const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
         watch: { teams: [], users: [] },
         delete: { teams: [Teams.ADMIN], users: [...organizers] },
       };
-    },
-  });
-
-  collection.typeDefs += helpers.gql`
-  type Query {
-    """
-    Lists the active users who are not assigned to any teams.
-    """
-    teamUnassignedUsers(): [User]
-  }`;
-
-  collection.resolvers = merge(collection.resolvers, {
-    Query: {
-      teamUnassignedUsers: async (_, __, context: Context) => {
-        // allow any user with GET user permissions to get users who are not assigned to any teams
-        if (helpers.canDo({ model: 'User', action: 'get', context })) {
-          const allMembers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('members');
-          const allOrganizers: mongoose.Types.ObjectId[] = await mongoose.model('Team').distinct('organizers');
-          const allAssigned = Array.from(new Set([...allMembers, ...allOrganizers]));
-          // find users who are not hidden, not retired, and are not assigned to a team
-          return await mongoose
-            .model('User')
-            .find({ _id: { $nin: allAssigned }, hidden: false, retired: { $ne: true } });
-        }
-        return [];
-      },
     },
   });
 

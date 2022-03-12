@@ -1,21 +1,16 @@
-import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import type { Helpers } from '../../api/v3/helpers';
-import { Context } from '../../apollo';
 import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
 import { UsersType, TeamsType } from '../../types/config';
-import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
-import { slugify } from '../../utils/slugify';
 import { Collection } from '../database';
+import { genCollection } from '../../api/v3/helpers';
 
 const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
-  const { modifyDoc, withPubSub, findDoc, findDocAndPrune } = helpers;
-
-  const collection = helpers.generators.genCollection({
+  const collection = genCollection({
     name: 'Satire',
     canPublish: true,
     withPermissions: true,
@@ -23,12 +18,28 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
     publicRules: { filter: { stage: Stage.PUBLISHED }, slugDateField: 'timestamps.published_at' },
     schemaDef: {
       name: { type: String, required: true, modifiable: true, public: true, default: 'New Satire' },
-      slug: { type: String, modifiable: true, public: true },
-      stage: { type: mongoose.Schema.Types.Decimal128, modifiable: true, default: Stage.PLANNING },
+      slug: {
+        type: String,
+        modifiable: true,
+        public: true,
+        setter: {
+          condition: { $and: [{ stage: { $eq: 5.2 } }, { slug: { $exists: false } }] },
+          value: { slugify: 'name' },
+        },
+      },
+      stage: { type: mongoose.Schema.Types.Decimal128, modifiable: true, default: Stage.PLANNING.toString() },
       tags: { type: [String], modifiable: true, public: true, default: [] },
       description: { type: String, required: true, modifiable: true, public: true, default: '' },
       photo_path: { type: String, required: true, modifiable: true, public: true, default: '' },
-      photo_credit: { type: String, required: true, modifiable: true, public: true, default: '' }, // ref: { model: 'Photo', by: 'photo_url', path: '$doc.people.display_authors' }
+      photo_credit: { type: String, required: true, modifiable: true, public: true, default: '' },
+      // photo_credit: {
+      //   model: 'Photo',
+      //   by: 'photo_url',
+      //   matches: 'photo_path',
+      //   field: 'people.photo_created_by',
+      //   fieldType: String,
+      //   public: true,
+      // },
       photo_caption: { type: String, required: true, modifiable: true, public: true, default: '' },
       body: { type: String, modifiable: true, public: true },
       legacy_html: { type: Boolean, required: true, modifiable: true, public: true, default: false },
@@ -86,88 +97,6 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         delete: { teams: [Teams.ADMIN], users: [] },
         bypassDocPermissions: { teams: [Teams.MANAGING_EDITOR], users: [] },
       };
-    },
-  });
-
-  collection.resolvers = merge(collection.resolvers, {
-    Query: {
-      satireBySlugPublic: async (_, args, context: Context) => {
-        // create filter to find newest article with matching slug
-        const filter = args.date
-          ? {
-              'timestamps.published_at': {
-                $gte: dateAtTimeZero(args.date),
-                $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
-              },
-              stage: Stage.PUBLISHED,
-            }
-          : {
-              stage: Stage.PUBLISHED,
-            };
-
-        // get the satire
-        const prunedSatire = await findDocAndPrune({
-          model: 'Satire',
-          by: 'slug',
-          _id: args.slug,
-          filter: filter,
-          context,
-          keep: [
-            '_id',
-            'timestamps.published_at',
-            'timestamps.updated_at',
-            'people.display_authors',
-            'name',
-            'tags',
-            'description',
-            'photo_path',
-            'photo_credit',
-            'photo_caption',
-            'legacy_html',
-            'body',
-            'slug',
-          ],
-          fullAccess: true,
-        });
-
-        // add photo credit
-        const constructedPrunedSatire = {
-          ...prunedSatire,
-          photo_credit: JSON.parse(
-            JSON.stringify(
-              await findDoc({
-                model: 'Photo',
-                by: 'photo_url',
-                //@ts-expect-error photo_path exists on prunedSatire
-                _id: prunedSatire.photo_path,
-                context,
-                fullAccess: true,
-              })
-            )
-          )?.people?.photo_created_by,
-        };
-
-        // return the article
-        return constructedPrunedSatire;
-      },
-    },
-    Mutation: {
-      satireModify: (_, { _id, input }, context: Context) =>
-        withPubSub(
-          'SATIRE',
-          'MODIFIED',
-          modifyDoc({
-            model: 'Satire',
-            data: { ...input, _id },
-            context,
-            modify: async (currentDoc: ISatire, data: Partial<ISatire>) => {
-              // set the slug if the document is being published and does not already have one
-              if (data.stage === Stage.PUBLISHED && (!data.slug || !currentDoc.slug)) {
-                data.slug = slugify(input.name || currentDoc.name);
-              }
-            },
-          })
-        ),
     },
   });
 
