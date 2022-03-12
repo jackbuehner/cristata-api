@@ -278,25 +278,8 @@ const satire = (helpers: Helpers): Collection => {
             fullAccess: true,
           });
 
-          // add photo credit
-          const constructedPrunedSatire = {
-            ...prunedSatire,
-            photo_credit: JSON.parse(
-              JSON.stringify(
-                await findDoc({
-                  model: 'Photo',
-                  by: 'photo_url',
-                  //@ts-expect-error photo_path exists on prunedSatire
-                  _id: prunedSatire.photo_path,
-                  context,
-                  fullAccess: true,
-                })
-              )
-            )?.people?.photo_created_by,
-          };
-
-          // return the article
-          return constructedPrunedSatire;
+          // return the satire
+          return prunedSatire;
         },
         satires: (_, args, context: Context) =>
           findDocs({
