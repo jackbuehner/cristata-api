@@ -73,8 +73,6 @@ function calcDefaultValue(val: SchemaDefaultValueType) {
   else if (typeof val === 'number') return val;
   // if a boolean, use the boolean
   else if (typeof val === 'boolean') return val;
-  // if an ObjectId, use the ObjectId
-  else if (isObjectId(val)) return val;
   // if an array, use process the values of the array
   else if (isArray(val)) return val.map((v: SchemaDefaultValueType) => calcDefaultValue(v)).filter((v) => !!v);
   // if a specification for a code, generate the code

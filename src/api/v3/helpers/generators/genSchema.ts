@@ -169,10 +169,7 @@ type SchemaDefaultValueType =
   | number
   | number[]
   | boolean
-  | mongoose.Types.ObjectId
-  | mongoose.Types.ObjectId[]
-  | mongoose.Types.Decimal128
-  | mongoose.Types.Decimal128[]
+  | boolean[]
   | { code: 'alphanumeric'; length: number };
 
 type SchemaType = MongooseSchemaType | [GraphSchemaType, MongooseSchemaType];
