@@ -26,6 +26,9 @@ import { dateAtTimeZero } from '../../../../utils/dateAtTimeZero';
 import { findAndReplace } from 'find-and-replace-anything';
 import { conditionallyModifyDocField } from './conditionallyModifyDocField';
 import { constructDocFromRef } from './constructDocFromRef';
+import { get as getProperty } from 'object-path';
+import { UserInputError } from 'apollo-server-errors';
+import { flattenObject } from '../../../../utils/flattenObject';
 
 async function construct(doc: mongoose.Document, schemaRefs: [string, SchemaRef][], context: Context) {
   // construct a document that includes
@@ -203,6 +206,15 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
   const gc = { name, helpers, ...input };
   const Mutation = {
     [`${name.toLowerCase()}Create`]: async (parent, args, context: Context) => {
+      // check input rules
+      Object.keys(flattenObject(args)).forEach((key) => {
+        const inputRule: SchemaDef['rule'] = getProperty(gc.schemaDef, key)?.rule;
+        if (inputRule) {
+          const match = getProperty(args, key)?.match(inputRule.match);
+          if (match === null || match === undefined) throw new UserInputError(inputRule.message);
+        }
+      });
+
       return await helpers.withPubSub(
         name.toUpperCase(),
         'CREATED',
@@ -218,6 +230,15 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
       );
     },
     [`${name.toLowerCase()}Modify`]: async (parent, { _id, input }, context: Context) => {
+      // check input rules
+      Object.keys(flattenObject({ _id, input } as never)).forEach((key) => {
+        const inputRule: SchemaDef['rule'] = getProperty(gc.schemaDef, key)?.rule;
+        if (inputRule) {
+          const match = getProperty({ _id, input }, key)?.match(inputRule.match);
+          if (match === null || match === undefined) throw new UserInputError(inputRule.message);
+        }
+      });
+
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',

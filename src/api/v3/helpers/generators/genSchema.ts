@@ -200,6 +200,7 @@ interface SchemaDef {
     condition: SetterCondition;
     value: SetterValueType;
   };
+  rule?: { match: RegExp; message: string };
 }
 
 type SetterValueType =
