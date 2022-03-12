@@ -290,6 +290,12 @@ function genTypes(
           ? customQueries
               .map((query) => {
                 const name = typeName + capitalize(query.name);
+
+                // return type manually specified because
+                // the type already exists
+                const manual = !query.returns.includes('{');
+                if (manual) return ``
+
                 const typeObject = query.returns
                   .replace('{', '{\n')
                   .replace('}', '\n}')
@@ -503,6 +509,17 @@ function genQueries(
               .map((query) => {
                 const name = typeName.toLowerCase() + capitalize(query.name);
                 const args = query.accepts;
+
+                const manual = !query.returns.includes('{');
+                if (manual) {
+                  return `
+            """
+            ${query.description}
+            """
+            ${name}${args ? `(${args})` : ``}: ${query.returns}
+            `;
+                }
+
                 const returnsArray = query.returns.includes('[') && query.returns.includes(']');
                 return `
             """

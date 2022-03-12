@@ -109,6 +109,9 @@ interface GenSchemaInput {
      * pipeline.
      *
      * Example: `{ _id: Float!, count: Int! }`
+     *
+     * If you want to specify a type that already exists, provide it
+     * without curly brackets.
      */
     returns: string;
     /**
