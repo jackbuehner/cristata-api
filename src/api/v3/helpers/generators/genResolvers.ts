@@ -20,6 +20,7 @@ import {
 import { calcAccessor } from './genTypeDefs';
 import { merge } from 'merge-anything';
 import { capitalize } from '../../../../utils/capitalize';
+import { uncapitalize } from '../../../../utils/uncapitalize';
 import { hasKey } from '../../../../utils/hasKey';
 import { dateAtTimeZero } from '../../../../utils/dateAtTimeZero';
 import { findAndReplace } from 'find-and-replace-anything';
@@ -73,7 +74,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
     /**
      * Finds a single document by the accessor specified in the config.
      */
-    [name.toLowerCase()]: async (parent, args, context: Context) => {
+    [uncapitalize(name)]: async (parent, args, context: Context) => {
       const doc = await helpers.findDoc({
         model: name,
         by: oneAccessorName,
@@ -87,7 +88,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      *
      * TODO: search by a custom accessor (`manyAccessorName`)
      */
-    [`${name.toLowerCase()}s`]: async (parent, args, context: Context) => {
+    [`${uncapitalize(name)}s`]: async (parent, args, context: Context) => {
       const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
         model: name,
         args,
@@ -101,7 +102,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
     /**
      * Get the action access ofor the collection.
      */
-    [`${name.toLowerCase()}ActionAccess`]: async (parent, args, context: Context) => {
+    [`${uncapitalize(name)}ActionAccess`]: async (parent, args, context: Context) => {
       return await helpers.getCollectionActionAccess({ model: name, context, args });
     },
   } as c;
@@ -114,7 +115,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      * This query is for the Pruned document type, which disallows getting
      * fields unless they are marked `public: true`.
      */
-    Query[`${name.toLowerCase()}Public`] = (async (parent, args, context: Context) => {
+    Query[`${uncapitalize(name)}Public`] = (async (parent, args, context: Context) => {
       return await construct(
         await helpers.findDoc({
           model: name,
@@ -137,7 +138,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      * This query is for the Pruned document type, which disallows getting
      * fields unless they are marked `public: true`.
      */
-    Query[`${name.toLowerCase()}sPublic`] = (async (parent, args, context: Context) => {
+    Query[`${uncapitalize(name)}sPublic`] = (async (parent, args, context: Context) => {
       const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
         model: name,
         args: { ...args, filter: { ...args.filter, ...publicRules.filter } },
@@ -157,7 +158,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
        * This query is for the Pruned document type, which disallows getting
        * fields unless they are marked `public: true`.
        */
-      Query[`${name.toLowerCase()}BySlugPublic`] = (async (parent, args, context: Context) => {
+      Query[`${uncapitalize(name)}BySlugPublic`] = (async (parent, args, context: Context) => {
         // create filter to find newest document with matching slug
         const filter = args.date
           ? {
@@ -187,7 +188,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
 
   if (input.customQueries) {
     input.customQueries.forEach((query) => {
-      const customQueryName = name.toLowerCase() + capitalize(query.name);
+      const customQueryName = uncapitalize(name) + capitalize(query.name);
 
       Query[customQueryName] = (async (parent, args, context: Context) => {
         helpers.requireAuthentication(context);
@@ -207,7 +208,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
 
   const gc = { name, helpers, ...input };
   const Mutation = {
-    [`${name.toLowerCase()}Create`]: async (parent, args, context: Context) => {
+    [`${uncapitalize(name)}Create`]: async (parent, args, context: Context) => {
       // check input rules
       Object.keys(flattenObject(args)).forEach((key) => {
         const inputRule: SchemaDef['rule'] = getProperty(gc.schemaDef, key)?.rule;
@@ -231,7 +232,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         })
       );
     },
-    [`${name.toLowerCase()}Modify`]: async (parent, { _id, input }, context: Context) => {
+    [`${uncapitalize(name)}Modify`]: async (parent, { _id, input }, context: Context) => {
       // check input rules
       Object.keys(flattenObject({ _id, input } as never)).forEach((key) => {
         const inputRule: SchemaDef['rule'] = getProperty(gc.schemaDef, key)?.rule;
@@ -254,28 +255,28 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         })
       );
     },
-    [`${name.toLowerCase()}Hide`]: async (parent, args, context: Context) => {
+    [`${uncapitalize(name)}Hide`]: async (parent, args, context: Context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
         helpers.hideDoc({ model: name, args, context })
       );
     },
-    [`${name.toLowerCase()}Lock`]: async (parent, args, context: Context) => {
+    [`${uncapitalize(name)}Lock`]: async (parent, args, context: Context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
         helpers.lockDoc({ model: name, args, context })
       );
     },
-    [`${name.toLowerCase()}Watch`]: async (parent, args, context: Context) => {
+    [`${uncapitalize(name)}Watch`]: async (parent, args, context: Context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
         helpers.watchDoc({ model: name, args, context })
       );
     },
-    [`${name.toLowerCase()}Delete`]: async (parent, args, context: Context) => {
+    [`${uncapitalize(name)}Delete`]: async (parent, args, context: Context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'DELETED',
@@ -285,7 +286,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
   } as c;
 
   if (input.canPublish) {
-    Mutation[`${name.toLowerCase()}Publish`] = (async (parent, args, context: Context) => {
+    Mutation[`${uncapitalize(name)}Publish`] = (async (parent, args, context: Context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'DELETED',
@@ -295,13 +296,13 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
   }
 
   const Subscription = {
-    [`${name.toLowerCase()}Created`]: {
+    [`${uncapitalize(name)}Created`]: {
       subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_CREATED`]),
     },
-    [`${name.toLowerCase()}Modified`]: {
+    [`${uncapitalize(name)}Modified`]: {
       subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_MODIFIED`]),
     },
-    [`${name.toLowerCase()}Deleted`]: {
+    [`${uncapitalize(name)}Deleted`]: {
       subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_DELETED`]),
     },
   };

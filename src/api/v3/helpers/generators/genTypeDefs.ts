@@ -15,6 +15,7 @@ import {
 } from './genSchema';
 import mongoose from 'mongoose';
 import { capitalize } from '../../../../utils/capitalize';
+import { uncapitalize } from '../../../../utils/uncapitalize';
 import { hasKey } from '../../../../utils/hasKey';
 
 /**
@@ -475,19 +476,21 @@ function genQueries(
       """
       Get a ${typeName} document by ${oneAccessorName}.
       """
-      ${typeName.toLowerCase()}(${oneAccessorName}: ${oneAccessorType}): ${typeName}
+      ${uncapitalize(typeName)}(${oneAccessorName}: ${oneAccessorType}): ${typeName}
 
       """
       Get a set of ${typeName} documents by ${manyAccessorName}.
       If ${manyAccessorName} is omitted, the API will return all ${typeName} documents.
       """
-      ${typeName.toLowerCase()}s(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<${typeName}>
+      ${uncapitalize(
+        typeName
+      )}s(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<${typeName}>
       
       """
       Get the permissions of the currently authenticated user for the
       ${typeName} collection.
       """
-      ${typeName.toLowerCase()}ActionAccess: CollectionActionAccess
+      ${uncapitalize(typeName)}ActionAccess: CollectionActionAccess
 
       ${
         usePublicQueries
@@ -495,13 +498,15 @@ function genQueries(
           """
           Get a pruned ${typeName} document by ${oneAccessorName}.
           """
-          ${typeName.toLowerCase()}Public(${oneAccessorName}: ${oneAccessorType}): Pruned${typeName}
+          ${uncapitalize(typeName)}Public(${oneAccessorName}: ${oneAccessorType}): Pruned${typeName}
 
           """
           Get a set of pruned ${typeName} documents by ${manyAccessorName}.
           If ${manyAccessorName} is omitted, the API will return all ${typeName} documents.
           """
-          ${typeName.toLowerCase()}sPublic(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Pruned${typeName}>
+          ${uncapitalize(
+            typeName
+          )}sPublic(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Pruned${typeName}>
 
           ${
             usePublicBySlugQuery
@@ -512,7 +517,7 @@ function genQueries(
             Provide the date of to ensure that the correct document is provided
             (in case the slug is not unique).
             """
-            ${typeName.toLowerCase()}BySlugPublic(slug: String!, date: Date): Pruned${typeName}
+            ${uncapitalize(typeName)}BySlugPublic(slug: String!, date: Date): Pruned${typeName}
           `
               : ``
           }
@@ -524,7 +529,7 @@ function genQueries(
         customQueries
           ? customQueries
               .map((query) => {
-                const name = typeName.toLowerCase() + capitalize(query.name);
+                const name = uncapitalize(typeName) + capitalize(query.name);
                 const args = query.accepts;
 
                 const manual = !query.returns.includes('{');
@@ -583,12 +588,12 @@ function genMutations(
       """
       Create a new ${typeName} document.
       """
-      ${typeName.toLowerCase()}Create(${createString()}): ${typeName}
+      ${uncapitalize(typeName)}Create(${createString()}): ${typeName}
 
       """
       Modify an existing ${typeName} document.
       """
-      ${typeName.toLowerCase()}Modify(${oneAccessorName}: ${oneAccessorType}, input: ${
+      ${uncapitalize(typeName)}Modify(${oneAccessorName}: ${oneAccessorType}, input: ${
     modifyInputType ? modifyInputType : `${typeName}ModifyInput!`
   }): ${typeName}
     
@@ -600,7 +605,7 @@ function genMutations(
       Hidden ${typeName} documents should not be presented to clients;
       this is analogous to moving the document to a deleted items folder
       """
-      ${typeName.toLowerCase()}Hide(${oneAccessorName}: ${oneAccessorType}, hide: Boolean): ${typeName}
+      ${uncapitalize(typeName)}Hide(${oneAccessorName}: ${oneAccessorType}, hide: Boolean): ${typeName}
 
       """
       Set whether an existing ${typeName} document is locked.
@@ -610,7 +615,7 @@ function genMutations(
       Locked ${typeName} documents should only be editable by the server
       and by admins.
       """
-      ${typeName.toLowerCase()}Lock(${oneAccessorName}: ${oneAccessorType}, lock: Boolean): ${typeName}
+      ${uncapitalize(typeName)}Lock(${oneAccessorName}: ${oneAccessorType}, lock: Boolean): ${typeName}
 
       """
       Add a watcher to a ${typeName} document.
@@ -619,12 +624,14 @@ function genMutations(
       not specified, for the watcher, the currently authenticated user will
       be used.
       """
-      ${typeName.toLowerCase()}Watch(${oneAccessorName}: ${oneAccessorType}, watcher: ObjectID, watch: Boolean): ${typeName}
+      ${uncapitalize(
+        typeName
+      )}Watch(${oneAccessorName}: ${oneAccessorType}, watcher: ObjectID, watch: Boolean): ${typeName}
 
       """
       Deletes a ${typeName} document.
       """
-      ${typeName.toLowerCase()}Delete(${oneAccessorName}: ${oneAccessorType}): Void
+      ${uncapitalize(typeName)}Delete(${oneAccessorName}: ${oneAccessorType}): Void
 
       ${
         canPublish
@@ -632,7 +639,9 @@ function genMutations(
         """
         Publishes an existing ${typeName} document.
         """
-        ${typeName.toLowerCase()}Publish(${oneAccessorName}: ${oneAccessorType}, published_at: Date, publish: Boolean): ${typeName}
+        ${uncapitalize(
+          typeName
+        )}Publish(${oneAccessorName}: ${oneAccessorType}, published_at: Date, publish: Boolean): ${typeName}
         `
           : ''
       } 
@@ -648,14 +657,14 @@ function genSubscriptions(typeName: string, oneAccessorName: string, oneAccessor
     """
     Sends a ${typeName} document when it is created.
     """
-    ${typeName.toLowerCase()}Created(): ${typeName}
+    ${uncapitalize(typeName)}Created(): ${typeName}
 
     """
     Sends the updated ${typeName} document when it changes.
 
     If ${oneAccessorName} is omitted, the server will send changes for all shorturls.
     """
-    ${typeName.toLowerCase()}Modified(${oneAccessorName}: ${oneAccessorType.replace('!', '')}): ${typeName}
+    ${uncapitalize(typeName)}Modified(${oneAccessorName}: ${oneAccessorType.replace('!', '')}): ${typeName}
 
     """
     Sends a ${typeName} ${oneAccessorName} when it is deleted.
@@ -663,7 +672,7 @@ function genSubscriptions(typeName: string, oneAccessorName: string, oneAccessor
     If ${oneAccessorName} is omitted, the server will send ${oneAccessorName}s for all deleted ${typeName}
     documents.
     """
-    ${typeName.toLowerCase()}Deleted(${oneAccessorName}: ${oneAccessorType.replace(
+    ${uncapitalize(typeName)}Deleted(${oneAccessorName}: ${oneAccessorType.replace(
     '!',
     ''
   )}): ${oneAccessorType}
