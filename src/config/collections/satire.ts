@@ -102,14 +102,14 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
   return collection;
 };
 
-const Stage = {
-  PLANNING: new mongoose.Types.Decimal128('1.1'),
-  DRAFT: new mongoose.Types.Decimal128('2.1'),
-  PENDING_EDIT: new mongoose.Types.Decimal128('3.4'),
-  PENDING_UPLOAD: new mongoose.Types.Decimal128('4.1'),
-  UPLOADED: new mongoose.Types.Decimal128('5.1'),
-  PUBLISHED: new mongoose.Types.Decimal128('5.2'),
-};
+enum Stage {
+  PLANNING = 1.1,
+  DRAFT = 2.1,
+  PENDING_EDIT = 3.4,
+  PENDING_UPLOAD = 4.1,
+  UPLOADED = 5.1,
+  PUBLISHED = 5.2,
+}
 
 interface ISatire
   extends CollectionSchemaFields,
