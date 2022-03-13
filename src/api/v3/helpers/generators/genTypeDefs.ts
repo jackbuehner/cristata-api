@@ -615,7 +615,7 @@ function genMutations(
         """
         Publishes an existing ${typeName} document.
         """
-        ${typeName.toLowerCase()}Publish(${oneAccessorName}: ${oneAccessorType}, published_at: Date, publish: Boolean): Void
+        ${typeName.toLowerCase()}Publish(${oneAccessorName}: ${oneAccessorType}, published_at: Date, publish: Boolean): ${typeName}
         `
           : ''
       } 
