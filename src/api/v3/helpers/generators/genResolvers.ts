@@ -307,8 +307,9 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
   };
 
   const baselineResolvers = { Query, Mutation, Subscription };
+  if (!input.withSubscription) delete baselineResolvers.Subscription;
+
   const customResolvers = genCustomResolvers({ name, helpers, ...input });
-  console.log(customResolvers);
 
   return { ...baselineResolvers, ...customResolvers };
 }
