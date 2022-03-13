@@ -431,7 +431,7 @@ function genCustomResolvers(input: GenResolversInput): c {
         let obj = {};
 
         // include baseline people resolvers if it is for people
-        if (name === 'people') {
+        if (name === 'people' && isPublic !== true) {
           if (input.canPublish)
             obj = { ...obj, [input.name + 'People']: { ...publishableCollectionPeopleResolvers } };
           else obj = { ...obj, [input.name + 'People']: { ...collectionPeopleResolvers } };
