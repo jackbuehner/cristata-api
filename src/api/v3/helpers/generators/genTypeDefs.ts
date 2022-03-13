@@ -345,6 +345,9 @@ function genPrunedTypes(
   const schemaTopRefsPublic = schema
     .filter((field): field is [string, SchemaRef] => isSchemaRef(field[1]))
     .filter(([, fieldDef]) => !!fieldDef.public);
+  const schemaTopArrayDefType = schema.filter(
+    (field): field is [string, [SchemaDefType]] => isSchemaDefOrType(field[1][0]) && !isSchemaDef(field[1][0])
+  );
   const schemaNext = schema.filter(
     (field): field is [string, SchemaDefType] => isSchemaDefOrType(field[1]) && !isSchemaDef(field[1])
   );
@@ -367,6 +370,12 @@ function genPrunedTypes(
           .join('\n')
       }
       ${
+        // list the field and type for each instance of a schema in an array
+        schemaTopArrayDefType
+          ?.map(([fieldName]) => `${fieldName}: [${typeName}${capitalize(fieldName)}]`)
+          .join('\n')
+      }
+      ${
         // list the field and type for each set of nested schema definitions
         schemaNext
           ?.map(
@@ -376,6 +385,14 @@ function genPrunedTypes(
           .join('\n')
       }
     }
+
+    ${schemaTopArrayDefType
+      ?.map((r) => {
+        const fieldName = r[0];
+        const schemaDefGroup = r[1][0];
+        return genTypes(Object.entries(schemaDefGroup), `${typeName}${capitalize(fieldName)}`);
+      })
+      .join('\n')}
 
     ${schemaNext
       ?.map(([fieldName, fieldDef]) => {
