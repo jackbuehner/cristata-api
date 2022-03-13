@@ -1,7 +1,7 @@
 import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
 import { ForbiddenError } from 'apollo-server-errors';
-import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
+import { canDo, findDoc, requireAuthentication } from '.';
 
 interface DeleteDoc {
   model: string;
@@ -14,7 +14,6 @@ interface DeleteDoc {
 
 async function deleteDoc({ model, args, context }: DeleteDoc): Promise<mongoose.Types.ObjectId> {
   requireAuthentication(context);
-  const Model = mongoose.model<CollectionDoc>(model);
 
   // get the document
   const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context });
@@ -24,8 +23,8 @@ async function deleteDoc({ model, args, context }: DeleteDoc): Promise<mongoose.
     throw new ForbiddenError('you cannot delete this document');
 
   // delete the document
-  await Model.deleteOne({ _id: args._id });
-  return args._id;
+  await doc.delete();
+  return args[args.by || '_id'];
 }
 
 export { deleteDoc };
