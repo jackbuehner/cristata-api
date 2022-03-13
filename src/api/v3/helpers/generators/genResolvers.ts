@@ -30,6 +30,7 @@ import { get as getProperty } from 'object-path';
 import { ApolloError, UserInputError } from 'apollo-server-errors';
 import { flattenObject } from '../../../../utils/flattenObject';
 import { isObjectId } from '../../../../utils/isObjectId';
+import pluralize from 'pluralize';
 
 async function construct(doc: mongoose.Document | null, schemaRefs: [string, SchemaRef][], context: Context) {
   if (doc === null) return null;
@@ -88,7 +89,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      *
      * TODO: search by a custom accessor (`manyAccessorName`)
      */
-    [`${uncapitalize(name)}s`]: async (parent, args, context: Context) => {
+    [pluralize(uncapitalize(name))]: async (parent, args, context: Context) => {
       const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
         model: name,
         args,
@@ -138,7 +139,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      * This query is for the Pruned document type, which disallows getting
      * fields unless they are marked `public: true`.
      */
-    Query[`${uncapitalize(name)}sPublic`] = (async (parent, args, context: Context) => {
+    Query[`${pluralize(uncapitalize(name))}Public`] = (async (parent, args, context: Context) => {
       const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
         model: name,
         args: { ...args, filter: { ...args.filter, ...publicRules.filter } },

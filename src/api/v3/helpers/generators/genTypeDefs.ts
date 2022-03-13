@@ -17,6 +17,7 @@ import mongoose from 'mongoose';
 import { capitalize } from '../../../../utils/capitalize';
 import { uncapitalize } from '../../../../utils/uncapitalize';
 import { hasKey } from '../../../../utils/hasKey';
+import pluralize from 'pluralize';
 
 /**
  * Generate the type definitions for the GraphQL schema.
@@ -482,9 +483,9 @@ function genQueries(
       Get a set of ${typeName} documents by ${manyAccessorName}.
       If ${manyAccessorName} is omitted, the API will return all ${typeName} documents.
       """
-      ${uncapitalize(
-        typeName
-      )}s(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<${typeName}>
+      ${pluralize(
+        uncapitalize(typeName)
+      )}(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<${typeName}>
       
       """
       Get the permissions of the currently authenticated user for the
@@ -504,9 +505,9 @@ function genQueries(
           Get a set of pruned ${typeName} documents by ${manyAccessorName}.
           If ${manyAccessorName} is omitted, the API will return all ${typeName} documents.
           """
-          ${uncapitalize(
-            typeName
-          )}sPublic(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Pruned${typeName}>
+          ${pluralize(
+            uncapitalize(typeName)
+          )}Public(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Pruned${typeName}>
 
           ${
             usePublicBySlugQuery
