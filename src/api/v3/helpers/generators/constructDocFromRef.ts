@@ -44,7 +44,10 @@ async function constructDocFromRef({
       context,
       fullAccess: true,
     })
-  ).toObject();
+  )?.toObject();
+
+  // if the referenced doc does not exist, return the parent doc
+  if (!refDoc) return { ...parentDoc };
 
   // get the referenced field from the referenced doc
   const refField = getProperty(refDoc, field);
