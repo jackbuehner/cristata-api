@@ -367,7 +367,7 @@ function genCustomResolvers(input: GenResolversInput): c {
 
                 // ensure every element in the field is an ObjectID
                 const containsOnlyValidObjectIds = parent[fieldName].every((elem: unknown) => isObjectId(elem));
-                if (containsOnlyValidObjectIds)
+                if (!containsOnlyValidObjectIds)
                   throw new ApolloError(
                     'the referenced field contains values that are not valid ObjectIds',
                     'VALUE_ERROR',
@@ -408,7 +408,7 @@ function genCustomResolvers(input: GenResolversInput): c {
 
               // ensure every the field value is an ObjectId
               const valueIsObjectId = isObjectId(parent[fieldName]);
-              if (valueIsObjectId)
+              if (!valueIsObjectId)
                 throw new ApolloError('the referenced field does not contain a valid ObjectId', 'VALUE_ERROR', {
                   field: { name: fieldName, value: parent[fieldName] },
                 });
