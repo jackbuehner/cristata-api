@@ -230,13 +230,16 @@ const Schema = {
  * Generates the types for the collection type definitions.
  */
 function genTypes(
-  schema: Array<[string, SchemaDefType | SchemaDef | SchemaRef]>,
+  schema: Array<[string, SchemaDefType | SchemaDef | SchemaRef | [SchemaDefType]]>,
   typeName: string,
   typeInheritance = undefined,
   customQueries: GenSchemaInput['customQueries'] = undefined
 ) {
   const schemaTop = schema.filter((field): field is [string, SchemaDef] => isSchemaDef(field[1]));
   const schemaTopRefs = schema.filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<[string, SchemaRef]>;
+  const schemaTopArrayDefType = schema.filter(
+    (field): field is [string, [SchemaDefType]] => isSchemaDefOrType(field[1][0]) && !isSchemaDef(field[1][0])
+  );
   const schemaNext = schema.filter(
     ([, fieldDef]) => isSchemaDefOrType(fieldDef) && !isSchemaDef(fieldDef)
   ) as Array<[string, SchemaDefType]>;
@@ -257,13 +260,27 @@ function genTypes(
           .join('\n')
       }
       ${
+        // list the field and type for each instance of a schema in an array
+        schemaTopArrayDefType
+          ?.map(([fieldName]) => `${fieldName}: [${typeName}${capitalize(fieldName)}]`)
+          .join('\n')
+      }
+      ${
         // list the field and type for each set of nested schema definitions
         schemaNext?.map(([fieldName]) => `${fieldName}: ${typeName}${capitalize(fieldName)}`).join('\n')
       }
     }
 
+    ${schemaTopArrayDefType
+      ?.map((r) => {
+        const fieldName = r[0];
+        const schemaDefGroup = r[1][0];
+        return genTypes(Object.entries(schemaDefGroup), `${typeName}${capitalize(fieldName)}`);
+      })
+      .join('\n')}
+
     ${schemaNext
-      ?.map(([fieldName, fieldDef]) => {
+      ?.map(([fieldName, schemaDef]) => {
         const isPublishableCollection = typeInheritance?.indexOf('PublishableCollection') === 0;
         const isPlainCollection = typeInheritance?.indexOf('Collection') === 0;
         const isPeopleField = fieldName === 'people';
@@ -281,7 +298,7 @@ function genTypes(
           nextTypeInheritance = `CollectionPermissions`;
         }
 
-        return genTypes(Object.entries(fieldDef), `${typeName}${capitalize(fieldName)}`, nextTypeInheritance);
+        return genTypes(Object.entries(schemaDef), `${typeName}${capitalize(fieldName)}`, nextTypeInheritance);
       })
       .join('\n')}
 
@@ -294,7 +311,7 @@ function genTypes(
                 // return type manually specified because
                 // the type already exists
                 const manual = !query.returns.includes('{');
-                if (manual) return ``
+                if (manual) return ``;
 
                 const typeObject = query.returns
                   .replace('{', '{\n')
@@ -316,7 +333,7 @@ function genTypes(
  * Generates the pruned types for the collection type definitions.
  */
 function genPrunedTypes(
-  schema: Array<[string, SchemaDefType | SchemaDef | SchemaRef]>,
+  schema: Array<[string, SchemaDefType | SchemaDef | SchemaRef | [SchemaDefType]]>,
   typeName: string,
   isPublishable: boolean
 ) {

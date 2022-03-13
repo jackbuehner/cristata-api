@@ -164,9 +164,11 @@ interface SchemaRef {
  * of an object containing schema definitions.
  */
 function isSchemaRef(
-  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef
+  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef | [SchemaDefType]
 ): toCheck is SchemaRef {
   return (
+    typeof toCheck === 'object' &&
+    !Array.isArray(toCheck) &&
     hasKey('model', toCheck) &&
     typeof toCheck.model === 'string' &&
     hasKey('by', toCheck) &&
@@ -214,7 +216,7 @@ type SetterValueType =
   | { code: 'alphanumeric'; length: number };
 
 // allow nesting schema definitions inside objects
-type SchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType | SchemaRef };
+type SchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType | SchemaRef | [SchemaDefType] };
 type NestedSchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType };
 
 /**
@@ -222,9 +224,9 @@ type NestedSchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType };
  * of an object containing schema definitions.
  */
 function isSchemaDef(
-  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef
+  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef | [SchemaDefType]
 ): toCheck is SchemaDef {
-  return hasKey('type', toCheck);
+  return typeof toCheck === 'object' && !Array.isArray(toCheck) && hasKey('type', toCheck);
 }
 
 /**
@@ -232,9 +234,9 @@ function isSchemaDef(
  * of an object containing schema definitions.
  */
 function isSchemaDefOrType(
-  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef
+  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef | [SchemaDefType]
 ): toCheck is SchemaDefType | NestedSchemaDefType | SchemaDef {
-  return !isSchemaRef(toCheck);
+  return typeof toCheck === 'object' && !Array.isArray(toCheck) && !isSchemaRef(toCheck);
 }
 
 type SchemaDefaultValueType =
