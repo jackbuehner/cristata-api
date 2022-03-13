@@ -308,18 +308,29 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
 
   const baselineResolvers = { Query, Mutation, Subscription };
   const customResolvers = genCustomResolvers({ name, helpers, ...input });
+  console.log(customResolvers);
 
   return { ...baselineResolvers, ...customResolvers };
 }
 
 type c = Record<string, (doc: never) => Promise<never[]>>;
 function genCustomResolvers(input: GenResolversInput): c {
-  const gen = (parentName: string, schemaDef: SchemaDefType) => {
+  const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
+
+  /**
+   * @param isPublic whether non-public fields need to be filtered away
+   */
+  const gen = (parentName: string, schemaDef: SchemaDefType, isPublic?: boolean) => {
     // only store schema defs that have defined a custom graphql type, which
     // requires a custom resolver (e.g. '[Users]')
-    const schemaDefsWithCustomGraphType = Object.entries(schemaDef).filter(
+    let schemaDefsWithCustomGraphType = Object.entries(schemaDef).filter(
       ([, def]) => isSchemaDef(def) && isTypeTuple(def.type) && isCustomGraphSchemaType(def.type[0])
     ) as unknown as Array<[string, SchemaDefsWithCustomGraphType]>;
+
+    // if the generator is generating custom resolvers for Pruned types,
+    // remove schema entries that are not available publically
+    if (isPublic)
+      schemaDefsWithCustomGraphType = schemaDefsWithCustomGraphType.filter(([, fieldDef]) => !!fieldDef.public);
 
     // generate a custom resolver
     const customResolver = {
@@ -428,7 +439,7 @@ function genCustomResolvers(input: GenResolversInput): c {
         return merge(
           obj,
           // send nested schemea through this function to generate the resolvers
-          gen(name.indexOf(input.name) === 0 ? '' : parentName + capitalize(name), nestedSchemaDef)
+          gen(name.indexOf(input.name) === 0 ? '' : parentName + capitalize(name), nestedSchemaDef, isPublic)
         );
       })
     ) as c;
@@ -441,7 +452,10 @@ function genCustomResolvers(input: GenResolversInput): c {
     return { ...customResolver, ...nestedCustomResolvers };
   };
 
-  return gen(input.name, input.schemaDef);
+  // generate for normal and public queries
+  const normal = gen(input.name, input.schemaDef);
+  const pruned = hasPublic ? gen('Pruned' + input.name, input.schemaDef, true) : {};
+  return { ...normal, ...pruned };
 }
 
 interface GenResolversInput extends GenSchemaInput {
