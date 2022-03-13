@@ -5,15 +5,38 @@ import { CollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
+import { UsersType, TeamsType } from '../../types/config';
 
-const settings = (helpers: Helpers): Collection => {
+const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const { canDo, findDoc, findDocs, getCollectionActionAccess, gql, requireAuthentication, withPubSub } =
     helpers;
 
-  return {
+  const collection = helpers.generators.genCollection({
     name: 'Settings',
     canPublish: false,
     withPermissions: false,
+    withSubscription: true,
+    publicRules: false,
+    schemaDef: {
+      name: { type: String, required: true, modifiable: false, unique: true },
+      setting: { type: JSON, required: true, modifiable: true, strict: false },
+    },
+    Users,
+    Teams,
+    helpers,
+    actionAccess: () => ({
+      get: { teams: [Teams.ADMIN], users: [] },
+      create: { teams: [Teams.ADMIN], users: [] },
+      modify: { teams: [Teams.ADMIN], users: [] },
+      hide: { teams: [], users: [] },
+      lock: { teams: [], users: [] },
+      watch: { teams: [], users: [] },
+      delete: { teams: [], users: [] },
+    }),
+  });
+
+  return {
+    ...collection,
     typeDefs: gql`
       type Settings {
         _id: ObjectID!
@@ -126,19 +149,6 @@ const settings = (helpers: Helpers): Collection => {
         settingModified: { subscribe: () => pubsub.asyncIterator(['SETTING_MODIFIED']) },
       },
     },
-    schemaFields: () => ({
-      name: { type: String, required: true },
-      setting: new mongoose.Schema({}, { strict: false }),
-    }),
-    actionAccess: (Users, Teams) => ({
-      get: { teams: [Teams.ADMIN], users: [] },
-      create: { teams: [Teams.ADMIN], users: [] },
-      modify: { teams: [Teams.ADMIN], users: [] },
-      hide: { teams: [], users: [] },
-      lock: { teams: [], users: [] },
-      watch: { teams: [], users: [] },
-      delete: { teams: [], users: [] },
-    }),
   };
 };
 

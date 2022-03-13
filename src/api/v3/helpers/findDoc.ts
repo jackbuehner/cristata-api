@@ -2,7 +2,7 @@
 import { Context } from '../../../apollo';
 import mongoose, { FilterQuery } from 'mongoose';
 import { Teams, Users } from '../../../config/database';
-import { CollectionDoc, requireAuthentication } from '.';
+import { canDo, CollectionDoc, requireAuthentication } from '.';
 
 interface FindDoc {
   model: string;
@@ -23,19 +23,25 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
     (col) => col.name === model
   ).withPermissions;
 
+  // whether the current user can bypass the access filter
+  const canBypassAccessFilter =
+    fullAccess ||
+    context.profile.teams.includes(Teams.ADMIN) ||
+    !withStandardPermissions ||
+    canDo({ action: 'bypassDocPermissions', model, context });
+
   // access filter
-  const accessFilter =
-    fullAccess || !withStandardPermissions || context.profile.teams.includes(Teams.ADMIN)
-      ? {}
-      : accessRule
-      ? accessRule
-      : {
-          $or: [
-            { 'permissions.teams': { $in: [...context.profile.teams, Teams.ANY] } },
-            { 'permissions.users': context.profile._id },
-            { 'permissions.users': Users.ANY },
-          ],
-        };
+  const accessFilter = canBypassAccessFilter
+    ? {}
+    : accessRule
+    ? accessRule
+    : {
+        $or: [
+          { 'permissions.teams': { $in: [...context.profile.teams, Teams.ANY] } },
+          { 'permissions.users': context.profile._id },
+          { 'permissions.users': Users.ANY },
+        ],
+      };
 
   // get the document
   return await Model.findOne({ [by || '_id']: _id || null, ...accessFilter, ...filter });

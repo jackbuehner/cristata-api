@@ -1,674 +1,115 @@
-import { Context, publishableCollectionPeopleResolvers, pubsub } from '../../apollo';
-import { Collection, Teams } from '../database';
+import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
-import {
+import type { CollectionDoc, Helpers } from '../../api/v3/helpers';
+import type { Context } from '../../apollo';
+import type {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
-import { CollectionDoc, getUsers, Helpers, pruneDocs } from '../../api/v3/helpers';
-import { IUserDoc, PRUNED_USER_KEEP_FIELDS } from './users';
-import { isArray } from '../../utils/isArray';
-import { dateAtTimeZero } from '../../utils/dateAtTimeZero';
-import { slugify } from '../../utils/slugify';
+import type { TeamsType, UsersType } from '../../types/config';
 import { sendEmail } from '../../utils/sendEmail';
-import { ISettings } from './settings';
+import { slugify } from '../../utils/slugify';
+import type { Collection } from '../database';
+import type { ISettings } from './settings';
+import type { IUserDoc } from './users';
 
-const PRUNED_ARTICLE_KEEP_FIELDS = [
-  '_id',
-  'timestamps.published_at',
-  'timestamps.updated_at',
-  'people.authors',
-  'people.editors.primary',
-  'people.editors.copy',
-  'name',
-  'categories',
-  'tags',
-  'description',
-  'photo_path',
-  'video_path',
-  'video_replaces_photo',
-  'photo_caption',
-  'photo_credit',
-  'video_replaces_photo',
-  'show_comments',
-  'legacy_html',
-  'body',
-  'slug',
-  'featured_order',
-  'layout',
-  'template',
-  'claps',
-];
+const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
+  const { findDoc, findDocs, gql, modifyDoc, withPubSub } = helpers;
 
-async function getPrunedUser(arr: []) {
-  // if there are no users, return an empty array
-  if (arr.length === 0) return [];
-  // otherwise, get and prune the user profile for each user
-  const users = await getUsers(arr);
-  return pruneDocs({
-    input: isArray(users) ? users : [users],
-    keep: PRUNED_USER_KEEP_FIELDS,
-  });
-}
-
-const articles = (helpers: Helpers): Collection => {
-  const {
-    createDoc,
-    deleteDoc,
-    findDoc,
-    findDocAndPrune,
-    findDocs,
-    findDocsAndPrune,
-    getCollectionActionAccess,
-    getUsers,
-    gql,
-    hideDoc,
-    lockDoc,
-    modifyDoc,
-    publishDoc,
-    watchDoc,
-    withPubSub,
-  } = helpers;
-
-  return {
+  const collection = helpers.generators.genCollection({
     name: 'Article',
     canPublish: true,
     withPermissions: true,
-    typeDefs: gql`
-      type Article inherits PublishableCollection, WithPermissions {
-        name: String!
-        slug: String
-        stage: Float
-        categories: [String]
-        tags: [String]
-        description: String!
-        photo_path: String!
-        video_path: String!
-        video_replaces_photo: Boolean!
-        photo_caption: String!
-        body: String
-        show_comments: Boolean!
-        legacy_html: Boolean!
-        people: ArticlePeople
-        timestamps: ArticleTimestamps
-        layout: String!
-        template: String!
-        legacy_comments: [ArticleLegacyComments]
-        claps: Int
-      }
-  
-      type ArticlePeople inherits PublishableCollectionPeople {
-        authors: [User]!
-        editors: ArticleEditors!
-      }
-  
-      type ArticleEditors {
-        primary: [User]!
-        copy: [User]!
-      }
-  
-      type ArticleTimestamps inherits PublishableCollectionTimestamps {
-        target_publish_at: Date
-      }
-  
-      type ArticleLegacyComments {
-        author_name: String!
-        commented_at: String!
-        content: String!
-      }
-  
-      type PrunedArticle {
-        _id: ObjectID!
-        name: String!
-        slug: String
-        categories: [String]!
-        tags: [String]!
-        description: String!
-        photo_path: String!
-        video_path: String!
-        video_replaces_photo: Boolean!
-        photo_caption: String!
-        photo_credit: String
-        body: String
-        show_comments: Boolean!
-        legacy_html: Boolean!
-        people: PrunedArticlePeople
-        timestamps: PrunedArticleTimestamps
-        layout: String!
-        template: String!
-        claps: Int
-      }
-  
-      type PrunedArticlePeople {
-        authors: [PrunedUser]!
-        editors: PrunedArticleEditors!
-      }
-  
-      type PrunedArticleEditors {
-        primary: [PrunedUser]!
-        copy: [PrunedUser]!
-      }
-  
-      type PrunedArticleTimestamps {
-        published_at: Date!
-        updated_at: Date!
-      }
-  
-      type StageCount {
-        _id: Float!
-        count: Int!
-      }
-  
-      input ArticleModifyInput inherits WithPermissionsInput {
-        name: String
-        slug: String
-        stage: Float
-        categories: [String]
-        tags: [String]
-        description: String
-        photo_path: String
-        video_path: String
-        video_replaces_photo: Boolean
-        photo_caption: String
-        body: String
-        show_comments: Boolean
-        legacy_html: Boolean
-        people: ArticleModifyInputPeople
-        timestamps: ArticleModifyInputTimestamps
-        layout: String
-        template: String
-      }
-  
-      input ArticleModifyInputPeople {
-        authors: [ObjectID]
-        editors: ArticleModifyInputPeopleEditors
-      }
-  
-      input ArticleModifyInputPeopleEditors {
-        primary: [ObjectID]
-        copy: [ObjectID]
-      }
-  
-      input ArticleModifyInputTimestamps {
-        target_publish_at: Date
-      }
-  
-      type Query {
-        """
-        Get a article by _id.
-        """
-        article(_id: ObjectID!): Article
-        """
-        Get a article by _id with confidential information pruned.
-        """
-        articlePublic(_id: ObjectID!): PrunedArticle
-        """
-        Get a article by slug with confidential information pruned.
-  
-        Provide the date of the article to ensure that the correct article is provided
-        (in case the slug is not unique).
-        """
-        articleBySlugPublic(slug: String!, date: Date): PrunedArticle
-        """
-        Get a set of articles. If _ids is omitted, the API will return all articles.
-        """
-        articles(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Article>
-        """
-        Get a set of articles with confidential information pruned. If _ids is
-        omitted, the API will return all articles.
-        """
-        articlesPublic(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!, featured: Boolean): Paged<PrunedArticle>
-        """
-        Get the permissions of the currently authenticated user for this
-        collection.
-        """
-        articleActionAccess: CollectionActionAccess
-        """
-        Get the unique categories used in the articles collection. Category names are always returned lowercase with spaces
-        replaced by hyphens.
-        """
-        articleCategoriesPublic: [String]
-        """
-        Get the unique tags used in the articles collection. The contains parameter should be used to narrow to search the
-        results by whether it contains the provided string. Pagination is not available on this query. Uppercase letters are
-        remplaced by lowercase letters and spaces are replaced by hyphens.
-        """
-        articleTagsPublic(limit: Int, contains: String): [String]
-        """
-        Get the number of articles in each stage.
-        """
-        articleStageCounts: [StageCount]
-      }
-  
-      type Mutation {
-        """
-        Create a new article.
-        """
-        articleCreate(name: String!): Article
-        """
-        Modify an existing article.
-        """
-        articleModify(_id: ObjectID!, input: ArticleModifyInput!): Article
-        """
-        Toggle whether the hidden property is set to true for an existing article.
-        This mutation sets hidden: true by default.
-        Hidden articles should not be presented to clients; this should be used as
-        a deletion that retains the data in case it is needed later.
-        """
-        articleHide(_id: ObjectID!, hide: Boolean): Article
-        """
-        Toggle whether the locked property is set to true for an existing article.
-        This mutation sets locked: true by default.
-        Locked articles should only be editable by the server and by admins.
-        """
-        articleLock(_id: ObjectID!, lock: Boolean): Article
-        """
-        Add a watcher to a article.
-        This mutation adds the watcher by default.
-        This mutation will use the signed in article if watcher is not defined.
-        """
-        articleWatch(_id: ObjectID!, watcher: ObjectID, watch: Boolean): Article
-        """
-        Deletes a article account.
-        """
-        articleDelete(_id: ObjectID!): Void
-        """
-        Publishes an existing article.
-        """
-        articlePublish(_id: ObjectID!, published_at: Date, publish: Boolean): Article
-        """
-        Add claps to an article
-        """
-        articleAddApplause(_id: ObjectID!, newClaps: Int!): Article
-      }
-  
-      extend type Subscription {
-        """
-        Sends article documents when they are created.
-        """
-        articleCreated(): Article
-        """
-        Sends the updated article document when it changes.
-        If _id is omitted, the server will send changes for all articles.
-        """
-        articleModified(_id: ObjectID): Article
-        """
-        Sends article _id when it is deleted.
-        If _id is omitted, the server will send _ids for all deleted articles.
-        """
-        articleDeleted(_id: ObjectID): Article
-      }
-    `,
-    resolvers: {
-      Query: {
-        article: (_, args, context: Context) =>
-          findDoc({
-            model: 'Article',
-            _id: args._id,
-            context,
-            accessRule: context.profile.teams.includes(Teams.MANAGING_EDITOR) ? {} : undefined,
-          }),
-        articlePublic: async (_, args, context: Context) => {
-          // get the article
-          const prunedArticle = await findDocAndPrune({
-            model: 'Article',
-            _id: args._id,
-            filter: { stage: Stage.Published },
-            context,
-            keep: PRUNED_ARTICLE_KEEP_FIELDS,
-            fullAccess: true,
-          });
-
-          // add photo credit
-          const constructedPrunedArticle = {
-            ...prunedArticle,
-            photo_credit: JSON.parse(
-              JSON.stringify(
-                await findDoc({
-                  model: 'Photo',
-                  by: 'photo_url',
-                  //@ts-expect-error photo_path exists on prunedArticle
-                  _id: prunedArticle.photo_path,
-                  context,
-                  fullAccess: true,
-                })
-              )
-            )?.people?.photo_created_by,
-          };
-
-          // return the article
-          return constructedPrunedArticle;
-        },
-        articles: (_, args, context: Context) =>
-          findDocs({
-            model: 'Article',
-            args,
-            context,
-          }),
-        articlesPublic: async (_, args, context: Context) => {
-          // get the ids of the featured articles
-          const featuredIds: mongoose.Types.ObjectId[] = [];
-          if (args.featured === true) {
-            const result = (
-              await mongoose.model<ISettings>('Settings').findOne({ name: 'featured-articles' })
-            ).toObject();
-            const ids = result.setting as Record<string, mongoose.Types.ObjectId>;
-            featuredIds.push(new mongoose.Types.ObjectId(ids.first));
-            featuredIds.push(new mongoose.Types.ObjectId(ids.second));
-            featuredIds.push(new mongoose.Types.ObjectId(ids.third));
-            featuredIds.push(new mongoose.Types.ObjectId(ids.fourth));
-          }
-
-          // build a pipeline to only get the featured articles
-          // (empty filter if featured !== true)
-          const pipeline2: mongoose.PipelineStage[] =
-            featuredIds.length > 0
-              ? [
-                  {
-                    $addFields: { featured_order: { $indexOfArray: [featuredIds, '$_id'] } }, // assign starting at 0
-                  },
-                  { $match: { featured_order: { $gte: 0 } } }, // eclude all articles exept ones within the featuredIds array
-                ]
-              : [];
-          const sort = featuredIds.length > 0 ? { featured_order: 1, ...args.sort } : args.sort;
-
-          // get the articles
-          const articles = await findDocsAndPrune({
-            model: 'Article',
-            args: { ...args, filter: { ...args.filter, stage: Stage.Published }, pipeline2, sort },
-            context,
-            keep: PRUNED_ARTICLE_KEEP_FIELDS,
-            fullAccess: true,
-          });
-
-          // get add photo credit to each public article
-          const docs = await Promise.all(
-            articles.docs.map(async (prunedArticle) => {
-              return {
-                ...prunedArticle,
-                photo_credit: JSON.parse(
-                  JSON.stringify(
-                    await findDoc({
-                      model: 'Photo',
-                      by: 'photo_url',
-                      //@ts-expect-error photo_path exists on prunedArticle
-                      _id: prunedArticle.photo_path,
-                      context,
-                      fullAccess: true,
-                    })
-                  )
-                )?.people?.photo_created_by,
-              };
-            })
-          );
-          return { ...articles, docs };
-        },
-        articleBySlugPublic: async (_, args, context: Context) => {
-          // create filter to find newest article with matching slug
-          const filter = args.date
-            ? {
-                'timestamps.published_at': {
-                  $gte: dateAtTimeZero(args.date),
-                  $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
-                },
-                stage: Stage.Published,
-              }
-            : {
-                stage: Stage.Published,
-              };
-
-          // get the article
-          const prunedArticle = await findDocAndPrune({
-            model: 'Article',
-            by: 'slug',
-            _id: args.slug,
-            filter: filter,
-            context,
-            keep: PRUNED_ARTICLE_KEEP_FIELDS,
-            fullAccess: true,
-          });
-
-          // add photo credit
-          const constructedPrunedArticle = {
-            ...prunedArticle,
-            photo_credit: JSON.parse(
-              JSON.stringify(
-                await findDoc({
-                  model: 'Photo',
-                  by: 'photo_url',
-                  //@ts-expect-error photo_path exists on prunedArticle
-                  _id: prunedArticle.photo_path,
-                  context,
-                  fullAccess: true,
-                })
-              )
-            )?.people?.photo_created_by,
-          };
-
-          // return the article
-          return constructedPrunedArticle;
-        },
-        articleActionAccess: (_, __, context: Context) =>
-          getCollectionActionAccess({ model: 'Article', context }),
-        articleCategoriesPublic: async () => {
-          const Model = mongoose.model<CollectionDoc>('Article');
-          const categories: string[] = await Model.distinct('categories');
-          return Array.from(new Set(categories.map((cat) => cat.toLowerCase().replace(' ', '-'))));
-        },
-        articleTagsPublic: async (_, args) => {
-          const Model = mongoose.model<CollectionDoc>('Article');
-          const tags: string[] = await Model.distinct('tags');
-          let processed: string[] = tags.map((tag) => tag.toLowerCase().replace(' ', '-'));
-
-          // filter to ensure the tag contains the specified string
-          if (args.contains) {
-            processed = processed.filter((tag) => tag.indexOf(args.contains) !== -1);
-          }
-
-          // limit the length of the response
-          if (args.limit) {
-            processed = processed.slice(0, args.limit);
-          }
-
-          // returned the procesed tags
-          return Array.from(new Set(processed));
-        },
-        articleStageCounts: async () => {
-          const Model = mongoose.model<CollectionDoc>('Article');
-          // @ts-expect-error bug in mongoose: https://github.com/Automattic/mongoose/issues/11059
-          return await Model.aggregate([{ $group: { _id: '$stage', count: { $sum: 1 } } }]);
+    withSubscription: true,
+    publicRules: { filter: { stage: Stage.Published }, slugDateField: 'timestamps.published_at' },
+    schemaDef: {
+      name: { type: String, required: true, modifiable: true, public: true, default: 'New Article' },
+      slug: {
+        type: String,
+        modifiable: true,
+        public: true,
+        setter: {
+          condition: { $and: [{ stage: { $eq: Stage.Published.toString() } }, { slug: { $exists: false } }] },
+          value: { slugify: 'name' },
         },
       },
-      Mutation: {
-        articleCreate: async (_, args, context: Context) =>
-          withPubSub(
-            'ARTICLE',
-            'CREATED',
-            createDoc({
-              model: 'Article',
-              args,
-              context,
-              withPermissions: true,
-            })
-          ),
-        articleModify: async (_, { _id, input }, context: Context) =>
-          await withPubSub(
-            'ARTICLE',
-            'MODIFIED',
-            modifyDoc({
-              model: 'Article',
-              data: { ...input, _id },
-              context,
-              modify: async (currentDoc: IArticle, data: IArticleInput) => {
-                // set the slug if the document is being published and does not already have one
-                if (data.stage === Stage.Published && (!data.slug || !currentDoc.slug)) {
-                  data.slug = slugify(input.name || currentDoc.name);
-                }
-
-                // send email alerts to the watchers if the stage changes
-                if (currentDoc.people.watching && data.stage && data.stage !== currentDoc.stage) {
-                  // get emails of watchers
-                  const watchersEmails = await Promise.all(
-                    (currentDoc.people.watching || currentDoc.people.watching).map(async (_id) => {
-                      const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
-                      return profile.email;
-                    })
-                  );
-
-                  // get emails of authors and primary editors (if there are any) - mandatory watchers
-                  const mandatoryWatchersEmails = await Promise.all(
-                    [
-                      ...(data.people.authors || currentDoc.people.authors),
-                      ...(data.people.editors?.primary || currentDoc.people.editors?.primary),
-                    ].map(async (_id) => {
-                      const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
-                      return profile.email;
-                    })
-                  );
-
-                  const email = (reason?: string) => {
-                    return `
-              <h1 style="font-size: 20px;">
-                The Paladin Network
-              </h1>
-              <p>
-                The stage has been changed for an article you are watching on Cristata.
-                <br />
-                To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${_id}">https://thepaladin.cristata.app/cms/item/articles/${_id}</a>.
-              </p>
-              <p>
-                <span>
-                  <b>Headline: </b>
-                  ${data.name || currentDoc.name}
-                </span>
-                <br />
-                <span>
-                  <b>New Stage: </b>
-                  ${Stage[data.stage as Stage]}
-                </span>
-                <br />
-                <span>
-                  <b>Unique ID: </b>
-                  ${_id}
-                </span>
-              </p>
-              ${
-                reason
-                  ? `
-                    <p style="color: #888888">
-                      You receievd this email because ${reason}.
-                    </p>
-                  `
-                  : ''
-              }
-              <p style="color: #aaaaaa">
-                Powered by Cristata
-              </p>
-            `;
-                  };
-
-                  // send email
-                  sendEmail(
-                    watchersEmails,
-                    `[Stage: ${Stage[data.stage as Stage]}] ${data.name || currentDoc.name}`,
-                    email(`you clicked the 'Watch" button for this article in Cristata`)
-                  );
-                  sendEmail(
-                    mandatoryWatchersEmails,
-                    `[Stage: ${Stage[data.stage as Stage]}] ${data.name || currentDoc.name}`,
-                    email(`you are an are an author or editor for this article`)
-                  );
-                }
-              },
-            })
-          ),
-        articleHide: async (_, args, context: Context) =>
-          withPubSub('ARTICLE', 'MODIFIED', hideDoc({ model: 'Article', args, context })),
-        articleLock: async (_, args, context: Context) =>
-          withPubSub('ARTICLE', 'MODIFIED', lockDoc({ model: 'Article', args, context })),
-        articleWatch: async (_, args, context: Context) =>
-          withPubSub('ARTICLE', 'MODIFIED', watchDoc({ model: 'Article', args, context })),
-        articleDelete: async (_, args, context: Context) =>
-          withPubSub('ARTICLE', 'DELETED', deleteDoc({ model: 'Article', args, context })),
-        articlePublish: async (_, args, context: Context) =>
-          withPubSub('ARTICLE', 'MODIFIED', publishDoc({ model: 'Article', args, context })),
-        articleAddApplause: async (_, { _id, newClaps }, context: Context) => {
-          const doc = await findDoc({ model: 'Article', _id, context, fullAccess: true });
-          doc.claps += newClaps;
-          return withPubSub('ARTICLE', 'MODIFIED', doc.save());
+      stage: { type: 'Float', modifiable: true, default: Stage.Planning.toString() },
+      categories: { type: [String], modifiable: true, public: true, default: [] },
+      tags: { type: [String], modifiable: true, public: true, default: [] },
+      description: { type: String, required: true, modifiable: true, public: true, default: '' },
+      photo_path: { type: String, required: true, modifiable: true, public: true, default: '' },
+      video_path: { type: String, required: true, modifiable: true, public: true, default: '' },
+      video_replaces_photo: { type: Boolean, required: true, modifiable: true, public: true, default: false },
+      photo_credit: {
+        model: 'Photo',
+        by: 'photo_url',
+        matches: 'photo_path',
+        field: 'people.photo_created_by',
+        fieldType: String,
+        public: true,
+      },
+      photo_caption: { type: String, required: true, modifiable: true, public: true, default: '' },
+      body: { type: String, modifiable: true, public: true },
+      legacy_html: { type: Boolean, required: true, modifiable: true, public: true, default: false },
+      show_comments: { type: Boolean, required: true, modifiable: true, public: true, default: false },
+      layout: { type: String, required: true, modifiable: true, public: true, default: 'standard' },
+      template: { type: String, required: true, modifiable: true, public: true, default: 'jackbuehner2020' },
+      claps: { type: Number, modifiable: true, public: true, default: 0 },
+      people: {
+        authors: {
+          type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+          required: true,
+          modifiable: true,
+          public: true,
+          default: [],
         },
-      },
-      ArticlePeople: {
-        ...publishableCollectionPeopleResolvers,
-        authors: ({ authors }) => getUsers(authors),
-      },
-      ArticleEditors: {
-        primary: ({ primary }) => getUsers(primary),
-        copy: ({ copy }) => getUsers(copy),
-      },
-      PrunedArticlePeople: {
-        authors: async ({ authors }) => getPrunedUser(authors),
-      },
-      PrunedArticleEditors: {
-        primary: ({ primary }) => getPrunedUser(primary),
-        copy: ({ copy }) => getPrunedUser(copy),
-      },
-      Subscription: {
-        articleCreated: { subscribe: () => pubsub.asyncIterator(['ARTICLE_CREATED']) },
-        articleModified: { subscribe: () => pubsub.asyncIterator(['ARTICLE_MODIFIED']) },
-        articleDeleted: { subscribe: () => pubsub.asyncIterator(['ARTICLE_DELETED']) },
-      },
-    },
-    schemaFields: (Users, Teams) => ({
-      name: { type: String, required: true, default: 'New Article' },
-      slug: { type: String },
-      permissions: {
-        teams: { type: [String], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR] },
+        editors: {
+          primary: {
+            type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+            required: true,
+            modifiable: true,
+            public: true,
+            default: [],
+          },
+          copy: {
+            type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+            required: true,
+            modifiable: true,
+            public: true,
+            default: [],
+          },
+        },
       },
       timestamps: {
-        target_publish_at: {
-          type: Date,
-          default: '0001-01-01T01:00:00.000+00:00',
+        target_publish_at: { type: Date, modifiable: true, default: '0001-01-01T01:00:00.000+00:00' },
+      },
+      permissions: {
+        teams: { type: [String], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR], required: true },
+      },
+      legacy_comments: [
+        {
+          author_name: { type: String, modifiable: false, public: true },
+          commented_at: { type: Date, modifiable: false, public: true },
+          content: { type: String, modifiable: false, public: true },
         },
+      ],
+    },
+    Users,
+    Teams,
+    helpers,
+    customQueries: [
+      {
+        name: 'stageCounts',
+        description: 'Get the number of articles in each stage.',
+        returns: `[{ _id: Float!, count: Int! }]`,
+        // @ts-expect-error bug in mongoose: https://github.com/Automattic/mongoose/issues/11059
+        pipeline: [{ $group: { _id: '$stage', count: { $sum: 1 } } }],
       },
-      people: {
-        authors: { type: [mongoose.Schema.Types.ObjectId], default: [] },
-        editors: {
-          primary: { type: [mongoose.Schema.Types.ObjectId] },
-          copy: { type: [mongoose.Schema.Types.ObjectId] },
-        },
-      },
-      stage: { type: Number, default: Stage.Planning },
-      categories: { type: [String] },
-      tags: { type: [String] },
-      description: { type: String, default: '' },
-      photo_path: { type: String, default: '' },
-      video_path: { type: String, default: '' },
-      video_replaces_photo: { type: Boolean, default: false },
-      photo_caption: { type: String, default: '' },
-      body: { type: String },
-      versions: { type: {} },
-      legacy_html: { type: Boolean, default: false },
-      show_comments: { type: Boolean, default: false },
-      layout: { type: String, default: 'standard' }, // only supported on template 'jackbuehner2020' and newer
-      template: { type: String, default: 'jackbuehner2020' },
-      legacy_comments: {
-        type: [
-          {
-            author_name: { type: String },
-            commented_at: { type: Date },
-            content: { type: String },
-          },
-        ],
-      },
-      claps: { type: Number, default: 0 },
-    }),
-    actionAccess: (Users, Teams, context: Context) => {
-      const users = [];
-      if (context.profile.teams.includes(Teams.MANAGING_EDITOR)) users.push(context.profile._id);
+    ],
+    actionAccess: () => {
       return {
-        get: { teams: [Teams.ANY], users: [...users] },
+        get: { teams: [Teams.ANY], users: [] },
         create: { teams: [Teams.ANY], users: [] },
         modify: { teams: [Teams.ANY], users: [] },
         hide: { teams: [Teams.ANY], users: [] },
@@ -676,9 +117,243 @@ const articles = (helpers: Helpers): Collection => {
         watch: { teams: [Teams.ANY], users: [] },
         publish: { teams: [Teams.ADMIN], users: [] },
         delete: { teams: [Teams.ADMIN], users: [] },
+        bypassDocPermissions: { teams: [Teams.MANAGING_EDITOR], users: [] },
       };
     },
-  };
+  });
+
+  collection.resolvers = merge(collection.resolvers, {
+    Query: {
+      articlesPublic: async (_, args, context: Context) => {
+        // get the ids of the featured articles
+        const featuredIds: mongoose.Types.ObjectId[] = [];
+        if (args.featured === true) {
+          const result = (
+            await mongoose.model<ISettings>('Settings').findOne({ name: 'featured-articles' })
+          ).toObject();
+          const ids = result.setting as Record<string, mongoose.Types.ObjectId>;
+          featuredIds.push(new mongoose.Types.ObjectId(ids.first));
+          featuredIds.push(new mongoose.Types.ObjectId(ids.second));
+          featuredIds.push(new mongoose.Types.ObjectId(ids.third));
+          featuredIds.push(new mongoose.Types.ObjectId(ids.fourth));
+        }
+
+        // build a pipeline to only get the featured articles
+        // (empty filter if featured !== true)
+        const pipeline2: mongoose.PipelineStage[] =
+          featuredIds.length > 0
+            ? [
+                {
+                  $addFields: { featured_order: { $indexOfArray: [featuredIds, '$_id'] } }, // assign starting at 0
+                },
+                { $match: { featured_order: { $gte: 0 } } }, // eclude all articles exept ones within the featuredIds array
+              ]
+            : [];
+        const sort = featuredIds.length > 0 ? { featured_order: 1, ...args.sort } : args.sort;
+
+        // get the articles
+        const articles = await findDocs({
+          model: 'Article',
+          args: { ...args, filter: { ...args.filter, stage: Stage.Published }, pipeline2, sort },
+          context,
+          fullAccess: true,
+        });
+
+        // get add photo credit to each public article
+        const docs = await Promise.all(
+          articles.docs.map(async (prunedArticle) => {
+            return {
+              ...prunedArticle,
+              photo_credit: JSON.parse(
+                JSON.stringify(
+                  await findDoc({
+                    model: 'Photo',
+                    by: 'photo_url',
+                    _id: prunedArticle.photo_path,
+                    context,
+                    fullAccess: true,
+                  })
+                )
+              )?.people?.photo_created_by,
+            };
+          })
+        );
+        return { ...articles, docs };
+      },
+
+      articleCategoriesPublic: async () => {
+        const Model = mongoose.model<CollectionDoc>('Article');
+        const categories: string[] = await Model.distinct('categories');
+        return Array.from(new Set(categories.map((cat) => cat.toLowerCase().replace(' ', '-'))));
+      },
+      articleTagsPublic: async (_, args) => {
+        const Model = mongoose.model<CollectionDoc>('Article');
+        const tags: string[] = await Model.distinct('tags');
+        let processed: string[] = tags.map((tag) => tag.toLowerCase().replace(' ', '-'));
+
+        // filter to ensure the tag contains the specified string
+        if (args.contains) {
+          processed = processed.filter((tag) => tag.indexOf(args.contains) !== -1);
+        }
+
+        // limit the length of the response
+        if (args.limit) {
+          processed = processed.slice(0, args.limit);
+        }
+
+        // returned the procesed tags
+        return Array.from(new Set(processed));
+      },
+    },
+    Mutation: {
+      articleModify: async (_, { _id, input }, context: Context) =>
+        await withPubSub(
+          'ARTICLE',
+          'MODIFIED',
+          modifyDoc({
+            model: 'Article',
+            data: { ...input, _id },
+            context,
+            modify: async (currentDoc: IArticle, data: IArticleInput) => {
+              // set the slug if the document is being published and does not already have one
+              if (data.stage === Stage.Published && (!data.slug || !currentDoc.slug)) {
+                data.slug = slugify(input.name || currentDoc.name);
+              }
+
+              // send email alerts to the watchers if the stage changes
+              if (currentDoc.people.watching && data.stage && data.stage !== currentDoc.stage) {
+                // get emails of watchers
+                const watchersEmails = await Promise.all(
+                  (currentDoc.people.watching || currentDoc.people.watching).map(async (_id) => {
+                    const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
+                    return profile.email;
+                  })
+                );
+
+                // get emails of authors and primary editors (if there are any) - mandatory watchers
+                //TODO: add a way to specifiy specific fields as mandatory watchers
+                //TODO: e.g. { watcherUpdates: { mandatoryWatchers: ['people.authors', 'people.editors.primary'] } }
+
+                //TODO: remove duplicates
+                const mandatoryWatchersEmails = await Promise.all(
+                  [
+                    ...(data.people.authors || currentDoc.people.authors),
+                    ...(data.people.editors?.primary || currentDoc.people.editors?.primary),
+                  ].map(async (_id) => {
+                    const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
+                    return profile.email;
+                  })
+                );
+
+                const email = (reason?: string) => {
+                  return `
+            <h1 style="font-size: 20px;">
+              The Paladin Network
+            </h1>
+            <p>
+              The stage has been changed for an article you are watching on Cristata.
+              <br />
+              To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${_id}">https://thepaladin.cristata.app/cms/item/articles/${_id}</a>.
+            </p>
+            <p>
+              <span>
+                <b>Headline: </b>
+                ${data.name || currentDoc.name}
+              </span>
+              <br />
+              <span>
+                <b>New Stage: </b>
+                ${Stage[data.stage as Stage]}
+              </span>
+              <br />
+              <span>
+                <b>Unique ID: </b>
+                ${_id}
+              </span>
+            </p>
+            ${
+              reason
+                ? `
+                  <p style="color: #888888">
+                    You receievd this email because ${reason}.
+                  </p>
+                `
+                : ''
+            }
+            <p style="color: #aaaaaa">
+              Powered by Cristata
+            </p>
+          `;
+                };
+
+                // send email
+                //TODO: add a way to specify email string
+                //TODO: allow inserting field values with %field%
+                //TODO: e.g. { watcherUpdates: { message: str } }
+                //TODO: always include note at end of email about how to unwatch a document
+                //TODO: and depend on the app to explain if mandatory watcher
+                sendEmail(
+                  watchersEmails,
+                  `[Stage: ${Stage[data.stage as Stage]}] ${data.name || currentDoc.name}`,
+                  email(`you clicked the 'Watch" button for this article in Cristata`)
+                );
+                sendEmail(
+                  mandatoryWatchersEmails,
+                  `[Stage: ${Stage[data.stage as Stage]}] ${data.name || currentDoc.name}`,
+                  email(`you are an are an author or editor for this article`)
+                );
+              }
+            },
+          })
+        ),
+      //TODO: add built in helper for incrementing a numerical value
+      //TODO: and automatically generate typeDefs and resolvers
+      //TODO: that only include Float and Int fields
+      //TODO: e.g. Model.findByIdAndUpdate(_id, { $inc: data }, { returnOriginal: false });
+      //TODO: where data is of type { [key: string]: number }
+      articleAddApplause: async (_, { _id, newClaps }, context: Context) => {
+        const doc = await findDoc({ model: 'Article', _id, context, fullAccess: true });
+        doc.claps += newClaps;
+        return withPubSub('ARTICLE', 'MODIFIED', doc.save());
+      },
+    },
+  });
+
+  collection.typeDefs =
+    collection.typeDefs +
+    gql`
+  
+  type Query {    
+    """
+    Get the unique categories used in the articles collection. Category names are always returned lowercase with spaces
+    replaced by hyphens.
+    """
+    articleCategoriesPublic: [String]
+
+    """
+    Get the unique tags used in the articles collection. The contains parameter should be used to narrow to search the
+    results by whether it contains the provided string. Pagination is not available on this query. Uppercase letters are
+    remplaced by lowercase letters and spaces are replaced by hyphens.
+    """
+    articleTagsPublic(limit: Int, contains: String): [String]
+
+    """
+    Get a set of articles with confidential information pruned. If _ids is
+    omitted, the API will return all articles.
+    """
+    articlesPublic(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!, featured: Boolean): Paged<PrunedArticle>
+    
+  }
+
+  type Mutation {
+    """
+    Add claps to an article
+    """
+    articleAddApplause(_id: ObjectID!, newClaps: Int!): Article
+  }
+`;
+
+  return collection;
 };
 
 enum Stage {
@@ -745,4 +420,4 @@ interface IArticlePeople {
 interface IArticleDoc extends IArticle, mongoose.Document {}
 
 export type { IArticle, IArticleDoc };
-export { articles, Stage as EnumArticleStage, PRUNED_ARTICLE_KEEP_FIELDS };
+export { articles, Stage as EnumArticleStage };

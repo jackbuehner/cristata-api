@@ -2,7 +2,7 @@
 import { Context } from '../../../apollo';
 import mongoose, { FilterQuery } from 'mongoose';
 import { Teams, Users } from '../../../config/database';
-import { CollectionDoc, requireAuthentication } from '.';
+import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { flattenObject } from '../../../utils/flattenObject';
 
 interface FindDocs {
@@ -38,19 +38,25 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
     (col) => col.name === model
   ).withPermissions;
 
+  // whether the current user can bypass the access filter
+  const canBypassAccessFilter =
+    fullAccess ||
+    context.profile.teams.includes(Teams.ADMIN) ||
+    !withStandardPermissions ||
+    canDo({ action: 'bypassDocPermissions', model, context });
+
   // access filter
-  const accessFilter =
-    fullAccess || !withStandardPermissions || context.profile.teams.includes(Teams.ADMIN)
-      ? {}
-      : accessRule
-      ? accessRule
-      : {
-          $or: [
-            { 'permissions.teams': { $in: context.profile.teams } },
-            { 'permissions.users': context.profile._id },
-            { 'permissions.users': Users.ANY },
-          ],
-        };
+  const accessFilter = canBypassAccessFilter
+    ? {}
+    : accessRule
+    ? accessRule
+    : {
+        $or: [
+          { 'permissions.teams': { $in: context.profile.teams } },
+          { 'permissions.users': context.profile._id },
+          { 'permissions.users': Users.ANY },
+        ],
+      };
 
   // add temporary fields for timestamps that speciify whether they are greater
   // than the baseline date meant for use in `accessFilter`

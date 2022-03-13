@@ -8,6 +8,7 @@ import generator from 'generate-password';
 import { sendEmail } from '../../utils/sendEmail';
 import { getPasswordStatus } from '../../utils/getPasswordStatus';
 import { slugify } from '../../utils/slugify';
+import { UsersType, TeamsType } from '../../types/config';
 
 const PRUNED_USER_KEEP_FIELDS = [
   '_id',
@@ -22,7 +23,7 @@ const PRUNED_USER_KEEP_FIELDS = [
   'group',
 ];
 
-const users = (helpers: Helpers): Collection => {
+const users = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const {
     canDo,
     createDoc,
@@ -584,7 +585,7 @@ const users = (helpers: Helpers): Collection => {
         userDeleted: { subscribe: () => pubsub.asyncIterator(['USER_DELETED']) },
       },
     },
-    schemaFields: () => ({
+    schemaFields: {
       name: { type: String, required: true, default: 'New User' },
       slug: { type: String, required: true, default: 'new-user' },
       phone: { type: Number },
@@ -605,8 +606,8 @@ const users = (helpers: Helpers): Collection => {
       methods: { type: [String], default: [] },
       retired: { type: Boolean, default: false },
       flags: { type: [String], default: [] },
-    }),
-    actionAccess: (Users, Teams) => ({
+    },
+    actionAccess: () => ({
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ADMIN, Teams.MANAGING_EDITOR], users: [] },

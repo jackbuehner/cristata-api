@@ -4,7 +4,7 @@ import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
 import { requireAuthentication } from '.';
 
-interface CreateDoc {
+interface CreateDoc<DataType> {
   model: string;
   args: {
     name: string;
@@ -13,9 +13,10 @@ interface CreateDoc {
   };
   context: Context;
   withPermissions?: boolean;
+  modify?: (currentDoc: null, data: DataType) => Promise<void>;
 }
 
-async function createDoc({ model, args, context, withPermissions }: CreateDoc) {
+async function createDoc<DataType>({ model, args, context, withPermissions, modify }: CreateDoc<DataType>) {
   requireAuthentication(context);
   const Model = mongoose.model(model);
 
@@ -40,8 +41,23 @@ async function createDoc({ model, args, context, withPermissions }: CreateDoc) {
   // create the new doc with the provided data and the schema defaults
   const newDoc = new Model(args);
 
-  // save and return the new doc
-  return await newDoc.save();
+  // save the new doc
+  const doc = await newDoc.save();
+
+  // if the modify function is defined:
+  // modify the document, save the changes to it, and return the changed doc
+  if (modify) {
+    const data = doc.toObject() as unknown as DataType;
+
+    // execute the modify function
+    await modify?.(null, data);
+
+    // attempt to patch the article
+    return await Model.findByIdAndUpdate(doc._id, { $set: data }, { returnOriginal: false });
+  }
+
+  // return the doc
+  return doc;
 }
 
 export { createDoc };

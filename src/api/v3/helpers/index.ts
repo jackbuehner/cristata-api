@@ -13,6 +13,7 @@ import { findDoc } from './findDoc';
 import { canDo } from './canDo';
 import { deleteDoc } from './deleteDoc';
 import { findDocs } from './findDocs';
+import { genSchema } from './generators/genSchema';
 import { requireAuthentication } from './requireAuthentication';
 import { pruneDocs } from './pruneDocs';
 import { findDocAndPrune } from './findDocAndPrune';
@@ -22,6 +23,8 @@ import { publishDoc } from './publishDoc';
 import { withPubSub } from './withPubSub';
 import { getUsers } from './getUsers';
 import { gql } from './gql';
+import { genCollection } from './generators/genCollection';
+import { genResolvers } from './generators/genResolvers';
 
 const helpers = {
   createDoc,
@@ -42,6 +45,7 @@ const helpers = {
   withPubSub,
   getUsers,
   gql,
+  generators: { genCollection, genResolvers, genSchema },
 };
 
 type Helpers = typeof helpers;
@@ -72,4 +76,7 @@ export { publishDoc };
 export { withPubSub };
 export { getUsers };
 export { gql };
+export { genCollection };
+export { genResolvers };
+export { genSchema };
 export default helpers;

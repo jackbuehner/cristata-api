@@ -5,6 +5,7 @@ const core = gql`
   scalar ObjectID
   scalar JSON
   scalar Void
+  scalar Float
 
   type Paged<T> {
     docs: [T]!
