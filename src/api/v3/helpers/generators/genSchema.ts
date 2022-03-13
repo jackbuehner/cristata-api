@@ -301,8 +301,8 @@ type MongooseSchemaType =
   | [NumberConstructor]
   | typeof mongoose.Schema.Types.Number
   | [typeof mongoose.Schema.Types.Number]
-  | typeof mongoose.Schema.Types.Decimal128
-  | [typeof mongoose.Schema.Types.Decimal128]
+  | 'Float'
+  | ['Float']
   | typeof mongoose.Schema.Types.ObjectId
   | [typeof mongoose.Schema.Types.ObjectId]
   | StringConstructor

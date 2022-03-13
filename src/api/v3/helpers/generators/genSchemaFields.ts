@@ -44,6 +44,8 @@ function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
             };
           }
 
+          if (type === 'Float') type = Number;
+
           return {
             [fieldName]: {
               type: type,

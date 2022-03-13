@@ -182,7 +182,7 @@ const Schema = {
       else return 'Int';
     }
 
-    if (Schema.isDecimal(type)) {
+    if (Schema.isFloat(type)) {
       if (isArray) return '[Float]';
       else return 'Float';
     }
@@ -203,6 +203,7 @@ const Schema = {
     }
   },
   isArray: (type: unknown): type is [unknown] => {
+    if (typeof type === 'string') return type.includes('[') && type.includes(']');
     return Array.isArray(type) && type.length === 1;
   },
   isBoolean: (toCheck: unknown): toCheck is boolean => {
@@ -214,8 +215,8 @@ const Schema = {
   isInt: (toCheck: unknown): toCheck is number => {
     return toCheck === Number || toCheck === mongoose.Schema.Types.Number;
   },
-  isDecimal: (toCheck: unknown): toCheck is number => {
-    return toCheck === mongoose.Schema.Types.Decimal128;
+  isFloat: (toCheck: unknown) => {
+    return toCheck === 'Float';
   },
   isObjectId: (toCheck: unknown): toCheck is mongoose.Types.ObjectId => {
     return toCheck === mongoose.Types.ObjectId || toCheck === mongoose.Schema.Types.ObjectId;
