@@ -1,9 +1,8 @@
-import { Context } from '../../apollo';
-import { Collection } from '../database';
 import mongoose from 'mongoose';
-import { CollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
-import { UsersType, TeamsType } from '../../types/config';
+import type { CollectionSchemaFields } from '../../mongodb/db';
+import type { TeamsType, UsersType } from '../../types/config';
+import type { Collection } from '../database';
 
 const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const collection = helpers.generators.genCollection({
@@ -114,7 +113,7 @@ const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
         returns: '[User]',
       },
     ],
-    actionAccess: (context: Context, doc: ITeam | undefined) => {
+    actionAccess: (context, doc: ITeam | undefined) => {
       // add user to the organizers array if they are an organizer for the team
       const organizers = [];
       const isOrganizer = doc?.organizers

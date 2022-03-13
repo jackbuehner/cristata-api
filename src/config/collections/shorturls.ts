@@ -1,8 +1,8 @@
-import { Collection } from '../database';
 import mongoose from 'mongoose';
-import { CollectionSchemaFields } from '../../mongodb/db';
 import type { Helpers } from '../../api/v3/helpers';
-import { TeamsType, UsersType } from '../../types/config';
+import type { CollectionSchemaFields } from '../../mongodb/db';
+import type { TeamsType, UsersType } from '../../types/config';
+import type { Collection } from '../database';
 
 const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
   const collection = helpers.generators.genCollection({

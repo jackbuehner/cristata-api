@@ -149,15 +149,6 @@ const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
         settingModified: { subscribe: () => pubsub.asyncIterator(['SETTING_MODIFIED']) },
       },
     },
-    actionAccess: () => ({
-      get: { teams: [Teams.ADMIN], users: [] },
-      create: { teams: [Teams.ADMIN], users: [] },
-      modify: { teams: [Teams.ADMIN], users: [] },
-      hide: { teams: [], users: [] },
-      lock: { teams: [], users: [] },
-      watch: { teams: [], users: [] },
-      delete: { teams: [], users: [] },
-    }),
   };
 };
 

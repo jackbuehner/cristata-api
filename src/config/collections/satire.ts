@@ -1,16 +1,15 @@
 import mongoose from 'mongoose';
 import type { Helpers } from '../../api/v3/helpers';
-import {
+import type {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
-import { UsersType, TeamsType } from '../../types/config';
-import { Collection } from '../database';
-import { genCollection } from '../../api/v3/helpers';
+import type { TeamsType, UsersType } from '../../types/config';
+import type { Collection } from '../database';
 
 const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
-  const collection = genCollection({
+  const collection = helpers.generators.genCollection({
     name: 'Satire',
     canPublish: true,
     withPermissions: true,
@@ -27,7 +26,7 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
           value: { slugify: 'name' },
         },
       },
-      stage: { type: mongoose.Schema.Types.Decimal128, modifiable: true, default: Stage.PLANNING.toString() },
+      stage: { type: 'Float', modifiable: true, default: Stage.PLANNING.toString() },
       tags: { type: [String], modifiable: true, public: true, default: [] },
       description: { type: String, required: true, modifiable: true, public: true, default: '' },
       photo_path: { type: String, required: true, modifiable: true, public: true, default: '' },
