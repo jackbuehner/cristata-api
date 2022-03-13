@@ -366,18 +366,22 @@ function genCustomResolvers(input: GenResolversInput): c {
                   );
 
                 // ensure every element in the field is an ObjectID
-                const containsOnlyValidObjectIds = parent[fieldName].every((elem: unknown) => isObjectId(elem));
+                const containsOnlyValidObjectIds = (parent[fieldName] || []).every((elem: unknown) =>
+                  isObjectId(elem)
+                );
                 if (!containsOnlyValidObjectIds)
                   throw new ApolloError(
                     'the referenced field contains values that are not valid ObjectIds',
                     'VALUE_ERROR',
                     {
-                      field: { name: fieldName, values: parent[fieldName] },
+                      field: { name: fieldName, values: parent[fieldName] || [] },
                     }
                   );
 
                 // get the documents from their collection
-                return await Promise.all(parent[fieldName].map(async (_id) => await Model.findById(_id)));
+                return await Promise.all(
+                  (parent[fieldName] || []).map(async (_id) => await Model.findById(_id))
+                );
               },
             };
           }
@@ -405,6 +409,9 @@ function genCustomResolvers(input: GenResolversInput): c {
                   'SCHEMA_ERROR',
                   { invalidName: def.type[0] }
                 );
+
+              // if the value is undefined, return null
+              if (parent[fieldName] === undefined || parent[fieldName] === null) return null;
 
               // ensure every the field value is an ObjectId
               const valueIsObjectId = isObjectId(parent[fieldName]);
