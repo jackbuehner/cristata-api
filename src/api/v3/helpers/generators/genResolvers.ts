@@ -30,7 +30,9 @@ import { get as getProperty } from 'object-path';
 import { UserInputError } from 'apollo-server-errors';
 import { flattenObject } from '../../../../utils/flattenObject';
 
-async function construct(doc: mongoose.Document, schemaRefs: [string, SchemaRef][], context: Context) {
+async function construct(doc: mongoose.Document | null, schemaRefs: [string, SchemaRef][], context: Context) {
+  if (doc === null) return null;
+
   // construct a document that includes
   // all referenced fields
   let constructedDoc = doc.toObject?.() || doc;
