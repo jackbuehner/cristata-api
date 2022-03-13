@@ -18,7 +18,6 @@ import {
   SchemaRef,
 } from './genSchema';
 import { calcAccessor } from './genTypeDefs';
-import { getUsers } from '../getUsers';
 import { merge } from 'merge-anything';
 import { capitalize } from '../../../../utils/capitalize';
 import { hasKey } from '../../../../utils/hasKey';
@@ -27,8 +26,9 @@ import { findAndReplace } from 'find-and-replace-anything';
 import { conditionallyModifyDocField } from './conditionallyModifyDocField';
 import { constructDocFromRef } from './constructDocFromRef';
 import { get as getProperty } from 'object-path';
-import { UserInputError } from 'apollo-server-errors';
+import { ApolloError, UserInputError } from 'apollo-server-errors';
 import { flattenObject } from '../../../../utils/flattenObject';
+import { isObjectId } from '../../../../utils/isObjectId';
 
 async function construct(doc: mongoose.Document | null, schemaRefs: [string, SchemaRef][], context: Context) {
   if (doc === null) return null;
@@ -325,48 +325,84 @@ function genCustomResolvers(input: GenResolversInput): c {
     const customResolver = {
       [parentName]: merge(
         {},
-        ...schemaDefsWithCustomGraphType.map(([name, def]) => {
-          // if the type is an array of user documents, get the user object ids from
-          // the parent document and retrieve the user documents
-          if (def.type[0] === '[User]') {
+        ...schemaDefsWithCustomGraphType.map(([fieldName, def]) => {
+          // if the provided type is an array type, get a matching document for
+          // each element of the array
+          if (def.type[0][0] === '[' && def.type[0].slice(-1) === ']') {
             return {
-              [name]: async (doc) => {
-                return await getUsers(doc[name]);
+              /**
+               * Get an array of documents from a collection by their _id.
+               * The _ids are in the provided in `parent[fieldName]`, and this function
+               * resolves each _id into a document from the specified collection.
+               *
+               * The collection is considered to be the name of the type.
+               */
+              [fieldName]: async (parent) => {
+                // get the model from the type
+                // * the provided type MUST be the name of a model (sans square brackets)
+                const modelName = def.type[0].replace('[', '').replace(']', '');
+                const Model = mongoose.model(modelName);
+
+                // if the model does not exist, return a schema error
+                if (!Model)
+                  throw new ApolloError(
+                    'custom GraphSchemaType string must match the name of a collection model',
+                    'SCHEMA_ERROR',
+                    { invalidName: def.type[0] }
+                  );
+
+                // ensure every element in the field is an ObjectID
+                const containsOnlyValidObjectIds = parent[fieldName].every((elem: unknown) => isObjectId(elem));
+                if (containsOnlyValidObjectIds)
+                  throw new ApolloError(
+                    'the referenced field contains values that are not valid ObjectIds',
+                    'VALUE_ERROR',
+                    {
+                      field: { name: fieldName, values: parent[fieldName] },
+                    }
+                  );
+
+                // get the documents from their collection
+                return await Promise.all(parent[fieldName].map(async (_id) => await Model.findById(_id)));
               },
             };
           }
 
-          // if the type is a user document, get the user object id from
-          // the parent document and retrieve the user document
-          if (def.type[0] === 'User') {
-            return {
-              [name]: async (doc) => {
-                return await getUsers(doc[name]);
-              },
-            };
-          }
+          // otherwise, the provided type is not an array, so only get
+          // a single matching document
+          return {
+            /**
+             * Get an array of documents from a collection by their _id.
+             * The _ids are in the provided in `parent[fieldName]`, and this function
+             * resolves each _id into a document from the specified collection.
+             *
+             * The collection is considered to be the name of the type.
+             */
+            [fieldName]: async (parent) => {
+              // get the model from the type
+              // * the provided type MUST be the name of a model (sans square brackets)
+              const modelName = def.type[0].replace('[', '').replace(']', '');
+              const Model = mongoose.model(modelName);
 
-          // if the type is an array of team documents, get the team object ids from
-          // the parent document and retrieve the team documents
-          if (def.type[0] === '[Team]') {
-            return {
-              [name]: async (doc) => {
-                return await Promise.all(
-                  doc[name].map(async (_id) => await mongoose.model(name).findById(_id))
+              // if the model does not exist, return a schema error
+              if (!Model)
+                throw new ApolloError(
+                  'custom GraphSchemaType string must match the name of a collection model',
+                  'SCHEMA_ERROR',
+                  { invalidName: def.type[0] }
                 );
-              },
-            };
-          }
 
-          // if the type is a team document, get the team object id from
-          // the parent document and retrieve the team document
-          if (def.type[0] === name) {
-            return {
-              [name]: async (doc) => {
-                return await mongoose.model(name).findById(doc[name]);
-              },
-            };
-          }
+              // ensure every the field value is an ObjectId
+              const valueIsObjectId = isObjectId(parent[fieldName]);
+              if (valueIsObjectId)
+                throw new ApolloError('the referenced field does not contain a valid ObjectId', 'VALUE_ERROR', {
+                  field: { name: fieldName, value: parent[fieldName] },
+                });
+
+              // get the document from its collection
+              return await Model.findById(parent[fieldName]);
+            },
+          };
         })
       ),
     } as c;
