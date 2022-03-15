@@ -52,7 +52,7 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
     ? accessRule
     : {
         $or: [
-          { 'permissions.teams': { $in: context.profile.teams } },
+          { 'permissions.teams': { $in: [...context.profile.teams, Teams.ANY] } },
           { 'permissions.users': context.profile._id },
           { 'permissions.users': Users.ANY },
         ],
