@@ -12,14 +12,14 @@ const photoRequests = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Co
     withSubscription: true,
     publicRules: false,
     schemaDef: {
-      name: { type: String, required: true, modifiable: true },
+      name: { type: 'String', required: true, modifiable: true },
       stage: { type: 'Float', modifiable: true, default: Stage.NEW },
-      article_id: { type: mongoose.Schema.Types.ObjectId, modifiable: true },
+      article_id: { type: 'ObjectId', modifiable: true },
       people: {
-        requested_by: { type: ['User', mongoose.Schema.Types.ObjectId], modifiable: true },
+        requested_by: { type: ['User', 'ObjectId'], modifiable: true },
       },
       permissions: {
-        teams: { type: [String], modifiable: true, default: [Teams.MANAGING_EDITOR] },
+        teams: { type: ['String'], modifiable: true, default: [Teams.MANAGING_EDITOR] },
       },
     },
     Users,

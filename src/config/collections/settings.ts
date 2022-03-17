@@ -18,8 +18,8 @@ const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
     withSubscription: true,
     publicRules: false,
     schemaDef: {
-      name: { type: String, required: true, modifiable: false, unique: true },
-      setting: { type: JSON, required: true, modifiable: true, strict: false },
+      name: { type: 'String', required: true, modifiable: false, unique: true },
+      setting: { type: 'JSON', required: true, modifiable: true, strict: false },
     },
     Users,
     Teams,

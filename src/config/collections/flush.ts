@@ -16,32 +16,32 @@ const flush = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
     withSubscription: true,
     publicRules: { filter: { 'timestamps.week': { $lt: new Date() } } }, // disallow accessing future weeks
     schemaDef: {
-      volume: { type: Number, required: true, modifiable: true, public: true, default: 99 },
-      issue: { type: Number, required: true, modifiable: true, public: true, default: 1 },
-      left_advert_photo_url: { type: String, modifiable: true, public: true },
+      volume: { type: 'Number', required: true, modifiable: true, public: true, default: 99 },
+      issue: { type: 'Number', required: true, modifiable: true, public: true, default: 1 },
+      left_advert_photo_url: { type: 'String', modifiable: true, public: true },
       events: [
         {
-          name: { type: String, required: true, modifiable: true, public: true, default: 'New event' },
+          name: { type: 'String', required: true, modifiable: true, public: true, default: 'New event' },
           date: {
-            type: Date,
+            type: 'Date',
             required: true,
             modifiable: true,
             public: true,
             default: '0001-01-01T01:00:00.000+00:00',
           },
-          location: { type: String, required: true, modifiable: true, public: true, default: 'location' },
+          location: { type: 'String', required: true, modifiable: true, public: true, default: 'location' },
         },
       ],
       articles: {
-        featured: { type: ['Article', mongoose.Schema.Types.ObjectId], modifiable: true, public: true },
-        more: { type: ['[Article]', [mongoose.Schema.Types.ObjectId]], modifiable: true, public: true },
+        featured: { type: ['Article', 'ObjectId'], modifiable: true, public: true },
+        more: { type: ['[Article]', ['ObjectId']], modifiable: true, public: true },
       },
       permissions: {
-        teams: { type: [String], required: true, modifiable: true, public: true, default: [Teams.FLUSH] },
+        teams: { type: ['String'], required: true, modifiable: true, public: true, default: [Teams.FLUSH] },
       },
       timestamps: {
         week: {
-          type: Date,
+          type: 'Date',
           required: true,
           modifiable: true,
           public: true,

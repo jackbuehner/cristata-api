@@ -289,26 +289,38 @@ type GraphSchemaType =
   | string;
 
 type MongooseSchemaType =
+  | 'Boolean'
+  | ['Boolean']
   | BooleanConstructor
   | [BooleanConstructor]
   | typeof mongoose.Schema.Types.Boolean
   | [typeof mongoose.Schema.Types.Boolean]
+  | 'Date'
+  | ['Date']
   | DateConstructor
   | [DateConstructor]
   | typeof mongoose.Schema.Types.Date
   | [typeof mongoose.Schema.Types.Date]
+  | 'Number'
+  | ['Number']
   | NumberConstructor
   | [NumberConstructor]
   | typeof mongoose.Schema.Types.Number
   | [typeof mongoose.Schema.Types.Number]
   | 'Float'
   | ['Float']
+  | 'ObjectId'
+  | ['ObjectId']
   | typeof mongoose.Schema.Types.ObjectId
   | [typeof mongoose.Schema.Types.ObjectId]
+  | 'String'
+  | ['String']
   | StringConstructor
   | [StringConstructor]
   | typeof mongoose.Schema.Types.String
   | [typeof mongoose.Schema.Types.String]
+  | 'JSON'
+  | ['JSON']
   | JSON
   | [JSON];
 

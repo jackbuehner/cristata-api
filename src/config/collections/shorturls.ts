@@ -12,9 +12,9 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
     withSubscription: true,
     publicRules: false,
     schemaDef: {
-      original_url: { type: String, required: true, modifiable: true },
+      original_url: { type: 'String', required: true, modifiable: true },
       code: {
-        type: String,
+        type: 'String',
         required: true,
         modifiable: true,
         unique: true,
@@ -24,9 +24,9 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
           message: 'shorturl code must be alphanumeric',
         },
       },
-      domain: { type: String, required: true, modifiable: true, default: 'flusher.page' },
+      domain: { type: 'String', required: true, modifiable: true, default: 'flusher.page' },
     },
-    by: { one: ['code', mongoose.Schema.Types.String], many: ['_id', mongoose.Schema.Types.ObjectId] },
+    by: { one: ['code', 'String'], many: ['_id', mongoose.Schema.Types.ObjectId] },
     Users,
     Teams,
     helpers,

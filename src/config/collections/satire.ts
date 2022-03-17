@@ -16,9 +16,9 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
     withSubscription: true,
     publicRules: { filter: { stage: Stage.PUBLISHED }, slugDateField: 'timestamps.published_at' },
     schemaDef: {
-      name: { type: String, required: true, modifiable: true, public: true, default: 'New Satire' },
+      name: { type: 'String', required: true, modifiable: true, public: true, default: 'New Satire' },
       slug: {
-        type: String,
+        type: 'String',
         modifiable: true,
         public: true,
         setter: {
@@ -27,10 +27,10 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         },
       },
       stage: { type: 'Float', modifiable: true, default: Stage.PLANNING.toString() },
-      tags: { type: [String], modifiable: true, public: true, default: [] },
-      description: { type: String, required: true, modifiable: true, public: true, default: '' },
-      photo_path: { type: String, required: true, modifiable: true, public: true, default: '' },
-      photo_credit: { type: String, required: true, modifiable: true, public: true, default: '' },
+      tags: { type: ['String'], modifiable: true, public: true, default: [] },
+      description: { type: 'String', required: true, modifiable: true, public: true, default: '' },
+      photo_path: { type: 'String', required: true, modifiable: true, public: true, default: '' },
+      photo_credit: { type: 'String', required: true, modifiable: true, public: true, default: '' },
       // photo_credit: {
       //   model: 'Photo',
       //   by: 'photo_url',
@@ -39,12 +39,12 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
       //   fieldType: String,
       //   public: true,
       // },
-      photo_caption: { type: String, required: true, modifiable: true, public: true, default: '' },
-      body: { type: String, modifiable: true, public: true },
-      legacy_html: { type: Boolean, required: true, modifiable: true, public: true, default: false },
+      photo_caption: { type: 'String', required: true, modifiable: true, public: true, default: '' },
+      body: { type: 'String', modifiable: true, public: true },
+      legacy_html: { type: 'Boolean', required: true, modifiable: true, public: true, default: false },
       people: {
         authors: {
-          type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+          type: ['[User]', ['ObjectId']],
           required: true,
           modifiable: true,
           default: [],
@@ -52,13 +52,13 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         display_authors: { type: [String], required: true, modifiable: true, public: true, default: [] },
         editors: {
           primary: {
-            type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+            type: ['[User]', ['ObjectId']],
             required: true,
             modifiable: true,
             default: [],
           },
           copy: {
-            type: ['[User]', [mongoose.Schema.Types.ObjectId]],
+            type: ['[User]', ['ObjectId']],
             required: true,
             modifiable: true,
             default: [],
@@ -66,10 +66,10 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         },
       },
       timestamps: {
-        target_publish_at: { type: Date, modifiable: true, default: '0001-01-01T01:00:00.000+00:00' },
+        target_publish_at: { type: 'Date', modifiable: true, default: '0001-01-01T01:00:00.000+00:00' },
       },
       permissions: {
-        teams: { type: [String], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR], required: true },
+        teams: { type: ['String'], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR], required: true },
       },
     },
     Users,

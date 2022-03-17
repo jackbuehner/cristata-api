@@ -207,25 +207,29 @@ const Schema = {
     return Array.isArray(type) && type.length === 1;
   },
   isBoolean: (toCheck: unknown): toCheck is boolean => {
-    return toCheck === Boolean || toCheck === mongoose.Schema.Types.Boolean;
+    return toCheck === Boolean || toCheck === mongoose.Schema.Types.Boolean || toCheck === 'Boolean';
   },
   isDate: (toCheck: unknown): toCheck is Date => {
-    return toCheck === Date || toCheck === mongoose.Schema.Types.Date;
+    return toCheck === Date || toCheck === mongoose.Schema.Types.Date || toCheck === 'Date';
   },
   isInt: (toCheck: unknown): toCheck is number => {
-    return toCheck === Number || toCheck === mongoose.Schema.Types.Number;
+    return toCheck === Number || toCheck === mongoose.Schema.Types.Number || toCheck === 'Number';
   },
   isFloat: (toCheck: unknown) => {
     return toCheck === 'Float';
   },
   isObjectId: (toCheck: unknown): toCheck is mongoose.Types.ObjectId => {
-    return toCheck === mongoose.Types.ObjectId || toCheck === mongoose.Schema.Types.ObjectId;
+    return (
+      toCheck === mongoose.Types.ObjectId ||
+      toCheck === mongoose.Schema.Types.ObjectId ||
+      toCheck === 'ObjectId'
+    );
   },
   isString: (toCheck: unknown): toCheck is string => {
-    return toCheck === String || toCheck === mongoose.Schema.Types.String;
+    return toCheck === String || toCheck === mongoose.Schema.Types.String || toCheck === 'String';
   },
   isObject: (toCheck: unknown): toCheck is JSON => {
-    return toCheck === JSON;
+    return toCheck === JSON || toCheck === 'JSON';
   },
 };
 
