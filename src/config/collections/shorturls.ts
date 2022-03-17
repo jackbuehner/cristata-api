@@ -30,7 +30,7 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
     Users,
     Teams,
     helpers,
-    actionAccess: () => ({
+    actionAccess: {
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.SHORTURL], users: [] },
       modify: { teams: [Teams.SHORTURL], users: [] },
@@ -38,7 +38,7 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
       lock: { teams: [Teams.ADMIN], users: [] },
       watch: { teams: [Teams.ANY], users: [] },
       delete: { teams: [Teams.ADMIN], users: [] },
-    }),
+    },
   });
 
   return collection;

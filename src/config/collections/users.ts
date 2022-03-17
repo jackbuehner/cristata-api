@@ -607,7 +607,7 @@ const users = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
       retired: { type: Boolean, default: false },
       flags: { type: [String], default: [] },
     },
-    actionAccess: () => ({
+    actionAccess: {
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ADMIN, Teams.MANAGING_EDITOR], users: [] },
@@ -616,7 +616,7 @@ const users = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
       watch: { teams: [Teams.ANY], users: [] },
       deactivate: { teams: [Teams.ADMIN, Teams.MANAGING_EDITOR], users: [] },
       delete: { teams: [Teams.ADMIN], users: [] },
-    }),
+    },
   };
 };
 

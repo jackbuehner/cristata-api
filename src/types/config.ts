@@ -29,7 +29,7 @@ interface Collection {
   typeDefs: string;
   resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
   schemaFields: Record<string, unknown>;
-  actionAccess: (context: Context, doc?: unknown) => CollectionPermissions;
+  actionAccess: CollectionPermissions;
 }
 
 type TeamsType = Record<string, string>;

@@ -113,28 +113,14 @@ const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
         returns: '[User]',
       },
     ],
-    actionAccess: (context, doc: ITeam | undefined) => {
-      // add user to the organizers array if they are an organizer for the team
-      const organizers = [];
-      const isOrganizer = doc?.organizers
-        .map((o) => o.toHexString())
-        .includes(context.profile._id.toHexString());
-      if (isOrganizer) organizers.push(context.profile._id);
-
-      // add user to the members array if they are an member of the team
-      const members = [];
-      const isMember = doc?.members.map((o) => o.toHexString()).includes(context.profile._id.toHexString());
-      if (isMember) members.push(context.profile._id);
-
-      return {
-        get: { teams: [Teams.ANY], users: [...organizers, ...members] },
-        create: { teams: [Teams.MANAGING_EDITOR], users: [] },
-        modify: { teams: [Teams.ADMIN], users: [...organizers] },
-        hide: { teams: [Teams.MANAGING_EDITOR], users: [...organizers] },
-        lock: { teams: [], users: [] },
-        watch: { teams: [], users: [] },
-        delete: { teams: [Teams.ADMIN], users: [...organizers] },
-      };
+    actionAccess: {
+      get: { teams: [Teams.ANY], users: ['organizers', 'members'] },
+      create: { teams: [Teams.MANAGING_EDITOR], users: [] },
+      modify: { teams: [Teams.ADMIN], users: ['organizers'] },
+      hide: { teams: [Teams.MANAGING_EDITOR], users: ['organizers'] },
+      lock: { teams: [], users: [] },
+      watch: { teams: [], users: [] },
+      delete: { teams: [Teams.ADMIN], users: ['organizers'] },
     },
   });
 

@@ -34,15 +34,15 @@ const photos = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
     Users,
     Teams,
     helpers,
-    actionAccess: (context) => ({
-      get: { teams: [Teams.ANY], users: [context.profile._id] },
+    actionAccess: {
+      get: { teams: [Teams.ANY], users: [Users.ANY] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ANY], users: [] },
       hide: { teams: [Teams.ANY], users: [] },
       lock: { teams: [Teams.ADMIN], users: [] },
       watch: { teams: [Teams.ANY], users: [] },
       delete: { teams: [Teams.ADMIN], users: [] },
-    }),
+    },
   });
 
   return collection;

@@ -24,7 +24,7 @@ const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
     Users,
     Teams,
     helpers,
-    actionAccess: () => ({
+    actionAccess: {
       get: { teams: [Teams.ADMIN], users: [] },
       create: { teams: [Teams.ADMIN], users: [] },
       modify: { teams: [Teams.ADMIN], users: [] },
@@ -32,7 +32,7 @@ const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
       lock: { teams: [], users: [] },
       watch: { teams: [], users: [] },
       delete: { teams: [], users: [] },
-    }),
+    },
   });
 
   return {

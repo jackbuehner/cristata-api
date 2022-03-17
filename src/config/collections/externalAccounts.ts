@@ -21,7 +21,7 @@ const externalAccounts = (helpers: Helpers, Users: UsersType, Teams: TeamsType):
     Users,
     Teams,
     helpers,
-    actionAccess: () => ({
+    actionAccess: {
       get: { teams: [Teams.ADMIN], users: [] },
       create: { teams: [Teams.ADMIN], users: [] },
       modify: { teams: [Teams.ADMIN], users: [] },
@@ -29,7 +29,7 @@ const externalAccounts = (helpers: Helpers, Users: UsersType, Teams: TeamsType):
       lock: { teams: [], users: [] },
       watch: { teams: [], users: [] },
       delete: { teams: [Teams.ADMIN], users: [] },
-    }),
+    },
   });
 
   return collection;

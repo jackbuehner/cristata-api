@@ -1,5 +1,4 @@
 import { Helpers } from '..';
-import { Context } from '../../../../apollo';
 import { Collection, CollectionPermissions } from '../../../../config/database';
 import { GenSchemaInput } from './genSchema';
 
@@ -20,7 +19,7 @@ function genCollection(input: GenCollectionInput): Collection {
 
 interface GenCollectionInput extends GenSchemaInput {
   helpers: Helpers;
-  actionAccess: (context: Context, doc?: unknown) => CollectionPermissions;
+  actionAccess: CollectionPermissions;
 }
 
 export { genCollection };

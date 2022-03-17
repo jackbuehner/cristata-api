@@ -23,9 +23,9 @@ function canDo({ model, action, context, doc }: CanDo): boolean {
   requireAuthentication(context);
 
   // get the permsissions for the collection
-  const permissions = context.config.database.collections
-    .find((collection) => collection.name === model)
-    .actionAccess(context, doc);
+  const permissions = context.config.database.collections.find(
+    (collection) => collection.name === model
+  ).actionAccess;
   const tp = permissions[action]?.teams;
   const up = permissions[action]?.users;
 

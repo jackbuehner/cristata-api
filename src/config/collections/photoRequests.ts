@@ -25,7 +25,7 @@ const photoRequests = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Co
     Users,
     Teams,
     helpers,
-    actionAccess: () => ({
+    actionAccess: {
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ANY], users: [] },
@@ -34,7 +34,7 @@ const photoRequests = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Co
       watch: { teams: [Teams.ANY], users: [] },
       publish: { teams: [Teams.ADMIN], users: [] },
       delete: { teams: [Teams.ADMIN], users: [] },
-    }),
+    },
   });
 
   return collection;

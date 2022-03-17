@@ -84,18 +84,16 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         pipeline: [{ $group: { _id: '$stage', count: { $sum: 1 } } }],
       },
     ],
-    actionAccess: () => {
-      return {
-        get: { teams: [Teams.ANY], users: [] },
-        create: { teams: [Teams.ANY], users: [] },
-        modify: { teams: [Teams.ANY], users: [] },
-        hide: { teams: [Teams.ANY], users: [] },
-        lock: { teams: [Teams.ADMIN], users: [] },
-        watch: { teams: [Teams.ANY], users: [] },
-        publish: { teams: [Teams.ADMIN], users: [] },
-        delete: { teams: [Teams.ADMIN], users: [] },
-        bypassDocPermissions: { teams: [Teams.MANAGING_EDITOR], users: [] },
-      };
+    actionAccess: {
+      get: { teams: [Teams.ANY], users: [] },
+      create: { teams: [Teams.ANY], users: [] },
+      modify: { teams: [Teams.ANY], users: [] },
+      hide: { teams: [Teams.ANY], users: [] },
+      lock: { teams: [Teams.ADMIN], users: [] },
+      watch: { teams: [Teams.ANY], users: [] },
+      publish: { teams: [Teams.ADMIN], users: [] },
+      delete: { teams: [Teams.ADMIN], users: [] },
+      bypassDocPermissions: { teams: [Teams.MANAGING_EDITOR], users: [] },
     },
   });
 

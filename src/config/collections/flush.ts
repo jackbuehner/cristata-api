@@ -52,7 +52,7 @@ const flush = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
     Users,
     Teams,
     helpers,
-    actionAccess: () => ({
+    actionAccess: {
       get: { teams: [Teams.ANY], users: [] },
       create: { teams: [Teams.ANY], users: [] },
       modify: { teams: [Teams.ANY], users: [] },
@@ -61,7 +61,7 @@ const flush = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
       watch: { teams: [Teams.ANY], users: [] },
       publish: { teams: [Teams.ADMIN], users: [] },
       delete: { teams: [Teams.ADMIN], users: [] },
-    }),
+    },
   });
 
   return collection;
