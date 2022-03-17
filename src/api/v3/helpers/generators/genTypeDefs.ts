@@ -509,7 +509,7 @@ function genQueries(
       Get the permissions of the currently authenticated user for the
       ${typeName} collection.
       """
-      ${uncapitalize(typeName)}ActionAccess: CollectionActionAccess
+      ${uncapitalize(typeName)}ActionAccess(_id: ObjectID): CollectionActionAccess
 
       ${
         usePublicQueries
