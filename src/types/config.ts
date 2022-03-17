@@ -37,7 +37,7 @@ type UsersType = Record<string, mongoose.Types.ObjectId>;
 
 type CollectionPermissionsType = {
   teams: string[];
-  users: mongoose.Types.ObjectId[];
+  users: Array<mongoose.Types.ObjectId | string>;
 };
 
 type CollectionPermissionsActions = keyof CollectionPermissions;
