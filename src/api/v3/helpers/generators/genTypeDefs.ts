@@ -406,6 +406,7 @@ function genPrunedTypes(
             Object.entries({
               published_at: { type: Date, required: true, public: true },
               updated_at: { type: Date, required: true, public: true },
+              ...fieldDef,
             }),
             `Pruned${typeName}Timestamps`,
             isPublishable
