@@ -6,8 +6,6 @@ import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import passport from 'passport';
-import { apiRouter2 } from './api/v2/routes';
-import { githubWebhookHandler } from './api/v2/webhooks/github';
 import { apiRouter3 } from './api/v3/routes';
 import { authRouter } from './auth.route';
 import { requireAuth } from './middleware/auth';
@@ -103,9 +101,6 @@ function createExpressApp(): Application {
   app.use(passport.session()); // replace `req.user` with passport user
 
   app.use('/auth', authRouter); // authentication routes
-  app.use(githubWebhookHandler); // recieve and handle webhook payloads from GitHub
-  app.use('/api/v2', apiRouter2); // API v2 routes
-  app.use('/v2', apiRouter2);
   app.use('/v3', apiRouter3); // API v3 routes
   app.use('/', proxyRouter); // CORS proxy routes
 
