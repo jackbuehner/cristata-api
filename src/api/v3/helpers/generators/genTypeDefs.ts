@@ -163,7 +163,7 @@ function calcGraphFieldType(
  * based on the mongoose type.
  */
 const Schema = {
-  constructType: (type: MongooseSchemaType) => {
+  constructType: (type: MongooseSchemaType): string => {
     const isArray = Schema.isArray(type);
     if (isArray) type = type[0];
 
@@ -206,29 +206,29 @@ const Schema = {
     if (typeof type === 'string') return type.includes('[') && type.includes(']');
     return Array.isArray(type) && type.length === 1;
   },
-  isBoolean: (toCheck: unknown): toCheck is boolean => {
+  isBoolean: (toCheck: unknown): boolean => {
     return toCheck === Boolean || toCheck === mongoose.Schema.Types.Boolean || toCheck === 'Boolean';
   },
-  isDate: (toCheck: unknown): toCheck is Date => {
+  isDate: (toCheck: unknown): boolean => {
     return toCheck === Date || toCheck === mongoose.Schema.Types.Date || toCheck === 'Date';
   },
-  isInt: (toCheck: unknown): toCheck is number => {
+  isInt: (toCheck: unknown): boolean => {
     return toCheck === Number || toCheck === mongoose.Schema.Types.Number || toCheck === 'Number';
   },
-  isFloat: (toCheck: unknown) => {
+  isFloat: (toCheck: unknown): boolean => {
     return toCheck === 'Float';
   },
-  isObjectId: (toCheck: unknown): toCheck is mongoose.Types.ObjectId => {
+  isObjectId: (toCheck: unknown): boolean => {
     return (
       toCheck === mongoose.Types.ObjectId ||
       toCheck === mongoose.Schema.Types.ObjectId ||
       toCheck === 'ObjectId'
     );
   },
-  isString: (toCheck: unknown): toCheck is string => {
+  isString: (toCheck: unknown): boolean => {
     return toCheck === String || toCheck === mongoose.Schema.Types.String || toCheck === 'String';
   },
-  isObject: (toCheck: unknown): toCheck is JSON => {
+  isObject: (toCheck: unknown): boolean => {
     return toCheck === JSON || toCheck === 'JSON';
   },
 };
@@ -702,4 +702,4 @@ function genSubscriptions(typeName: string, oneAccessorName: string, oneAccessor
   }`;
 }
 
-export { genTypeDefs, calcAccessor };
+export { genTypeDefs, calcAccessor, Schema };

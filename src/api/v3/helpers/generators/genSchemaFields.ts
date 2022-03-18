@@ -1,5 +1,5 @@
 import { merge } from 'merge-anything';
-import { Schema, SchemaDefinition } from 'mongoose';
+import mongoose, { SchemaDefinition } from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { hasKey } from '../../../../utils/hasKey';
 import { isArray } from '../../../../utils/isArray';
@@ -14,6 +14,7 @@ import {
   SchemaDefaultValueType,
   SchemaDefType,
 } from './genSchema';
+import { Schema as Type } from './genTypeDefs';
 
 function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
   const schema = Object.entries(input.schemaDef).filter(
@@ -38,13 +39,39 @@ function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
 
           // the type is 'JSON', return a new schema that can
           // contain any values
-          if (type === JSON) {
+          if (Type.isObject(type)) {
+            if (Type.isArray(type)) {
+              return {
+                [fieldName]: [new mongoose.Schema({}, { strict: fieldDef.strict })],
+              };
+            }
             return {
-              [fieldName]: new Schema({}, { strict: fieldDef.strict }),
+              [fieldName]: new mongoose.Schema({}, { strict: fieldDef.strict }),
             };
           }
 
-          if (type === 'Float') type = Number;
+          // process type
+          const isArray = Type.isArray(type);
+          if (isArray) type = type[0];
+          if (Type.isBoolean(type)) {
+            if (Type.isArray(type)) type = [mongoose.Schema.Types.Boolean];
+            else type = mongoose.Schema.Types.Boolean;
+          } else if (Type.isDate(type)) {
+            if (Type.isArray(type)) type = [mongoose.Schema.Types.Date];
+            else type = mongoose.Schema.Types.Date;
+          } else if (Type.isInt(type)) {
+            if (Type.isArray(type)) type = [mongoose.Schema.Types.Number];
+            else type = mongoose.Schema.Types.Number;
+          } else if (Type.isFloat(type)) {
+            if (Type.isArray(type)) type = [mongoose.Schema.Types.Number];
+            else type = mongoose.Schema.Types.Number;
+          } else if (Type.isObjectId(type)) {
+            if (Type.isArray(type)) type = [mongoose.Schema.Types.ObjectId];
+            else type = mongoose.Schema.Types.ObjectId;
+          } else if (Type.isString(type)) {
+            if (Type.isArray(type)) type = [mongoose.Schema.Types.String];
+            else type = mongoose.Schema.Types.String;
+          }
 
           return {
             [fieldName]: {
