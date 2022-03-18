@@ -365,23 +365,26 @@ function genCustomResolvers(input: GenResolversInput): c {
                     { invalidName: def.type[0] }
                   );
 
+                // get the field value
+                let fieldValue = parent[fieldName] || [];
+
+                // ensure the value of the field is an array
+                const isArray = Array.isArray(fieldValue);
+                if (!isArray) fieldValue = [fieldValue];
+
                 // ensure every element in the field is an ObjectID
-                const containsOnlyValidObjectIds = (parent[fieldName] || []).every((elem: unknown) =>
-                  isObjectId(elem)
-                );
+                const containsOnlyValidObjectIds = fieldValue.every((elem: unknown) => isObjectId(elem));
                 if (!containsOnlyValidObjectIds)
                   throw new ApolloError(
                     'the referenced field contains values that are not valid ObjectIds',
                     'VALUE_ERROR',
                     {
-                      field: { name: fieldName, values: parent[fieldName] || [] },
+                      field: { name: fieldName, values: fieldValue },
                     }
                   );
 
                 // get the documents from their collection
-                return await Promise.all(
-                  (parent[fieldName] || []).map(async (_id) => await Model.findById(_id))
-                );
+                return await Promise.all(fieldValue.map(async (_id) => await Model.findById(_id)));
               },
             };
           }
