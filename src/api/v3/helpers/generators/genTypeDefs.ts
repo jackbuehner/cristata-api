@@ -25,15 +25,16 @@ import pluralize from 'pluralize';
 function genTypeDefs(input: GenSchemaInput): string {
   const schema = Object.entries(input.schemaDef);
   const schemaSansRefs = schema.filter(
-    (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
-      isSchemaDefOrType(schemaDefItem[1])
+    (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef | [SchemaDefType]] =>
+      isSchemaDefOrType(schemaDefItem[1]) || isSchemaDefOrType(schemaDefItem[1][0])
   );
   const typeName = input.name;
   const typeInheritance = getTypeInheritance(input.canPublish, input.withPermissions);
   const inputInheritance = getInputInheritance(input.canPublish, input.withPermissions);
   const [oneAccessorName, oneAccessorType] = calcAccessor('one', input.by);
   const [manyAccessorName, manyAccessorType] = calcAccessor('many', input.by);
-  const onlyOneModifiable = schemaSansRefs.filter(([, fieldDef]) => fieldDef.modifiable).length === 1;
+  const onlyOneModifiable =
+    schemaSansRefs.filter(([, fieldDef]) => !Array.isArray(fieldDef) && fieldDef.modifiable).length === 1;
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
   const hasSlug = hasKey('slug', input.schemaDef) && (input.schemaDef.slug as SchemaDef).type === 'String';
 
@@ -426,14 +427,16 @@ function genPrunedTypes(
  * Generates the input types for the collection type definitions.
  */
 function genInputs(
-  schema: Array<[string, SchemaDefType | SchemaDef]>,
+  schema: Array<[string, SchemaDefType | SchemaDef | [SchemaDefType]]>,
   typeName: string,
   typeInheritance = undefined
 ) {
-  const schemaTop = (
-    schema.filter(([, fieldDef]) => isSchemaDef(fieldDef)) as Array<[string, SchemaDef]>
-  ).filter(([, fieldDef]) => fieldDef.modifiable);
-  const schemaNext = schema.filter(([, fieldDef]) => !isSchemaDef(fieldDef)) as Array<[string, SchemaDefType]>;
+  const schemaTop = schema
+    .filter((field): field is [string, SchemaDef] => isSchemaDef(field[1]))
+    .filter(([, fieldDef]) => fieldDef.modifiable);
+  const schemaNext = schema.filter(
+    (field): field is [string, SchemaDefType | [SchemaDefType]] => !isSchemaDef(field[1])
+  );
 
   return `
     input ${typeName}${typeName.includes('ModifyInput') ? `` : `ModifyInput`} ${
@@ -451,22 +454,31 @@ function genInputs(
       ${
         // list the field and type for each set of nested schema definitions
         schemaNext
-          ?.map(
-            ([fieldName]) =>
-              `${fieldName}: ${typeName}${typeName.includes('ModifyInput') ? `` : `ModifyInput`}${capitalize(
-                fieldName
-              )}`
-          )
+          ?.map(([fieldName, def]) => {
+            const isArray = Array.isArray(def);
+            const fieldType = `${typeName}${typeName.includes('ModifyInput') ? `` : `ModifyInput`}${capitalize(
+              fieldName
+            )}`;
+            return `${fieldName}: ${isArray ? '[' : ''}${fieldType}${isArray ? ']' : ''}`;
+          })
           .join('\n')
       }
     }
 
     ${schemaNext
       ?.map(([fieldName, fieldDef]) => {
+        // convert array field def into non-array field def
+        if (Array.isArray(fieldDef)) {
+          fieldDef = fieldDef[0];
+        }
+
+        // get the entries of the nested schemas
         const schema = Object.entries(fieldDef).filter(
           (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
             isSchemaDefOrType(schemaDefItem[1])
         );
+
+        // generate input types for nested schemas
         return genInputs(
           schema,
           `${typeName}${typeName.includes('ModifyInput') ? `` : `ModifyInput`}${capitalize(fieldName)}`
@@ -579,7 +591,7 @@ function genQueries(
  * Generates the mutation type definitions for the collection.
  */
 function genMutations(
-  schema: Array<[string, SchemaDefType | SchemaDef]>,
+  schema: Array<[string, SchemaDefType | SchemaDef | [SchemaDefType]]>,
   typeName: string,
   oneAccessorName: string,
   oneAccessorType: string,
@@ -587,7 +599,7 @@ function genMutations(
   modifyInputType?: string
 ): string {
   const createString = () => {
-    const schemaTop = schema.filter(([, fieldDef]) => isSchemaDef(fieldDef)) as Array<[string, SchemaDef]>;
+    const schemaTop = schema.filter((field): field is [string, SchemaDef] => isSchemaDef(field[1]));
 
     return (
       // list the modifiable top-level fields
