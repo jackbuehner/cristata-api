@@ -35,17 +35,14 @@ function genTypeDefs(input: GenSchemaInput): string {
   const [manyAccessorName, manyAccessorType] = calcAccessor('many', input.by);
   const onlyOneModifiable = schemaSansRefs.filter(([, fieldDef]) => fieldDef.modifiable).length === 1;
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
-  const hasSlug =
-    hasKey('slug', input.schemaDef) &&
-    ((input.schemaDef.slug as SchemaDef).type === String ||
-      (input.schemaDef.slug as SchemaDef).type === mongoose.Schema.Types.String);
+  const hasSlug = hasKey('slug', input.schemaDef) && (input.schemaDef.slug as SchemaDef).type === 'String';
 
   return `
     ${genTypes(schema, typeName, typeInheritance, input.customQueries)}
     ${
       hasPublic
         ? genPrunedTypes(
-            [['_id', { type: mongoose.Schema.Types.ObjectId, required: true, public: true }], ...schema],
+            [['_id', { type: 'ObjectId', required: true, public: true }], ...schema],
             typeName,
             input.canPublish
           )
@@ -125,7 +122,7 @@ function calcAccessor(
   }
 
   // use default when no config provided
-  return ['_id', calcGraphFieldType({ type: mongoose.Schema.Types.ObjectId, required: quantity === 'one' })];
+  return ['_id', calcGraphFieldType({ type: 'ObjectId', required: quantity === 'one' })];
 }
 
 /**
@@ -165,6 +162,7 @@ function calcGraphFieldType(
 const Schema = {
   constructType: (type: MongooseSchemaType): string => {
     const isArray = Schema.isArray(type);
+    //@ts-expect-error it's fine
     if (isArray) type = type[0];
 
     if (Schema.isBoolean(type)) {
@@ -219,11 +217,7 @@ const Schema = {
     return toCheck === 'Float';
   },
   isObjectId: (toCheck: unknown): boolean => {
-    return (
-      toCheck === mongoose.Types.ObjectId ||
-      toCheck === mongoose.Schema.Types.ObjectId ||
-      toCheck === 'ObjectId'
-    );
+    return toCheck === mongoose.Types.ObjectId || toCheck === 'ObjectId' || toCheck === 'ObjectId';
   },
   isString: (toCheck: unknown): boolean => {
     return toCheck === String || toCheck === mongoose.Schema.Types.String || toCheck === 'String';
@@ -404,8 +398,8 @@ function genPrunedTypes(
         if (isPublishable && fieldName === 'timestamps') {
           return genPrunedTypes(
             Object.entries({
-              published_at: { type: Date, required: true, public: true },
-              updated_at: { type: Date, required: true, public: true },
+              published_at: { type: 'Date', required: true, public: true },
+              updated_at: { type: 'Date', required: true, public: true },
               ...fieldDef,
             }),
             `Pruned${typeName}Timestamps`,

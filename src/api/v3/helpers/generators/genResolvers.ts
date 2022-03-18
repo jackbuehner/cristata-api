@@ -63,10 +63,7 @@ async function construct(doc: mongoose.Document | null, schemaRefs: [string, Sch
 function genResolvers({ name, helpers, ...input }: GenResolversInput) {
   const [oneAccessorName] = calcAccessor('one', input.by);
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
-  const hasSlug =
-    hasKey('slug', input.schemaDef) &&
-    ((input.schemaDef.slug as SchemaDef).type === String ||
-      (input.schemaDef.slug as SchemaDef).type === mongoose.Schema.Types.String);
+  const hasSlug = hasKey('slug', input.schemaDef) && (input.schemaDef.slug as SchemaDef).type === 'String';
   const schemaRefs = Object.entries(input.schemaDef).filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<
     [string, SchemaRef]
   >;

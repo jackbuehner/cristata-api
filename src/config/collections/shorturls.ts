@@ -26,7 +26,7 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
       },
       domain: { type: 'String', required: true, modifiable: true, default: 'flusher.page' },
     },
-    by: { one: ['code', 'String'], many: ['_id', mongoose.Schema.Types.ObjectId] },
+    by: { one: ['code', 'String'], many: ['_id', 'ObjectId'] },
     Users,
     Teams,
     helpers,

@@ -49,7 +49,7 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
           modifiable: true,
           default: [],
         },
-        display_authors: { type: [String], required: true, modifiable: true, public: true, default: [] },
+        display_authors: { type: ['String'], required: true, modifiable: true, public: true, default: [] },
         editors: {
           primary: {
             type: ['[User]', ['ObjectId']],

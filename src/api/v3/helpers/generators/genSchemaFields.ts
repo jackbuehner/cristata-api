@@ -8,7 +8,6 @@ import {
   isSchemaDef,
   isSchemaDefOrType,
   isTypeTuple,
-  MongooseSchemaType,
   NestedSchemaDefType,
   SchemaDef,
   SchemaDefaultValueType,
@@ -33,7 +32,7 @@ function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
           // get the mongoose schema type, which is either the second
           // key in an array of types ([graphql type, mongoose type])
           // or is the directly provided value
-          let type: MongooseSchemaType;
+          let type;
           if (isTypeTuple(fieldDef.type)) type = fieldDef.type[1];
           else type = fieldDef.type;
 
@@ -54,22 +53,22 @@ function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
           const isArray = Type.isArray(type);
           if (isArray) type = type[0];
           if (Type.isBoolean(type)) {
-            if (Type.isArray(type)) type = [mongoose.Schema.Types.Boolean];
+            if (isArray) type = [mongoose.Schema.Types.Boolean];
             else type = mongoose.Schema.Types.Boolean;
           } else if (Type.isDate(type)) {
-            if (Type.isArray(type)) type = [mongoose.Schema.Types.Date];
+            if (isArray) type = [mongoose.Schema.Types.Date];
             else type = mongoose.Schema.Types.Date;
           } else if (Type.isInt(type)) {
-            if (Type.isArray(type)) type = [mongoose.Schema.Types.Number];
+            if (isArray) type = [mongoose.Schema.Types.Number];
             else type = mongoose.Schema.Types.Number;
           } else if (Type.isFloat(type)) {
-            if (Type.isArray(type)) type = [mongoose.Schema.Types.Number];
+            if (isArray) type = [mongoose.Schema.Types.Number];
             else type = mongoose.Schema.Types.Number;
           } else if (Type.isObjectId(type)) {
-            if (Type.isArray(type)) type = [mongoose.Schema.Types.ObjectId];
+            if (isArray) type = [mongoose.Schema.Types.ObjectId];
             else type = mongoose.Schema.Types.ObjectId;
           } else if (Type.isString(type)) {
-            if (Type.isArray(type)) type = [mongoose.Schema.Types.String];
+            if (isArray) type = [mongoose.Schema.Types.String];
             else type = mongoose.Schema.Types.String;
           }
 
