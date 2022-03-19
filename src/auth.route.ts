@@ -44,8 +44,16 @@ router.get('/error', (req: Request, res: Response) => res.send('Unknown Error'))
 router.get('/clear', (req: Request, res: Response) => {
   req.session = null;
   req.logout();
-  const location = `${process.env.BASE_DOMAIN_PROTOCOL}://${process.env.BASE_DOMAIN}/sign-in`;
-  res.redirect(location);
+  res.redirect('./');
+});
+router.post('/clear', (req: Request, res: Response) => {
+  if (req.isAuthenticated()) {
+    req.session = null;
+    req.logout();
+    res.status(200).send();
+  } else {
+    res.status(404).send();
+  }
 });
 
 // redirect client to github for authentication
