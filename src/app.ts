@@ -96,7 +96,7 @@ function createExpressApp(): Application {
       name: 'github-auth-session',
       secret: process.env.COOKIE_SESSION_SECRET,
       domain: process.env.COOKIE_DOMAIN,
-      path: path,
+      path: path || '/',
     })
   );
 
