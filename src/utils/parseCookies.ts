@@ -14,7 +14,7 @@ type ParsedCookie = {
  */
 function parseCookies(cookies: string): ParsedCookie[] {
   const parsed: ParsedCookie[] = [];
-  cookies.split('; ').forEach((cookie) => {
+  cookies.split(';').forEach((cookie) => {
     // destructure name and value from cookie string
     const [name, value] = splitOnce(cookie, '=');
 
