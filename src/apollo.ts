@@ -68,6 +68,12 @@ async function apollo(app: Application, server: Server, config: Configuration): 
       };
     };
 
+    // determine the subpath for the server, if applicable
+    let path = '';
+    if (process.env.TENANT) {
+      path = `/${process.env.TENANT}`;
+    }
+
     // initialize apollo
     const apollo = new Apollo({
       schema,
@@ -124,7 +130,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
 
     // required logic for integrating with Express
     await apollo.start();
-    apollo.applyMiddleware({ app, path: '/v3', cors: corsConfig });
+    apollo.applyMiddleware({ app, path: `${path}/v3`, cors: corsConfig });
   } catch (error) {
     console.error(error);
   }

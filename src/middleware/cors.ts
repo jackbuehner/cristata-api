@@ -11,6 +11,8 @@ const allowedOrigins = [
   'https://new.thepaladin.news',
   'https://dev.thepaladin.news',
   'https://4000-gray-guineafowl-g1n8eq87.ws-us30.gitpod.io',
+  'https://3000-green-tarantula-v58yhlbx.ws-us38.gitpod.io',
+  'https://3000-jackbuehner-cristatawebs-8vze2ewl1dp.ws-us38.gitpod.io',
 ];
 
 const corsConfig: cors.CorsOptions = {

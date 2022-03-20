@@ -34,12 +34,17 @@ class Cristata {
       // use hocuspocus at '/hocupocus' and use wss at '/websocket'
       onUpgrade: async ({ request, socket, head }) => {
         try {
-          const pathname = url.parse(request.url).pathname;
+          let pathname = url.parse(request.url).pathname;
           const origin = request.headers.origin;
 
           // ensure request is from a allowed origin
           if (allowedOrigins.includes(origin) === false) {
             throw new Error(`${origin} is not allowed to access websockets`);
+          }
+
+          // remove prefix from pathname
+          if (process.env.TENANT) {
+            pathname = pathname.replace(`/${process.env.TENANT}`, '');
           }
 
           // find auth cookie
@@ -48,12 +53,15 @@ class Cristata {
             return;
           }
           const parsedCookies = parseCookies(request.headers.cookie);
-          const { name, value, signature } = parsedCookies.find(
-            (cookie) => cookie.name === 'github-auth-session'
-          );
+          const authCookie = parsedCookies.find((cookie) => cookie.name === 'github-auth-session');
+          if (!authCookie) {
+            socket.end(); // end if no auth cookie
+            return;
+          }
 
           // verify cookie integrity
           const keygrip = new Keygrip([process.env.COOKIE_SESSION_SECRET]);
+          const { name, value, signature } = authCookie;
           const isUntampered = keygrip.verify(`${name}=${value}`, signature);
 
           // if the cookie has been modified by the client, end the connection

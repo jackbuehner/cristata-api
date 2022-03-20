@@ -84,12 +84,19 @@ function createExpressApp(): Application {
   app.set('json spaces', 2); // pretty print
   app.use(express.urlencoded({ extended: true }));
 
+  // determine the subpath for the server, if applicable
+  let path = '';
+  if (process.env.TENANT) {
+    path = `/${process.env.TENANT}`;
+  }
+
   // store session in the client cookie
   app.use(
     cookieSession({
       name: 'github-auth-session',
       secret: process.env.COOKIE_SESSION_SECRET,
-      domain: process.env.BASE_DOMAIN,
+      domain: process.env.COOKIE_DOMAIN,
+      path: path,
     })
   );
 
@@ -100,11 +107,11 @@ function createExpressApp(): Application {
   app.use(passport.initialize({ userProperty: 'user' }));
   app.use(passport.session()); // replace `req.user` with passport user
 
-  app.use('/auth', authRouter); // authentication routes
-  app.use('/v3', apiRouter3); // API v3 routes
-  app.use('/', proxyRouter); // CORS proxy routes
+  app.use(`${path}/auth`, authRouter); // authentication routes
+  app.use(`${path}/v3`, apiRouter3); // API v3 routes
+  app.use(path, proxyRouter); // CORS proxy routes
 
-  app.get('/', requireAuth, (req: Request, res: Response) => {
+  app.get(path, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);
   });
 
