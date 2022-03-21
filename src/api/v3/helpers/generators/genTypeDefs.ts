@@ -57,6 +57,7 @@ function genTypeDefs(input: GenSchemaInput): string {
       manyAccessorName,
       manyAccessorType,
       input.customQueries,
+      input.options,
       hasPublic && input.publicRules !== false,
       hasSlug
     )}
@@ -66,6 +67,7 @@ function genTypeDefs(input: GenSchemaInput): string {
       oneAccessorName,
       oneAccessorType,
       input.canPublish,
+      input.options,
       onlyOneModifiable
         ? calcGraphFieldType(
             (schema.filter(([, fieldDef]) => isSchemaDef(fieldDef)) as [string, SchemaDef][]).find(
@@ -75,7 +77,7 @@ function genTypeDefs(input: GenSchemaInput): string {
           )
         : undefined
     )}
-    ${input.withSubscription ? genSubscriptions(typeName, oneAccessorName, oneAccessorType) : ``}
+    ${input.withSubscription ? genSubscriptions(typeName, oneAccessorName, oneAccessorType, input.options) : ``}
   `;
 }
 
@@ -498,60 +500,80 @@ function genQueries(
   manyAccessorName: string,
   manyAccessorType: string,
   customQueries: GenSchemaInput['customQueries'],
+  options: GenSchemaInput['options'],
   usePublicQueries = false,
   usePublicBySlugQuery = false
 ): string {
   return `
     type Query {
-      """
-      Get a ${typeName} document by ${oneAccessorName}.
-      """
-      ${uncapitalize(typeName)}(${oneAccessorName}: ${oneAccessorType}): ${typeName}
-
-      """
-      Get a set of ${typeName} documents by ${manyAccessorName}.
-      If ${manyAccessorName} is omitted, the API will return all ${typeName} documents.
-      """
-      ${pluralize(
-        uncapitalize(typeName)
-      )}(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<${typeName}>
-      
-      """
-      Get the permissions of the currently authenticated user for the
-      ${typeName} collection.
-      """
-      ${uncapitalize(typeName)}ActionAccess(_id: ObjectID): CollectionActionAccess
-
       ${
-        usePublicQueries
+        options?.disableFindOneQuery !== true
           ? `
-          """
-          Get a pruned ${typeName} document by ${oneAccessorName}.
-          """
-          ${uncapitalize(typeName)}Public(${oneAccessorName}: ${oneAccessorType}): Pruned${typeName}
+              """
+              Get a ${typeName} document by ${oneAccessorName}.
+              """
+              ${uncapitalize(typeName)}(${oneAccessorName}: ${oneAccessorType}): ${typeName}
+            `
+          : ``
+      }
+      ${
+        options?.disableFindManyQuery !== true
+          ? `
+              """
+              Get a set of ${typeName} documents by ${manyAccessorName}.
+              If ${manyAccessorName} is omitted, the API will return all ${typeName} documents.
+              """
+              ${pluralize(
+                uncapitalize(typeName)
+              )}(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<${typeName}>  
+            `
+          : ``
+      }
+      ${
+        options?.disableActionAccessQuery !== true
+          ? `
+              """
+              Get the permissions of the currently authenticated user for the
+              ${typeName} collection.
+              """
+              ${uncapitalize(typeName)}ActionAccess(_id: ObjectID): CollectionActionAccess
+            `
+          : ``
+      }
+      ${
+        options?.disablePublicFindOneQuery !== true && usePublicQueries
+          ? `
+              """
+              Get a pruned ${typeName} document by ${oneAccessorName}.
+              """
+              ${uncapitalize(typeName)}Public(${oneAccessorName}: ${oneAccessorType}): Pruned${typeName}
+            `
+          : ``
+      }
+      ${
+        options?.disablePublicFindManyQuery !== true && usePublicQueries
+          ? `
+              """
+              Get a set of pruned ${typeName} documents by ${manyAccessorName}.
+              If ${manyAccessorName} is omitted, the API will return all ${typeName} documents.
+              """
+              ${pluralize(
+                uncapitalize(typeName)
+              )}Public(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Pruned${typeName}>
+            `
+          : ``
+      }
+      ${
+        options?.disablePublicFindOneBySlugQuery !== true && usePublicQueries && usePublicBySlugQuery
+          ? `
+              """
+              Get a pruned ${typeName} document by ${oneAccessorName}.
 
-          """
-          Get a set of pruned ${typeName} documents by ${manyAccessorName}.
-          If ${manyAccessorName} is omitted, the API will return all ${typeName} documents.
-          """
-          ${pluralize(
-            uncapitalize(typeName)
-          )}Public(${manyAccessorName}s: [${manyAccessorType}], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!): Paged<Pruned${typeName}>
-
-          ${
-            usePublicBySlugQuery
-              ? `
-            """
-            Get a pruned ${typeName} document by ${oneAccessorName}.
-
-            Provide the date of to ensure that the correct document is provided
-            (in case the slug is not unique).
-            """
-            ${uncapitalize(typeName)}BySlugPublic(slug: String!, date: Date): Pruned${typeName}
-          `
-              : ``
-          }
-        `
+              Provide the date of to ensure that the correct document is provided
+              (in case the slug is not unique).
+              """
+              ${uncapitalize(typeName)}BySlugPublic(slug: String!, date: Date): Pruned${typeName}
+            `
           : ``
       }
 
@@ -596,6 +618,7 @@ function genMutations(
   oneAccessorName: string,
   oneAccessorType: string,
   canPublish: boolean,
+  options: GenSchemaInput['options'],
   modifyInputType?: string
 ): string {
   const createString = () => {
@@ -615,66 +638,96 @@ function genMutations(
 
   return `
     type Mutation {
-      """
-      Create a new ${typeName} document.
-      """
-      ${uncapitalize(typeName)}Create(${createString()}): ${typeName}
-
-      """
-      Modify an existing ${typeName} document.
-      """
-      ${uncapitalize(typeName)}Modify(${oneAccessorName}: ${oneAccessorType}, input: ${
-    modifyInputType ? modifyInputType : `${typeName}ModifyInput!`
-  }): ${typeName}
-    
-      """
-      Set whether an existing ${typeName} document is hidden.
-
-      This mutation sets hidden: true by default.
-
-      Hidden ${typeName} documents should not be presented to clients;
-      this is analogous to moving the document to a deleted items folder
-      """
-      ${uncapitalize(typeName)}Hide(${oneAccessorName}: ${oneAccessorType}, hide: Boolean): ${typeName}
-
-      """
-      Set whether an existing ${typeName} document is locked.
-
-      This mutation sets locked: true by default.
-
-      Locked ${typeName} documents should only be editable by the server
-      and by admins.
-      """
-      ${uncapitalize(typeName)}Lock(${oneAccessorName}: ${oneAccessorType}, lock: Boolean): ${typeName}
-
-      """
-      Add a watcher to a ${typeName} document.
-
-      This mutation adds the watcher by default. If a user _id is
-      not specified, for the watcher, the currently authenticated user will
-      be used.
-      """
-      ${uncapitalize(
-        typeName
-      )}Watch(${oneAccessorName}: ${oneAccessorType}, watcher: ObjectID, watch: Boolean): ${typeName}
-
-      """
-      Deletes a ${typeName} document.
-      """
-      ${uncapitalize(typeName)}Delete(${oneAccessorName}: ${oneAccessorType}): Void
-
       ${
-        canPublish
+        options?.disableCreateMutation !== true
           ? `
-        """
-        Publishes an existing ${typeName} document.
-        """
-        ${uncapitalize(
-          typeName
-        )}Publish(${oneAccessorName}: ${oneAccessorType}, published_at: Date, publish: Boolean): ${typeName}
-        `
-          : ''
-      } 
+              """
+              Create a new ${typeName} document.
+              """
+              ${uncapitalize(typeName)}Create(${createString()}): ${typeName}
+            `
+          : ``
+      }
+      ${
+        options?.disableModifyMutation !== true
+          ? `
+              """
+              Modify an existing ${typeName} document.
+              """
+              ${uncapitalize(typeName)}Modify(${oneAccessorName}: ${oneAccessorType}, input: ${
+              modifyInputType ? modifyInputType : `${typeName}ModifyInput!`
+            }): ${typeName}
+            `
+          : ``
+      }
+      ${
+        options?.disableHideMutation !== true
+          ? `
+              """
+              Set whether an existing ${typeName} document is hidden.
+        
+              This mutation sets hidden: true by default.
+        
+              Hidden ${typeName} documents should not be presented to clients;
+              this is analogous to moving the document to a deleted items folder
+              """
+              ${uncapitalize(typeName)}Hide(${oneAccessorName}: ${oneAccessorType}, hide: Boolean): ${typeName}
+            `
+          : ``
+      }
+      ${
+        options?.disableLockMutation !== true
+          ? `
+              """
+              Set whether an existing ${typeName} document is locked.
+        
+              This mutation sets locked: true by default.
+        
+              Locked ${typeName} documents should only be editable by the server
+              and by admins.
+              """
+              ${uncapitalize(typeName)}Lock(${oneAccessorName}: ${oneAccessorType}, lock: Boolean): ${typeName}
+            `
+          : ``
+      }
+      ${
+        options?.disableWatchMutation !== true
+          ? `
+              """
+              Add a watcher to a ${typeName} document.
+        
+              This mutation adds the watcher by default. If a user _id is
+              not specified, for the watcher, the currently authenticated user will
+              be used.
+              """
+              ${uncapitalize(
+                typeName
+              )}Watch(${oneAccessorName}: ${oneAccessorType}, watcher: ObjectID, watch: Boolean): ${typeName}
+            `
+          : ``
+      }
+      ${
+        options?.disableDeleteMutation !== true
+          ? `
+              """
+              Deletes a ${typeName} document.
+              """
+              ${uncapitalize(typeName)}Delete(${oneAccessorName}: ${oneAccessorType}): Void
+            `
+          : ``
+      }
+      ${
+        options?.disablePublishMutation !== true && canPublish
+          ? `
+              """
+              Publishes an existing ${typeName} document.
+              """
+              ${uncapitalize(
+                typeName
+              )}Publish(${oneAccessorName}: ${oneAccessorType}, published_at: Date, publish: Boolean): ${typeName}
+            `
+          : ``
+      }
     }
   `;
 }
@@ -682,30 +735,54 @@ function genMutations(
 /**
  * Generates the subscription type definitions for the collection.
  */
-function genSubscriptions(typeName: string, oneAccessorName: string, oneAccessorType: string): string {
+function genSubscriptions(
+  typeName: string,
+  oneAccessorName: string,
+  oneAccessorType: string,
+  options: GenSchemaInput['options']
+): string {
   return `extend type Subscription {
-    """
-    Sends a ${typeName} document when it is created.
-    """
-    ${uncapitalize(typeName)}Created(): ${typeName}
-
-    """
-    Sends the updated ${typeName} document when it changes.
-
-    If ${oneAccessorName} is omitted, the server will send changes for all shorturls.
-    """
-    ${uncapitalize(typeName)}Modified(${oneAccessorName}: ${oneAccessorType.replace('!', '')}): ${typeName}
-
-    """
-    Sends a ${typeName} ${oneAccessorName} when it is deleted.
-
-    If ${oneAccessorName} is omitted, the server will send ${oneAccessorName}s for all deleted ${typeName}
-    documents.
-    """
-    ${uncapitalize(typeName)}Deleted(${oneAccessorName}: ${oneAccessorType.replace(
-    '!',
-    ''
-  )}): ${oneAccessorType}
+    ${
+      options?.disableCreatedSubscription !== true
+        ? `
+            """
+            Sends a ${typeName} document when it is created.
+            """
+            ${uncapitalize(typeName)}Created(): ${typeName}
+          `
+        : ``
+    }
+    ${
+      options?.disableModifiedSubscription !== true
+        ? `
+            """
+            Sends the updated ${typeName} document when it changes.
+        
+            If ${oneAccessorName} is omitted, the server will send changes for all shorturls.
+            """
+            ${uncapitalize(typeName)}Modified(${oneAccessorName}: ${oneAccessorType.replace(
+            '!',
+            ''
+          )}): ${typeName}
+          `
+        : ``
+    }
+    ${
+      options?.disableDeletedSubscription !== true
+        ? `
+            """
+            Sends a ${typeName} ${oneAccessorName} when it is deleted.
+        
+            If ${oneAccessorName} is omitted, the server will send ${oneAccessorName}s for all deleted ${typeName}
+            documents.
+            """
+            ${uncapitalize(typeName)}Deleted(${oneAccessorName}: ${oneAccessorType.replace(
+            '!',
+            ''
+          )}): ${oneAccessorType}
+          `
+        : ``
+    }
   }`;
 }
 

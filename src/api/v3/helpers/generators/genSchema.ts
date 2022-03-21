@@ -13,6 +13,24 @@ function genSchema(input: GenSchemaInput): { typeDefs: string; schemaFields: Sch
 }
 
 interface GenSchemaInput {
+  options?: {
+    disableFindOneQuery?: boolean;
+    disableFindManyQuery?: boolean;
+    disableActionAccessQuery?: boolean;
+    disablePublicFindOneQuery?: boolean;
+    disablePublicFindOneBySlugQuery?: boolean;
+    disablePublicFindManyQuery?: boolean;
+    disableCreateMutation?: boolean;
+    disableModifyMutation?: boolean;
+    disableHideMutation?: boolean;
+    disableLockMutation?: boolean;
+    disableWatchMutation?: boolean;
+    disableDeleteMutation?: boolean;
+    disablePublishMutation?: boolean;
+    disableCreatedSubscription?: boolean;
+    disableModifiedSubscription?: boolean;
+    disableDeletedSubscription?: boolean;
+  };
   /**
    * Whether documents in this collection can be marked as published.
    * This adds extra people and timestamp fields for track who published

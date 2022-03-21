@@ -31,6 +31,7 @@ import { ApolloError, UserInputError } from 'apollo-server-errors';
 import { flattenObject } from '../../../../utils/flattenObject';
 import { isObjectId } from '../../../../utils/isObjectId';
 import pluralize from 'pluralize';
+import { useStageUpdateEmails } from './_useStageUpdateEmails';
 
 async function construct(doc: mongoose.Document | null, schemaRefs: [string, SchemaRef][], context: Context) {
   if (doc === null) return null;
@@ -60,19 +61,22 @@ async function construct(doc: mongoose.Document | null, schemaRefs: [string, Sch
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-function genResolvers({ name, helpers, ...input }: GenResolversInput) {
-  const [oneAccessorName] = calcAccessor('one', input.by);
-  const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
-  const hasSlug = hasKey('slug', input.schemaDef) && (input.schemaDef.slug as SchemaDef).type === 'String';
-  const schemaRefs = Object.entries(input.schemaDef).filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<
+function genResolvers(config: GenResolversInput) {
+  const { name, helpers, options, publicRules } = config;
+  const [oneAccessorName] = calcAccessor('one', config.by);
+  const hasPublic = JSON.stringify(config.schemaDef).includes(`"public":true`);
+  const hasSlug = hasKey('slug', config.schemaDef) && (config.schemaDef.slug as SchemaDef).type === 'String';
+  const schemaRefs = Object.entries(config.schemaDef).filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<
     [string, SchemaRef]
   >;
 
-  const Query = {
+  const Query: ResolverType = {};
+
+  if (options?.disableFindOneQuery !== true) {
     /**
      * Finds a single document by the accessor specified in the config.
      */
-    [uncapitalize(name)]: async (parent, args, context: Context) => {
+    Query[uncapitalize(name)] = async (parent, args, context) => {
       const doc = await helpers.findDoc({
         model: name,
         by: oneAccessorName,
@@ -80,13 +84,16 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         context,
       });
       return await construct(doc, schemaRefs, context);
-    },
+    };
+  }
+
+  if (options?.disableFindManyQuery !== true) {
     /**
      * Finds multiple documents by _id.
      *
      * TODO: search by a custom accessor (`manyAccessorName`)
      */
-    [pluralize(uncapitalize(name))]: async (parent, args, context: Context) => {
+    Query[pluralize(uncapitalize(name))] = async (parent, args, context) => {
       const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
         model: name,
         args,
@@ -96,24 +103,20 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         ...paged,
         docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context))),
       };
-    },
+    };
+  }
+
+  if (options?.disableActionAccessQuery !== true) {
     /**
      * Get the action access ofor the collection.
      */
-    [`${uncapitalize(name)}ActionAccess`]: async (parent, args, context: Context) => {
+    Query[`${uncapitalize(name)}ActionAccess`] = async (parent, args, context) => {
       return await helpers.getCollectionActionAccess({ model: name, context, args });
-    },
-  } as c;
+    };
+  }
 
-  const { publicRules } = input;
-  if (hasPublic && publicRules !== false) {
-    /**
-     * Finds a single document by the accessor specified in the config.
-     *
-     * This query is for the Pruned document type, which disallows getting
-     * fields unless they are marked `public: true`.
-     */
-    Query[`${uncapitalize(name)}Public`] = (async (parent, args, context: Context) => {
+  if (options?.disablePublicFindOneQuery !== true && hasPublic && publicRules !== false) {
+    Query[`${uncapitalize(name)}Public`] = async (parent, args, context) => {
       return await construct(
         await helpers.findDoc({
           model: name,
@@ -126,8 +129,10 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         schemaRefs,
         context
       );
-    }) as unknown as (doc: never) => Promise<never[]>;
+    };
+  }
 
+  if (options?.disablePublicFindManyQuery !== true && hasPublic && publicRules !== false) {
     /**
      * Finds multiple documents by _id.
      *
@@ -136,7 +141,7 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
      * This query is for the Pruned document type, which disallows getting
      * fields unless they are marked `public: true`.
      */
-    Query[`${pluralize(uncapitalize(name))}Public`] = (async (parent, args, context: Context) => {
+    Query[`${pluralize(uncapitalize(name))}Public`] = async (parent, args, context) => {
       const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
         model: name,
         args: { ...args, filter: { ...args.filter, ...publicRules.filter } },
@@ -147,48 +152,54 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         ...paged,
         docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context))),
       };
-    }) as unknown as (doc: never) => Promise<never[]>;
-
-    if (hasSlug && publicRules.slugDateField) {
-      /**
-       * Finds a single document by slug and optional date.
-       *
-       * This query is for the Pruned document type, which disallows getting
-       * fields unless they are marked `public: true`.
-       */
-      Query[`${uncapitalize(name)}BySlugPublic`] = (async (parent, args, context: Context) => {
-        // create filter to find newest document with matching slug
-        const filter = args.date
-          ? {
-              [publicRules.slugDateField]: {
-                $gte: dateAtTimeZero(args.date),
-                $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
-              },
-              ...publicRules.filter,
-            }
-          : publicRules.filter;
-
-        // get the doc
-        const doc = await helpers.findDoc({
-          model: name,
-          by: 'slug',
-          _id: args.slug,
-          filter,
-          context,
-          fullAccess: true,
-        });
-
-        // return a fully constructed doc
-        return await construct(doc, schemaRefs, context);
-      }) as unknown as (doc: never) => Promise<never[]>;
-    }
+    };
   }
 
-  if (input.customQueries) {
-    input.customQueries.forEach((query) => {
+  if (
+    options?.disablePublicFindOneBySlugQuery !== true &&
+    hasPublic &&
+    publicRules !== false &&
+    hasSlug &&
+    publicRules.slugDateField
+  ) {
+    /**
+     * Finds a single document by slug and optional date.
+     *
+     * This query is for the Pruned document type, which disallows getting
+     * fields unless they are marked `public: true`.
+     */
+    Query[`${uncapitalize(name)}BySlugPublic`] = async (parent, args, context) => {
+      // create filter to find newest document with matching slug
+      const filter = args.date
+        ? {
+            [publicRules.slugDateField]: {
+              $gte: dateAtTimeZero(args.date),
+              $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
+            },
+            ...publicRules.filter,
+          }
+        : publicRules.filter;
+
+      // get the doc
+      const doc = await helpers.findDoc({
+        model: name,
+        by: 'slug',
+        _id: args.slug,
+        filter,
+        context,
+        fullAccess: true,
+      });
+
+      // return a fully constructed doc
+      return await construct(doc, schemaRefs, context);
+    };
+  }
+
+  if (config.customQueries) {
+    config.customQueries.forEach((query) => {
       const customQueryName = uncapitalize(name) + capitalize(query.name);
 
-      Query[customQueryName] = (async (parent, args, context: Context) => {
+      Query[customQueryName] = async (parent, args, context) => {
         helpers.requireAuthentication(context);
 
         const Model = mongoose.model<CollectionDoc>(name);
@@ -200,16 +211,17 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
         });
 
         return await Model.aggregate(populatedPipline);
-      }) as unknown as (doc: never) => Promise<never[]>;
+      };
     });
   }
 
-  const gc = { name, helpers, ...input };
-  const Mutation = {
-    [`${uncapitalize(name)}Create`]: async (parent, args, context: Context) => {
+  const Mutation: ResolverType = {};
+
+  if (options?.disableCreateMutation !== true) {
+    Mutation[`${uncapitalize(name)}Create`] = async (parent, args, context) => {
       // check input rules
       Object.keys(flattenObject(args)).forEach((key) => {
-        const inputRule: SchemaDef['rule'] = getProperty(gc.schemaDef, key)?.rule;
+        const inputRule: SchemaDef['rule'] = getProperty(config.schemaDef, key)?.rule;
         if (inputRule) {
           const match = getProperty(args, key)?.match(inputRule.match);
           if (match === null || match === undefined) throw new UserInputError(inputRule.message);
@@ -223,17 +235,20 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
           model: name,
           args,
           context,
-          withPermissions: input.withPermissions,
+          withPermissions: config.withPermissions,
           modify: async (currentDoc, data) => {
-            conditionallyModifyDocField(currentDoc, data, gc);
+            conditionallyModifyDocField(currentDoc, data, config);
           },
         })
       );
-    },
-    [`${uncapitalize(name)}Modify`]: async (parent, { _id, input }, context: Context) => {
+    };
+  }
+
+  if (options?.disableModifyMutation !== true) {
+    Mutation[`${uncapitalize(name)}Modify`] = async (parent, { _id, input }, context) => {
       // check input rules
       Object.keys(flattenObject({ _id, input } as never)).forEach((key) => {
-        const inputRule: SchemaDef['rule'] = getProperty(gc.schemaDef, key)?.rule;
+        const inputRule: SchemaDef['rule'] = getProperty(input.schemaDef, key)?.rule;
         if (inputRule) {
           const match = getProperty({ _id, input }, key)?.match(inputRule.match);
           if (match === null || match === undefined) throw new UserInputError(inputRule.message);
@@ -248,73 +263,94 @@ function genResolvers({ name, helpers, ...input }: GenResolversInput) {
           data: { ...input, _id },
           context,
           modify: async (currentDoc, data) => {
+            conditionallyModifyDocField(currentDoc, data, config);
             conditionallyModifyDocField(currentDoc, data, gc);
           },
         })
       );
-    },
-    [`${uncapitalize(name)}Hide`]: async (parent, args, context: Context) => {
+    };
+  }
+
+  if (options?.disableHideMutation !== true) {
+    Mutation[`${uncapitalize(name)}Hide`] = async (parent, args, context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
         helpers.hideDoc({ model: name, args, context })
       );
-    },
-    [`${uncapitalize(name)}Lock`]: async (parent, args, context: Context) => {
+    };
+  }
+
+  if (options?.disableLockMutation !== true) {
+    Mutation[`${uncapitalize(name)}Lock`] = async (parent, args, context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
         helpers.lockDoc({ model: name, args, context })
       );
-    },
-    [`${uncapitalize(name)}Watch`]: async (parent, args, context: Context) => {
+    };
+  }
+
+  if (options?.disableWatchMutation !== true) {
+    Mutation[`${uncapitalize(name)}Watch`] = async (parent, args, context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
         helpers.watchDoc({ model: name, args, context })
       );
-    },
-    [`${uncapitalize(name)}Delete`]: async (parent, args, context: Context) => {
+    };
+  }
+
+  if (options?.disableDeleteMutation !== true) {
+    Mutation[`${uncapitalize(name)}Delete`] = async (parent, args, context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'DELETED',
         helpers.deleteDoc({ model: name, args, context })
       );
-    },
-  } as c;
+    };
+  }
 
-  if (input.canPublish) {
-    Mutation[`${uncapitalize(name)}Publish`] = (async (parent, args, context: Context) => {
+  if (options?.disablePublishMutation !== true && config.canPublish) {
+    Mutation[`${uncapitalize(name)}Publish`] = async (parent, args, context) => {
       return await helpers.withPubSub(
         name.toUpperCase(),
         'DELETED',
         helpers.publishDoc({ model: name, args, context })
       );
-    }) as (doc: never) => Promise<never[]>;
+    };
   }
 
-  const Subscription = {
-    [`${uncapitalize(name)}Created`]: {
+  const Subscription = {};
+
+  if (options?.disableCreatedSubscription !== true) {
+    Subscription[`${uncapitalize(name)}Created`] = {
       subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_CREATED`]),
-    },
-    [`${uncapitalize(name)}Modified`]: {
+    };
+  }
+
+  if (options?.disableModifiedSubscription !== true) {
+    Subscription[`${uncapitalize(name)}Modified`] = {
       subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_MODIFIED`]),
-    },
-    [`${uncapitalize(name)}Deleted`]: {
+    };
+  }
+
+  if (options?.disableDeletedSubscription !== true) {
+    Subscription[`${uncapitalize(name)}Deleted`] = {
       subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_DELETED`]),
-    },
-  };
+    };
+  }
 
   const baselineResolvers = { Query, Mutation, Subscription };
-  if (!input.withSubscription) delete baselineResolvers.Subscription;
+  if (!config.withSubscription) delete baselineResolvers.Subscription;
 
-  const customResolvers = genCustomResolvers({ name, helpers, ...input });
+  const customResolvers = genCustomResolvers({ name, helpers, ...config });
 
   return { ...baselineResolvers, ...customResolvers };
 }
 
-type c = Record<string, (doc: never) => Promise<never[]>>;
-function genCustomResolvers(input: GenResolversInput): c {
+type ResolverType = Record<string, (parent, args, context: Context, info) => Promise<unknown | unknown[]>>;
+function genCustomResolvers(input: GenResolversInput): ResolverType {
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
 
   /**
@@ -426,7 +462,7 @@ function genCustomResolvers(input: GenResolversInput): c {
           };
         })
       ),
-    } as c;
+    } as ResolverType;
 
     // identify the nested schemas
     const nestedSchemaDefs = Object.entries(schemaDef).filter(
@@ -452,7 +488,7 @@ function genCustomResolvers(input: GenResolversInput): c {
           gen(name.indexOf(input.name) === 0 ? '' : parentName + capitalize(name), nestedSchemaDef, isPublic)
         );
       })
-    ) as c;
+    ) as ResolverType;
 
     // return empty object for undefined resolvers
     if (customResolver[parentName] === undefined) {
@@ -476,4 +512,5 @@ interface SchemaDefsWithCustomGraphType extends Omit<SchemaDef, 'type'> {
   type: string;
 }
 
+export type { GenResolversInput };
 export { genResolvers };
