@@ -25,6 +25,7 @@ import { getUsers } from './getUsers';
 import { gql } from './gql';
 import { genCollection } from './generators/genCollection';
 import { genResolvers } from './generators/genResolvers';
+import { writeEmailBody } from './writeEmailBody';
 
 const helpers = {
   createDoc,
@@ -46,6 +47,7 @@ const helpers = {
   getUsers,
   gql,
   generators: { genCollection, genResolvers, genSchema },
+  writeEmailBody,
 };
 
 type Helpers = typeof helpers;
@@ -79,4 +81,5 @@ export { gql };
 export { genCollection };
 export { genResolvers };
 export { genSchema };
+export { writeEmailBody };
 export default helpers;
