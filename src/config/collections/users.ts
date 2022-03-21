@@ -46,7 +46,7 @@ const users = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
     schemaDef: {
       name: { type: 'String', required: true, modifiable: true, public: true, default: 'New User' },
       slug: { type: 'String', required: true, modifiable: true, public: true, default: 'new-user' },
-      phone: { type: 'Number', modifiable: true },
+      phone: { type: 'Float', modifiable: true },
       email: { type: 'String', modifiable: true, public: true },
       twitter: { type: 'String', modifiable: true, public: true },
       biography: { type: 'String', modifiable: true, public: true },
