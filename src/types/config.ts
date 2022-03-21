@@ -1,17 +1,10 @@
 import { IResolvers } from '@graphql-tools/utils';
-import { Context } from 'apollo-server-core';
 import mongoose from 'mongoose';
 import { Helpers } from '../api/v3/helpers';
 
 type ConfigFunc = (helpers: Helpers) => Configuration;
 
 interface Configuration {
-  database: Database;
-}
-
-type DatabaseFunc = (helpers: Helpers) => Database;
-
-interface Database {
   connection: {
     username: string;
     password: string;
@@ -19,6 +12,12 @@ interface Database {
     database: string;
     options: string;
   };
+  database: Database;
+}
+
+type DatabaseFunc = (helpers: Helpers) => Database;
+
+interface Database {
   collections: Collection[];
 }
 

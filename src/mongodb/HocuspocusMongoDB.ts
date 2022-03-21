@@ -24,7 +24,7 @@ export class HocuspocusMongoDB implements Extension {
    */
   constructor(config: Configuration) {
     // destructure connection info from config
-    const { username, password, host, database, options } = config.database.connection;
+    const { username, password, host, database, options } = config.connection;
 
     // set the provider database and collection
     this.provider = new MongodbPersistence(
