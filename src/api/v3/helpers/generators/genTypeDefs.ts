@@ -310,19 +310,15 @@ function genTypes(
         customQueries
           ? customQueries
               .map((query) => {
-                const name = typeName + capitalize(query.name);
+                let name = typeName + capitalize(query.name);
+                if (query.public === true) name += 'Public';
 
                 // return type manually specified because
                 // the type already exists
                 const manual = !query.returns.includes('{');
                 if (manual) return ``;
 
-                const typeObject = query.returns
-                  .replace('{', '{\n')
-                  .replace('}', '\n}')
-                  .replace(/,/g, '\n')
-                  .replace('[', '')
-                  .replace(']', '');
+                const typeObject = query.returns.replace('{', '{\n').replace('}', '\n}').replace(/,/g, '\n');
                 return `
             type ${name} ${typeObject}
             `;
@@ -581,7 +577,9 @@ function genQueries(
         customQueries
           ? customQueries
               .map((query) => {
-                const name = uncapitalize(typeName) + capitalize(query.name);
+                let name = uncapitalize(typeName) + capitalize(query.name);
+                if (query.public === true) name += 'Public';
+
                 const args = query.accepts;
 
                 const manual = !query.returns.includes('{');

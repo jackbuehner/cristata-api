@@ -197,10 +197,13 @@ function genResolvers(config: GenResolversInput) {
 
   if (config.customQueries) {
     config.customQueries.forEach((query) => {
-      const customQueryName = uncapitalize(name) + capitalize(query.name);
+      let customQueryName = uncapitalize(name) + capitalize(query.name);
+      if (query.public === true) customQueryName += 'Public';
 
       Query[customQueryName] = async (parent, args, context) => {
-        helpers.requireAuthentication(context);
+        if (query.public !== true) {
+          helpers.requireAuthentication(context);
+        }
 
         const Model = mongoose.model<CollectionDoc>(name);
         const argNames = query.accepts?.split(',').map((field) => field.split(':')[0]) || [];

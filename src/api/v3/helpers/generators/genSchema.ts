@@ -136,6 +136,10 @@ interface GenSchemaInput {
      */
     description: string;
     /**
+     * Whether the query can be used without authentication.
+     */
+    public?: boolean;
+    /**
      * A string list of arguments for the query.
      *
      * Example: `name: String!, slug: String`
