@@ -624,16 +624,19 @@ function genMutations(
   const createString = () => {
     const schemaTop = schema.filter((field): field is [string, SchemaDef] => isSchemaDef(field[1]));
 
-    return (
-      // list the modifiable top-level fields
-      schemaTop
-        .filter(([, fieldDef]) => fieldDef.modifiable)
-        .map(
-          ([fieldName, fieldDef]) =>
-            `${fieldName}: ${calcGraphFieldType(fieldDef, { optionalInitial: true, useMongooseType: true })}`
-        )
-        .join(', ')
-    );
+    // list the modifiable top-level fields
+    const fieldString = schemaTop
+      .filter(([, fieldDef]) => fieldDef.modifiable)
+      .map(
+        ([fieldName, fieldDef]) =>
+          `${fieldName}: ${calcGraphFieldType(fieldDef, { optionalInitial: true, useMongooseType: true })}`
+      )
+      .join(', ');
+
+    // if this is a user document, also add option to specify username
+    if (typeName === 'User') return fieldString + ', username: String!';
+
+    return fieldString;
   };
 
   return `
