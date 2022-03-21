@@ -213,7 +213,10 @@ function genResolvers(config: GenResolversInput) {
           populatedPipline = findAndReplace(populatedPipline, `%${name}%`, args[name]);
         });
 
-        return await Model.aggregate(populatedPipline);
+        const aggregate = await Model.aggregate(populatedPipline);
+
+        if (query.path) return getProperty(aggregate, query.path);
+        return aggregate;
       };
     });
   }

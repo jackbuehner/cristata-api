@@ -160,6 +160,11 @@ interface GenSchemaInput {
      * [Pipeline stage reference](https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/#aggregation-pipeline-stages)
      */
     pipeline: mongoose.PipelineStage[];
+    /**
+     * Choose a specific path from the pipeline result to send to clients.
+     * Powered by object-path.
+     */
+    path?: string;
   }>;
 }
 
