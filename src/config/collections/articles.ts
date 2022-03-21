@@ -1,7 +1,5 @@
-import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
-import type { CollectionDoc, Helpers } from '../../api/v3/helpers';
-import type { Context } from '../../apollo';
+import type { Helpers } from '../../api/v3/helpers';
 import type {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
@@ -9,11 +7,8 @@ import type {
 } from '../../mongodb/db';
 import type { TeamsType, UsersType } from '../../types/config';
 import type { Collection } from '../database';
-import type { ISettings } from './settings';
 
 const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
-  const { findDoc, findDocs, gql, withPubSub } = helpers;
-
   const collection = helpers.generators.genCollection({
     name: 'Article',
     canPublish: true,
@@ -103,6 +98,74 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
         // @ts-expect-error bug in mongoose: https://github.com/Automattic/mongoose/issues/11059
         pipeline: [{ $group: { _id: '$stage', count: { $sum: 1 } } }],
       },
+      {
+        name: 'featuredDocs',
+        description: 'Get the featured articles.',
+        public: true,
+        returns: '[PrunedArticle]',
+        pipeline: [
+          { $group: { _id: null } },
+          {
+            $lookup: {
+              from: 'settings',
+              pipeline: [
+                { $match: { name: 'featured-articles' } },
+                {
+                  $project: {
+                    _id: null,
+                    articles: ['$setting.first', '$setting.second', '$setting.third', '$setting.fourth'],
+                  },
+                },
+                { $unwind: { path: '$articles' } },
+                { $lookup: { from: 'articles', localField: 'articles', foreignField: '_id', as: 'article' } },
+                { $unwind: { path: '$article' } },
+                { $replaceRoot: { newRoot: '$article' } },
+              ],
+              as: 'featuredArticles',
+            },
+          },
+          { $unwind: { path: '$featuredArticles' } },
+          { $replaceRoot: { newRoot: '$featuredArticles' } },
+        ],
+      },
+      {
+        name: 'categories',
+        description: `Get the unique categories used in the articles collection.
+          Uppercase letters are replaced by lowercase letters and spaces are replaced by hyphens.`,
+        public: true,
+        returns: '[String]!',
+        pipeline: [
+          { $project: { _id: null, categories: 1 } },
+          { $unwind: { path: '$categories' } },
+          { $project: { category: { $toLower: '$categories' } } },
+          { $project: { category: { $replaceAll: { input: '$category', find: ' ', replacement: '-' } } } },
+          { $group: { _id: null, categories: { $addToSet: '$category' } } },
+        ],
+        path: '0.categories',
+      },
+      {
+        name: 'tags',
+        description: `Get the unique tags used in the articles collection.
+          Uppercase letters are replaced by lowercase letters and spaces are replaced by hyphens.`,
+        public: true,
+        returns: '[String]!',
+        pipeline: [
+          { $project: { _id: null, tags: 1 } },
+          { $unwind: { path: '$tags' } },
+          { $project: { tag: { $toLower: '$tags' } } },
+          { $project: { tag: { $replaceAll: { input: '$tag', find: ' ', replacement: '-' } } } },
+          { $group: { _id: null, tags: { $addToSet: '$tag' } } },
+        ],
+        path: '0.tags',
+      },
+    ],
+    customMutations: [
+      {
+        name: 'addApplause',
+        description: 'Increments the claps key for an article.',
+        public: true,
+        action: { inc: ['claps', 'Int'] },
+      },
     ],
     actionAccess: {
       get: { teams: [Teams.ANY], users: [] },
@@ -134,132 +197,6 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
       },
     },
   });
-
-  collection.resolvers = merge(collection.resolvers, {
-    Query: {
-      articlesPublic: async (_, args, context: Context) => {
-        // get the ids of the featured articles
-        const featuredIds: mongoose.Types.ObjectId[] = [];
-        if (args.featured === true) {
-          const result = (
-            await mongoose.model<ISettings>('Setting').findOne({ name: 'featured-articles' })
-          ).toObject();
-          const ids = result.setting as Record<string, mongoose.Types.ObjectId>;
-          featuredIds.push(new mongoose.Types.ObjectId(ids.first));
-          featuredIds.push(new mongoose.Types.ObjectId(ids.second));
-          featuredIds.push(new mongoose.Types.ObjectId(ids.third));
-          featuredIds.push(new mongoose.Types.ObjectId(ids.fourth));
-        }
-
-        // build a pipeline to only get the featured articles
-        // (empty filter if featured !== true)
-        const pipeline2: mongoose.PipelineStage[] =
-          featuredIds.length > 0
-            ? [
-                {
-                  $addFields: { featured_order: { $indexOfArray: [featuredIds, '$_id'] } }, // assign starting at 0
-                },
-                { $match: { featured_order: { $gte: 0 } } }, // eclude all articles exept ones within the featuredIds array
-              ]
-            : [];
-        const sort = featuredIds.length > 0 ? { featured_order: 1, ...args.sort } : args.sort;
-
-        // get the articles
-        const articles = await findDocs({
-          model: 'Article',
-          args: { ...args, filter: { ...args.filter, stage: Stage.Published }, pipeline2, sort },
-          context,
-          fullAccess: true,
-        });
-
-        // get add photo credit to each public article
-        const docs = await Promise.all(
-          articles.docs.map(async (prunedArticle) => {
-            return {
-              ...prunedArticle,
-              photo_credit: JSON.parse(
-                JSON.stringify(
-                  await findDoc({
-                    model: 'Photo',
-                    by: 'photo_url',
-                    _id: prunedArticle.photo_path,
-                    context,
-                    fullAccess: true,
-                  })
-                )
-              )?.people?.photo_created_by,
-            };
-          })
-        );
-        return { ...articles, docs };
-      },
-
-      articleCategoriesPublic: async () => {
-        const Model = mongoose.model<CollectionDoc>('Article');
-        const categories: string[] = await Model.distinct('categories');
-        return Array.from(new Set(categories.map((cat) => cat.toLowerCase().replace(' ', '-'))));
-      },
-      articleTagsPublic: async (_, args) => {
-        const Model = mongoose.model<CollectionDoc>('Article');
-        const tags: string[] = await Model.distinct('tags');
-        let processed: string[] = tags.map((tag) => tag.toLowerCase().replace(' ', '-'));
-
-        // filter to ensure the tag contains the specified string
-        if (args.contains) {
-          processed = processed.filter((tag) => tag.indexOf(args.contains) !== -1);
-        }
-
-        // limit the length of the response
-        if (args.limit) {
-          processed = processed.slice(0, args.limit);
-        }
-
-        // returned the procesed tags
-        return Array.from(new Set(processed));
-      },
-    },
-    Mutation: {
-      //TODO: where data is of type { [key: string]: number }
-      articleAddApplause: async (_, { _id, newClaps }, context: Context) => {
-        const doc = await findDoc({ model: 'Article', _id, context, fullAccess: true });
-        doc.claps += newClaps;
-        return withPubSub('ARTICLE', 'MODIFIED', doc.save());
-      },
-    },
-  });
-
-  collection.typeDefs =
-    collection.typeDefs +
-    gql`
-      type Query {
-        """
-        Get the unique categories used in the articles collection. Category names are always returned lowercase with spaces
-        replaced by hyphens.
-        """
-        articleCategoriesPublic: [String]
-
-        """
-        Get the unique tags used in the articles collection. The contains parameter should be used to narrow to search the
-        results by whether it contains the provided string. Pagination is not available on this query. Uppercase letters are
-        remplaced by lowercase letters and spaces are replaced by hyphens.
-        """
-        articleTagsPublic(limit: Int, contains: String): [String]
-
-    """
-    Get a set of articles with confidential information pruned. If _ids is
-    omitted, the API will return all articles.
-    """
-    articlesPublic(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!, featured: Boolean): Paged<PrunedArticle>
-    
-      }
-
-      type Mutation {
-        """
-        Add claps to an article
-        """
-        articleAddApplause(_id: ObjectID!, newClaps: Int!): Article
-      }
-    `;
 
   return collection;
 };
