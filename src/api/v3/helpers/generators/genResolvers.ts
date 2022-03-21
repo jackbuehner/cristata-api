@@ -330,6 +330,25 @@ function genResolvers(config: GenResolversInput) {
     };
   }
 
+  if (config.customMutations) {
+    config.customMutations.forEach((mutation) => {
+      let customMutationName = uncapitalize(name) + capitalize(mutation.name);
+      if (mutation.public === true) customMutationName += 'Public';
+
+      Mutation[customMutationName] = async (parent, args, context) => {
+        if (mutation.public !== true) {
+          helpers.requireAuthentication(context);
+        }
+
+        if (hasKey('inc', mutation.action)) {
+          const doc = await helpers.findDoc({ model: name, _id: args._id, context, fullAccess: true });
+          doc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
+          return helpers.withPubSub(name.toUpperCase(), 'MODIFIED', doc.save());
+        }
+      };
+    });
+  }
+
   const Subscription = {};
 
   if (options?.disableCreatedSubscription !== true) {

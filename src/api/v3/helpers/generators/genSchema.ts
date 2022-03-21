@@ -166,6 +166,38 @@ interface GenSchemaInput {
      */
     path?: string;
   }>;
+  /**
+   * Create custom mutations.
+   */
+  customMutations?: Array<{
+    /**
+     * camelCase name of the custom mutation.
+     *
+     * The mutation name will be capitalized and the name of the collection
+     * will be prepended to the query name.
+     *
+     * For example, `'stageCounts'` becomes `'satireStageCounts'`.
+     */
+    name: string;
+    /**
+     * The description of the mutation. Be sure to use a helpful description
+     * so someone else can know what this mutation does. Can be seen in
+     * GraphQL introspection.
+     */
+    description: string;
+    /**
+     * Whether the query can be used without authentication.
+     */
+    public?: boolean;
+    /**
+     * The action this query does.
+     *
+     * Supported actions:
+     *
+     * `$inc`: pass `{ inc: [fieldName, type] }`, where type matches the type of the field in the schema (NO !).
+     */
+    action: { inc: [string, string] };
+  }>;
 }
 
 /**

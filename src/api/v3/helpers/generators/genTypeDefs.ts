@@ -67,6 +67,7 @@ function genTypeDefs(input: GenSchemaInput): string {
       oneAccessorName,
       oneAccessorType,
       input.canPublish,
+      input.customMutations,
       input.options,
       onlyOneModifiable
         ? calcGraphFieldType(
@@ -616,6 +617,7 @@ function genMutations(
   oneAccessorName: string,
   oneAccessorType: string,
   canPublish: boolean,
+  customMutations: GenSchemaInput['customMutations'],
   options: GenSchemaInput['options'],
   modifyInputType?: string
 ): string {
@@ -724,6 +726,26 @@ function genMutations(
                 typeName
               )}Publish(${oneAccessorName}: ${oneAccessorType}, published_at: Date, publish: Boolean): ${typeName}
             `
+          : ``
+      }
+      ${
+        customMutations
+          ? customMutations
+              .map((mutation) => {
+                let name = uncapitalize(typeName) + capitalize(mutation.name);
+                if (mutation.public === true) name += 'Public';
+
+                if (hasKey('inc', mutation.action)) {
+                  const inc = `inc${capitalize(mutation.action.inc[0])}`;
+                  return `
+                    """
+                    ${mutation.description}
+                    """
+                    ${name}(_id: ObjectID!, ${inc}: ${mutation.action.inc[1]}!): ${typeName}
+                  `;
+                }
+              })
+              .join('\n')
           : ``
       }
     }
