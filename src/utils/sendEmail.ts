@@ -26,6 +26,9 @@ function sendEmail(
   from = process.env.EMAIL_DEFAULT_FROM
 ): void {
   const Data = `
+    <h1 style="font-size: 20px;">
+      ${process.env.TENANT_DISPLAY_NAME || 'Cristata'}
+    </h1>
     ${message}
     <p style="color: #aaaaaa">
       Powered by Cristata

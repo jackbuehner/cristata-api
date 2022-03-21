@@ -8,14 +8,11 @@ import type {
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
 import type { TeamsType, UsersType } from '../../types/config';
-import { sendEmail } from '../../utils/sendEmail';
-import { slugify } from '../../utils/slugify';
 import type { Collection } from '../database';
 import type { ISettings } from './settings';
-import type { IUserDoc } from './users';
 
 const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
-  const { findDoc, findDocs, gql, modifyDoc, withPubSub } = helpers;
+  const { findDoc, findDocs, gql, withPubSub } = helpers;
 
   const collection = helpers.generators.genCollection({
     name: 'Article',
@@ -30,11 +27,11 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
         modifiable: true,
         public: true,
         setter: {
-          condition: { $and: [{ stage: { $eq: Stage.Published.toString() } }, { slug: { $exists: false } }] },
+          condition: { $and: [{ stage: { $eq: Stage.Published } }, { slug: { $exists: false } }] },
           value: { slugify: 'name' },
         },
       },
-      stage: { type: 'Float', modifiable: true, default: Stage.Planning.toString() },
+      stage: { type: 'Float', modifiable: true, default: Stage.Planning },
       categories: { type: ['String'], modifiable: true, public: true, default: [] },
       tags: { type: ['String'], modifiable: true, public: true, default: [] },
       description: { type: 'String', required: true, modifiable: true, public: true, default: '' },
@@ -118,6 +115,24 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
       delete: { teams: [Teams.ADMIN], users: [] },
       bypassDocPermissions: { teams: [Teams.MANAGING_EDITOR], users: [] },
     },
+    options: {
+      mandatoryWatchers: ['people.authors', 'people.editors.primary'],
+      watcherNotices: {
+        subjectField: 'name',
+        stageField: 'stage',
+        stageMap: {
+          1.1: 'Planning',
+          2.1: 'Draft',
+          3.1: 'Editor Review',
+          3.2: 'Writer Revision',
+          3.3: 'Copy Edit',
+          3.5: 'Final Check',
+          4.1: 'Pending Approval',
+          5.2: 'Published',
+        },
+        fields: [{ name: 'name', label: 'Headline' }],
+      },
+    },
   });
 
   collection.resolvers = merge(collection.resolvers, {
@@ -127,7 +142,7 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
         const featuredIds: mongoose.Types.ObjectId[] = [];
         if (args.featured === true) {
           const result = (
-            await mongoose.model<ISettings>('Settings').findOne({ name: 'featured-articles' })
+            await mongoose.model<ISettings>('Setting').findOne({ name: 'featured-articles' })
           ).toObject();
           const ids = result.setting as Record<string, mongoose.Types.ObjectId>;
           featuredIds.push(new mongoose.Types.ObjectId(ids.first));
@@ -204,110 +219,6 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
       },
     },
     Mutation: {
-      articleModify: async (_, { _id, input }, context: Context) =>
-        await withPubSub(
-          'ARTICLE',
-          'MODIFIED',
-          modifyDoc({
-            model: 'Article',
-            data: { ...input, _id },
-            context,
-            modify: async (currentDoc: IArticle, data: IArticleInput) => {
-              // set the slug if the document is being published and does not already have one
-              if (data.stage === Stage.Published && (!data.slug || !currentDoc.slug)) {
-                data.slug = slugify(input.name || currentDoc.name);
-              }
-
-              // send email alerts to the watchers if the stage changes
-              if (currentDoc.people.watching && data.stage && data.stage !== currentDoc.stage) {
-                // get emails of watchers
-                const watchersEmails = await Promise.all(
-                  (currentDoc.people.watching || currentDoc.people.watching).map(async (_id) => {
-                    const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
-                    return profile.email;
-                  })
-                );
-
-                // get emails of authors and primary editors (if there are any) - mandatory watchers
-                //TODO: add a way to specifiy specific fields as mandatory watchers
-                //TODO: e.g. { watcherUpdates: { mandatoryWatchers: ['people.authors', 'people.editors.primary'] } }
-
-                //TODO: remove duplicates
-                const mandatoryWatchersEmails = await Promise.all(
-                  [
-                    ...(data.people.authors || currentDoc.people.authors),
-                    ...(data.people.editors?.primary || currentDoc.people.editors?.primary),
-                  ].map(async (_id) => {
-                    const profile = await mongoose.model<IUserDoc>('User').findById(_id); // get the profile, which may contain an email
-                    return profile.email;
-                  })
-                );
-
-                const email = (reason?: string) => {
-                  return `
-            <h1 style="font-size: 20px;">
-              The Paladin Network
-            </h1>
-            <p>
-              The stage has been changed for an article you are watching on Cristata.
-              <br />
-              To view the article, go to <a href="https://thepaladin.cristata.app/cms/item/articles/${_id}">https://thepaladin.cristata.app/cms/item/articles/${_id}</a>.
-            </p>
-            <p>
-              <span>
-                <b>Headline: </b>
-                ${data.name || currentDoc.name}
-              </span>
-              <br />
-              <span>
-                <b>New Stage: </b>
-                ${Stage[data.stage as Stage]}
-              </span>
-              <br />
-              <span>
-                <b>Unique ID: </b>
-                ${_id}
-              </span>
-            </p>
-            ${
-              reason
-                ? `
-                  <p style="color: #888888">
-                    You receievd this email because ${reason}.
-                  </p>
-                `
-                : ''
-            }
-            <p style="color: #aaaaaa">
-              Powered by Cristata
-            </p>
-          `;
-                };
-
-                // send email
-                //TODO: add a way to specify email string
-                //TODO: allow inserting field values with %field%
-                //TODO: e.g. { watcherUpdates: { message: str } }
-                //TODO: always include note at end of email about how to unwatch a document
-                //TODO: and depend on the app to explain if mandatory watcher
-                sendEmail(
-                  watchersEmails,
-                  `[Stage: ${Stage[data.stage as Stage]}] ${data.name || currentDoc.name}`,
-                  email(`you clicked the 'Watch" button for this article in Cristata`)
-                );
-                sendEmail(
-                  mandatoryWatchersEmails,
-                  `[Stage: ${Stage[data.stage as Stage]}] ${data.name || currentDoc.name}`,
-                  email(`you are an are an author or editor for this article`)
-                );
-              }
-            },
-          })
-        ),
-      //TODO: add built in helper for incrementing a numerical value
-      //TODO: and automatically generate typeDefs and resolvers
-      //TODO: that only include Float and Int fields
-      //TODO: e.g. Model.findByIdAndUpdate(_id, { $inc: data }, { returnOriginal: false });
       //TODO: where data is of type { [key: string]: number }
       articleAddApplause: async (_, { _id, newClaps }, context: Context) => {
         const doc = await findDoc({ model: 'Article', _id, context, fullAccess: true });
@@ -320,20 +231,19 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
   collection.typeDefs =
     collection.typeDefs +
     gql`
-  
-  type Query {    
-    """
-    Get the unique categories used in the articles collection. Category names are always returned lowercase with spaces
-    replaced by hyphens.
-    """
-    articleCategoriesPublic: [String]
+      type Query {
+        """
+        Get the unique categories used in the articles collection. Category names are always returned lowercase with spaces
+        replaced by hyphens.
+        """
+        articleCategoriesPublic: [String]
 
-    """
-    Get the unique tags used in the articles collection. The contains parameter should be used to narrow to search the
-    results by whether it contains the provided string. Pagination is not available on this query. Uppercase letters are
-    remplaced by lowercase letters and spaces are replaced by hyphens.
-    """
-    articleTagsPublic(limit: Int, contains: String): [String]
+        """
+        Get the unique tags used in the articles collection. The contains parameter should be used to narrow to search the
+        results by whether it contains the provided string. Pagination is not available on this query. Uppercase letters are
+        remplaced by lowercase letters and spaces are replaced by hyphens.
+        """
+        articleTagsPublic(limit: Int, contains: String): [String]
 
     """
     Get a set of articles with confidential information pruned. If _ids is
@@ -341,15 +251,15 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
     """
     articlesPublic(_ids: [ObjectID], filter: JSON, sort: JSON, page: Int, offset: Int, limit: Int!, featured: Boolean): Paged<PrunedArticle>
     
-  }
+      }
 
-  type Mutation {
-    """
-    Add claps to an article
-    """
-    articleAddApplause(_id: ObjectID!, newClaps: Int!): Article
-  }
-`;
+      type Mutation {
+        """
+        Add claps to an article
+        """
+        articleAddApplause(_id: ObjectID!, newClaps: Int!): Article
+      }
+    `;
 
   return collection;
 };
@@ -395,12 +305,6 @@ interface IArticle
     content: string;
   }>;
   claps?: number;
-}
-
-interface IArticleInput
-  extends Omit<Omit<Omit<Omit<IArticle, 'versions'>, 'legacy_comments'>, 'timestamps'>, 'people'> {
-  timestamps?: IArticleTimestamps;
-  people?: IArticlePeople;
 }
 
 interface IArticleTimestamps {
