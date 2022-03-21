@@ -155,13 +155,7 @@ function genResolvers(config: GenResolversInput) {
     };
   }
 
-  if (
-    options?.disablePublicFindOneBySlugQuery !== true &&
-    hasPublic &&
-    publicRules !== false &&
-    hasSlug &&
-    publicRules.slugDateField
-  ) {
+  if (options?.disablePublicFindOneBySlugQuery !== true && hasPublic && publicRules !== false && hasSlug) {
     /**
      * Finds a single document by slug and optional date.
      *
@@ -170,15 +164,16 @@ function genResolvers(config: GenResolversInput) {
      */
     Query[`${uncapitalize(name)}BySlugPublic`] = async (parent, args, context) => {
       // create filter to find newest document with matching slug
-      const filter = args.date
-        ? {
-            [publicRules.slugDateField]: {
-              $gte: dateAtTimeZero(args.date),
-              $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
-            },
-            ...publicRules.filter,
-          }
-        : publicRules.filter;
+      const filter =
+        args.date && publicRules.slugDateField
+          ? {
+              [publicRules.slugDateField]: {
+                $gte: dateAtTimeZero(args.date),
+                $lt: new Date(dateAtTimeZero(args.date).getTime() + 24 * 60 * 60 * 1000),
+              },
+              ...publicRules.filter,
+            }
+          : publicRules.filter;
 
       // get the doc
       const doc = await helpers.findDoc({
