@@ -30,6 +30,25 @@ interface GenSchemaInput {
     disableCreatedSubscription?: boolean;
     disableModifiedSubscription?: boolean;
     disableDeletedSubscription?: boolean;
+    /**
+     * Keys of fields that contain ObjectIDs of the users who
+     * must always receive notification emails when documents
+     * in this collection change via Cristata.
+     *
+     * The keys may reference fields that are arrays or single
+     * values.
+     */
+    mandatoryWatchers?: string[];
+    watcherNotices?: {
+      subjectField: string;
+      stageField: string;
+      stageMap: Record<number, string>;
+      fields: Array<{
+        name: string;
+        label: string;
+        numMap?: Record<number, string>;
+      }>;
+    };
   };
   /**
    * Whether documents in this collection can be marked as published.

@@ -264,7 +264,10 @@ function genResolvers(config: GenResolversInput) {
           context,
           modify: async (currentDoc, data) => {
             conditionallyModifyDocField(currentDoc, data, config);
-            conditionallyModifyDocField(currentDoc, data, gc);
+
+            if (hasKey('stage', data) && hasKey('stage', currentDoc) && data.stage !== currentDoc.stage) {
+              useStageUpdateEmails(currentDoc, data, config);
+            }
           },
         })
       );
