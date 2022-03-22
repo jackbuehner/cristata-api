@@ -35,7 +35,7 @@ type TeamsType = Record<string, string>;
 type UsersType = Record<string, mongoose.Types.ObjectId>;
 
 type CollectionPermissionsType = {
-  teams: string[];
+  teams: Array<string | 0>;
   users: Array<mongoose.Types.ObjectId | string>;
 };
 

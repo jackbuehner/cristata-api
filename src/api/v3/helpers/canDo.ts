@@ -4,7 +4,7 @@ import {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
-import { CollectionPermissionsActions, Teams, Users } from '../../../config/database';
+import { CollectionPermissionsActions, Users } from '../../../config/database';
 import { requireAuthentication } from '.';
 import { get as getProperty } from 'object-path';
 import mongoose from 'mongoose';
@@ -56,14 +56,14 @@ function canDo({ model, action, context, doc }: CanDo): boolean {
   // return whether the action can be done
   return (
     // the collection permissions specifies any team
-    tp?.includes(Teams.ANY) ||
+    tp?.includes(0) ||
     // the collection permissions includes any user
     up
       ?.filter((item): item is mongoose.Types.ObjectId => isObjectId(item))
       .map((_id) => _id.toHexString())
       .includes(Users.ANY.toHexString()) ||
     // the collection permissions includes one of the current user's teams
-    tp?.some((team) => context.profile.teams.includes(team)) ||
+    tp?.filter((team): team is string => team !== 0).some((team) => context.profile.teams.includes(team)) ||
     // the collection permissions includes the current user's _id
     up
       ?.filter((item): item is mongoose.Types.ObjectId => isObjectId(item))

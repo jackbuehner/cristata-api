@@ -22,4 +22,5 @@ interface GenCollectionInput extends GenSchemaInput {
   actionAccess: CollectionPermissions;
 }
 
+export type { GenCollectionInput };
 export { genCollection };

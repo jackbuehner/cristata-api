@@ -114,7 +114,7 @@ const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
       },
     ],
     actionAccess: {
-      get: { teams: [Teams.ANY], users: ['organizers', 'members'] },
+      get: { teams: [0], users: ['organizers', 'members'] },
       create: { teams: [Teams.MANAGING_EDITOR], users: [] },
       modify: { teams: [Teams.ADMIN], users: ['organizers'] },
       hide: { teams: [Teams.MANAGING_EDITOR], users: ['organizers'] },

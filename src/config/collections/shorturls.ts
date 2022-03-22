@@ -31,12 +31,12 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
     Teams,
     helpers,
     actionAccess: {
-      get: { teams: [Teams.ANY], users: [] },
+      get: { teams: [0], users: [] },
       create: { teams: [Teams.SHORTURL], users: [] },
       modify: { teams: [Teams.SHORTURL], users: [] },
       hide: { teams: [Teams.SHORTURL], users: [] },
       lock: { teams: [Teams.ADMIN], users: [] },
-      watch: { teams: [Teams.ANY], users: [] },
+      watch: { teams: [0], users: [] },
       delete: { teams: [Teams.ADMIN], users: [] },
     },
   });
