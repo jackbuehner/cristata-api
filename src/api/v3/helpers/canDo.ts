@@ -19,7 +19,7 @@ interface CanDo {
   doc?: DocType;
 }
 
-function canDo({ model, action, context, doc }: CanDo): boolean {
+async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
   requireAuthentication(context);
 
   // get the permsissions for the collection
@@ -31,6 +31,9 @@ function canDo({ model, action, context, doc }: CanDo): boolean {
 
   // if the user has any `next_step` (aka the account is not fully set up), deny permission
   if (context.profile.next_step) return false;
+
+  // if a team in the action is 0, any person has access
+  if (tp?.includes(0)) return true;
 
   // treat strings in the users array as document values (e.g. 'people.authors' represents the authors for the defined doc)
   if (doc && up) {
@@ -53,23 +56,52 @@ function canDo({ model, action, context, doc }: CanDo): boolean {
     if (_ids.map((_id) => _id.toHexString()).includes(context.profile._id.toHexString())) return true;
   }
 
-  // return whether the action can be done
-  return (
-    // the collection permissions specifies any team
-    tp?.includes(0) ||
-    // the collection permissions includes any user
+  // if an approved team for the action is also in the current user's teams
+  if (tp) {
+    // identify the teams in the collection permissions object
+    const teamIds = [
+      // identify hex representations of object ids
+      ...tp
+        .filter((team) => isObjectId(team))
+        .filter((team): team is string => team !== 0)
+        .map((team) => new mongoose.Types.ObjectId(team)),
+      // treat other strings in the teams array as team names
+      // (e.g. 'admin' represents the _id of the team named 'admin')
+      ...(await Promise.all(
+        tp
+          .filter((team) => typeof team === 'string' && !isObjectId(team))
+          .map(async (slug) => {
+            const foundTeam = await mongoose.model('team').findOne({ slug });
+            const teamId: mongoose.Types.ObjectId | null = foundTeam?._id || null;
+            return teamId;
+          })
+          .filter((teamId) => !!teamId)
+      )),
+    ];
+
+    // if the collection permissions includes one of the current user's teams
+    teamIds?.some((teamId) => context.profile.teams.includes(teamId.toHexString()));
+  }
+
+  // if the collection permissons action includes any user
+  if (
     up
       ?.filter((item): item is mongoose.Types.ObjectId => isObjectId(item))
       .map((_id) => _id.toHexString())
-      .includes(Users.ANY.toHexString()) ||
-    // the collection permissions includes one of the current user's teams
-    tp?.filter((team): team is string => team !== 0).some((team) => context.profile.teams.includes(team)) ||
-    // the collection permissions includes the current user's _id
+      .includes(Users.ANY.toHexString())
+  )
+    return true;
+
+  // if the collection permissions action includes the current user
+  if (
     up
       ?.filter((item): item is mongoose.Types.ObjectId => isObjectId(item))
       .map((_id) => _id.toHexString())
       .includes(context.profile._id.toHexString())
-  );
+  )
+    return true;
+
+  return false;
 }
 
 type DocType = CollectionSchemaFields &

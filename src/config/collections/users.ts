@@ -229,7 +229,7 @@ const users = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
             const doc = await findDoc({ model: 'User', _id: args._id, context });
 
             // if the user cannot retire other users in the collection, return an error
-            if (!canDo({ action: 'deactivate', model: 'User', context }))
+            if (!(await canDo({ action: 'deactivate', model: 'User', context })))
               throw new ForbiddenError('you cannot deactivate users');
 
             // set relevant collection metadata

@@ -28,7 +28,7 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
     fullAccess ||
     context.profile.teams.includes(Teams.ADMIN) ||
     !withStandardPermissions ||
-    canDo({ action: 'bypassDocPermissions', model, context });
+    (await canDo({ action: 'bypassDocPermissions', model, context }));
 
   // access filter
   const accessFilter = canBypassAccessFilter

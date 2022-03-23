@@ -54,14 +54,14 @@ async function modifyDoc<DocType, DataType>({
   data = merge(currentDoc, convertNullPrototype(data));
 
   // if the user does not have permission to modify, throw an error
-  if (!fullAccess && !canDo({ action: 'modify', model, context, doc: currentDoc }))
+  if (!fullAccess && !(await canDo({ action: 'modify', model, context, doc: currentDoc })))
     throw new ForbiddenError('you cannot modify this document');
 
   // if the document is currently published, do not modify unless user can publish
   if (publishable) {
     const isPublished = !!currentDoc.timestamps.published_at;
 
-    if (isPublished && !fullAccess && !canDo({ action: 'publish', model, context, doc: currentDoc }))
+    if (isPublished && !fullAccess && !(await canDo({ action: 'publish', model, context, doc: currentDoc })))
       throw new ForbiddenError('you cannot modify published documents in this collection');
     else if (isPublished) {
       // set updated published document metadata

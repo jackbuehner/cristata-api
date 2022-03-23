@@ -19,7 +19,7 @@ async function deleteDoc({ model, args, context }: DeleteDoc): Promise<mongoose.
   const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context });
 
   // if the user cannot delete documents in the collection, return an error
-  if (!canDo({ action: 'delete', model, context, doc: doc as never }))
+  if (!(await canDo({ action: 'delete', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot delete this document');
 
   // delete the document

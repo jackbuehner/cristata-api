@@ -36,12 +36,12 @@ async function hideDoc({ model, args, context, publishable }: HideDoc) {
   if (publishable) {
     const isPublished = !!doc.timestamps.published_at;
 
-    if (isPublished && !canDo({ action: 'publish', model, context, doc: doc as never }))
+    if (isPublished && !(await canDo({ action: 'publish', model, context, doc: doc as never })))
       throw new ForbiddenError('you cannot hide this document when it is published');
   }
 
   // if the user cannot hide documents in the collection, return an error
-  if (!canDo({ action: 'hide', model, context, doc: doc as never }))
+  if (!(await canDo({ action: 'hide', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot hide this document');
 
   // set the hidden property in the document

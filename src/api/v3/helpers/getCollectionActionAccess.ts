@@ -35,15 +35,15 @@ async function getCollectionActionAccess({
 
   // return all permissions
   return {
-    get: canDo({ model, action: 'get', context, doc }),
-    create: canDo({ model, action: 'create', context, doc }),
-    modify: canDo({ model, action: 'modify', context, doc }),
-    hide: canDo({ model, action: 'hide', context, doc }),
-    lock: canDo({ model, action: 'lock', context, doc }),
-    watch: canDo({ model, action: 'watch', context, doc }),
-    publish: canDo({ model, action: 'publish', context, doc }),
-    deactivate: model === 'User' ? canDo({ model, action: 'deactivate', context, doc }) : null,
-    delete: canDo({ model, action: 'delete', context, doc }),
+    get: await canDo({ model, action: 'get', context, doc }),
+    create: await canDo({ model, action: 'create', context, doc }),
+    modify: await canDo({ model, action: 'modify', context, doc }),
+    hide: await canDo({ model, action: 'hide', context, doc }),
+    lock: await canDo({ model, action: 'lock', context, doc }),
+    watch: await canDo({ model, action: 'watch', context, doc }),
+    publish: await canDo({ model, action: 'publish', context, doc }),
+    deactivate: model === 'User' ? await canDo({ model, action: 'deactivate', context, doc }) : null,
+    delete: await canDo({ model, action: 'delete', context, doc }),
   };
 }
 

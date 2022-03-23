@@ -28,12 +28,12 @@ async function lockDoc({ model, args, context, publishable }: LockDoc) {
   if (publishable) {
     const isPublished = !!doc.timestamps.published_at;
 
-    if (isPublished && !canDo({ action: 'publish', model, context }))
+    if (isPublished && !(await canDo({ action: 'publish', model, context })))
       throw new ForbiddenError('you cannot lock published documents in this collection');
   }
 
   // if the user cannot lock documents in the collection, return an error
-  if (!canDo({ action: 'lock', model, context }))
+  if (!(await canDo({ action: 'lock', model, context })))
     throw new ForbiddenError('you cannot lock documents in this collection');
 
   // set the locked property in the document
