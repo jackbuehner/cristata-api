@@ -1,7 +1,8 @@
-import { ConfigFunc, Configuration } from '../types/config';
+import { GenCollectionInput } from '../api/v3/helpers/generators/genCollection';
+import { Collection, ConfigFunc } from '../types/config';
 import { database } from './database';
 
-const config: ConfigFunc = (): Configuration => ({
+const config: ConfigFunc<Collection | GenCollectionInput> = () => ({
   connection: {
     username: process.env.MONGO_DB_USERNAME,
     password: process.env.MONGO_DB_PASSWORD,

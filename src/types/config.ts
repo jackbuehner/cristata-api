@@ -1,9 +1,9 @@
 import { IResolvers } from '@graphql-tools/utils';
 import mongoose from 'mongoose';
 
-type ConfigFunc = () => Configuration;
+type ConfigFunc<CT = Collection> = () => Configuration<CT>;
 
-interface Configuration {
+interface Configuration<CT = Collection> {
   connection: {
     username: string;
     password: string;
@@ -11,13 +11,13 @@ interface Configuration {
     database: string;
     options: string;
   };
-  database: Database;
+  database: Database<CT>;
 }
 
-type DatabaseFunc = () => Database;
+type DatabaseFunc<CT = Collection> = () => Database<CT>;
 
-interface Database {
-  collections: Collection[];
+interface Database<CT = Collection> {
+  collections: Array<CT>;
 }
 
 interface Collection {

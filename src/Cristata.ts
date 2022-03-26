@@ -1,22 +1,47 @@
 import { Server as Hocuspocus } from '@hocuspocus/server';
-import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
-import { wss } from './websocket';
-import url from 'url';
-import { createExpressApp } from './app';
-import { apollo, apolloWSS } from './apollo';
-import { parseCookies } from './utils/parseCookies';
-import Keygrip from 'keygrip';
-import { allowedOrigins } from './middleware/cors';
-import { ConfigFunc, Configuration } from './types/config';
-import { db } from './mongodb/db';
 import { Application } from 'express';
+import Keygrip from 'keygrip';
+import url from 'url';
+import helpers from './api/v3/helpers';
+import { GenCollectionInput } from './api/v3/helpers/generators/genCollection';
+import { apollo, apolloWSS } from './apollo';
+import { createExpressApp } from './app';
+import { allowedOrigins } from './middleware/cors';
+import { db } from './mongodb/db';
+import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
+import { Collection, ConfigFunc, Configuration } from './types/config';
+import { hasKey } from './utils/hasKey';
+import { parseCookies } from './utils/parseCookies';
+import { wss } from './websocket';
+
+function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
+  return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
+}
 
 class Cristata {
   config: Configuration = undefined;
   #express: Application = undefined;
 
-  constructor(config: ConfigFunc) {
-    this.config = config();
+  constructor(config: ConfigFunc<Collection | GenCollectionInput>) {
+    const conf = config();
+    this.config = {
+      ...conf,
+      database: {
+        ...conf.database,
+        collections: [
+          ...conf.database.collections
+            .filter((col): col is GenCollectionInput => {
+              return !isCollection(col);
+            })
+            .map((col) => {
+              return helpers.generators.genCollection(col);
+            }),
+          ...conf.database.collections.filter((col): col is Collection => {
+            return isCollection(col);
+          }),
+        ],
+      },
+    };
   }
 
   /**

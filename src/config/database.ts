@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
-import { Database, DatabaseFunc } from '../types/config';
+import { GenCollectionInput } from '../api/v3/helpers/generators/genCollection';
+import { Collection, DatabaseFunc } from '../types/config';
 import {
   articles,
   externalAccounts,
@@ -16,7 +17,7 @@ import {
 // load environmental variables
 dotenv.config();
 
-const database: DatabaseFunc = (): Database => ({
+const database: DatabaseFunc<Collection | GenCollectionInput> = () => ({
   collections: [
     users(),
     teams(),
