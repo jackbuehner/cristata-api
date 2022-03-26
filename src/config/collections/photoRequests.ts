@@ -19,7 +19,7 @@ const photoRequests = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Co
         requested_by: { type: ['User', 'ObjectId'], modifiable: true },
       },
       permissions: {
-        teams: { type: ['String'], modifiable: true, default: [Teams.MANAGING_EDITOR] },
+        teams: { type: ['String'], modifiable: true, default: ['000000000000000000000003'] },
       },
     },
     Users,
@@ -30,10 +30,10 @@ const photoRequests = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Co
       create: { teams: [0], users: [] },
       modify: { teams: [0], users: [] },
       hide: { teams: [0], users: [] },
-      lock: { teams: [Teams.ADMIN], users: [] },
+      lock: { teams: ['admin'], users: [] },
       watch: { teams: [0], users: [] },
-      publish: { teams: [Teams.ADMIN], users: [] },
-      delete: { teams: [Teams.ADMIN], users: [] },
+      publish: { teams: ['admin'], users: [] },
+      delete: { teams: ['admin'], users: [] },
     },
   });
 

@@ -35,13 +35,13 @@ const photos = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
     Teams,
     helpers,
     actionAccess: {
-      get: { teams: [0], users: [Users.ANY] },
+      get: { teams: [0], users: [new mongoose.Types.ObjectId('000000000000000000000000')] },
       create: { teams: [0], users: [] },
       modify: { teams: [0], users: [] },
       hide: { teams: [0], users: [] },
-      lock: { teams: [Teams.ADMIN], users: [] },
+      lock: { teams: ['admin'], users: [] },
       watch: { teams: [0], users: [] },
-      delete: { teams: [Teams.ADMIN], users: [] },
+      delete: { teams: ['admin'], users: [] },
     },
   });
 

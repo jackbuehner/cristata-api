@@ -37,7 +37,13 @@ const flush = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
         more: { type: ['[Article]', ['ObjectId']], modifiable: true, public: true },
       },
       permissions: {
-        teams: { type: ['String'], required: true, modifiable: true, public: true, default: [Teams.FLUSH] },
+        teams: {
+          type: ['String'],
+          required: true,
+          modifiable: true,
+          public: true,
+          default: ['000000000000000000000009'],
+        },
       },
       timestamps: {
         week: {
@@ -57,10 +63,10 @@ const flush = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
       create: { teams: [0], users: [] },
       modify: { teams: [0], users: [] },
       hide: { teams: [0], users: [] },
-      lock: { teams: [Teams.ADMIN], users: [] },
+      lock: { teams: ['admin'], users: [] },
       watch: { teams: [0], users: [] },
-      publish: { teams: [Teams.ADMIN], users: [] },
-      delete: { teams: [Teams.ADMIN], users: [] },
+      publish: { teams: ['admin'], users: [] },
+      delete: { teams: ['admin'], users: [] },
     },
   });
 

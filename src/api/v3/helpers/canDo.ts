@@ -4,7 +4,7 @@ import {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
-import { CollectionPermissionsActions, Users } from '../../../config/database';
+import { CollectionPermissionsActions } from '../../../config/database';
 import { requireAuthentication } from '.';
 import { get as getProperty } from 'object-path';
 import mongoose from 'mongoose';
@@ -88,7 +88,7 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
     up
       ?.filter((item): item is mongoose.Types.ObjectId => isObjectId(item))
       .map((_id) => _id.toHexString())
-      .includes(Users.ANY.toHexString())
+      .includes('000000000000000000000000')
   )
     return true;
 

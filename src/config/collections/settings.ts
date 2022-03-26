@@ -19,9 +19,9 @@ const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
     Teams,
     helpers,
     actionAccess: {
-      get: { teams: [Teams.ADMIN], users: [] },
-      create: { teams: [Teams.ADMIN], users: [] },
-      modify: { teams: [Teams.ADMIN], users: [] },
+      get: { teams: ['admin'], users: [] },
+      create: { teams: ['admin'], users: [] },
+      modify: { teams: ['admin'], users: [] },
       hide: { teams: [], users: [] },
       lock: { teams: [], users: [] },
       watch: { teams: [], users: [] },

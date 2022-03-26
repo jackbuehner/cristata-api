@@ -41,7 +41,7 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
   // whether the current user can bypass the access filter
   const canBypassAccessFilter =
     fullAccess ||
-    context.profile.teams.includes(Teams.ADMIN) ||
+    context.profile.teams.includes('000000000000000000000001') ||
     !withStandardPermissions ||
     (await canDo({ action: 'bypassDocPermissions', model, context }));
 
@@ -54,7 +54,7 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
         $or: [
           { 'permissions.teams': { $in: [...context.profile.teams, 0] } },
           { 'permissions.users': context.profile._id },
-          { 'permissions.users': Users.ANY },
+          { 'permissions.users': '000000000000000000000000' },
         ],
       };
 

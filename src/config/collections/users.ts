@@ -69,12 +69,12 @@ const users = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
     actionAccess: {
       get: { teams: [0], users: [] },
       create: { teams: [0], users: [] },
-      modify: { teams: [Teams.ADMIN, Teams.MANAGING_EDITOR], users: [] },
+      modify: { teams: ['admin', 'managing-editors'], users: [] },
       hide: { teams: [0], users: [] },
-      lock: { teams: [Teams.ADMIN], users: [] },
+      lock: { teams: ['admin'], users: [] },
       watch: { teams: [0], users: [] },
-      deactivate: { teams: [Teams.ADMIN, Teams.MANAGING_EDITOR], users: [] },
-      delete: { teams: [Teams.ADMIN], users: [] },
+      deactivate: { teams: ['admin', 'managing-editors'], users: [] },
+      delete: { teams: ['admin'], users: [] },
     },
     options: {
       disableFindOneQuery: true,

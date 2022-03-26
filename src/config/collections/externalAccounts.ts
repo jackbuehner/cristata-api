@@ -22,13 +22,13 @@ const externalAccounts = (helpers: Helpers, Users: UsersType, Teams: TeamsType):
     Teams,
     helpers,
     actionAccess: {
-      get: { teams: [Teams.ADMIN], users: [] },
-      create: { teams: [Teams.ADMIN], users: [] },
-      modify: { teams: [Teams.ADMIN], users: [] },
-      hide: { teams: [Teams.ADMIN], users: [] },
+      get: { teams: ['admin'], users: [] },
+      create: { teams: ['admin'], users: [] },
+      modify: { teams: ['admin'], users: [] },
+      hide: { teams: ['admin'], users: [] },
       lock: { teams: [], users: [] },
       watch: { teams: [], users: [] },
-      delete: { teams: [Teams.ADMIN], users: [] },
+      delete: { teams: ['admin'], users: [] },
     },
   });
 

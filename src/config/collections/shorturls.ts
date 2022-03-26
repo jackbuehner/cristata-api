@@ -32,12 +32,12 @@ const shorturls = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collec
     helpers,
     actionAccess: {
       get: { teams: [0], users: [] },
-      create: { teams: [Teams.SHORTURL], users: [] },
-      modify: { teams: [Teams.SHORTURL], users: [] },
-      hide: { teams: [Teams.SHORTURL], users: [] },
-      lock: { teams: [Teams.ADMIN], users: [] },
+      create: { teams: ['shorturl'], users: [] },
+      modify: { teams: ['shorturl'], users: [] },
+      hide: { teams: ['shorturl'], users: [] },
+      lock: { teams: ['admin'], users: [] },
       watch: { teams: [0], users: [] },
-      delete: { teams: [Teams.ADMIN], users: [] },
+      delete: { teams: ['admin'], users: [] },
     },
   });
 

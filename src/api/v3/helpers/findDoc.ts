@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
 import mongoose, { FilterQuery } from 'mongoose';
-import { Teams, Users } from '../../../config/database';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 
 interface FindDoc {
@@ -26,7 +25,7 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
   // whether the current user can bypass the access filter
   const canBypassAccessFilter =
     fullAccess ||
-    context.profile.teams.includes(Teams.ADMIN) ||
+    context.profile.teams.includes('000000000000000000000001') ||
     !withStandardPermissions ||
     (await canDo({ action: 'bypassDocPermissions', model, context }));
 
@@ -39,7 +38,7 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
         $or: [
           { 'permissions.teams': { $in: [...context.profile.teams, 0] } },
           { 'permissions.users': context.profile._id },
-          { 'permissions.users': Users.ANY },
+          { 'permissions.users': '000000000000000000000000' },
         ],
       };
 

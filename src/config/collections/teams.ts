@@ -115,12 +115,12 @@ const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
     ],
     actionAccess: {
       get: { teams: [0], users: ['organizers', 'members'] },
-      create: { teams: [Teams.MANAGING_EDITOR], users: [] },
-      modify: { teams: [Teams.ADMIN], users: ['organizers'] },
-      hide: { teams: [Teams.MANAGING_EDITOR], users: ['organizers'] },
+      create: { teams: ['managing-editors'], users: [] },
+      modify: { teams: ['admin'], users: ['organizers'] },
+      hide: { teams: ['managing-editors'], users: ['organizers'] },
       lock: { teams: [], users: [] },
       watch: { teams: [], users: [] },
-      delete: { teams: [Teams.ADMIN], users: ['organizers'] },
+      delete: { teams: ['admin'], users: ['organizers'] },
     },
   });
 

@@ -69,7 +69,11 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         target_publish_at: { type: 'Date', modifiable: true, default: '0001-01-01T01:00:00.000+00:00' },
       },
       permissions: {
-        teams: { type: ['String'], default: [Teams.MANAGING_EDITOR, Teams.COPY_EDITOR], required: true },
+        teams: {
+          type: ['String'],
+          default: ['000000000000000000000003', '000000000000000000000004'],
+          required: true,
+        },
       },
     },
     Users,
@@ -89,11 +93,11 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
       create: { teams: [0], users: [] },
       modify: { teams: [0], users: [] },
       hide: { teams: [0], users: [] },
-      lock: { teams: [Teams.ADMIN], users: [] },
+      lock: { teams: ['admin'], users: [] },
       watch: { teams: [0], users: [] },
-      publish: { teams: [Teams.ADMIN], users: [] },
-      delete: { teams: [Teams.ADMIN], users: [] },
-      bypassDocPermissions: { teams: [Teams.MANAGING_EDITOR], users: [] },
+      publish: { teams: ['admin'], users: [] },
+      delete: { teams: ['admin'], users: [] },
+      bypassDocPermissions: { teams: ['managing-editors'], users: [] },
     },
   });
 

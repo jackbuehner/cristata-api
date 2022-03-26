@@ -29,7 +29,7 @@ router.get('/proxy/*', (req, res) => {
 
 // send the analytics url
 router.get('/analytics/dashboard', (req, res) => {
-  if (req.isAuthenticated() && (req.user as IDeserializedUser).teams.includes(Teams.ADMIN)) {
+  if (req.isAuthenticated() && (req.user as IDeserializedUser).teams.includes('000000000000000000000001')) {
     const password = crypto.createHash('sha256').update(process.env.FATHOM_DASHBOARD_PASSWORD).digest('hex'); // hash the password
     res.json({
       url: `https://app.usefathom.com/share/${process.env.FATHOM_SITE_ID}/wordpress?password=${password}`,

@@ -3,7 +3,6 @@ import { Context } from '../../../apollo';
 import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
 import mongoose from 'mongoose';
 import { getUsers } from '../helpers';
-import { Teams } from '../../../config/database';
 
 const core = {
   Date: DateScalar,
@@ -43,7 +42,7 @@ const core = {
         },
         { $sort: { at: -1 } },
         {
-          $match: context.profile.teams.includes(Teams.ADMIN)
+          $match: context.profile.teams.includes('000000000000000000000001')
             ? {}
             : {
                 $or: [
