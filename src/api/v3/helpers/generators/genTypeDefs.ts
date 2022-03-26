@@ -472,10 +472,21 @@ function genInputs(
         }
 
         // get the entries of the nested schemas
-        const schema = Object.entries(fieldDef).filter(
+        let schema: [string, SchemaDef | NestedSchemaDefType][] = Object.entries(fieldDef).filter(
           (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
             isSchemaDefOrType(schemaDefItem[1])
         );
+
+        if (fieldName === 'permissions') {
+          const permissionsFieldDefs: NestedSchemaDefType = {
+            users: { type: ['ObjectId'], modifiable: true },
+            teams: { type: ['ObjectId'], modifiable: true },
+          };
+          schema.forEach(([key, value]) => {
+            permissionsFieldDefs[key] = value;
+          });
+          schema = Object.entries(permissionsFieldDefs);
+        }
 
         // generate input types for nested schemas
         return genInputs(
