@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import type { Helpers } from '../../api/v3/helpers';
+import { genCollection } from '../../api/v3/helpers';
 import type { CollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
 
-const shorturls = (helpers: Helpers): Collection => {
-  const collection = helpers.generators.genCollection({
+const shorturls = (): Collection => {
+  const collection = genCollection({
     name: 'ShortURL',
     canPublish: false,
     withPermissions: false,
@@ -26,7 +26,6 @@ const shorturls = (helpers: Helpers): Collection => {
       domain: { type: 'String', required: true, modifiable: true, default: 'flusher.page' },
     },
     by: { one: ['code', 'String'], many: ['_id', 'ObjectId'] },
-    helpers,
     actionAccess: {
       get: { teams: [0], users: [] },
       create: { teams: ['shorturl'], users: [] },

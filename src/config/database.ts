@@ -16,18 +16,18 @@ import {
 // load environmental variables
 dotenv.config();
 
-const database: DatabaseFunc = (helpers): Database => ({
+const database: DatabaseFunc = (): Database => ({
   collections: [
-    users(helpers),
-    teams(helpers),
-    satire(helpers),
-    articles(helpers),
-    shorturls(helpers),
-    settings(helpers),
-    photoRequests(helpers),
-    photos(helpers),
-    flush(helpers),
-    externalAccounts(helpers),
+    users(),
+    teams(),
+    satire(),
+    articles(),
+    shorturls(),
+    settings(),
+    photoRequests(),
+    photos(),
+    flush(),
+    externalAccounts(),
   ],
 });
 

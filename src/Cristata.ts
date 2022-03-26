@@ -10,14 +10,13 @@ import { allowedOrigins } from './middleware/cors';
 import { ConfigFunc, Configuration } from './types/config';
 import { db } from './mongodb/db';
 import { Application } from 'express';
-import helpers from './api/v3/helpers';
 
 class Cristata {
   config: Configuration = undefined;
   #express: Application = undefined;
 
   constructor(config: ConfigFunc) {
-    this.config = config(helpers);
+    this.config = config();
   }
 
   /**

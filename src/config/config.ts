@@ -1,7 +1,7 @@
 import { ConfigFunc, Configuration } from '../types/config';
 import { database } from './database';
 
-const config: ConfigFunc = (helpers): Configuration => ({
+const config: ConfigFunc = (): Configuration => ({
   connection: {
     username: process.env.MONGO_DB_USERNAME,
     password: process.env.MONGO_DB_PASSWORD,
@@ -9,7 +9,7 @@ const config: ConfigFunc = (helpers): Configuration => ({
     database: process.env.MONGO_DB_NAME,
     options: `retryWrites=true&w=majority`,
   },
-  database: database(helpers),
+  database: database(),
 });
 
 export { config };

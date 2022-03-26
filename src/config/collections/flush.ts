@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import type { Helpers } from '../../api/v3/helpers';
+import { genCollection } from '../../api/v3/helpers';
 import type {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
@@ -7,8 +7,8 @@ import type {
 } from '../../mongodb/db';
 import type { Collection } from '../database';
 
-const flush = (helpers: Helpers): Collection => {
-  const collection = helpers.generators.genCollection({
+const flush = (): Collection => {
+  const collection = genCollection({
     name: 'Flush',
     canPublish: true,
     withPermissions: true,
@@ -54,7 +54,6 @@ const flush = (helpers: Helpers): Collection => {
         },
       },
     },
-    helpers,
     actionAccess: {
       get: { teams: [0], users: [] },
       create: { teams: [0], users: [] },

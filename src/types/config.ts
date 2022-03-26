@@ -1,8 +1,7 @@
 import { IResolvers } from '@graphql-tools/utils';
 import mongoose from 'mongoose';
-import { Helpers } from '../api/v3/helpers';
 
-type ConfigFunc = (helpers: Helpers) => Configuration;
+type ConfigFunc = () => Configuration;
 
 interface Configuration {
   connection: {
@@ -15,7 +14,7 @@ interface Configuration {
   database: Database;
 }
 
-type DatabaseFunc = (helpers: Helpers) => Database;
+type DatabaseFunc = () => Database;
 
 interface Database {
   collections: Collection[];

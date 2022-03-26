@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import type { Helpers } from '../../api/v3/helpers';
+import { genCollection } from '../../api/v3/helpers';
 import type { CollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
 
-const settings = (helpers: Helpers): Collection => {
-  const collection = helpers.generators.genCollection({
+const settings = (): Collection => {
+  const collection = genCollection({
     name: 'Setting',
     canPublish: false,
     withPermissions: false,
@@ -14,7 +14,6 @@ const settings = (helpers: Helpers): Collection => {
       name: { type: 'String', required: true, modifiable: false, unique: true },
       setting: { type: 'JSON', required: true, modifiable: true, strict: false },
     },
-    helpers,
     actionAccess: {
       get: { teams: ['admin'], users: [] },
       create: { teams: ['admin'], users: [] },

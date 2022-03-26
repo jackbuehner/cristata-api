@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import type { Helpers } from '../../api/v3/helpers';
 import type { CollectionSchemaFields, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
+import { genCollection } from '../../api/v3/helpers';
 
-const photoRequests = (helpers: Helpers): Collection => {
-  const collection = helpers.generators.genCollection({
+const photoRequests = (): Collection => {
+  const collection = genCollection({
     name: 'PhotoRequest',
     canPublish: false,
     withPermissions: true,
@@ -21,7 +21,6 @@ const photoRequests = (helpers: Helpers): Collection => {
         teams: { type: ['String'], modifiable: true, default: ['000000000000000000000003'] },
       },
     },
-    helpers,
     actionAccess: {
       get: { teams: [0], users: [] },
       create: { teams: [0], users: [] },

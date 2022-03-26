@@ -1,14 +1,14 @@
-import { Context } from '../../apollo';
-import { Collection } from '../database';
-import mongoose, { PassportLocalDocument } from 'mongoose';
-import { CollectionSchemaFields, GitHubTeamNodeID } from '../../mongodb/db';
-import type { Helpers } from '../../api/v3/helpers';
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
-import { sendEmail } from '../../utils/sendEmail';
-import { getPasswordStatus } from '../../utils/getPasswordStatus';
-import { slugify } from '../../utils/slugify';
 import { merge } from 'merge-anything';
+import mongoose, { PassportLocalDocument } from 'mongoose';
+import helpers, { genCollection } from '../../api/v3/helpers';
+import { Context } from '../../apollo';
+import { CollectionSchemaFields, GitHubTeamNodeID } from '../../mongodb/db';
+import { getPasswordStatus } from '../../utils/getPasswordStatus';
+import { sendEmail } from '../../utils/sendEmail';
+import { slugify } from '../../utils/slugify';
+import { Collection } from '../database';
 
 const PRUNED_USER_KEEP_FIELDS = [
   '_id',
@@ -23,7 +23,7 @@ const PRUNED_USER_KEEP_FIELDS = [
   'group',
 ];
 
-const users = (helpers: Helpers): Collection => {
+const users = (): Collection => {
   const {
     canDo,
     createDoc,
@@ -36,7 +36,7 @@ const users = (helpers: Helpers): Collection => {
     withPubSub,
   } = helpers;
 
-  const collection = helpers.generators.genCollection({
+  const collection = genCollection({
     name: 'User',
     canPublish: false,
     withPermissions: false,
@@ -62,7 +62,6 @@ const users = (helpers: Helpers): Collection => {
       retired: { type: 'Boolean', default: false },
       flags: { type: ['String'], required: true, default: [] },
     },
-    helpers,
     actionAccess: {
       get: { teams: [0], users: [] },
       create: { teams: [0], users: [] },

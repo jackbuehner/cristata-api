@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import type { Helpers } from '../../api/v3/helpers';
+import { genCollection } from '../../api/v3/helpers';
 import type {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
@@ -7,8 +7,8 @@ import type {
 } from '../../mongodb/db';
 import type { Collection } from '../database';
 
-const articles = (helpers: Helpers): Collection => {
-  const collection = helpers.generators.genCollection({
+const articles = (): Collection => {
+  const collection = genCollection({
     name: 'Article',
     canPublish: true,
     withPermissions: true,
@@ -90,7 +90,6 @@ const articles = (helpers: Helpers): Collection => {
         },
       ],
     },
-    helpers,
     customQueries: [
       {
         name: 'stageCounts',

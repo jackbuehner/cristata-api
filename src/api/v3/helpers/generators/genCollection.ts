@@ -1,10 +1,10 @@
-import { Helpers } from '..';
 import { Collection, CollectionPermissions } from '../../../../config/database';
 import { GenSchemaInput } from './genSchema';
+import helpers from '../';
 
 function genCollection(input: GenCollectionInput): Collection {
-  const { typeDefs, schemaFields } = input.helpers.generators.genSchema(input);
-  const resolvers = input.helpers.generators.genResolvers(input);
+  const { typeDefs, schemaFields } = helpers.generators.genSchema(input);
+  const resolvers = helpers.generators.genResolvers({ helpers, ...input });
 
   return {
     name: input.name,
@@ -18,7 +18,6 @@ function genCollection(input: GenCollectionInput): Collection {
 }
 
 interface GenCollectionInput extends GenSchemaInput {
-  helpers: Helpers;
   actionAccess: CollectionPermissions;
 }
 
