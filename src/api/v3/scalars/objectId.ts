@@ -5,7 +5,11 @@ const objectId = new GraphQLScalarType({
   name: 'ObjectID',
   description: 'mongoose ObjectID scalar type',
   serialize(ObjectID: mongoose.Types.ObjectId) {
-    return ObjectID.toHexString(); // Convert outgoing ObjectID to hex string
+    try {
+      return new mongoose.Types.ObjectId(ObjectID).toHexString(); // Convert outgoing ObjectID to hex string
+    } catch {
+      return null;
+    }
   },
   parseValue(_id) {
     return new mongoose.Types.ObjectId(_id); // Convert incoming hex string id to mongoose ObjectID
