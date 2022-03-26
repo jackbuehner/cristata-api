@@ -1,6 +1,4 @@
-import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
-import type { CollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
 
 const shorturls = (): Collection => {
@@ -40,13 +38,4 @@ const shorturls = (): Collection => {
   return collection;
 };
 
-interface IShortURL extends CollectionSchemaFields {
-  original_url: string;
-  code: string;
-  domain: string;
-}
-
-interface IShortURLDoc extends IShortURL, mongoose.Document {}
-
-export type { IShortURL, IShortURLDoc };
 export { shorturls };

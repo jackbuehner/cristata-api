@@ -1,10 +1,4 @@
-import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
-import type {
-  CollectionSchemaFields,
-  PublishableCollectionSchemaFields,
-  WithPermissionsCollectionSchemaFields,
-} from '../../mongodb/db';
 import type { Collection } from '../database';
 
 const satire = (): Collection => {
@@ -109,41 +103,4 @@ enum Stage {
   PUBLISHED = 5.2,
 }
 
-interface ISatire
-  extends CollectionSchemaFields,
-    PublishableCollectionSchemaFields,
-    WithPermissionsCollectionSchemaFields {
-  name: string;
-  slug: string;
-  timestamps: ISatireTimestamps &
-    CollectionSchemaFields['timestamps'] &
-    PublishableCollectionSchemaFields['timestamps'];
-  people: ISatirePeople & CollectionSchemaFields['people'] & PublishableCollectionSchemaFields['people'];
-  stage: mongoose.Types.Decimal128;
-  tags: string[];
-  description: string;
-  photo_path: string;
-  photo_credit: string;
-  photo_caption: string;
-  body?: string;
-  versions?: ISatire[]; // store previous versions of the satire profile (only via v2 api)
-  legacy_html: boolean; // true if it is html from the old webflow
-}
-
-interface ISatireTimestamps {
-  target_publish_at?: string; // ISO string
-}
-
-interface ISatirePeople {
-  authors: mongoose.Types.ObjectId[];
-  display_authors: string[];
-  editors: {
-    primary: mongoose.Types.ObjectId[];
-    copy: mongoose.Types.ObjectId[];
-  };
-}
-
-interface ISatireDoc extends ISatire, mongoose.Document {}
-
-export type { ISatire, ISatireDoc };
-export { satire, Stage as EnumSatireStage };
+export { satire };

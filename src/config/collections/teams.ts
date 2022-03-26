@@ -1,6 +1,4 @@
-import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
-import type { CollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
 
 const teams = (): Collection => {
@@ -123,14 +121,4 @@ const teams = (): Collection => {
   return collection;
 };
 
-interface ITeam extends CollectionSchemaFields {
-  name: string;
-  slug: string;
-  members: mongoose.Types.ObjectId[];
-  organizers: mongoose.Types.ObjectId[];
-}
-
-interface ITeamDoc extends ITeam, mongoose.Document {}
-
-export type { ITeam, ITeamDoc };
 export { teams };

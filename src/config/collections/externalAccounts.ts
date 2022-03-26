@@ -1,6 +1,4 @@
-import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
-import type { CollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
 
 const externalAccounts = (): Collection => {
@@ -31,14 +29,4 @@ const externalAccounts = (): Collection => {
   return collection;
 };
 
-interface IExternalAccount extends CollectionSchemaFields {
-  service_url: string;
-  username: string;
-  password: string;
-  otp_hash?: string;
-}
-
-interface IExternalAccountDoc extends IExternalAccount, mongoose.Document {}
-
-export type { IExternalAccount, IExternalAccountDoc };
 export { externalAccounts };

@@ -1,5 +1,3 @@
-import mongoose from 'mongoose';
-import type { CollectionSchemaFields, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
 import { genCollection } from '../../api/v3/helpers';
 
@@ -42,22 +40,4 @@ enum Stage {
   FULFILLED = 3.1,
 }
 
-interface IPhotoRequest
-  extends CollectionSchemaFields,
-    CollectionSchemaFields,
-    WithPermissionsCollectionSchemaFields {
-  name: string;
-  people: IPhotoRequestPeople & CollectionSchemaFields['people'];
-  stage: Stage;
-  article_id?: string;
-  versions?: IPhotoRequest[]; // store previous versions of the photoRequest profile (only via v2 api)
-}
-
-interface IPhotoRequestPeople {
-  requested_by?: mongoose.Types.ObjectId;
-}
-
-interface IPhotoRequestDoc extends IPhotoRequest, mongoose.Document {}
-
-export type { IPhotoRequest, IPhotoRequestDoc };
-export { photoRequests, Stage as EnumPhotoRequestStage };
+export { photoRequests };

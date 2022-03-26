@@ -1,6 +1,4 @@
-import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
-import type { CollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
 
 const settings = (): Collection => {
@@ -36,12 +34,4 @@ const settings = (): Collection => {
   return collection;
 };
 
-interface ISettings extends CollectionSchemaFields {
-  name: string;
-  setting: Record<string, unknown> & mongoose.Document;
-}
-
-interface ISettingsDoc extends ISettings, mongoose.Document {}
-
-export type { ISettings, ISettingsDoc };
 export { settings };

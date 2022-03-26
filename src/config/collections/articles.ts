@@ -1,10 +1,4 @@
-import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
-import type {
-  CollectionSchemaFields,
-  PublishableCollectionSchemaFields,
-  WithPermissionsCollectionSchemaFields,
-} from '../../mongodb/db';
 import type { Collection } from '../database';
 
 const articles = (): Collection => {
@@ -212,51 +206,4 @@ enum Stage {
   'Published' = 5.2,
 }
 
-interface IArticle
-  extends CollectionSchemaFields,
-    PublishableCollectionSchemaFields,
-    WithPermissionsCollectionSchemaFields {
-  name: string;
-  slug?: string;
-  timestamps: IArticleTimestamps &
-    CollectionSchemaFields['timestamps'] &
-    PublishableCollectionSchemaFields['timestamps'];
-  people: IArticlePeople & CollectionSchemaFields['people'] & PublishableCollectionSchemaFields['people'];
-  stage: Stage;
-  categories: string[];
-  tags: string[];
-  description: string;
-  photo_path: string;
-  video_path: string;
-  video_replaces_photo: boolean;
-  photo_caption: string;
-  body?: string;
-  versions?: IArticle[]; // store previous versions of the article profile (only via v2 api)
-  show_comments: boolean; // whether commenting on article should be enabled (for website, not cms)
-  legacy_html: boolean; // true if it is html from the old webflow
-  layout: string;
-  template: string;
-  legacy_comments?: Array<{
-    author_name: string;
-    commented_at: string;
-    content: string;
-  }>;
-  claps?: number;
-}
-
-interface IArticleTimestamps {
-  target_publish_at?: string; // ISO string
-}
-
-interface IArticlePeople {
-  authors: mongoose.Types.ObjectId[];
-  editors: {
-    primary: mongoose.Types.ObjectId[];
-    copy: mongoose.Types.ObjectId[];
-  };
-}
-
-interface IArticleDoc extends IArticle, mongoose.Document {}
-
-export type { IArticle, IArticleDoc };
-export { articles, Stage as EnumArticleStage };
+export { articles };

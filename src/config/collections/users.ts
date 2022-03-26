@@ -10,31 +10,8 @@ import { sendEmail } from '../../utils/sendEmail';
 import { slugify } from '../../utils/slugify';
 import { Collection } from '../database';
 
-const PRUNED_USER_KEEP_FIELDS = [
-  '_id',
-  'name',
-  'github_id',
-  'current_title',
-  'email',
-  'biography',
-  'twitter',
-  'photo',
-  'slug',
-  'group',
-];
-
 const users = (): Collection => {
-  const {
-    canDo,
-    createDoc,
-    findDoc,
-    findDocAndPrune,
-    findDocs,
-    gql,
-    modifyDoc,
-    requireAuthentication,
-    withPubSub,
-  } = helpers;
+  const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication, withPubSub } = helpers;
 
   const collection = genCollection({
     name: 'User',
@@ -152,13 +129,12 @@ const users = (): Collection => {
           model: 'User',
           _id: args.username,
           context,
-          keep: PRUNED_USER_KEEP_FIELDS,
           fullAccess: true,
         };
         // find user by username or slug
         const user =
-          ((await findDocAndPrune({ ...findArgs, by: 'username' })) as IUserDoc | undefined) ||
-          ((await findDocAndPrune({ ...findArgs, by: 'slug' })) as IUserDoc | undefined);
+          ((await findDoc({ ...findArgs, by: 'username' })) as unknown as IUserDoc | undefined) ||
+          ((await findDoc({ ...findArgs, by: 'slug' })) as unknown as IUserDoc | undefined);
         return { exists: !!user, doc: user || null, methods: user?.methods };
       },
 
@@ -422,4 +398,4 @@ interface IUserTimestamps {
 interface IUserDoc extends IUser, mongoose.Document {}
 
 export type { IUser, IUserDoc };
-export { users, PRUNED_USER_KEEP_FIELDS };
+export { users };

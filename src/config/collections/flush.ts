@@ -1,10 +1,4 @@
-import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
-import type {
-  CollectionSchemaFields,
-  PublishableCollectionSchemaFields,
-  WithPermissionsCollectionSchemaFields,
-} from '../../mongodb/db';
 import type { Collection } from '../database';
 
 const flush = (): Collection => {
@@ -69,34 +63,4 @@ const flush = (): Collection => {
   return collection;
 };
 
-interface IFlush
-  extends CollectionSchemaFields,
-    PublishableCollectionSchemaFields,
-    WithPermissionsCollectionSchemaFields {
-  volume: number;
-  issue: number;
-  events: Array<{
-    name: string;
-    date: string; // ISO string
-    location: string;
-  }>;
-  people: PublishableCollectionSchemaFields['people'] & CollectionSchemaFields['people'];
-  timestamps: IFlushTimestamps &
-    CollectionSchemaFields['timestamps'] &
-    PublishableCollectionSchemaFields['timestamps'];
-  articles?: {
-    featured?: mongoose.Types.ObjectId;
-    more?: mongoose.Types.ObjectId[];
-  };
-  left_advert_photo_url?: string;
-  versions?: IFlush[]; // store previous versions of the flush profile (only via v2 api)
-}
-
-interface IFlushTimestamps {
-  week?: string; // ISO string
-}
-
-interface IFlushDoc extends IFlush, mongoose.Document {}
-
-export type { IFlush, IFlushDoc };
 export { flush };

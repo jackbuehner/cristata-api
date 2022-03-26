@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
-import type { CollectionSchemaFields, WithPermissionsCollectionSchemaFields } from '../../mongodb/db';
 import type { Collection } from '../database';
 
 const photos = (): Collection => {
@@ -44,27 +43,4 @@ const photos = (): Collection => {
   return collection;
 };
 
-interface IPhoto extends CollectionSchemaFields, CollectionSchemaFields, WithPermissionsCollectionSchemaFields {
-  name: string;
-  people: IPhotoPeople & CollectionSchemaFields['people'];
-  tags?: string[];
-  file_type?: string;
-  photo_url: string;
-  dimensions?: {
-    x?: number;
-    y?: number;
-  };
-  versions?: IPhoto[]; // store previous versions of the photo profile (only via v2 api)
-  legacy_caption?: string;
-  legacy_thumbnail_id?: string;
-}
-
-interface IPhotoPeople {
-  photo_created_by?: string;
-  uploaded_by?: mongoose.Types.ObjectId;
-}
-
-interface IPhotoDoc extends IPhoto, mongoose.Document {}
-
-export type { IPhoto, IPhotoDoc };
 export { photos };
