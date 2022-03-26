@@ -35,7 +35,14 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
   // if a team in the action is 0, any person has access
   if (tp?.includes(0)) return true;
 
-  // treat strings in the users array as document values (e.g. 'people.authors' represents the authors for the defined doc)
+  // if the collection permissons action includes 0, any person has access
+  if (up?.includes(0)) return true;
+
+  // if the collection permissions action includes the current user
+  if (up?.filter((item): item is string => isObjectId(item)).includes(context.profile._id.toHexString()))
+    return true;
+
+  // treat certain strings in the users array as document values (e.g. 'people.authors' represents the authors for the defined doc)
   if (doc && up) {
     const leanDoc = (doc as unknown as mongoose.Document).toObject?.() || doc;
 
@@ -43,7 +50,8 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
     const _ids: mongoose.Types.ObjectId[] = merge(
       [],
       ...up
-        .filter((item): item is string => typeof item === 'string')
+        // filter out object ids and 0
+        .filter((item): item is string => typeof item === 'string' && !isObjectId(item))
         .map((path) => {
           const pathValue = getProperty(leanDoc, path);
           if (isArray(pathValue)) return pathValue.filter((val) => isObjectId(val));
@@ -82,24 +90,6 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
     // if the collection permissions includes one of the current user's teams
     teamIds?.some((teamId) => context.profile.teams.includes(teamId.toHexString()));
   }
-
-  // if the collection permissons action includes any user
-  if (
-    up
-      ?.filter((item): item is mongoose.Types.ObjectId => isObjectId(item))
-      .map((_id) => _id.toHexString())
-      .includes('000000000000000000000000')
-  )
-    return true;
-
-  // if the collection permissions action includes the current user
-  if (
-    up
-      ?.filter((item): item is mongoose.Types.ObjectId => isObjectId(item))
-      .map((_id) => _id.toHexString())
-      .includes(context.profile._id.toHexString())
-  )
-    return true;
 
   return false;
 }

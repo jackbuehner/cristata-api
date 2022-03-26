@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { genCollection } from '../../api/v3/helpers';
 import type { Collection } from '../database';
 
@@ -30,7 +29,7 @@ const photos = (): Collection => {
       },
     },
     actionAccess: {
-      get: { teams: [0], users: [new mongoose.Types.ObjectId('000000000000000000000000')] },
+      get: { teams: [0], users: [0] },
       create: { teams: [0], users: [] },
       modify: { teams: [0], users: [] },
       hide: { teams: [0], users: [] },

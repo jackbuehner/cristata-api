@@ -1,5 +1,4 @@
 import { IResolvers } from '@graphql-tools/utils';
-import mongoose from 'mongoose';
 
 type ConfigFunc<CT = Collection> = () => Configuration<CT>;
 
@@ -32,7 +31,7 @@ interface Collection {
 
 type CollectionPermissionsType = {
   teams: Array<string | 0>;
-  users: Array<mongoose.Types.ObjectId | string>;
+  users: Array<string | 0>;
 };
 
 type CollectionPermissionsActions = keyof CollectionPermissions;
