@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
 import type { Helpers } from '../../api/v3/helpers';
 import type { CollectionSchemaFields } from '../../mongodb/db';
-import type { TeamsType, UsersType } from '../../types/config';
 import type { Collection } from '../database';
 
-const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
+const settings = (helpers: Helpers): Collection => {
   const collection = helpers.generators.genCollection({
     name: 'Setting',
     canPublish: false,
@@ -15,8 +14,6 @@ const settings = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
       name: { type: 'String', required: true, modifiable: false, unique: true },
       setting: { type: 'JSON', required: true, modifiable: true, strict: false },
     },
-    Users,
-    Teams,
     helpers,
     actionAccess: {
       get: { teams: ['admin'], users: [] },

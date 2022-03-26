@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../../../apollo';
 import mongoose, { FilterQuery } from 'mongoose';
-import { Teams, Users } from '../../../config/database';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { flattenObject } from '../../../utils/flattenObject';
 

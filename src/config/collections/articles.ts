@@ -5,10 +5,9 @@ import type {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
-import type { TeamsType, UsersType } from '../../types/config';
 import type { Collection } from '../database';
 
-const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
+const articles = (helpers: Helpers): Collection => {
   const collection = helpers.generators.genCollection({
     name: 'Article',
     canPublish: true,
@@ -91,8 +90,6 @@ const articles = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collect
         },
       ],
     },
-    Users,
-    Teams,
     helpers,
     customQueries: [
       {

@@ -1,5 +1,4 @@
 import mongoose, { SchemaDefinition } from 'mongoose';
-import { TeamsType, UsersType } from '../../../../types/config';
 import { genTypeDefs } from './genTypeDefs';
 import { genSchemaFields } from './genSchemaFields';
 import { hasKey } from '../../../../utils/hasKey';
@@ -91,14 +90,6 @@ interface GenSchemaInput {
    * array of the specified type.
    */
   by?: [string, SchemaType] | { one: [string, SchemaType]; many: [string, SchemaType] };
-  /**
-   * The baseline users that can be used in the config.
-   */
-  Users: UsersType;
-  /**
-   * The baseline teams that can be used in the config.
-   */
-  Teams: TeamsType;
   /**
    * Specify rules for public queries.
    *

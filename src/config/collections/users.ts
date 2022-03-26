@@ -8,7 +8,6 @@ import generator from 'generate-password';
 import { sendEmail } from '../../utils/sendEmail';
 import { getPasswordStatus } from '../../utils/getPasswordStatus';
 import { slugify } from '../../utils/slugify';
-import { UsersType, TeamsType } from '../../types/config';
 import { merge } from 'merge-anything';
 
 const PRUNED_USER_KEEP_FIELDS = [
@@ -24,7 +23,7 @@ const PRUNED_USER_KEEP_FIELDS = [
   'group',
 ];
 
-const users = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
+const users = (helpers: Helpers): Collection => {
   const {
     canDo,
     createDoc,
@@ -63,8 +62,6 @@ const users = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
       retired: { type: 'Boolean', default: false },
       flags: { type: ['String'], required: true, default: [] },
     },
-    Users,
-    Teams,
     helpers,
     actionAccess: {
       get: { teams: [0], users: [] },

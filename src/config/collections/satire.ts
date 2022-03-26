@@ -5,10 +5,9 @@ import type {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
-import type { TeamsType, UsersType } from '../../types/config';
 import type { Collection } from '../database';
 
-const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
+const satire = (helpers: Helpers): Collection => {
   const collection = helpers.generators.genCollection({
     name: 'Satire',
     canPublish: true,
@@ -76,8 +75,6 @@ const satire = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collectio
         },
       },
     },
-    Users,
-    Teams,
     helpers,
     customQueries: [
       {

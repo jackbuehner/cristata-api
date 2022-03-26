@@ -1,7 +1,6 @@
 import corsAnywhere from 'cors-anywhere';
 import crypto from 'crypto';
 import { Router } from 'express';
-import { Teams } from './config/database';
 import { allowedOrigins } from './middleware/cors';
 import { IDeserializedUser } from './passport';
 

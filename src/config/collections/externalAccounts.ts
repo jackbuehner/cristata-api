@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
 import type { Helpers } from '../../api/v3/helpers';
 import type { CollectionSchemaFields } from '../../mongodb/db';
-import type { TeamsType, UsersType } from '../../types/config';
 import type { Collection } from '../database';
 
-const externalAccounts = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
+const externalAccounts = (helpers: Helpers): Collection => {
   const collection = helpers.generators.genCollection({
     name: 'ExternalAccount',
     canPublish: false,
@@ -18,8 +17,6 @@ const externalAccounts = (helpers: Helpers, Users: UsersType, Teams: TeamsType):
       otp_hash: { type: 'String', modifiable: true },
     },
     by: { one: ['code', 'String'], many: ['_id', 'ObjectId'] },
-    Users,
-    Teams,
     helpers,
     actionAccess: {
       get: { teams: ['admin'], users: [] },

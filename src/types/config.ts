@@ -31,9 +31,6 @@ interface Collection {
   actionAccess: CollectionPermissions;
 }
 
-type TeamsType = Record<string, string>;
-type UsersType = Record<string, mongoose.Types.ObjectId>;
-
 type CollectionPermissionsType = {
   teams: Array<string | 0>;
   users: Array<mongoose.Types.ObjectId | string>;
@@ -63,6 +60,4 @@ export type {
   CollectionPermissions,
   CollectionPermissionsType,
   CollectionPermissionsActions,
-  TeamsType,
-  UsersType,
 };

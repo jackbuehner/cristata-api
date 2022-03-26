@@ -5,10 +5,9 @@ import type {
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/db';
-import type { TeamsType, UsersType } from '../../types/config';
 import type { Collection } from '../database';
 
-const flush = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
+const flush = (helpers: Helpers): Collection => {
   const collection = helpers.generators.genCollection({
     name: 'Flush',
     canPublish: true,
@@ -55,8 +54,6 @@ const flush = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
         },
       },
     },
-    Users,
-    Teams,
     helpers,
     actionAccess: {
       get: { teams: [0], users: [] },

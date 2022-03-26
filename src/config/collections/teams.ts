@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
 import type { Helpers } from '../../api/v3/helpers';
 import type { CollectionSchemaFields } from '../../mongodb/db';
-import type { TeamsType, UsersType } from '../../types/config';
 import type { Collection } from '../database';
 
-const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection => {
+const teams = (helpers: Helpers): Collection => {
   const collection = helpers.generators.genCollection({
     name: 'Team',
     canPublish: false,
@@ -17,8 +16,6 @@ const teams = (helpers: Helpers, Users: UsersType, Teams: TeamsType): Collection
       members: { type: ['[User]', ['ObjectId']], required: true, modifiable: true },
       organizers: { type: ['[User]', ['ObjectId']], required: true, modifiable: true },
     },
-    Users,
-    Teams,
     helpers,
     customQueries: [
       {
