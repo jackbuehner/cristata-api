@@ -42,7 +42,7 @@ const config: Configuration<Collection | GenCollectionInput> = {
     username: process.env.MONGO_DB_USERNAME,
     password: process.env.MONGO_DB_PASSWORD,
     host: `editor0.htefm.mongodb.net`,
-    database: process.env.MONGO_DB_NAME,
+    database: process.env.MONGO_DB_NAME || 'db_2',
     options: `retryWrites=true&w=majority`,
   },
   defaultSender: 'Cristata <noreply@thepaladin.news>',
