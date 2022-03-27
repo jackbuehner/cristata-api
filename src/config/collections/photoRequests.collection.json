@@ -1,0 +1,26 @@
+{
+  "name": "PhotoRequest",
+  "canPublish": false,
+  "withPermissions": true,
+  "withSubscription": true,
+  "publicRules": false,
+  "schemaDef": {
+    "name": { "type": "String", "required": true, "modifiable": true },
+    "stage": { "type": "Float", "modifiable": true, "default": 1.1 },
+    "article_id": { "type": "ObjectId", "modifiable": true },
+    "people": { "requested_by": { "type": ["User", "ObjectId"], "modifiable": true } },
+    "permissions": {
+      "teams": { "type": ["ObjectId"], "modifiable": true, "default": ["000000000000000000000003"] }
+    }
+  },
+  "actionAccess": {
+    "get": { "teams": [0], "users": [] },
+    "create": { "teams": [0], "users": [] },
+    "modify": { "teams": [0], "users": [] },
+    "hide": { "teams": [0], "users": [] },
+    "lock": { "teams": ["admin"], "users": [] },
+    "watch": { "teams": [0], "users": [] },
+    "publish": { "teams": ["admin"], "users": [] },
+    "delete": { "teams": ["admin"], "users": [] }
+  }
+}
