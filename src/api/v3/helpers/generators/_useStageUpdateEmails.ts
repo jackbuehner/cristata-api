@@ -1,12 +1,14 @@
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { get as getProperty } from 'object-path';
-import { isObjectId } from '../../../../utils/isObjectId';
+import { Context } from '../../../../apollo';
 import { hasKey } from '../../../../utils/hasKey';
+import { isObjectId } from '../../../../utils/isObjectId';
 import { sendEmail } from '../../../../utils/sendEmail';
 import { GenResolversInput } from './genResolvers';
 
 async function useStageUpdateEmails(
+  context: Context,
   currentDoc: mongoose.Document,
   data: mongoose.LeanDocument<mongoose.Document>,
   gc: GenResolversInput
@@ -78,8 +80,9 @@ async function useStageUpdateEmails(
     const emailBody = gc.helpers.writeEmailBody(bodySettings);
     const emailBodyMandatory = gc.helpers.writeEmailBody({ ...bodySettings, isMandatory: true });
 
-    if (watchersEmails.length > 0) sendEmail(watchersEmails, subject, emailBody);
-    if (mandatoryWatchersEmails.length > 0) sendEmail(mandatoryWatchersEmails, subject, emailBodyMandatory);
+    if (watchersEmails.length > 0) sendEmail(context.config, watchersEmails, subject, emailBody);
+    if (mandatoryWatchersEmails.length > 0)
+      sendEmail(context.config, mandatoryWatchersEmails, subject, emailBodyMandatory);
   }
 }
 

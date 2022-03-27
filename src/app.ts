@@ -10,12 +10,13 @@ import { apiRouter3 } from './api/v3/routes';
 import { authRouter } from './auth.route';
 import { requireAuth } from './middleware/requireAuth';
 import { corsConfig } from './middleware/cors';
-import { proxyRouter } from './proxy.route';
+import { proxyRouterFactory } from './proxy.route';
+import { Configuration } from './types/config';
 
 // load environmental variables
 dotenv.config();
 
-function createExpressApp(): Application {
+function createExpressApp(config: Configuration): Application {
   // create express app
   const app = express();
 
@@ -77,7 +78,7 @@ function createExpressApp(): Application {
   );
 
   // enable CORS for the app
-  app.use(cors(corsConfig));
+  app.use(cors(corsConfig(config)));
 
   // parse incoming request body
   app.use(express.json());
@@ -112,7 +113,7 @@ function createExpressApp(): Application {
   // connect routers to app
   app.use(`${path}/auth`, authRouter); // authentication routes
   app.use(`${path}/v3`, apiRouter3); // API v3 routes
-  app.use(path, proxyRouter); // CORS proxy routes
+  app.use(path, proxyRouterFactory(config)); // CORS proxy routes
 
   app.get(path, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);

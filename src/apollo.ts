@@ -130,7 +130,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
 
     // required logic for integrating with Express
     await apollo.start();
-    apollo.applyMiddleware({ app, path: `${path}/v3`, cors: corsConfig });
+    apollo.applyMiddleware({ app, path: `${path}/v3`, cors: corsConfig(config) });
   } catch (error) {
     console.error(error);
   }

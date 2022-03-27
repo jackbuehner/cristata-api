@@ -1,6 +1,7 @@
 import { Server as Hocuspocus } from '@hocuspocus/server';
 import { Application } from 'express';
 import Keygrip from 'keygrip';
+import semver from 'semver';
 import url from 'url';
 import helpers from './api/v3/helpers';
 import { GenCollectionInput } from './api/v3/helpers/generators/genCollection';
@@ -8,11 +9,12 @@ import { apollo, apolloWSS } from './apollo';
 import { createExpressApp } from './app';
 import { db } from './mongodb/db';
 import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
+import teams from './mongodb/teams.collection.json';
+import { users } from './mongodb/users';
 import { Collection, Configuration } from './types/config';
 import { hasKey } from './utils/hasKey';
 import { parseCookies } from './utils/parseCookies';
 import { wss } from './websocket';
-import semver from 'semver';
 
 function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
@@ -26,6 +28,8 @@ class Cristata {
     this.config = {
       ...config,
       collections: [
+        users(),
+        helpers.generators.genCollection(teams as unknown as GenCollectionInput),
         ...config.collections
           .filter((col): col is GenCollectionInput => !isCollection(col))
           .filter((col) => col.name !== 'User')
@@ -176,7 +180,7 @@ class Cristata {
    * Gets the express app. Starts the app if it is not started.
    */
   get app(): Application {
-    if (!this.#express) this.#express = createExpressApp();
+    if (!this.#express) this.#express = createExpressApp(this.config);
     return this.#express;
   }
 }

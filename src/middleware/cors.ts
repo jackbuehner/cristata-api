@@ -1,7 +1,7 @@
 import cors from 'cors';
-import { config } from '../config';
+import { Configuration } from '../types/config';
 
-const corsConfig: cors.CorsOptions = {
+const corsConfig = (config: Configuration): cors.CorsOptions => ({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // allow requests with no origin
     if (config.allowedOrigins.indexOf(origin) === -1) {
@@ -11,6 +11,6 @@ const corsConfig: cors.CorsOptions = {
     return callback(null, true);
   },
   credentials: true, // set cookies on client
-};
+});
 
 export { corsConfig };

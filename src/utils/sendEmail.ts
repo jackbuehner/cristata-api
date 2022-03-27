@@ -1,6 +1,6 @@
 import aws from 'aws-sdk';
 import dotenv from 'dotenv';
-import { config } from '../config';
+import { Configuration } from '../types/config';
 
 // load environmental variables
 dotenv.config();
@@ -20,7 +20,13 @@ const ses = new aws.SES({ apiVersion: '2010-12-01' });
  * @param message HTML message of the email (not plain text)
  * @param from email address of the sender; defaults to `config.defaultSender`
  */
-function sendEmail(to: string | string[], subject: string, message: string, from = config.defaultSender): void {
+function sendEmail(
+  config: Configuration,
+  to: string | string[],
+  subject: string,
+  message: string,
+  from = config.defaultSender
+): void {
   const Data = `
     <h1 style="font-size: 20px;">
       ${config.tenantDisplayName}
