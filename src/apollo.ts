@@ -62,7 +62,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
     // add auth info to context
     const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
       return {
-        config: config,
+        config: { ...config, connection: null },
         isAuthenticated: req.isAuthenticated(),
         profile: req.user as IDeserializedUser,
       };
