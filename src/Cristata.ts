@@ -12,6 +12,7 @@ import { Collection, Configuration } from './types/config';
 import { hasKey } from './utils/hasKey';
 import { parseCookies } from './utils/parseCookies';
 import { wss } from './websocket';
+import semver from 'semver';
 
 function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
@@ -133,7 +134,10 @@ class Cristata {
       // don't allow client to stay connect if it is out of date
       onConnect: async ({ requestParameters }) => {
         try {
-          const isClientUpdated = requestParameters.get('version') >= process.env.CLIENT_MINIMUM_VERSION;
+          const isClientUpdated = semver.gte(
+            requestParameters.get('version'),
+            process.env.CLIENT_MINIMUM_VERSION
+          );
           if (!isClientUpdated) {
             throw 'Client out of date!';
           }
