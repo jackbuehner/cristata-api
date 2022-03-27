@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
 import passport from 'passport';
+import { requireAuth } from './middleware/requireAuth';
 import { deserializeUser } from './passport';
 import { isArray } from './utils/isArray';
 
@@ -29,12 +30,8 @@ const handleError = (error: Error, req: Request, res: Response, descriptive = fa
 const router = Router();
 
 // provide the authenticated user
-router.get('/', (req: Request, res: Response) => {
-  if (req.user) {
-    res.json(req.user);
-  } else {
-    res.status(403).end();
-  }
+router.get('/', requireAuth, (req: Request, res: Response) => {
+  res.json(req.user);
 });
 
 // send an error message
