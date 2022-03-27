@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IUser, IUserDoc } from '../../../config/users';
+import { IUser, IUserDoc } from '../../../mongodb/users';
 
 /**
  * Get the user or array of users from one or more unique user object IDs.

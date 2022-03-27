@@ -27,15 +27,14 @@ class Cristata {
       ...config,
       collections: [
         ...config.collections
-          .filter((col): col is GenCollectionInput => {
-            return !isCollection(col);
-          })
-          .map((col) => {
-            return helpers.generators.genCollection(col);
-          }),
-        ...config.collections.filter((col): col is Collection => {
-          return isCollection(col);
-        }),
+          .filter((col): col is GenCollectionInput => !isCollection(col))
+          .filter((col) => col.name !== 'User')
+          .filter((col) => col.name !== 'Team')
+          .map((col) => helpers.generators.genCollection(col)),
+        ...config.collections
+          .filter((col): col is Collection => isCollection(col))
+          .filter((col) => col.name !== 'User')
+          .filter((col) => col.name !== 'Team'),
       ],
     };
   }
