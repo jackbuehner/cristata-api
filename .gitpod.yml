@@ -1,3 +1,34 @@
+tasks:
+  - name: Install dependencies (npm)
+    init: npm install && gp sync-done npmi
+
+  - name: Open tunnel (PacketRiot)
+    init: chmod +x ./bin --recursive
+    command: npm run dev:tunnel
+
+  - name: Start app (React)
+    init: gp sync-await npmi # wait for npm install to finish
+    command: npm run dev:server
+    openMode: tab-after
+
+github:
+  # configure continuous prebuilds for GitHub repositories
+  prebuilds:
+    # whether Gitpod creates prebuilds for the default branch
+    master: true
+    # whether Gitpod creates prebuilds for all branches
+    branches: true
+    # whether Gitpod creates prebuilds for pull requests from the original repository
+    pullRequests: true
+    # whether Gitpod creates prebuilds for pull requests from forks
+    pullRequestsFromForks: false
+    # whether Gitpod registers itself as a status check to pull requests
+    addCheck: prevent-merge-on-error
+    # add a comment with an “Open in Gitpod” button to your pull requests
+    addComment: false
+    # modify the description of a pull request to add an “Open in Gitpod” button (may cause concurrent editing conflicts)
+    addBadge: true
+
 vscode:
   extensions:
     - dbaeumer.vscode-eslint
