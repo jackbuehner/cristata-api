@@ -1,5 +1,6 @@
 import aws from 'aws-sdk';
 import dotenv from 'dotenv';
+import { config } from '../config';
 
 // load environmental variables
 dotenv.config();
@@ -17,14 +18,9 @@ const ses = new aws.SES({ apiVersion: '2010-12-01' });
  * @param to email address of destination person
  * @param subject subject of the email
  * @param message HTML message of the email (not plain text)
- * @param from email address of the sender; defaults to `EMAIL_DEFAULT_FROM` in environment variables
+ * @param from email address of the sender; defaults to `config.defaultSender`
  */
-function sendEmail(
-  to: string | string[],
-  subject: string,
-  message: string,
-  from = process.env.EMAIL_DEFAULT_FROM
-): void {
+function sendEmail(to: string | string[], subject: string, message: string, from = config.defaultSender): void {
   const Data = `
     <h1 style="font-size: 20px;">
       ${process.env.TENANT_DISPLAY_NAME || 'Cristata'}

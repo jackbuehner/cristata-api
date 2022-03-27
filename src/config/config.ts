@@ -45,6 +45,7 @@ const config: Configuration<Collection | GenCollectionInput> = {
     database: process.env.MONGO_DB_NAME,
     options: `retryWrites=true&w=majority`,
   },
+  defaultSender: 'Cristata <noreply@thepaladin.news>',
   minimumClientVersion: '0.7.0',
 };
 

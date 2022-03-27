@@ -19,6 +19,13 @@ interface Configuration<CT = Collection> {
     options: string;
   };
   /**
+   * The default sender name and email to be used by AWS SES when no other
+   * email is specified.
+   *
+   * e.g. 'Cristata <noreply@cristata.app>'
+   */
+  defaultSender: string;
+  /**
    * The lowest version number permitted for clients connecting via websockets.
    */
   minimumClientVersion: string;
