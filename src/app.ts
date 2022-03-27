@@ -8,7 +8,7 @@ import helmet from 'helmet';
 import passport from 'passport';
 import { apiRouter3 } from './api/v3/routes';
 import { authRouter } from './auth.route';
-import { requireAuth } from './middleware/auth';
+import { requireAuth } from './middleware/requireAuth';
 import { corsConfig } from './middleware/cors';
 import { proxyRouter } from './proxy.route';
 
