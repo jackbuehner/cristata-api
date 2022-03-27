@@ -40,8 +40,14 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
         ],
       };
 
+  const pipeline = [
+    { $match: accessFilter },
+    { $match: { [by || '_id']: _id || null } },
+    { $match: filter ? filter : {} },
+  ];
+
   // get the document
-  return await Model.findOne({ [by || '_id']: _id || null, ...accessFilter, ...filter });
+  return (await Model.aggregate(pipeline))[0];
 }
 
 export { findDoc };
