@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/jackbuehner/cristata-api/compare/v2.0.5...v2.1.0) (2022-03-27)
+
+
+### Features
+
+* remove connection from context ([1351abc](https://github.com/jackbuehner/cristata-api/commit/1351abcbc114f2bce1ec598b7d5f2a54a894eb46))
+* use aggregation for findDoc (like findDocs) ([b92b64d](https://github.com/jackbuehner/cristata-api/commit/b92b64dc70fb1363c0bc9ee71f806c7c7117ac5f))
+
+
+### Bug Fixes
+
+* use object id instead of hex string for any user ([6d1b9fa](https://github.com/jackbuehner/cristata-api/commit/6d1b9fac11b791af9a8f54091bbb258832f4ad09))
+
 ### [2.0.5](https://github.com/jackbuehner/cristata-api/compare/v2.0.4...v2.0.5) (2022-03-27)
 
 ### [2.0.4](https://github.com/jackbuehner/cristata-api/compare/v2.0.3...v2.0.4) (2022-03-27)
