@@ -36,7 +36,7 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
         $or: [
           { 'permissions.teams': { $in: [...context.profile.teams, 0] } },
           { 'permissions.users': context.profile._id },
-          { 'permissions.users': '000000000000000000000000' },
+          { 'permissions.users': new mongoose.Types.ObjectId('000000000000000000000000') },
         ],
       };
 
