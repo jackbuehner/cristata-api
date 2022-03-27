@@ -2,7 +2,7 @@
   "name": "@jackbuehner/cristata-api",
   "version": "2.0.4",
   "engines": {
-    "node": "14.x"
+    "node": "16.x"
   },
   "description": "",
   "main": "dist/index.js",
@@ -35,7 +35,7 @@
     "@types/object-path": "^0.11.1",
     "@types/passport": "^1.0.6",
     "@types/passport-github2": "^1.2.4",
-    "@types/passport-local-mongoose": "^6.1.0",
+    "@types/passport-local-mongoose": "6.1.0",
     "@types/pluralize": "0.0.29",
     "@types/semver": "^7.3.9",
     "@types/ws": "^7.4.1",
@@ -50,8 +50,8 @@
   "dependencies": {
     "@graphql-tools/schema": "^8.3.1",
     "@graphql-tools/utils": "^8.5.1",
-    "@hocuspocus/extension-rocksdb": "^1.0.0-alpha.59",
-    "@hocuspocus/server": "^1.0.0-alpha.58",
+    "@hocuspocus/extension-rocksdb": "1.0.0-alpha.59",
+    "@hocuspocus/server": "1.0.0-alpha.58",
     "apollo-server-core": "^3.4.0",
     "apollo-server-express": "^3.4.0",
     "aws-sdk": "^2.936.0",
@@ -76,13 +76,16 @@
     "object-path": "^0.11.8",
     "passport": "^0.4.1",
     "passport-github2": "^0.1.12",
-    "passport-local-mongoose": "^6.1.0",
+    "passport-local-mongoose": "6.1.0",
     "patch-package": "^6.4.7",
     "pluralize": "^8.0.0",
     "subscriptions-transport-ws": "^0.11.0",
-    "typescript-json-schema": "^0.53.0",
+    "typescript-json-schema": "0.53.0",
     "ws": "^7.5.5",
     "y-mongodb": "^0.1.11",
     "y-protocols": "^1.0.5"
+  },
+  "peerDependencies": {
+    "passport-oauth2": "1.6.1"
   }
 }
