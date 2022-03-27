@@ -1,7 +1,7 @@
 import corsAnywhere from 'cors-anywhere';
 import crypto from 'crypto';
 import { Router } from 'express';
-import { allowedOrigins } from './middleware/cors';
+import { config } from './config';
 import { IDeserializedUser } from './passport';
 
 /**
@@ -15,7 +15,7 @@ const router = Router();
 
 // create a CORS proxy
 const proxy = corsAnywhere.createServer({
-  originWhitelist: allowedOrigins, // only allow specified origins
+  originWhitelist: config.allowedOrigins, // only allow specified origins
   requireHeader: [], // don't require headers
   removeHeaders: ['cookie', 'cookie2'], // do not forward cookies
 });

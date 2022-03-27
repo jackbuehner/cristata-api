@@ -1,8 +1,15 @@
 import { IResolvers } from '@graphql-tools/utils';
 
-type ConfigFunc<CT = Collection> = () => Configuration<CT>;
-
 interface Configuration<CT = Collection> {
+  /**
+   * An array of origins that are permitted to receive data from the server.
+   *
+   * This only applies to browsers. Other clients, including other servers,
+   * may not be affected by this limit.
+   *
+   * [Read more on MDN.](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
+   */
+  allowedOrigins: string[];
   collections: Array<CT>;
   connection: {
     username: string;
@@ -44,7 +51,6 @@ interface CollectionPermissions {
 }
 
 export type {
-  ConfigFunc,
   Configuration,
   Collection,
   CollectionPermissions,

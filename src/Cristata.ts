@@ -6,10 +6,9 @@ import helpers from './api/v3/helpers';
 import { GenCollectionInput } from './api/v3/helpers/generators/genCollection';
 import { apollo, apolloWSS } from './apollo';
 import { createExpressApp } from './app';
-import { allowedOrigins } from './middleware/cors';
 import { db } from './mongodb/db';
 import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
-import { Collection, ConfigFunc, Configuration } from './types/config';
+import { Collection, Configuration } from './types/config';
 import { hasKey } from './utils/hasKey';
 import { parseCookies } from './utils/parseCookies';
 import { wss } from './websocket';
@@ -22,19 +21,18 @@ class Cristata {
   config: Configuration = undefined;
   #express: Application = undefined;
 
-  constructor(config: ConfigFunc<Collection | GenCollectionInput>) {
-    const conf = config();
+  constructor(config: Configuration<Collection | GenCollectionInput>) {
     this.config = {
-      ...conf,
+      ...config,
       collections: [
-        ...conf.collections
+        ...config.collections
           .filter((col): col is GenCollectionInput => {
             return !isCollection(col);
           })
           .map((col) => {
             return helpers.generators.genCollection(col);
           }),
-        ...conf.collections.filter((col): col is Collection => {
+        ...config.collections.filter((col): col is Collection => {
           return isCollection(col);
         }),
       ],
@@ -59,7 +57,7 @@ class Cristata {
           const origin = request.headers.origin;
 
           // ensure request is from a allowed origin
-          if (allowedOrigins.includes(origin) === false) {
+          if (this.config.allowedOrigins.includes(origin) === false) {
             throw new Error(`${origin} is not allowed to access websockets`);
           }
 

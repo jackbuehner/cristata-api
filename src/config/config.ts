@@ -1,5 +1,5 @@
 import { GenCollectionInput } from '../api/v3/helpers/generators/genCollection';
-import { Collection, ConfigFunc, Configuration } from '../types/config';
+import { Collection, Configuration } from '../types/config';
 import articles from './articles.collection.json';
 import externalAccounts from './externalAccounts.collection.json';
 import flush from './flush.collection.json';
@@ -11,9 +11,21 @@ import shorturls from './shorturls.collection.json';
 import teams from './teams.collection.json';
 import { users } from './users';
 
-const config: ConfigFunc<Collection | GenCollectionInput> = (): Configuration<
-  Collection | GenCollectionInput
-> => ({
+const config: Configuration<Collection | GenCollectionInput> = {
+  allowedOrigins: [
+    'http://localhost:3000',
+    'http://localhost:4000',
+    'https://thepaladin.cristata.app',
+    'https://api.thepaladin.cristata.app',
+    'https://thepaladin.dev.cristata.app',
+    'https://api.thepaladin.dev.cristata.app',
+    'https://thepaladin.news',
+    'https://new.thepaladin.news',
+    'https://dev.thepaladin.news',
+    'https://4000-gray-guineafowl-g1n8eq87.ws-us30.gitpod.io',
+    'https://3000-green-tarantula-v58yhlbx.ws-us38.gitpod.io',
+    'https://3000-jackbuehner-cristatawebs-8vze2ewl1dp.ws-us38.gitpod.io',
+  ],
   collections: [
     articles as unknown as GenCollectionInput,
     externalAccounts as unknown as GenCollectionInput,
@@ -33,6 +45,6 @@ const config: ConfigFunc<Collection | GenCollectionInput> = (): Configuration<
     database: process.env.MONGO_DB_NAME,
     options: `retryWrites=true&w=majority`,
   },
-});
+};
 
 export { config };
