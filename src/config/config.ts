@@ -46,6 +46,14 @@ const config: Configuration<Collection | GenCollectionInput> = {
     options: `retryWrites=true&w=majority`,
   },
   defaultSender: 'Cristata <noreply@thepaladin.news>',
+  defaultTeams: [
+    { name: 'Board', slug: 'board', id: '000000000000000000000002' },
+    { name: 'Managing Editors', slug: 'managing-editors', id: '000000000000000000000003' },
+    { name: 'Editing Team', slug: 'editing-team', id: '000000000000000000000004' },
+    { name: 'Social Media', slug: 'social-media', id: '000000000000000000000007' },
+    { name: 'Short URL Creators', slug: 'shorturl', id: '000000000000000000000008' },
+    { name: 'The Royal Flush', slug: 'flusher', id: '000000000000000000000009' },
+  ],
   minimumClientVersion: '0.7.0',
   tenantDisplayName: 'The Paladin Network',
 };

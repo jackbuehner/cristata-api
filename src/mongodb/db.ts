@@ -4,6 +4,7 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import passport from 'passport';
 import passportLocalMongoose from 'passport-local-mongoose';
 import { Configuration } from '../types/config';
+import { slugify } from '../utils/slugify';
 
 mongoose.Schema.Types.String.checkRequired((v) => v !== null && v !== undefined);
 
@@ -152,36 +153,13 @@ async function db(config: Configuration): Promise<void> {
       slug: 'admin',
       _id: new mongoose.Types.ObjectId('000000000000000000000001'),
     },
-    {
-      name: 'Board',
-      slug: 'board',
-      _id: new mongoose.Types.ObjectId('000000000000000000000002'),
-    },
-    {
-      name: 'Managing Editors',
-      slug: 'managing-editors',
-      _id: new mongoose.Types.ObjectId('000000000000000000000003'),
-    },
-    {
-      name: 'Editing Team',
-      slug: 'editing-team',
-      _id: new mongoose.Types.ObjectId('000000000000000000000004'),
-    },
-    {
-      name: 'Social Media',
-      slug: 'social-media',
-      _id: new mongoose.Types.ObjectId('000000000000000000000007'),
-    },
-    {
-      name: 'Short URL Creators',
-      slug: 'shorturl',
-      _id: new mongoose.Types.ObjectId('000000000000000000000008'),
-    },
-    {
-      name: 'The Royal Flush',
-      slug: 'flusher',
-      _id: new mongoose.Types.ObjectId('000000000000000000000009'),
-    },
+    ...config.defaultTeams?.map((team) => {
+      return {
+        name: team.name,
+        slug: slugify(team.slug),
+        _id: new mongoose.Types.ObjectId(team.id),
+      };
+    }),
   ];
 
   const Team = mongoose.model('Team');

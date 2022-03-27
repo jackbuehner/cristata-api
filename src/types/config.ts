@@ -26,6 +26,35 @@ interface Configuration<CT = Collection> {
    */
   defaultSender: string;
   /**
+   * The teams that should always exist in the teams collection.
+   *
+   * An Administrators team will always be created:
+   * ```js
+   * {
+   *   name: 'Administrators',
+   *   slug: 'admin',
+   *   id: '000000000000000000000001',
+   * }
+   * ```
+   */
+  defaultTeams?: Array<{
+    /**
+     * The name of the team.
+     */
+    name: string;
+    /**
+     * The slug of the team.
+     * It should be alphanumeric with no other characters.
+     * Substitute spaces with hyphens.
+     */
+    slug: string;
+    /**
+     * A hexadecimal representation of a MongoDB ObjectId.
+     * It should be 32 characters long.
+     */
+    id: string;
+  }>;
+  /**
    * The lowest version number permitted for clients connecting via websockets.
    */
   minimumClientVersion: string;
