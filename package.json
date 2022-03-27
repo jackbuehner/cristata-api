@@ -8,7 +8,7 @@
   "main": "dist/index.js",
   "scripts": {
     "release": "npm run build:json-schema && standard-version",
-    "build": "npm run build:json-schema && tsc && eslint . --ext .js,.jsx,.ts,.tsx",
+    "build": "npm run build:json-schema && tsc --build && eslint . --ext .js,.jsx,.ts,.tsx",
     "check": "tsc",
     "test": "echo \"Error: no test specified\"",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
