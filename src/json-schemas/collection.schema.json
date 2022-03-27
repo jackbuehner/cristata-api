@@ -1,0 +1,3081 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "AnyObject": {
+            "additionalProperties": {},
+            "type": "object"
+        },
+        "CollectionPermissions": {
+            "properties": {
+                "bypassDocPermissions": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "create": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "deactivate": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "delete": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "get": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "hide": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "lock": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "modify": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "publish": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "watch": {
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "Field": {
+            "type": "object"
+        },
+        "FilterQuery<unknown>": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/{}"
+                },
+                {
+                    "$ref": "#/definitions/RootQuerySelector<unknown>"
+                }
+            ]
+        },
+        "Function": {
+            "properties": {
+                "arguments": {},
+                "caller": {
+                    "$ref": "#/definitions/Function"
+                },
+                "length": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "prototype": {}
+            },
+            "type": "object"
+        },
+        "NestedSchemaDefType": {
+            "additionalProperties": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/SchemaDef"
+                    },
+                    {
+                        "$ref": "#/definitions/NestedSchemaDefType"
+                    }
+                ]
+            },
+            "type": "object"
+        },
+        "PipelineStage.AddFields": {
+            "properties": {
+                "$addFields": {
+                    "$ref": "#/definitions/Record<string,any>",
+                    "description": "[`$addFields` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/addFields/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Bucket": {
+            "properties": {
+                "$bucket": {
+                    "description": "[`$bucket` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/bucket/)",
+                    "properties": {
+                        "boundaries": {
+                            "items": {},
+                            "type": "array"
+                        },
+                        "default": {},
+                        "groupBy": {},
+                        "output": {
+                            "$ref": "#/definitions/Record<string,{$accumulator?:any;$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$mergeObjects?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;}>"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.BucketAuto": {
+            "properties": {
+                "$bucketAuto": {
+                    "description": "[`$bucketAuto` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/bucketAuto/)",
+                    "properties": {
+                        "buckets": {
+                            "type": "number"
+                        },
+                        "granularity": {
+                            "enum": [
+                                "1-2-5",
+                                "E12",
+                                "E192",
+                                "E24",
+                                "E48",
+                                "E6",
+                                "E96",
+                                "POWERSOF2",
+                                "R10",
+                                "R20",
+                                "R40",
+                                "R5",
+                                "R80"
+                            ],
+                            "type": "string"
+                        },
+                        "groupBy": {},
+                        "output": {
+                            "$ref": "#/definitions/Record<string,{$accumulator?:any;$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$mergeObjects?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;}>_1"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.CollStats": {
+            "properties": {
+                "$collStats": {
+                    "description": "[`$collStats` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/collStats/)",
+                    "properties": {
+                        "count": {
+                            "properties": {},
+                            "type": "object"
+                        },
+                        "latencyStats": {
+                            "properties": {
+                                "histograms": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "queryExecStats": {
+                            "properties": {},
+                            "type": "object"
+                        },
+                        "storageStats": {
+                            "properties": {
+                                "scale": {
+                                    "type": "number"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Count": {
+            "properties": {
+                "$count": {
+                    "description": "[`$count` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/count/)",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Facet": {
+            "properties": {
+                "$facet": {
+                    "$ref": "#/definitions/Record<string,(PipelineStage.AddFields|PipelineStage.Bucket|PipelineStage.BucketAuto|PipelineStage.Count|PipelineStage.GraphLookup|PipelineStage.Group|PipelineStage.Limit|PipelineStage.ListSessions|PipelineStage.Lookup|PipelineStage.Match|PipelineStage.Project|PipelineStage.Redact|PipelineStage.ReplaceRoot|PipelineStage.ReplaceWith|PipelineStage.Sample|PipelineStage.Search|PipelineStage.Set|PipelineStage.SetWindowFields|PipelineStage.Skip|PipelineStage.Sort|PipelineStage.SortByCount|PipelineStage.UnionWith|PipelineStage.Unset|PipelineStage.Unwind)[]>",
+                    "description": "[`$facet` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/facet/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.GeoNear": {
+            "properties": {
+                "$geoNear": {
+                    "description": "[`$geoNear` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/geoNear/)",
+                    "properties": {
+                        "distanceField": {
+                            "type": "string"
+                        },
+                        "distanceMultiplier": {
+                            "type": "number"
+                        },
+                        "includeLocs": {
+                            "type": "string"
+                        },
+                        "key": {
+                            "type": "string"
+                        },
+                        "maxDistance": {
+                            "type": "number"
+                        },
+                        "minDistance": {
+                            "type": "number"
+                        },
+                        "near": {
+                            "anyOf": [
+                                {
+                                    "properties": {
+                                        "coordinates": {
+                                            "items": [
+                                                {
+                                                    "type": "number"
+                                                },
+                                                {
+                                                    "type": "number"
+                                                }
+                                            ],
+                                            "maxItems": 2,
+                                            "minItems": 2,
+                                            "type": "array"
+                                        },
+                                        "type": {
+                                            "enum": [
+                                                "Point"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "type": "number"
+                                        }
+                                    ],
+                                    "maxItems": 2,
+                                    "minItems": 2,
+                                    "type": "array"
+                                }
+                            ]
+                        },
+                        "query": {
+                            "$ref": "#/definitions/AnyObject"
+                        },
+                        "spherical": {
+                            "type": "boolean"
+                        },
+                        "uniqueDocs": {
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.GraphLookup": {
+            "properties": {
+                "$graphLookup": {
+                    "description": "[`$graphLookup` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/graphLookup/)",
+                    "properties": {
+                        "as": {
+                            "type": "string"
+                        },
+                        "connectFromField": {
+                            "type": "string"
+                        },
+                        "connectToField": {
+                            "type": "string"
+                        },
+                        "depthField": {
+                            "type": "string"
+                        },
+                        "from": {
+                            "type": "string"
+                        },
+                        "maxDepth": {
+                            "type": "number"
+                        },
+                        "restrictSearchWithMatch": {
+                            "$ref": "#/definitions/AnyObject"
+                        },
+                        "startWith": {}
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Group": {
+            "properties": {
+                "$group": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/{$accumulator?:any;$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$mergeObjects?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;}"
+                    },
+                    "description": "[`$group` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/group)",
+                    "properties": {
+                        "_id": {}
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.IndexStats": {
+            "properties": {
+                "$indexStats": {
+                    "description": "[`$indexStats` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/indexStats/)",
+                    "properties": {},
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Limit": {
+            "properties": {
+                "$limit": {
+                    "description": "[`$limit` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/limit/)",
+                    "type": "number"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.ListSessions": {
+            "properties": {
+                "$listSessions": {
+                    "anyOf": [
+                        {
+                            "properties": {
+                                "users": {
+                                    "items": {
+                                        "properties": {
+                                            "db": {
+                                                "type": "string"
+                                            },
+                                            "user": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "properties": {
+                                "allUsers": {
+                                    "enum": [
+                                        true
+                                    ],
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    ],
+                    "description": "[`$listSessions` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/listSessions/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Lookup": {
+            "properties": {
+                "$lookup": {
+                    "description": "[`$lookup` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/)",
+                    "properties": {
+                        "as": {
+                            "type": "string"
+                        },
+                        "foreignField": {
+                            "type": "string"
+                        },
+                        "from": {
+                            "type": "string"
+                        },
+                        "let": {
+                            "$ref": "#/definitions/Record<string,any>"
+                        },
+                        "localField": {
+                            "type": "string"
+                        },
+                        "pipeline": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.AddFields"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Bucket"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.BucketAuto"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.CollStats"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Count"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Facet"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.GeoNear"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.GraphLookup"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Group"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.IndexStats"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Limit"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.ListSessions"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Lookup"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Match"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.PlanCacheStats"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Project"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Redact"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.ReplaceRoot"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.ReplaceWith"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Sample"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Set"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.SetWindowFields"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Skip"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Sort"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.SortByCount"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.UnionWith"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Unset"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/PipelineStage.Unwind"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Match": {
+            "properties": {
+                "$match": {
+                    "$ref": "#/definitions/AnyObject",
+                    "description": "[`$match` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/match/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Merge": {
+            "properties": {
+                "$merge": {
+                    "description": "[`$merge` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/merge/)",
+                    "properties": {
+                        "into": {
+                            "anyOf": [
+                                {
+                                    "properties": {
+                                        "coll": {
+                                            "type": "string"
+                                        },
+                                        "db": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                {
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "let": {
+                            "$ref": "#/definitions/Record<string,any>"
+                        },
+                        "on": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "whenMatched": {
+                            "enum": [
+                                "fail",
+                                "keepExisting",
+                                "merge",
+                                "pipeline",
+                                "replace"
+                            ],
+                            "type": "string"
+                        },
+                        "whenNotMatched": {
+                            "enum": [
+                                "discard",
+                                "fail",
+                                "insert"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Out": {
+            "properties": {
+                "$out": {
+                    "anyOf": [
+                        {
+                            "properties": {
+                                "coll": {
+                                    "type": "string"
+                                },
+                                "db": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "[`$out` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/out/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.PlanCacheStats": {
+            "properties": {
+                "$planCacheStats": {
+                    "description": "[`$planCacheStats` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/planCacheStats/)",
+                    "properties": {},
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Project": {
+            "properties": {
+                "$project": {
+                    "additionalProperties": {},
+                    "description": "[`$project` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/project/)",
+                    "properties": {
+                        "_id": {
+                            "enum": [
+                                0,
+                                false
+                            ]
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Redact": {
+            "properties": {
+                "$redact": {
+                    "description": "[`$redact` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/redact/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.ReplaceRoot": {
+            "properties": {
+                "$replaceRoot": {
+                    "description": "[`$replaceRoot` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/replaceRoot/)",
+                    "properties": {
+                        "newRoot": {}
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.ReplaceWith": {
+            "properties": {
+                "$replaceWith": {
+                    "description": "[`$replaceWith` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/replaceWith/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Sample": {
+            "properties": {
+                "$sample": {
+                    "description": "[`$sample` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/sample/)",
+                    "properties": {
+                        "size": {
+                            "type": "number"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Search": {
+            "properties": {
+                "$search": {
+                    "additionalProperties": {},
+                    "description": "[`$search` reference](https://docs.atlas.mongodb.com/reference/atlas-search/query-syntax/)",
+                    "properties": {
+                        "highlight": {
+                            "properties": {
+                                "maxCharsToExamine": {
+                                    "type": "number"
+                                },
+                                "maxNumPassages": {
+                                    "type": "number"
+                                },
+                                "path": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "index": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Set": {
+            "properties": {
+                "$set": {
+                    "$ref": "#/definitions/Record<string,any>",
+                    "description": "[`$set` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/set/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.SetWindowFields": {
+            "properties": {
+                "$setWindowFields": {
+                    "description": "[`$setWindowFields` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/setWindowFields/)",
+                    "properties": {
+                        "output": {
+                            "$ref": "#/definitions/Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\";};}>"
+                        },
+                        "partitionBy": {},
+                        "sortBy": {
+                            "$ref": "#/definitions/Record<string,1|-1>"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Skip": {
+            "properties": {
+                "$skip": {
+                    "description": "[`$skip` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/skip/)",
+                    "type": "number"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Sort": {
+            "properties": {
+                "$sort": {
+                    "$ref": "#/definitions/Record<string,1|-1|{$meta:\"textScore\";}>",
+                    "description": "[`$sort` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/sort/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.SortByCount": {
+            "properties": {
+                "$sortByCount": {
+                    "description": "[`$sortByCount` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/sortByCount/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.UnionWith": {
+            "properties": {
+                "$unionWith": {
+                    "anyOf": [
+                        {
+                            "properties": {
+                                "coll": {
+                                    "type": "string"
+                                },
+                                "pipeline": {
+                                    "items": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.AddFields"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Bucket"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.BucketAuto"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.CollStats"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Count"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Facet"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.GeoNear"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.GraphLookup"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Group"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.IndexStats"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Limit"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.ListSessions"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Lookup"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Match"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.PlanCacheStats"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Project"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Redact"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.ReplaceRoot"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.ReplaceWith"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Sample"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Search"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Set"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.SetWindowFields"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Skip"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Sort"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.SortByCount"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.UnionWith"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Unset"
+                                            },
+                                            {
+                                                "$ref": "#/definitions/PipelineStage.Unwind"
+                                            }
+                                        ]
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "[`$unionWith` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/unionWith/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Unset": {
+            "properties": {
+                "$unset": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "[`$unset` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/unset/)"
+                }
+            },
+            "type": "object"
+        },
+        "PipelineStage.Unwind": {
+            "properties": {
+                "$unwind": {
+                    "anyOf": [
+                        {
+                            "properties": {
+                                "includeArrayIndex": {
+                                    "type": "string"
+                                },
+                                "path": {
+                                    "type": "string"
+                                },
+                                "preserveNullAndEmptyArrays": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "[`$unwind` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/unwind/)"
+                }
+            },
+            "type": "object"
+        },
+        "Record<string,(PipelineStage.AddFields|PipelineStage.Bucket|PipelineStage.BucketAuto|PipelineStage.Count|PipelineStage.GraphLookup|PipelineStage.Group|PipelineStage.Limit|PipelineStage.ListSessions|PipelineStage.Lookup|PipelineStage.Match|PipelineStage.Project|PipelineStage.Redact|PipelineStage.ReplaceRoot|PipelineStage.ReplaceWith|PipelineStage.Sample|PipelineStage.Search|PipelineStage.Set|PipelineStage.SetWindowFields|PipelineStage.Skip|PipelineStage.Sort|PipelineStage.SortByCount|PipelineStage.UnionWith|PipelineStage.Unset|PipelineStage.Unwind)[]>": {
+            "type": "object"
+        },
+        "Record<string,1|-1>": {
+            "type": "object"
+        },
+        "Record<string,1|-1|{$meta:\"textScore\";}>": {
+            "type": "object"
+        },
+        "Record<string,any>": {
+            "type": "object"
+        },
+        "Record<string,{$accumulator?:any;$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$mergeObjects?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;}>": {
+            "type": "object"
+        },
+        "Record<string,{$accumulator?:any;$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$mergeObjects?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;}>_1": {
+            "type": "object"
+        },
+        "Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\";};}>": {
+            "type": "object"
+        },
+        "RegExp": {
+            "properties": {
+                "dotAll": {
+                    "type": "boolean"
+                },
+                "flags": {
+                    "type": "string"
+                },
+                "global": {
+                    "type": "boolean"
+                },
+                "ignoreCase": {
+                    "type": "boolean"
+                },
+                "lastIndex": {
+                    "type": "number"
+                },
+                "multiline": {
+                    "type": "boolean"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sticky": {
+                    "type": "boolean"
+                },
+                "unicode": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "RootQuerySelector<unknown>": {
+            "additionalProperties": {},
+            "properties": {
+                "$and": {
+                    "items": {
+                        "$ref": "#/definitions/FilterQuery<unknown>"
+                    },
+                    "type": "array"
+                },
+                "$comment": {
+                    "type": "string"
+                },
+                "$nor": {
+                    "items": {
+                        "$ref": "#/definitions/FilterQuery<unknown>"
+                    },
+                    "type": "array"
+                },
+                "$or": {
+                    "items": {
+                        "$ref": "#/definitions/FilterQuery<unknown>"
+                    },
+                    "type": "array"
+                },
+                "$text": {
+                    "properties": {
+                        "$caseSensitive": {
+                            "type": "boolean"
+                        },
+                        "$diacriticSensitive": {
+                            "type": "boolean"
+                        },
+                        "$language": {
+                            "type": "string"
+                        },
+                        "$search": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
+                "$where": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Function"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "type": "object"
+        },
+        "SchemaDef": {
+            "properties": {
+                "default": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "items": {
+                                "type": "number"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "items": {
+                                "type": "boolean"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "properties": {
+                                "code": {
+                                    "enum": [
+                                        "alphanumeric"
+                                    ],
+                                    "type": "string"
+                                },
+                                "length": {
+                                    "type": "number"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "type": [
+                                "string",
+                                "number",
+                                "boolean"
+                            ]
+                        }
+                    ],
+                    "description": "A default value to use for a new document.\n\nIf a string is provided, the string value will be used for every new\ndocument.\n\nIf a code specification is provided, a new code will be generated\nfor each new document."
+                },
+                "modifiable": {
+                    "type": "boolean"
+                },
+                "public": {
+                    "type": "boolean"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "rule": {
+                    "properties": {
+                        "match": {
+                            "$ref": "#/definitions/RegExp"
+                        },
+                        "message": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
+                "setter": {
+                    "properties": {
+                        "condition": {
+                            "anyOf": [
+                                {
+                                    "properties": {
+                                        "$and": {
+                                            "items": {
+                                                "$ref": "#/definitions/Field"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                {
+                                    "properties": {
+                                        "$or": {
+                                            "items": {
+                                                "$ref": "#/definitions/Field"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "value": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "items": {
+                                        "type": "number"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "items": {
+                                        "type": "boolean"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "properties": {
+                                        "separator": {
+                                            "type": "string"
+                                        },
+                                        "slugify": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                {
+                                    "properties": {
+                                        "code": {
+                                            "enum": [
+                                                "alphanumeric"
+                                            ],
+                                            "type": "string"
+                                        },
+                                        "length": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                {
+                                    "type": [
+                                        "string",
+                                        "number",
+                                        "boolean"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "type": "object"
+                },
+                "strict": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "anyOf": [
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "Boolean"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "Date"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "Number"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "Float"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "ObjectId"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "String"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "JSON"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "anyOf": [
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Boolean"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Date"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Number"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Float"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "ObjectId"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "String"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "JSON"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "enum": [
+                                                "Boolean",
+                                                "Date",
+                                                "Float",
+                                                "JSON",
+                                                "Number",
+                                                "ObjectId",
+                                                "String"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "maxItems": 2,
+                            "minItems": 2,
+                            "type": "array"
+                        },
+                        {
+                            "enum": [
+                                "Boolean",
+                                "Date",
+                                "Float",
+                                "JSON",
+                                "Number",
+                                "ObjectId",
+                                "String"
+                            ],
+                            "type": "string"
+                        }
+                    ]
+                },
+                "unique": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "SchemaDefType": {
+            "additionalProperties": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/SchemaRef"
+                    },
+                    {
+                        "$ref": "#/definitions/SchemaDef"
+                    },
+                    {
+                        "$ref": "#/definitions/NestedSchemaDefType"
+                    },
+                    {
+                        "items": [
+                            {
+                                "$ref": "#/definitions/SchemaDefType"
+                            }
+                        ],
+                        "maxItems": 1,
+                        "minItems": 1,
+                        "type": "array"
+                    }
+                ]
+            },
+            "type": "object"
+        },
+        "SchemaRef": {
+            "properties": {
+                "by": {
+                    "description": "The identifying field on the referenced collection.\nIt must match the `match` field from the current collection.",
+                    "type": "string"
+                },
+                "field": {
+                    "description": "The field from the referenced collection document\nthat contains the value to be used for this field.",
+                    "type": "string"
+                },
+                "fieldType": {
+                    "anyOf": [
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "Boolean"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "Date"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "Number"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "Float"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "ObjectId"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "String"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "enum": [
+                                        "JSON"
+                                    ],
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
+                        },
+                        {
+                            "items": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "anyOf": [
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Boolean"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Date"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Number"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Float"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "ObjectId"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "String"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "JSON"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "enum": [
+                                                "Boolean",
+                                                "Date",
+                                                "Float",
+                                                "JSON",
+                                                "Number",
+                                                "ObjectId",
+                                                "String"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "maxItems": 2,
+                            "minItems": 2,
+                            "type": "array"
+                        },
+                        {
+                            "enum": [
+                                "Boolean",
+                                "Date",
+                                "Float",
+                                "JSON",
+                                "Number",
+                                "ObjectId",
+                                "String"
+                            ],
+                            "type": "string"
+                        }
+                    ]
+                },
+                "matches": {
+                    "description": "The identifying field on the current collection.\nIt must match the `by` field from the referenced collection.",
+                    "type": "string"
+                },
+                "model": {
+                    "description": "The collection from which the data for this field comes.",
+                    "type": "string"
+                },
+                "public": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "{$accumulator?:any;$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$mergeObjects?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;}": {
+            "properties": {
+                "$accumulator": {},
+                "$addToSet": {},
+                "$avg": {},
+                "$count": {},
+                "$first": {},
+                "$last": {},
+                "$max": {},
+                "$mergeObjects": {},
+                "$min": {},
+                "$push": {},
+                "$stdDevPop": {},
+                "$stdDevSamp": {},
+                "$sum": {}
+            },
+            "type": "object"
+        },
+        "{}": {
+            "type": "object"
+        }
+    },
+    "properties": {
+        "actionAccess": {
+            "$ref": "#/definitions/CollectionPermissions"
+        },
+        "by": {
+            "anyOf": [
+                {
+                    "items": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "anyOf": [
+                                {
+                                    "items": [
+                                        {
+                                            "enum": [
+                                                "Boolean"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "maxItems": 1,
+                                    "minItems": 1,
+                                    "type": "array"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "enum": [
+                                                "Date"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "maxItems": 1,
+                                    "minItems": 1,
+                                    "type": "array"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "enum": [
+                                                "Number"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "maxItems": 1,
+                                    "minItems": 1,
+                                    "type": "array"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "enum": [
+                                                "Float"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "maxItems": 1,
+                                    "minItems": 1,
+                                    "type": "array"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "enum": [
+                                                "ObjectId"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "maxItems": 1,
+                                    "minItems": 1,
+                                    "type": "array"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "enum": [
+                                                "String"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "maxItems": 1,
+                                    "minItems": 1,
+                                    "type": "array"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "enum": [
+                                                "JSON"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "maxItems": 1,
+                                    "minItems": 1,
+                                    "type": "array"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "anyOf": [
+                                                {
+                                                    "items": [
+                                                        {
+                                                            "enum": [
+                                                                "Boolean"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ],
+                                                    "maxItems": 1,
+                                                    "minItems": 1,
+                                                    "type": "array"
+                                                },
+                                                {
+                                                    "items": [
+                                                        {
+                                                            "enum": [
+                                                                "Date"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ],
+                                                    "maxItems": 1,
+                                                    "minItems": 1,
+                                                    "type": "array"
+                                                },
+                                                {
+                                                    "items": [
+                                                        {
+                                                            "enum": [
+                                                                "Number"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ],
+                                                    "maxItems": 1,
+                                                    "minItems": 1,
+                                                    "type": "array"
+                                                },
+                                                {
+                                                    "items": [
+                                                        {
+                                                            "enum": [
+                                                                "Float"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ],
+                                                    "maxItems": 1,
+                                                    "minItems": 1,
+                                                    "type": "array"
+                                                },
+                                                {
+                                                    "items": [
+                                                        {
+                                                            "enum": [
+                                                                "ObjectId"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ],
+                                                    "maxItems": 1,
+                                                    "minItems": 1,
+                                                    "type": "array"
+                                                },
+                                                {
+                                                    "items": [
+                                                        {
+                                                            "enum": [
+                                                                "String"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ],
+                                                    "maxItems": 1,
+                                                    "minItems": 1,
+                                                    "type": "array"
+                                                },
+                                                {
+                                                    "items": [
+                                                        {
+                                                            "enum": [
+                                                                "JSON"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ],
+                                                    "maxItems": 1,
+                                                    "minItems": 1,
+                                                    "type": "array"
+                                                },
+                                                {
+                                                    "enum": [
+                                                        "Boolean",
+                                                        "Date",
+                                                        "Float",
+                                                        "JSON",
+                                                        "Number",
+                                                        "ObjectId",
+                                                        "String"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "maxItems": 2,
+                                    "minItems": 2,
+                                    "type": "array"
+                                },
+                                {
+                                    "enum": [
+                                        "Boolean",
+                                        "Date",
+                                        "Float",
+                                        "JSON",
+                                        "Number",
+                                        "ObjectId",
+                                        "String"
+                                    ],
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2,
+                    "type": "array"
+                },
+                {
+                    "properties": {
+                        "many": {
+                            "items": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "anyOf": [
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Boolean"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Date"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Number"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Float"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "ObjectId"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "String"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "JSON"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "Boolean"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "Date"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "Number"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "Float"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "ObjectId"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "String"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "JSON"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "enum": [
+                                                                "Boolean",
+                                                                "Date",
+                                                                "Float",
+                                                                "JSON",
+                                                                "Number",
+                                                                "ObjectId",
+                                                                "String"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "maxItems": 2,
+                                            "minItems": 2,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "enum": [
+                                                "Boolean",
+                                                "Date",
+                                                "Float",
+                                                "JSON",
+                                                "Number",
+                                                "ObjectId",
+                                                "String"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "maxItems": 2,
+                            "minItems": 2,
+                            "type": "array"
+                        },
+                        "one": {
+                            "items": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "anyOf": [
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Boolean"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Date"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Number"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "Float"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "ObjectId"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "String"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "enum": [
+                                                        "JSON"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "maxItems": 1,
+                                            "minItems": 1,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "items": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "anyOf": [
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "Boolean"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "Date"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "Number"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "Float"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "ObjectId"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "String"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "items": [
+                                                                {
+                                                                    "enum": [
+                                                                        "JSON"
+                                                                    ],
+                                                                    "type": "string"
+                                                                }
+                                                            ],
+                                                            "maxItems": 1,
+                                                            "minItems": 1,
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "enum": [
+                                                                "Boolean",
+                                                                "Date",
+                                                                "Float",
+                                                                "JSON",
+                                                                "Number",
+                                                                "ObjectId",
+                                                                "String"
+                                                            ],
+                                                            "type": "string"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "maxItems": 2,
+                                            "minItems": 2,
+                                            "type": "array"
+                                        },
+                                        {
+                                            "enum": [
+                                                "Boolean",
+                                                "Date",
+                                                "Float",
+                                                "JSON",
+                                                "Number",
+                                                "ObjectId",
+                                                "String"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "maxItems": 2,
+                            "minItems": 2,
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                }
+            ],
+            "description": "The accessor for retrieving one document or many documents.\n\nThe default accessor is '_id' of with a `SchemaType` of 'ObjectId`.\n\nProvide a string accessor if it is the same for getting one document\nor many documents. (e.g. `['code', 'Number']`).\n\nProvide an object with keys `one` and `many` to specify different\naccessors for retrieving one document vs many documents.\n\nAn 's' will always be appended to the name of the accessor when selecting\nmany documents. The type when selecting many documents will be an\narray of the specified type."
+        },
+        "canPublish": {
+            "description": "Whether documents in this collection can be marked as published.\nThis adds extra people and timestamp fields for track who published\na document and when it was published.",
+            "type": "boolean"
+        },
+        "customMutations": {
+            "description": "Create custom mutations.",
+            "items": {
+                "properties": {
+                    "action": {
+                        "description": "The action this query does.\n\nSupported actions:\n\n`$inc`: pass `{ inc: [fieldName, type] }`, where type matches the type of the field in the schema (NO !).",
+                        "properties": {
+                            "inc": {
+                                "items": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ],
+                                "maxItems": 2,
+                                "minItems": 2,
+                                "type": "array"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "description": {
+                        "description": "The description of the mutation. Be sure to use a helpful description\nso someone else can know what this mutation does. Can be seen in\nGraphQL introspection.",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "camelCase name of the custom mutation.\n\nThe mutation name will be capitalized and the name of the collection\nwill be prepended to the query name.\n\nFor example, `'stageCounts'` becomes `'satireStageCounts'`.",
+                        "type": "string"
+                    },
+                    "public": {
+                        "description": "Whether the query can be used without authentication.",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "type": "array"
+        },
+        "customQueries": {
+            "description": "Create custom queries based on MongoDB aggregation pipelines.",
+            "items": {
+                "properties": {
+                    "accepts": {
+                        "description": "A string list of arguments for the query.\n\nExample: `name: String!, slug: String`",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "The description of the query. Be sure to use a helpful description\nso someone else can know what this query does. Can be seen in\nGraphQL introspection.",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "camelCase name of the custom query.\n\nThe query name will be capitalized and the name of the collection\nwill be prepended to the query name.\n\nFor example, `'stageCounts'` becomes `'satireStageCounts'`.",
+                        "type": "string"
+                    },
+                    "path": {
+                        "description": "Choose a specific path from the pipeline result to send to clients.\nPowered by object-path.",
+                        "type": "string"
+                    },
+                    "pipeline": {
+                        "description": "A MongoDB aggregation pipeline.\n[Pipeline stage reference](https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/#aggregation-pipeline-stages)",
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/PipelineStage.AddFields"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Bucket"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.BucketAuto"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.CollStats"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Count"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Facet"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.GeoNear"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.GraphLookup"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Group"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.IndexStats"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Limit"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.ListSessions"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Lookup"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Match"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Merge"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Out"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.PlanCacheStats"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Project"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Redact"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.ReplaceRoot"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.ReplaceWith"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Sample"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Search"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Set"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.SetWindowFields"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Skip"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Sort"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.SortByCount"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.UnionWith"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Unset"
+                                },
+                                {
+                                    "$ref": "#/definitions/PipelineStage.Unwind"
+                                }
+                            ],
+                            "description": "[Stages reference](https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/#aggregation-pipeline-stages)"
+                        },
+                        "type": "array"
+                    },
+                    "public": {
+                        "description": "Whether the query can be used without authentication.",
+                        "type": "boolean"
+                    },
+                    "returns": {
+                        "description": "An un-named object type that represents the returned values from the\npipeline.\n\nExample: `{ _id: Float!, count: Int! }`\n\nIf you want to specify a type that already exists, provide it\nwithout curly brackets.",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "type": "array"
+        },
+        "name": {
+            "description": "The name of this collection.",
+            "type": "string"
+        },
+        "options": {
+            "properties": {
+                "disableActionAccessQuery": {
+                    "type": "boolean"
+                },
+                "disableCreateMutation": {
+                    "type": "boolean"
+                },
+                "disableCreatedSubscription": {
+                    "type": "boolean"
+                },
+                "disableDeleteMutation": {
+                    "type": "boolean"
+                },
+                "disableDeletedSubscription": {
+                    "type": "boolean"
+                },
+                "disableFindManyQuery": {
+                    "type": "boolean"
+                },
+                "disableFindOneQuery": {
+                    "type": "boolean"
+                },
+                "disableHideMutation": {
+                    "type": "boolean"
+                },
+                "disableLockMutation": {
+                    "type": "boolean"
+                },
+                "disableModifiedSubscription": {
+                    "type": "boolean"
+                },
+                "disableModifyMutation": {
+                    "type": "boolean"
+                },
+                "disablePublicFindManyQuery": {
+                    "type": "boolean"
+                },
+                "disablePublicFindOneBySlugQuery": {
+                    "type": "boolean"
+                },
+                "disablePublicFindOneQuery": {
+                    "type": "boolean"
+                },
+                "disablePublishMutation": {
+                    "type": "boolean"
+                },
+                "disableWatchMutation": {
+                    "type": "boolean"
+                },
+                "mandatoryWatchers": {
+                    "description": "Keys of fields that contain ObjectIDs of the users who\nmust always receive notification emails when documents\nin this collection change via Cristata.\n\nThe keys may reference fields that are arrays or single\nvalues.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "watcherNotices": {
+                    "properties": {
+                        "fields": {
+                            "items": {
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "numMap": {
+                                        "additionalProperties": false,
+                                        "patternProperties": {
+                                            "^[0-9.]+$": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "stageField": {
+                            "type": "string"
+                        },
+                        "stageMap": {
+                            "additionalProperties": false,
+                            "patternProperties": {
+                                "^[0-9.]+$": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "subjectField": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "publicRules": {
+            "anyOf": [
+                {
+                    "properties": {
+                        "filter": {
+                            "$ref": "#/definitions/FilterQuery<unknown>"
+                        },
+                        "slugDateField": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
+                {
+                    "enum": [
+                        false
+                    ],
+                    "type": "boolean"
+                }
+            ],
+            "description": "Specify rules for public queries.\n\nUse `false` to disallow public queries.\n\n`filter`: MongoDB filter to sort out documents that need to remain private\n          (use `{}` for no filter)\n\n`slugDateField`: the field to use to ensure that the publicBySlug query returns the\n                 correct slug"
+        },
+        "schemaDef": {
+            "$ref": "#/definitions/SchemaDefType",
+            "description": "The definition for the schema. GraphQL type definitions and the mongoose schema are\ngenerated from this."
+        },
+        "withPermissions": {
+            "description": "Whether this collection allows setting permissions for each document\nin addition to global collection permissions.",
+            "type": "boolean"
+        },
+        "withSubscription": {
+            "description": "Whether a subscription should be provided for listening to\ndocument creations, modifications, and deletions in this collection.",
+            "type": "boolean"
+        }
+    },
+    "type": "object"
+}
+

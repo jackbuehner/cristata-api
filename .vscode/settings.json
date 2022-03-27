@@ -1,4 +1,10 @@
 {
+  "json.schemas": [
+    {
+      "fileMatch": ["/*.collection.json"],
+      "url": "./src/json-schemas/collection.schema.json"
+    }
+  ],
   "workbench.colorCustomizations": {
     "activityBar.background": "#151515",
     "activityBar.border": "#242424",

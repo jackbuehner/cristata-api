@@ -1,0 +1,13 @@
+diff --git a/node_modules/typescript-json-schema/dist/typescript-json-schema.js b/node_modules/typescript-json-schema/dist/typescript-json-schema.js
+index 1014da3..996484f 100644
+--- a/node_modules/typescript-json-schema/dist/typescript-json-schema.js
++++ b/node_modules/typescript-json-schema/dist/typescript-json-schema.js
+@@ -59,7 +59,7 @@ var REGEX_TSCONFIG_NAME = /^.*\.json$/;
+ var REGEX_TJS_JSDOC = /^-([\w]+)\s+(\S|\S[\s\S]*\S)\s*$/g;
+ var REGEX_GROUP_JSDOC = /^[.]?([\w]+)\s+(\S|\S[\s\S]*\S)\s*$/g;
+ var REGEX_REQUIRE = /^(\s+)?require\((\'@?[a-zA-Z0-9.\/_-]+\'|\"@?[a-zA-Z0-9.\/_-]+\")\)(\.([a-zA-Z0-9_$]+))?(\s+|$)/;
+-var NUMERIC_INDEX_PATTERN = "^[0-9]+$";
++var NUMERIC_INDEX_PATTERN = "^[0-9.]+$";
+ function getDefaultArgs() {
+     return {
+         ref: true,

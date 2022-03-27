@@ -8,14 +8,15 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/server.js",
-    "release": "standard-version",
-    "build": "tsc && eslint . --ext .js,.jsx,.ts,.tsx",
+    "release": "npm run build:json-schema && standard-version",
+    "build": "npm run build:json-schema && tsc && eslint . --ext .js,.jsx,.ts,.tsx",
     "dev:server": "nodemon src/server.ts",
     "dev:tunnel": "./bin/pktriot-0.10.8/pktriot start --config ./bin/pktriot-0.10.8/config.json",
     "test": "echo \"Error: no test specified\"",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "postinstall": "patch-package",
-    "heroku-cleanup": "patch-package"
+    "heroku-cleanup": "patch-package",
+    "build:json-schema": "typescript-json-schema ./tsconfig.json GenCollectionInput --out ./src/json-schemas/collection.schema.json"
   },
   "standard-version": {
     "scripts": {
@@ -80,6 +81,7 @@
     "patch-package": "^6.4.7",
     "pluralize": "^8.0.0",
     "subscriptions-transport-ws": "^0.11.0",
+    "typescript-json-schema": "^0.53.0",
     "ws": "^7.5.5",
     "y-mongodb": "^0.1.11",
     "y-protocols": "^1.0.5"
