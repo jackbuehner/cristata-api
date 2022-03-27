@@ -68,10 +68,10 @@ router.get('/github/callback', (req: Request, res: Response, next: NextFunction)
     if (user.errors && isArray(user.errors) && user.errors.length > 0)
       handleError(new Error(`${user.errors[0][0]}: ${user.errors[0][1]}`), req, res, true);
     if (err) handleError(err, req, res);
-    if (!user) res.redirect(process.env.PASSPORT_REDIRECT);
+    if (!user) res.redirect(process.env.APP_URL + '/sign-in');
     req.logIn(user, (err) => {
       if (err) handleError(err, req, res);
-      res.redirect(process.env.PASSPORT_REDIRECT);
+      res.redirect(process.env.APP_URL + '/sign-in');
     });
   })(req, res, next);
 });
@@ -96,7 +96,7 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
     // don't sign in if user is missing after authentication
     else if (!user) {
       if (req.body.redirect === false) res.json({ error: 'user is missing' });
-      else res.redirect(req.body.server ? req.baseUrl + '/local' : process.env.PASSPORT_REDIRECT);
+      else res.redirect(req.body.server ? req.baseUrl + '/local' : process.env.APP_URL + '/sign-in');
     } else {
       // sign in
       req.logIn(user, (err) => {
@@ -110,7 +110,7 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
               else res.json({ data: result });
             }
           );
-        } else res.redirect(process.env.PASSPORT_REDIRECT);
+        } else res.redirect(process.env.APP_URL + '/sign-in');
       });
     }
   })(req, res, next);
