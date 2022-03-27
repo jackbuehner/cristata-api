@@ -41,7 +41,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
           coreTypeDefs,
           collectionTypeDefs,
           s3TypeDefs,
-          ...config.database.collections.map((collection) => collection.typeDefs),
+          ...config.collections.map((collection) => collection.typeDefs),
         ].join()
       ),
     ];
@@ -50,7 +50,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
       coreResolvers,
       s3Resolvers,
       collectionResolvers,
-      ...config.database.collections.map((collection) => collection.resolvers)
+      ...config.collections.map((collection) => collection.resolvers)
     );
 
     // create the base executable schema

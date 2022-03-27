@@ -26,21 +26,18 @@ class Cristata {
     const conf = config();
     this.config = {
       ...conf,
-      database: {
-        ...conf.database,
-        collections: [
-          ...conf.database.collections
-            .filter((col): col is GenCollectionInput => {
-              return !isCollection(col);
-            })
-            .map((col) => {
-              return helpers.generators.genCollection(col);
-            }),
-          ...conf.database.collections.filter((col): col is Collection => {
-            return isCollection(col);
+      collections: [
+        ...conf.collections
+          .filter((col): col is GenCollectionInput => {
+            return !isCollection(col);
+          })
+          .map((col) => {
+            return helpers.generators.genCollection(col);
           }),
-        ],
-      },
+        ...conf.collections.filter((col): col is Collection => {
+          return isCollection(col);
+        }),
+      ],
     };
   }
 

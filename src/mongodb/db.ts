@@ -64,7 +64,7 @@ async function db(config: Configuration): Promise<void> {
   };
 
   // create the schema and model for each collection
-  config.database.collections.forEach((collection) => {
+  config.collections.forEach((collection) => {
     // merge preset schema fields per the config with fiels from the collection config
     const basicSchemaFields = merge(
       collectionSchemaFields,

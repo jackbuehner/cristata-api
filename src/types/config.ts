@@ -3,6 +3,7 @@ import { IResolvers } from '@graphql-tools/utils';
 type ConfigFunc<CT = Collection> = () => Configuration<CT>;
 
 interface Configuration<CT = Collection> {
+  collections: Array<CT>;
   connection: {
     username: string;
     password: string;
@@ -10,13 +11,6 @@ interface Configuration<CT = Collection> {
     database: string;
     options: string;
   };
-  database: Database<CT>;
-}
-
-type DatabaseFunc<CT = Collection> = () => Database<CT>;
-
-interface Database<CT = Collection> {
-  collections: Array<CT>;
 }
 
 interface Collection {
@@ -52,8 +46,6 @@ interface CollectionPermissions {
 export type {
   ConfigFunc,
   Configuration,
-  Database,
-  DatabaseFunc,
   Collection,
   CollectionPermissions,
   CollectionPermissionsType,

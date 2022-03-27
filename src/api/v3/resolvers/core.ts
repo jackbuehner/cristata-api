@@ -11,7 +11,7 @@ const core = {
   Void: VoidScalar,
   Query: {
     collectionActivity: async (_, { limit, collections, exclude, page }, context: Context) => {
-      let collectionNames = context.config.database.collections.map((col) => col.name);
+      let collectionNames = context.config.collections.map((col) => col.name);
       if (collections) collectionNames = collectionNames.filter((name) => collections.includes(name));
       else if (exclude) collectionNames = collectionNames.filter((name) => !exclude.includes(name));
 

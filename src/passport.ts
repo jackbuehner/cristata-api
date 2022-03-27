@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import passportGitHub from 'passport-github2';
 const GitHubStrategy = passportGitHub.Strategy;
-import { IUserDoc } from './config/collections/users';
+import { IUserDoc } from './config/users';
 import { getPasswordStatus } from './utils/getPasswordStatus';
 import { isArray } from './utils/isArray';
 

@@ -1,16 +1,16 @@
+import { merge } from 'merge-anything';
+import mongoose from 'mongoose';
+import { get as getProperty } from 'object-path';
+import { requireAuthentication } from '.';
 import { Context } from '../../../apollo';
 import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
-import { CollectionPermissionsActions } from '../../../config/database';
-import { requireAuthentication } from '.';
-import { get as getProperty } from 'object-path';
-import mongoose from 'mongoose';
-import { isObjectId } from '../../../utils/isObjectId';
+import { CollectionPermissionsActions } from '../../../types/config';
 import { isArray } from '../../../utils/isArray';
-import { merge } from 'merge-anything';
+import { isObjectId } from '../../../utils/isObjectId';
 
 interface CanDo {
   model: string;
@@ -23,9 +23,7 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
   requireAuthentication(context);
 
   // get the permsissions for the collection
-  const permissions = context.config.database.collections.find(
-    (collection) => collection.name === model
-  ).actionAccess;
+  const permissions = context.config.collections.find((collection) => collection.name === model).actionAccess;
   const tp = permissions[action]?.teams;
   const up = permissions[action]?.users;
 

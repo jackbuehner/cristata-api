@@ -1,6 +1,6 @@
-import { Collection, CollectionPermissions } from '../../../../config/database';
-import { GenSchemaInput } from './genSchema';
 import helpers from '../';
+import { Collection, CollectionPermissions } from '../../../../types/config';
+import { GenSchemaInput } from './genSchema';
 
 function genCollection(input: GenCollectionInput): Collection {
   const { typeDefs, schemaFields } = helpers.generators.genSchema(input);

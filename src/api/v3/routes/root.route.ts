@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { IUser } from '../../../config/collections/users';
+import { IUser } from '../../../config/users';
 import { IDeserializedUser } from '../../../passport';
 import https from 'https';
 

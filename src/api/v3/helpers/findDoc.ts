@@ -18,9 +18,7 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
   const Model = mongoose.model<CollectionDoc>(model);
 
   // whether the collection docs contain the standard teams and user permissions object
-  const withStandardPermissions = context.config.database.collections.find(
-    (col) => col.name === model
-  ).withPermissions;
+  const withStandardPermissions = context.config.collections.find((col) => col.name === model).withPermissions;
 
   // whether the current user can bypass the access filter
   const canBypassAccessFilter =
