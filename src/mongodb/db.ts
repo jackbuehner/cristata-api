@@ -153,13 +153,23 @@ async function db(config: Configuration): Promise<void> {
       slug: 'admin',
       _id: new mongoose.Types.ObjectId('000000000000000000000001'),
     },
-    ...config.defaultTeams?.map((team) => {
-      return {
-        name: team.name,
-        slug: slugify(team.slug),
-        _id: new mongoose.Types.ObjectId(team.id),
-      };
-    }),
+    {
+      name: 'Managing Editors',
+      slug: 'managing-editors',
+      _id: new mongoose.Types.ObjectId('000000000000000000000003'),
+    },
+    ...config.defaultTeams
+      ?.filter((team) => team.id !== '000000000000000000000001')
+      .filter((team) => team.slug !== 'admin')
+      .filter((team) => team.id !== '000000000000000000000003')
+      .filter((team) => team.slug !== 'managing-editors')
+      .map((team) => {
+        return {
+          name: team.name,
+          slug: slugify(team.slug),
+          _id: new mongoose.Types.ObjectId(team.id),
+        };
+      }),
   ];
 
   const Team = mongoose.model('Team');

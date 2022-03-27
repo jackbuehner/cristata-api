@@ -28,12 +28,17 @@ interface Configuration<CT = Collection> {
   /**
    * The teams that should always exist in the teams collection.
    *
-   * An Administrators team will always be created:
+   * The Administrators and Managing Editors teams will always be created:
    * ```js
    * {
    *   name: 'Administrators',
    *   slug: 'admin',
    *   id: '000000000000000000000001',
+   * },
+   * {
+   *   name: 'Managing Editors',
+   *   slug: 'managing-editors',
+   *   _id: '000000000000000000000003',
    * }
    * ```
    */
