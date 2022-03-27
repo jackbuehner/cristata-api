@@ -81,8 +81,10 @@ function createExpressApp(): Application {
 
   // parse incoming request body
   app.use(express.json());
-  app.set('json spaces', 2); // pretty print
   app.use(express.urlencoded({ extended: true }));
+
+  // pretty print sent json
+  app.set('json spaces', 2);
 
   // determine the subpath for the server, if applicable
   let path = '';
@@ -107,6 +109,7 @@ function createExpressApp(): Application {
   app.use(passport.initialize({ userProperty: 'user' }));
   app.use(passport.session()); // replace `req.user` with passport user
 
+  // connect routers to app
   app.use(`${path}/auth`, authRouter); // authentication routes
   app.use(`${path}/v3`, apiRouter3); // API v3 routes
   app.use(path, proxyRouter); // CORS proxy routes
