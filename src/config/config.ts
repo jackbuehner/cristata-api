@@ -47,6 +47,7 @@ const config: Configuration<Collection | GenCollectionInput> = {
   },
   defaultSender: 'Cristata <noreply@thepaladin.news>',
   minimumClientVersion: '0.7.0',
+  tenantDisplayName: 'The Paladin Network',
 };
 
 export { config };

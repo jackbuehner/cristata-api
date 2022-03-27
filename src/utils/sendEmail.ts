@@ -23,7 +23,7 @@ const ses = new aws.SES({ apiVersion: '2010-12-01' });
 function sendEmail(to: string | string[], subject: string, message: string, from = config.defaultSender): void {
   const Data = `
     <h1 style="font-size: 20px;">
-      ${process.env.TENANT_DISPLAY_NAME || 'Cristata'}
+      ${config.tenantDisplayName}
     </h1>
     ${message}
     <p style="color: #aaaaaa">

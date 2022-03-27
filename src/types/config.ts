@@ -29,6 +29,12 @@ interface Configuration<CT = Collection> {
    * The lowest version number permitted for clients connecting via websockets.
    */
   minimumClientVersion: string;
+  /**
+   * The display name for the tenant of this Cristata instance.
+   * Use the name of your organization.
+   * This name appears in email messages.
+   */
+  tenantDisplayName: string;
 }
 
 interface Collection {

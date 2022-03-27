@@ -317,11 +317,11 @@ async function setTemporaryPassword<
     <p>
       ${
         reason === 'invite'
-          ? `<a href="${context.profile.email}">${context.profile.name}</a> has added you to ${process.env.TENANT_DISPLAY_NAME}'s instance of Cristata.`
+          ? `<a href="${context.profile.email}">${context.profile.name}</a> has added you to ${context.config.tenantDisplayName}'s instance of Cristata.`
           : reason === 'reinvite'
-          ? `<a href="${context.profile.email}">${context.profile.name}</a> has reinvited you to ${process.env.TENANT_DISPLAY_NAME}'s instance of Cristata.`
+          ? `<a href="${context.profile.email}">${context.profile.name}</a> has reinvited you to ${context.config.tenantDisplayName}'s instance of Cristata.`
           : reason === 'reset the password of'
-          ? `<a href="${context.profile.email}">${context.profile.name}</a> has reset your password for ${process.env.TENANT_DISPLAY_NAME}'s instance of Cristata.`
+          ? `<a href="${context.profile.email}">${context.profile.name}</a> has reset your password for ${context.config.tenantDisplayName}'s instance of Cristata.`
           : ``
       }
       <span style="font-size: 18px;">
@@ -362,7 +362,7 @@ async function setTemporaryPassword<
       ? `Finish migrating your Cristata account`
       : ``;
 
-  sendEmail(user.email, subject, email, `${process.env.TENANT_DISPLAY_NAME} <noreply@thepaladin.news>`);
+  sendEmail(user.email, subject, email, `${context.config.tenantDisplayName} <noreply@thepaladin.news>`);
 
   return user;
 }
