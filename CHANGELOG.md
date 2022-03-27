@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.2](https://github.com/jackbuehner/cristata-api/compare/v2.0.1...v2.0.2) (2022-03-27)
+
+
+### Bug Fixes
+
+* missing build step upon release ([ed3afb4](https://github.com/jackbuehner/cristata-api/commit/ed3afb4fd5ec2e7cdfcf8f063471aaefb56122be))
+
 ### [2.0.1](https://github.com/jackbuehner/cristata-api/compare/v2.0.0...v2.0.1) (2022-03-27)
 
 ## [2.0.0](https://github.com/jackbuehner/cristata-api/compare/v2.0.0-0...v2.0.0) (2022-03-27)
