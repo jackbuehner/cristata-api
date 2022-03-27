@@ -18,6 +18,10 @@ interface Configuration<CT = Collection> {
     database: string;
     options: string;
   };
+  /**
+   * The lowest version number permitted for clients connecting via websockets.
+   */
+  minimumClientVersion: string;
 }
 
 interface Collection {

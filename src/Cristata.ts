@@ -136,7 +136,7 @@ class Cristata {
         try {
           const isClientUpdated = semver.gte(
             requestParameters.get('version'),
-            process.env.CLIENT_MINIMUM_VERSION
+            this.config.minimumClientVersion
           );
           if (!isClientUpdated) {
             throw 'Client out of date!';
