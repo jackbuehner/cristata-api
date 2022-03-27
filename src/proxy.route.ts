@@ -2,7 +2,7 @@ import corsAnywhere from 'cors-anywhere';
 import crypto from 'crypto';
 import { Router } from 'express';
 import { config } from './config';
-import { IDeserializedUser } from './passport';
+import { requireAdmin } from './middleware/requireAdmin';
 
 /**
  * This router contains the proxy route.
@@ -27,15 +27,11 @@ router.get('/proxy/*', (req, res) => {
 });
 
 // send the analytics url
-router.get('/analytics/dashboard', (req, res) => {
-  if (req.isAuthenticated() && (req.user as IDeserializedUser).teams.includes('000000000000000000000001')) {
-    const password = crypto.createHash('sha256').update(process.env.FATHOM_DASHBOARD_PASSWORD).digest('hex'); // hash the password
-    res.json({
-      url: `https://app.usefathom.com/share/${process.env.FATHOM_SITE_ID}/wordpress?password=${password}`,
-    });
-  } else {
-    res.status(403).end();
-  }
+router.get('/analytics/dashboard', requireAdmin, (req, res) => {
+  const password = crypto.createHash('sha256').update(process.env.FATHOM_DASHBOARD_PASSWORD).digest('hex'); // hash the password
+  res.json({
+    url: `https://app.usefathom.com/share/${process.env.FATHOM_SITE_ID}/wordpress?password=${password}`,
+  });
 });
 
 export { router as proxyRouter };
