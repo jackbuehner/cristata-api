@@ -5,7 +5,11 @@ import { requireAuthentication } from '../helpers';
 
 const s3 = {
   Query: {
-    s3Sign: async (_, { fileName, fileType, s3Bucket }, context: Context) => {
+    s3Sign: async (
+      _: never,
+      { fileName, fileType, s3Bucket }: Record<string, unknown>,
+      context: Context
+    ): Promise<{ signedRequest: string; location: string }> => {
       requireAuthentication(context);
       const s3 = new aws.S3();
 
