@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.3](https://github.com/jackbuehner/cristata-api/compare/v2.1.2...v2.1.3) (2022-03-28)
+
+
+### Bug Fixes
+
+* get teams that are string 0 or number 0 ([e4b1b20](https://github.com/jackbuehner/cristata-api/commit/e4b1b2041459dab02e5a24f73e27cc7731f241a8))
+* improper toObject ([303694a](https://github.com/jackbuehner/cristata-api/commit/303694adf22b56b355b28f98d343a39edfe9242c))
+
 ### [2.1.2](https://github.com/jackbuehner/cristata-api/compare/v2.1.1...v2.1.2) (2022-03-28)
 
 
