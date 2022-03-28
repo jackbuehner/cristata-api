@@ -40,10 +40,11 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
         ],
       };
 
-  const pipeline = [
+  const pipeline: mongoose.PipelineStage[] = [
     { $match: accessFilter },
     { $match: { [by || '_id']: _id || null } },
     { $match: filter ? filter : {} },
+    { $sort: { 'timestamps.created_at': -1 } },
   ];
 
   // get the document
