@@ -8,6 +8,78 @@ import { slugify } from '../utils/slugify';
 
 mongoose.Schema.Types.String.checkRequired((v) => v !== null && v !== undefined);
 
+// schema fields to include in every collection
+const collectionSchemaFields = {
+  timestamps: {
+    created_at: { type: Date, required: true, default: new Date().toISOString() },
+    modified_at: { type: Date, required: true, default: new Date().toISOString() },
+  },
+  people: {
+    created_by: { type: mongoose.Schema.Types.ObjectId },
+    modified_by: { type: [mongoose.Schema.Types.ObjectId] },
+    last_modified_by: { type: mongoose.Schema.Types.ObjectId },
+    watching: { type: [mongoose.Schema.Types.ObjectId] },
+  },
+  hidden: { type: Boolean, required: true, default: false },
+  locked: { type: Boolean, required: true, default: false },
+  history: [
+    {
+      type: { type: String, required: true },
+      user: { type: mongoose.Schema.Types.ObjectId, required: true },
+      at: {
+        type: Date,
+        required: true,
+        default: new Date().toISOString(),
+      },
+    },
+  ],
+};
+
+const publishableCollectionSchemaFields = {
+  timestamps: {
+    published_at: { type: Date, required: true, default: '0001-01-01T01:00:00.000+00:00' },
+    updated_at: { type: Date, required: true, default: '0001-01-01T01:00:00.000+00:00' },
+  },
+  people: {
+    published_by: { type: [mongoose.Schema.Types.ObjectId] },
+    last_published_by: { type: mongoose.Schema.Types.ObjectId },
+  },
+};
+
+const withPermissionsCollectionSchemaFields = {
+  permissions: {
+    teams: { type: [String] },
+    users: { type: [mongoose.Schema.Types.ObjectId] },
+  },
+};
+
+/**
+ * For a mongoose schema input object, convert first level of nested objects
+ * into subdocuments and return as a new object.
+ *
+ * _Does not mutate the input object._
+ */
+function convertTopNestedObjectsToSubdocuments(
+  basicSchemaFields: Record<string, unknown>
+): Record<string, unknown> {
+  const complexSchemaFields = {};
+  Object.entries(basicSchemaFields).forEach(([key, value]) => {
+    // if the schema value is an object of properties, convert the object into a schema
+    // (check !value.type to ensure that it is an object instead of a complex schema def)
+    // (check !value.paths to ensure that it is an object intead of a mongoose schema)
+    // (do not create _id for these schemas)
+    // @ts-expect-error type and paths *might* be inside value
+    if (Object.prototype.toString.call(value) === '[object Object]' && !value.type && !value.paths) {
+      const SubSchema = new mongoose.Schema(value as { [key: string]: unknown }, { _id: false });
+      complexSchemaFields[key] = { type: SubSchema, default: () => ({}) };
+    } else {
+      complexSchemaFields[key] = value;
+    }
+  });
+
+  return complexSchemaFields;
+}
+
 async function db(config: Configuration): Promise<void> {
   // destructure connection info from config
   const { username, password, host, database, options } = config.connection;
@@ -18,51 +90,6 @@ async function db(config: Configuration): Promise<void> {
   } else {
     await mongoose.connect(`mongodb://127.0.0.1/${database}?${options}`);
   }
-
-  // schema fields to include in every collection
-  const collectionSchemaFields = {
-    timestamps: {
-      created_at: { type: Date, required: true, default: new Date().toISOString() },
-      modified_at: { type: Date, required: true, default: new Date().toISOString() },
-    },
-    people: {
-      created_by: { type: mongoose.Schema.Types.ObjectId },
-      modified_by: { type: [mongoose.Schema.Types.ObjectId] },
-      last_modified_by: { type: mongoose.Schema.Types.ObjectId },
-      watching: { type: [mongoose.Schema.Types.ObjectId] },
-    },
-    hidden: { type: Boolean, required: true, default: false },
-    locked: { type: Boolean, required: true, default: false },
-    history: [
-      {
-        type: { type: String, required: true },
-        user: { type: mongoose.Schema.Types.ObjectId, required: true },
-        at: {
-          type: Date,
-          required: true,
-          default: new Date().toISOString(),
-        },
-      },
-    ],
-  };
-
-  const publishableCollectionSchemaFields = {
-    timestamps: {
-      published_at: { type: Date, required: true, default: '0001-01-01T01:00:00.000+00:00' },
-      updated_at: { type: Date, required: true, default: '0001-01-01T01:00:00.000+00:00' },
-    },
-    people: {
-      published_by: { type: [mongoose.Schema.Types.ObjectId] },
-      last_published_by: { type: mongoose.Schema.Types.ObjectId },
-    },
-  };
-
-  const withPermissionsCollectionSchemaFields = {
-    permissions: {
-      teams: { type: [String] },
-      users: { type: [mongoose.Schema.Types.ObjectId] },
-    },
-  };
 
   // create the schema and model for each collection
   config.collections.forEach((collection) => {
@@ -78,8 +105,8 @@ async function db(config: Configuration): Promise<void> {
     const complexSchemaFields = {};
     Object.entries(basicSchemaFields).forEach(([key, value]) => {
       // if the schema value is an object of properties, convert the object into a schema
-      // (check !vaue.type to ensure that it is an object instead of a complex schema def)
-      // (check !vaue.paths to ensure that it is an object intead of a mongoose schema)
+      // (check !value.type to ensure that it is an object instead of a complex schema def)
+      // (check !value.paths to ensure that it is an object intead of a mongoose schema)
       // (do not create _id for these schemas)
       // @ts-expect-error type and paths *might* be inside value
       if (Object.prototype.toString.call(value) === '[object Object]' && !value.type && !value.paths) {
@@ -91,7 +118,7 @@ async function db(config: Configuration): Promise<void> {
     });
 
     // create the schema
-    const Schema = new mongoose.Schema(complexSchemaFields);
+    const Schema = new mongoose.Schema(convertTopNestedObjectsToSubdocuments(basicSchemaFields));
 
     // add pagination to aggregation
     Schema.plugin(aggregatePaginate);
@@ -228,7 +255,13 @@ interface PublishableCollectionSchemaFields {
   };
 }
 
-export { db };
+export {
+  db,
+  collectionSchemaFields,
+  publishableCollectionSchemaFields,
+  withPermissionsCollectionSchemaFields,
+  convertTopNestedObjectsToSubdocuments,
+};
 export type {
   CollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
