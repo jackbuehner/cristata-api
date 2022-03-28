@@ -36,15 +36,13 @@ async function constructDocFromRef({
   context,
 }: ConstructDocFromRef): Promise<mongoose.LeanDocument<mongoose.Document>> {
   // get the referenced doc
-  const refDoc = (
-    await findDoc({
-      model,
-      by,
-      _id: getProperty(parentDoc, from),
-      context,
-      fullAccess: true,
-    })
-  )?.toObject();
+  const refDoc = await findDoc({
+    model,
+    by,
+    _id: getProperty(parentDoc, from),
+    context,
+    fullAccess: true,
+  });
 
   // if the referenced doc does not exist, return the parent doc
   if (!refDoc) return { ...parentDoc };
