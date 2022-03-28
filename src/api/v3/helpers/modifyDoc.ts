@@ -41,9 +41,7 @@ async function modifyDoc<DocType, DataType>({
   const _id = new mongoose.Types.ObjectId(string_id as string);
 
   // if the current document does not exist OR the user does not have access, throw an error
-  const currentDoc = (
-    await findDoc({ model, _id, context, fullAccess })
-  )?.toObject() as unknown as CurrentDocType;
+  const currentDoc = (await findDoc({ model, _id, context, fullAccess })) as CurrentDocType;
   if (!currentDoc)
     throw new ApolloError(
       'the document you are trying to modify does not exist or you do not have access',
