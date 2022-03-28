@@ -33,12 +33,16 @@ import { isObjectId } from '../../../../utils/isObjectId';
 import pluralize from 'pluralize';
 import { useStageUpdateEmails } from './_useStageUpdateEmails';
 
-async function construct(doc: mongoose.Document | null, schemaRefs: [string, SchemaRef][], context: Context) {
+async function construct(
+  doc: mongoose.LeanDocument<mongoose.Document> | null,
+  schemaRefs: [string, SchemaRef][],
+  context: Context
+) {
   if (doc === null) return null;
 
   // construct a document that includes
   // all referenced fields
-  let constructedDoc = doc.toObject?.() || doc;
+  let constructedDoc = doc;
   await schemaRefs.reduce(
     async (promise, [fieldName, refSpec]) => {
       // wait for the last async function to finish.
