@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.1](https://github.com/jackbuehner/cristata-api/compare/v2.1.0...v2.1.1) (2022-03-28)
+
+
+### Bug Fixes
+
+* old code trying to convert mongoose doc to POJO ([42cf417](https://github.com/jackbuehner/cristata-api/commit/42cf417fd40c7dc03f9cf5c21a3487ab44465c4d))
+
 ## [2.1.0](https://github.com/jackbuehner/cristata-api/compare/v2.0.5...v2.1.0) (2022-03-27)
 
 
