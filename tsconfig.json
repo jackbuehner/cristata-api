@@ -9,5 +9,6 @@
     "resolveJsonModule": true
   },
   "lib": ["es2015"],
-  "include": ["src/**/*", "src/**/*.json"]
+  "include": ["src/**/*", "src/**/*.json"],
+  "exclude": ["src/**/*.test.ts"]
 }
