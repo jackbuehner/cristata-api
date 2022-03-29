@@ -15,9 +15,6 @@ import { deleteDoc } from './deleteDoc';
 import { findDocs } from './findDocs';
 import { genSchema } from './generators/genSchema';
 import { requireAuthentication } from './requireAuthentication';
-import { pruneDocs } from './pruneDocs';
-import { findDocAndPrune } from './findDocAndPrune';
-import { findDocsAndPrune } from './findDocsAndPrune';
 import { getCollectionActionAccess } from './getCollectionActionAccess';
 import { publishDoc } from './publishDoc';
 import { withPubSub } from './withPubSub';
@@ -38,9 +35,6 @@ const helpers = {
   deleteDoc,
   findDocs,
   requireAuthentication,
-  pruneDocs,
-  findDocAndPrune,
-  findDocsAndPrune,
   getCollectionActionAccess,
   publishDoc,
   withPubSub,
@@ -70,9 +64,6 @@ export { canDo };
 export { deleteDoc };
 export { findDocs };
 export { requireAuthentication };
-export { pruneDocs };
-export { findDocAndPrune };
-export { findDocsAndPrune };
 export { getCollectionActionAccess };
 export { publishDoc };
 export { withPubSub };
