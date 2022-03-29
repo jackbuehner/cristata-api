@@ -22,7 +22,7 @@ async function watchDoc({ model, args, context }: WatchDoc) {
   if (args.watcher === undefined) args.watcher = context.profile._id;
 
   // get the document
-  const doc = await findDoc({ model, _id: args._id, context });
+  const doc = await findDoc({ model, _id: args._id, context, lean: false });
 
   // if the user cannot hide documents in the collection, return an error
   if (!(await canDo({ action: 'watch', model, context, doc: doc as never })))

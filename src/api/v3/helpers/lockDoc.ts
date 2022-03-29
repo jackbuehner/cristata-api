@@ -22,7 +22,7 @@ async function lockDoc({ model, args, context, publishable }: LockDoc) {
   if (publishable === undefined) publishable = false;
 
   // get the document
-  const doc = await findDoc({ model, _id: args._id, context });
+  const doc = await findDoc({ model, _id: args._id, context, lean: false });
 
   // if the document is currently published, do not modify unless user can publish
   if (publishable) {

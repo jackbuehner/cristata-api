@@ -16,7 +16,7 @@ async function deleteDoc({ model, args, context }: DeleteDoc): Promise<mongoose.
   requireAuthentication(context);
 
   // get the document
-  const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context });
+  const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context, lean: false });
 
   // if the user cannot delete documents in the collection, return an error
   if (!(await canDo({ action: 'delete', model, context, doc: doc as never })))

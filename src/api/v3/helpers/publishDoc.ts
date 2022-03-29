@@ -22,7 +22,7 @@ async function publishDoc({ model, args, context }: PublishDoc) {
   if (args.published_at === undefined) args.published_at = new Date().toISOString();
 
   // get the document
-  const doc = await findDoc({ model, _id: args._id, context });
+  const doc = await findDoc({ model, _id: args._id, context, lean: false });
 
   //if the user cannot hide documents in the collection, return an error
   if (!(await canDo({ action: 'publish', model, context, doc: doc as never })))

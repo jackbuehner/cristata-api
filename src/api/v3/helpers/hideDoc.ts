@@ -23,7 +23,7 @@ async function hideDoc({ model, args, context, publishable }: HideDoc) {
   if (publishable === undefined) publishable = false;
 
   // get the document
-  const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context });
+  const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context, lean: false });
 
   // throw error if user cannot view the doc
   if (!doc)
