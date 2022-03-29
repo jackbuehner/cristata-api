@@ -336,7 +336,13 @@ function genResolvers(config: GenResolversInput) {
         }
 
         if (hasKey('inc', mutation.action)) {
-          const doc = await helpers.findDoc({ model: name, _id: args._id, context, fullAccess: true });
+          const doc = await helpers.findDoc({
+            model: name,
+            _id: args._id,
+            context,
+            fullAccess: true,
+            lean: false,
+          });
           doc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
           return helpers.withPubSub(name.toUpperCase(), 'MODIFIED', doc.save());
         }

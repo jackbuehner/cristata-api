@@ -198,7 +198,7 @@ const users = (): Collection => {
             if (args.deactivate === undefined) args.deactivate = true;
 
             // get the document
-            const doc = await findDoc({ model: 'User', _id: args._id, context });
+            const doc = await findDoc({ model: 'User', _id: args._id, context, lean: false });
 
             // if the user cannot retire other users in the collection, return an error
             if (!(await canDo({ action: 'deactivate', model: 'User', context })))
