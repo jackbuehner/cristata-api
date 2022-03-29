@@ -85,8 +85,8 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
       )),
     ];
 
-    // if the collection permissions includes one of the current user's teams
-    teamIds?.some((teamId) => context.profile.teams.includes(teamId.toHexString()));
+    // return true if the collection permissions includes one of the current user's teams
+    if (teamIds?.some((teamId) => context.profile.teams.includes(teamId.toHexString()))) return true;
   }
 
   return false;
