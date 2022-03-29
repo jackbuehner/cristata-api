@@ -272,4 +272,21 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     await newDocB.delete();
     await newDocC.delete();
   });
+
+  it(`should be an instance of the mongoose Document class when lean is false`, async () => {
+    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const context = useApolloContext(c);
+
+    // create and save a doc to find
+    const newDoc = new Document();
+    newDoc.set('slug', 'new-document');
+    await newDoc.save();
+
+    // find the doc
+    const found = await findDoc({ model: colName, _id: newDoc._id, context, fullAccess: true, lean: false });
+    expect(found).toBeInstanceOf(Document);
+
+    // cleanup
+    await newDoc.delete();
+  });
 });

@@ -11,9 +11,10 @@ interface FindDoc {
   context: Context;
   fullAccess?: boolean;
   accessRule?: FilterQuery<unknown>;
+  lean?: boolean;
 }
 
-async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule }: FindDoc) {
+async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule, lean }: FindDoc) {
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
@@ -47,8 +48,12 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
     { $sort: { 'timestamps.created_at': -1 } },
   ];
 
-  // get the document
-  return (await Model.aggregate(pipeline))[0];
+  // get the document as a plain javascript object
+  const doc = (await Model.aggregate(pipeline))[0];
+
+  // return the document
+  if (lean !== false) return doc;
+  return Model.findById(doc._id); // as an instance of the mongoose Document class if lean === false
 }
 
 export { findDoc };
