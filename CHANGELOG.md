@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/jackbuehner/cristata-api/compare/v2.1.3...v2.2.0) (2022-03-29)
+
+
+### Features
+
+* prefer to find newest doc based on created_at timestamp ([95755c2](https://github.com/jackbuehner/cristata-api/commit/95755c2eae8cd4d02d4800810fc1dc6b05998d66))
+
+
+### Bug Fixes
+
+* **helpers/canDo:** failure to return true when team matched action access ([c0bef61](https://github.com/jackbuehner/cristata-api/commit/c0bef61e70cd12de4fd9a7657c451736f51dcbd1))
+
 ### [2.1.3](https://github.com/jackbuehner/cristata-api/compare/v2.1.2...v2.1.3) (2022-03-28)
 
 
