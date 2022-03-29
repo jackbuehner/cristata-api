@@ -14,7 +14,18 @@ interface FindDoc {
   lean?: boolean;
 }
 
-async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule, lean }: FindDoc) {
+async function findDoc(params: { lean: false } & FindDoc): Promise<HydratedCollectionDoc>;
+async function findDoc(params: { lean?: true } & FindDoc): Promise<LeanCollectionDoc>;
+async function findDoc({
+  model,
+  by,
+  _id,
+  filter,
+  context,
+  fullAccess,
+  accessRule,
+  lean,
+}: FindDoc): Promise<LeanCollectionDoc | HydratedCollectionDoc> {
   if (!fullAccess) requireAuthentication(context);
   const Model = mongoose.model<CollectionDoc>(model);
 
@@ -55,5 +66,8 @@ async function findDoc({ model, by, _id, filter, context, fullAccess, accessRule
   if (lean !== false) return doc;
   return Model.findById(doc._id); // as an instance of the mongoose Document class if lean === false
 }
+
+type LeanCollectionDoc = CollectionDoc;
+type HydratedCollectionDoc = mongoose.Document<unknown, unknown, CollectionDoc> & CollectionDoc;
 
 export { findDoc };
