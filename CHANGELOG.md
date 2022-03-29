@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0](https://github.com/jackbuehner/cristata-api/compare/v2.3.0...v2.4.0) (2022-03-29)
+
+
+### Features
+
+* **helpers:** remove helpers for pruning docs ([2387874](https://github.com/jackbuehner/cristata-api/commit/2387874543703384c728b472f77844118eb22f71))
+
+
+### Bug Fixes
+
+* **resolvers:** request non-lean document when docs need to be modified and saved ([b31a38a](https://github.com/jackbuehner/cristata-api/commit/b31a38a44a4d80492bb5ee3cd5d3fd6a0cd46a8a))
+* use CollectionDoc type instead of LeanDocument type ([3c425d1](https://github.com/jackbuehner/cristata-api/commit/3c425d19438cb38cf9a780f75999d098247fa6d9))
+
 ## [2.3.0](https://github.com/jackbuehner/cristata-api/compare/v2.2.1...v2.3.0) (2022-03-29)
 
 
