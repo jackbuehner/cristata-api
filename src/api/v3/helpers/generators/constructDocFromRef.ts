@@ -1,10 +1,9 @@
-import mongoose from 'mongoose';
 import { get as getProperty, set as setProperty } from 'object-path';
 import { Context } from '../../../../apollo';
-import { findDoc } from '..';
+import { CollectionDoc, findDoc } from '..';
 
 interface ConstructDocFromRef {
-  parentDoc: mongoose.LeanDocument<mongoose.Document>;
+  parentDoc: CollectionDoc;
   model: string;
   /**
    * The field in the referenced document that is used to indetify the
@@ -34,7 +33,7 @@ async function constructDocFromRef({
   field,
   to,
   context,
-}: ConstructDocFromRef): Promise<mongoose.LeanDocument<mongoose.Document>> {
+}: ConstructDocFromRef): Promise<CollectionDoc> {
   // get the referenced doc
   const refDoc = await findDoc({
     model,
@@ -51,7 +50,7 @@ async function constructDocFromRef({
   const refField = getProperty(refDoc, field);
 
   // construct a doc with the referenced field inserted
-  const constructedDoc: mongoose.LeanDocument<mongoose.Document> = { ...parentDoc };
+  const constructedDoc: CollectionDoc = { ...parentDoc };
   setProperty(constructedDoc, to, refField);
 
   // return the constructed doc

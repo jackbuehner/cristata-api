@@ -33,11 +33,7 @@ import { isObjectId } from '../../../../utils/isObjectId';
 import pluralize from 'pluralize';
 import { useStageUpdateEmails } from './_useStageUpdateEmails';
 
-async function construct(
-  doc: mongoose.LeanDocument<mongoose.Document> | null,
-  schemaRefs: [string, SchemaRef][],
-  context: Context
-) {
+async function construct(doc: CollectionDoc | null, schemaRefs: [string, SchemaRef][], context: Context) {
   if (doc === null) return null;
 
   // construct a document that includes
@@ -98,7 +94,7 @@ function genResolvers(config: GenResolversInput) {
      * TODO: search by a custom accessor (`manyAccessorName`)
      */
     Query[pluralize(uncapitalize(name))] = async (parent, args, context) => {
-      const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
+      const { docs, ...paged }: { docs: CollectionDoc[] } = await helpers.findDocs({
         model: name,
         args,
         context,
@@ -146,7 +142,7 @@ function genResolvers(config: GenResolversInput) {
      * fields unless they are marked `public: true`.
      */
     Query[`${pluralize(uncapitalize(name))}Public`] = async (parent, args, context) => {
-      const { docs, ...paged }: { docs: mongoose.Document[] } = await helpers.findDocs({
+      const { docs, ...paged }: { docs: CollectionDoc[] } = await helpers.findDocs({
         model: name,
         args: { ...args, filter: { ...args.filter, ...publicRules.filter } },
         context,
