@@ -69,6 +69,12 @@ interface Configuration<CT = Collection> {
    * This name appears in email messages.
    */
   tenantDisplayName: string;
+  /**
+   * Whether GraphQL introspection is enabled.
+   * 
+   * _default: `true` unless in production_
+   */
+   introspection?: boolean;
 }
 
 interface Collection {

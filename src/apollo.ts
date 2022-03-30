@@ -77,6 +77,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
     // initialize apollo
     const apollo = new Apollo({
       schema,
+      introspection: config.introspection,
       plugins: [
         ApolloServerPluginDrainHttpServer({ httpServer: server }),
         ApolloServerPluginLandingPageGraphQLPlayground({
