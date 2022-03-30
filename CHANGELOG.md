@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.5.0](https://github.com/jackbuehner/cristata-api/compare/v2.4.0...v2.5.0) (2022-03-30)
+
+
+### Features
+
+* support configuring introspection ([64f536f](https://github.com/jackbuehner/cristata-api/commit/64f536f8ed2f40b8495f21227f7ad825436f613c))
+
 ## [2.4.0](https://github.com/jackbuehner/cristata-api/compare/v2.3.0...v2.4.0) (2022-03-29)
 
 
