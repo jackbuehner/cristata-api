@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.5.1](https://github.com/jackbuehner/cristata-api/compare/v2.5.0...v2.5.1) (2022-03-31)
+
+
+### Bug Fixes
+
+* array values with null prototype not converting to regular object prototype ([bdc3250](https://github.com/jackbuehner/cristata-api/commit/bdc3250a47b6014c2714d5c0ee63089ca69d960b))
+* mongoose schema missing field when it is an array containing a schema ([e22663b](https://github.com/jackbuehner/cristata-api/commit/e22663bfea1ea27c67deb38f941a8a94afe7c2b5))
+
 ## [2.5.0](https://github.com/jackbuehner/cristata-api/compare/v2.4.0...v2.5.0) (2022-03-30)
 
 
