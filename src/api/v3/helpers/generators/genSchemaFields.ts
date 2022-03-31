@@ -17,11 +17,11 @@ import { Schema as Type } from './genTypeDefs';
 
 function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
   const schema = Object.entries(input.schemaDef).filter(
-    (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
-      isSchemaDefOrType(schemaDefItem[1])
+    (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef | [SchemaDefType]] =>
+      isSchemaDefOrType(schemaDefItem[1]) || Array.isArray(schemaDefItem[1])
   );
 
-  const genSchema = (schema: [string, SchemaDefType | SchemaDef][]) => {
+  const genSchema = (schema: [string, SchemaDefType | SchemaDef | [SchemaDefType]][]) => {
     // merge the array of schema objects into a single object
     return merge(
       {},
@@ -80,6 +80,17 @@ function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
               default: calcDefaultValue(fieldDef.default),
             },
           };
+        }
+
+        // if the field definitions is an array containing multiple
+        // schema definitions, individually process each key-value
+        // pair into an object containing the schema for the array
+        else if (Array.isArray(fieldDef)) {
+          const schema = Object.entries(fieldDef[0]).filter(
+            (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef] =>
+              isSchemaDefOrType(schemaDefItem[1])
+          );
+          return { [fieldName]: [genSchema(schema)] };
         }
 
         // otherwise, the field definiton is an object containing multiple
