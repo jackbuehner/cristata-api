@@ -16,6 +16,11 @@ function convertNullPrototype<T extends Record<string, unknown>>(obj: T): T {
         return { [key]: { ...convertNullPrototype(value) } };
       }
 
+      // if it is an array, run each object in the array through this function
+      if (Array.isArray(value)) {
+        return { [key]: value.filter((v) => isObject(v)).map((o) => convertNullPrototype(o)) };
+      }
+
       // otherwise, return the value
       return { [key]: value };
     })
