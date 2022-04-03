@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.6.1-0](https://github.com/jackbuehner/cristata-api/compare/v2.6.0...v2.6.1-0) (2022-04-03)
+
 ## [2.6.0](https://github.com/jackbuehner/cristata-api/compare/v2.5.3...v2.6.0) (2022-04-03)
 
 
