@@ -33,6 +33,10 @@ const configuration = gql`
     icon: String!
     to: String!
   }
+
+  type Query {
+    configuration(): Configuration 
+  }
 `;
 
 export { configuration };

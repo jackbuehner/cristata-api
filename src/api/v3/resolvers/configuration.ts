@@ -3,7 +3,15 @@ import { ReturnedMainNavItem, ReturnedSubNavGroup, SubNavGroup } from '../../../
 import { isObject } from '../../../utils/isObject';
 
 const configuration = {
-  navigation: {
+  Query: {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    configuration: () => {
+      return {
+        navigation: {},
+      };
+    },
+  },
+  ConfigurationNavigation: {
     main: (_: unknown, __: unknown, context: Context): ReturnedMainNavItem[] => {
       return context.config.navigation.main
         .filter((item) => {
@@ -26,7 +34,7 @@ const configuration = {
           return { ...item, to: item.to };
         });
     },
-    sub: ({ key }: { key: string }, __: unknown, context: Context): ReturnedSubNavGroup[] => {
+    sub: (_: unknown, { key }: { key: string }, context: Context): ReturnedSubNavGroup[] => {
       return filterHidden(context.config.navigation.sub[key], context);
     },
   },
