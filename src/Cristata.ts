@@ -95,7 +95,7 @@ class Cristata {
           // if the cookie is untampered, use the following appropriate handlers
           if (pathname.indexOf('/hocuspocus/') === 0) {
             // ensure client is up-to-date
-            const reqVersion = new URL(request.url).searchParams.get('version');
+            const reqVersion = new URL('https://cristata.app' + request.url).searchParams.get('version');
             const isClientUpdated = semver.gte(reqVersion, this.config.minimumClientVersion);
             if (!isClientUpdated) throw 'Client out of date!';
 
