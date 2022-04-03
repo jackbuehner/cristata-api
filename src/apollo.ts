@@ -17,8 +17,8 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import ws from 'ws';
 import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
-import { collectionTypeDefs, coreTypeDefs, s3TypeDefs } from './api/v3/typeDefs';
-import { collectionResolvers, coreResolvers, s3Resolvers } from './api/v3/resolvers';
+import { collectionTypeDefs, coreTypeDefs, s3TypeDefs, configurationTypeDefs } from './api/v3/typeDefs';
+import { collectionResolvers, coreResolvers, s3Resolvers, configurationResolvers } from './api/v3/resolvers';
 import { Configuration } from './types/config';
 
 // initialize a subscription server for graphql subscriptions
@@ -41,6 +41,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
           coreTypeDefs,
           collectionTypeDefs,
           s3TypeDefs,
+          configurationTypeDefs,
           ...config.collections.map((collection) => collection.typeDefs),
         ].join()
       ),
@@ -50,6 +51,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
       coreResolvers,
       s3Resolvers,
       collectionResolvers,
+      configurationResolvers,
       ...config.collections.map((collection) => collection.resolvers)
     );
 
