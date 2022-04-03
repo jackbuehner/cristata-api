@@ -1,4 +1,5 @@
 import { IResolvers } from '@graphql-tools/utils';
+import * as fluentIcons from '@fluentui/react-icons';
 
 interface Configuration<CT = Collection> {
   /**
@@ -71,10 +72,30 @@ interface Configuration<CT = Collection> {
   tenantDisplayName: string;
   /**
    * Whether GraphQL introspection is enabled.
-   * 
+   *
    * _default: `true` unless in production_
    */
-   introspection?: boolean;
+  introspection?: boolean;
+  navigation: {
+    main: Array<{
+      label: string;
+      icon: keyof typeof fluentIcons;
+      to: string | { first: string };
+      isHidden?: boolean | { notInTeam: string | string[] };
+      subNav?: 'forceCollapseForRoute' | 'hideMobile';
+    }>;
+    sub: {
+      [key: string]: Array<{
+        label: string;
+        items: Array<{
+          label: string;
+          icon: keyof typeof fluentIcons;
+          to: string;
+          isHidden?: boolean | { notInTeam: string | string[] };
+        }>;
+      }>;
+    };
+  };
 }
 
 interface Collection {
@@ -107,10 +128,31 @@ interface CollectionPermissions {
   bypassDocPermissions?: CollectionPermissionsType;
 }
 
+interface ReturnedMainNavItem extends Omit<Configuration['navigation']['main'][0], 'isHidden'> {
+  to: string;
+}
+
+interface SubNavGroup {
+  label: string;
+  items: Array<{
+    label: string;
+    icon: keyof typeof fluentIcons;
+    to: string;
+    isHidden?: boolean | { notInTeam: string | string[] };
+  }>;
+}
+
+interface ReturnedSubNavGroup extends SubNavGroup {
+  items: Omit<SubNavGroup['items'][0], 'isHidden'>[];
+}
+
 export type {
   Configuration,
   Collection,
   CollectionPermissions,
   CollectionPermissionsType,
   CollectionPermissionsActions,
+  ReturnedMainNavItem,
+  ReturnedSubNavGroup,
+  SubNavGroup,
 };
