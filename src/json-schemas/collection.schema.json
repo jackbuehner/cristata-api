@@ -1053,7 +1053,7 @@
                     "description": "[`$setWindowFields` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/setWindowFields/)",
                     "properties": {
                         "output": {
-                            "$ref": "#/definitions/Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\";};}>"
+                            "$ref": "#/definitions/Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"week\"|\"quarter\"|\"millisecond\";};}>"
                         },
                         "partitionBy": {},
                         "sortBy": {
@@ -1270,7 +1270,7 @@
         "Record<string,{$accumulator?:any;$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$mergeObjects?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;}>_1": {
             "type": "object"
         },
-        "Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\";};}>": {
+        "Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"week\"|\"quarter\"|\"millisecond\";};}>": {
             "type": "object"
         },
         "RegExp": {

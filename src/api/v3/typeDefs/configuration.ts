@@ -9,11 +9,11 @@ const configuration = gql`
     """
     Get the items to use for the main navigation panel in the app.
     """
-    main(): ConfigurationNavigationMainItem[]!
+    main(): [ConfigurationNavigationMainItem]!
     """
     Get the groups of items to use for the sub navigation panel in the app.
     """
-    sub(key: String!): ConfigurationNavigationSubGroup[]!
+    sub(key: String!): [ConfigurationNavigationSubGroup]!
   }
 
   type ConfigurationNavigationMainItem {
