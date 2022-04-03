@@ -94,6 +94,11 @@ class Cristata {
 
           // if the cookie is untampered, use the following appropriate handlers
           if (pathname.indexOf('/hocuspocus/') === 0) {
+            // ensure client is up-to-date
+            const reqVersion = new URL(request.url).searchParams.get('version');
+            const isClientUpdated = semver.gte(reqVersion, this.config.minimumClientVersion);
+            if (!isClientUpdated) throw 'Client out of date!';
+
             // allow hocuspocus websocket to continue if the path starts with '/hocuspocus/
           } else if (pathname === '/websocket') {
             // use the wss websocket if the path is '/websocket
@@ -129,21 +134,6 @@ class Cristata {
       onListen: async () => {
         try {
           apollo(this.app, hocuspocus.httpServer, this.config);
-        } catch (error) {
-          console.error(error);
-        }
-      },
-
-      // don't allow client to stay connect if it is out of date
-      onConnect: async ({ requestParameters }) => {
-        try {
-          const isClientUpdated = semver.gte(
-            requestParameters.get('version'),
-            this.config.minimumClientVersion
-          );
-          if (!isClientUpdated) {
-            throw 'Client out of date!';
-          }
         } catch (error) {
           console.error(error);
         }
