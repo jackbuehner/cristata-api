@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.6.1-2](https://github.com/jackbuehner/cristata-api/compare/v2.6.1-1...v2.6.1-2) (2022-04-03)
+
+
+### Bug Fixes
+
+* incorrect resolver structure ([d12a710](https://github.com/jackbuehner/cristata-api/commit/d12a710dd79fe9f1b986a13e2fd69ebdbdfc7d9d))
+
 ### [2.6.1-1](https://github.com/jackbuehner/cristata-api/compare/v2.6.1-0...v2.6.1-1) (2022-04-03)
 
 
