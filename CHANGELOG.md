@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.5.2](https://github.com/jackbuehner/cristata-api/compare/v2.5.1...v2.5.2) (2022-04-03)
+
+
+### Bug Fixes
+
+* hocuspocus client remaining connected when out of date ([d1e0c1f](https://github.com/jackbuehner/cristata-api/commit/d1e0c1f276e809c9ebdf6c4837de57bbff1a165c))
+
 ### [2.5.1](https://github.com/jackbuehner/cristata-api/compare/v2.5.0...v2.5.1) (2022-03-31)
 
 
