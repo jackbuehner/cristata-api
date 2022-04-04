@@ -2,7 +2,39 @@ import { gql } from '../helpers/gql';
 
 const configuration = gql`
   type Configuration {
+    dashboard: ConfigurationDashboard!
     navigation: ConfigurationNavigation!
+  }
+
+  type ConfigurationDashboard {
+    collectionRows(): [ConfigurationDashboardCollectionRow]!
+  }
+
+  type ConfigurationDashboardCollectionRow {
+    header: ConfigurationDashboardCollectionRowHeader!
+    to: ConfigurationDashboardCollectionRowTo!
+    query: String!
+    arrPath: String!
+    dataKeys: ConfigurationDashboardCollectionRowDataKeys!
+  }
+
+  type ConfigurationDashboardCollectionRowHeader {
+    label: String!
+    icon: String!
+  }
+
+  type ConfigurationDashboardCollectionRowTo {
+    idPrefix: String!
+    idSuffix: String!
+  }
+
+  type ConfigurationDashboardCollectionRowDataKeys {
+    _id: String!
+    name: String!
+    description: String
+    photo: String
+    lastModifiedBy: String!
+    lastModifiedAt: String!
   }
 
   type ConfigurationNavigation {

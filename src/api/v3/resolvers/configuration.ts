@@ -1,5 +1,5 @@
 import { Context } from '../../../apollo';
-import { ReturnedMainNavItem, ReturnedSubNavGroup, SubNavGroup } from '../../../types/config';
+import { Configuration, ReturnedMainNavItem, ReturnedSubNavGroup, SubNavGroup } from '../../../types/config';
 import { isObject } from '../../../utils/isObject';
 
 const configuration = {
@@ -7,8 +7,22 @@ const configuration = {
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     configuration: () => {
       return {
+        dashboard: {},
         navigation: {},
       };
+    },
+  },
+  ConfigurationDashboard: {
+    collectionRows: (
+      _: unknown,
+      __: unknown,
+      context: Context
+    ): Configuration['dashboard']['collectionRows'] => {
+      try {
+        return context.config.dashboard.collectionRows;
+      } catch {
+        return [];
+      }
     },
   },
   ConfigurationNavigation: {
