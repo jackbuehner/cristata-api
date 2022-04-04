@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.7.0](https://github.com/jackbuehner/cristata-api/compare/v2.7.0-0...v2.7.0) (2022-04-04)
+
+
+### Features
+
+* include dashboard collection row configuration ([6d83b86](https://github.com/jackbuehner/cristata-api/commit/6d83b86cf62fd9b3a158cae4f487f80dd9397889))
+* keep track of when user was last active ([06eeda1](https://github.com/jackbuehner/cristata-api/commit/06eeda13ef1c0f300b314bfd04f80c8351069ca6))
+
 ## [2.7.0-0](https://github.com/jackbuehner/cristata-api/compare/v2.6.1-2...v2.7.0-0) (2022-04-04)
 
 
