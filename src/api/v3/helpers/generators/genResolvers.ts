@@ -62,7 +62,8 @@ async function construct(doc: CollectionDoc | null, schemaRefs: [string, SchemaR
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 function genResolvers(config: GenResolversInput) {
-  const { name, helpers, options, publicRules } = config;
+  const { name, helpers, options } = config;
+  const publicRules = findAndReplace(config.publicRules, `Date.now()`, new Date());
   const [oneAccessorName] = calcAccessor('one', config.by);
   const hasPublic = JSON.stringify(config.schemaDef).includes(`"public":true`);
   const hasSlug = hasKey('slug', config.schemaDef) && (config.schemaDef.slug as SchemaDef).type === 'String';
