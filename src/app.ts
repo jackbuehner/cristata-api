@@ -5,13 +5,16 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
+import mongoose from 'mongoose';
 import passport from 'passport';
 import { apiRouter3 } from './api/v3/routes';
 import { authRouter } from './auth.route';
-import { requireAuth } from './middleware/requireAuth';
 import { corsConfig } from './middleware/cors';
+import { requireAuth } from './middleware/requireAuth';
 import { proxyRouterFactory } from './proxy.route';
 import { Configuration } from './types/config';
+import { IUser } from './mongodb/users';
+import { IDeserializedUser } from './passport';
 
 // load environmental variables
 dotenv.config();
@@ -117,6 +120,24 @@ function createExpressApp(config: Configuration): Application {
 
   app.get(path, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);
+  });
+
+  // update user last active timestamp
+  app.use(async (req, res, next) => {
+    try {
+      if (req.isAuthenticated()) {
+        const user = await mongoose.model<IUser>('User').findById((req.user as IDeserializedUser)._id, null);
+        const now = new Date();
+        if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
+          // only update if time is more than 15 seconds away
+          user.timestamps.last_active_at = now.toISOString();
+        }
+        user.save();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    next();
   });
 
   // return the app

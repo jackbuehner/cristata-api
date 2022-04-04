@@ -31,6 +31,7 @@ const users = (): Collection => {
         joined_at: { type: 'Date', required: true, default: '0001-01-01T01:00:00.000+00:00' },
         left_at: { type: 'Date', required: true, default: '0001-01-01T01:00:00.000+00:00' },
         last_login_at: { type: 'Date', required: true, default: new Date().toISOString() },
+        last_active_at: { type: 'Date', required: true, default: new Date().toISOString() },
       },
       photo: { type: 'String', modifiable: true, public: true },
       github_id: { type: 'Number', public: true },
@@ -407,6 +408,7 @@ interface IUserTimestamps {
   joined_at: string; // ISO string
   left_at: string; // ISO string
   last_login_at: string; // ISO string
+  last_active_at: string; // ISO string
 }
 
 interface IUserDoc extends IUser, mongoose.Document {}
