@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.7.0-0](https://github.com/jackbuehner/cristata-api/compare/v2.6.1-2...v2.7.0-0) (2022-04-04)
+
+
+### Features
+
+* better handling when references are null instead of object id ([5d982bc](https://github.com/jackbuehner/cristata-api/commit/5d982bc3a938acc98fa2fd4438a2ae8757159f34))
+
+
+### Bug Fixes
+
+* attempt to use .save() with lean document ([9b2a7cc](https://github.com/jackbuehner/cristata-api/commit/9b2a7cc25f2ad129973b3756a0b7257715616fe2))
+* converting object id protype when attempring to convert null prototype ([d202211](https://github.com/jackbuehner/cristata-api/commit/d202211fafccea3b1f6447f21302ba5930fddee9))
+* user ids not collapsing to distinct values in set ([0d02529](https://github.com/jackbuehner/cristata-api/commit/0d025294857927bb6cad4bdcaaaff6f65f3e320d))
+
 ### [2.6.1-2](https://github.com/jackbuehner/cristata-api/compare/v2.6.1-1...v2.6.1-2) (2022-04-03)
 
 
