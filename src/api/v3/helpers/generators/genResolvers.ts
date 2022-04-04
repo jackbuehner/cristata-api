@@ -434,6 +434,9 @@ function genCustomResolvers(input: GenResolversInput): ResolverType {
                 const isArray = Array.isArray(fieldValue);
                 if (!isArray) fieldValue = [fieldValue];
 
+                // filter out null values
+                fieldValue = fieldValue.filter((elem: unknown) => !!elem);
+
                 // ensure every element in the field is an ObjectID
                 const containsOnlyValidObjectIds = fieldValue.every((elem: unknown) => isObjectId(elem));
                 if (!containsOnlyValidObjectIds)
@@ -478,7 +481,10 @@ function genCustomResolvers(input: GenResolversInput): ResolverType {
               // if the value is undefined, return null
               if (parent[fieldName] === undefined || parent[fieldName] === null) return null;
 
-              // ensure every the field value is an ObjectId
+              // if null, return null
+              if (parent[fieldName] === null) return null;
+
+              // ensure the field value is an ObjectId
               const valueIsObjectId = isObjectId(parent[fieldName]);
               if (!valueIsObjectId)
                 throw new ApolloError('the referenced field does not contain a valid ObjectId', 'VALUE_ERROR', {
