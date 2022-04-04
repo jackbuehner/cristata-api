@@ -65,7 +65,7 @@ async function modifyDoc<DocType, DataType>({
       // set updated published document metadata
       data = merge(data, {
         people: {
-          published_by: [...new Set([...currentDoc.people.published_by, context.profile._id])],
+          published_by: insertUserToArray(currentDoc.people.published_by, context.profile._id),
           last_published_by: context.profile._id,
         },
         timestamps: {
@@ -78,7 +78,7 @@ async function modifyDoc<DocType, DataType>({
   // set modification metadata
   data = merge(data, {
     people: {
-      modified_by: [...new Set([...currentDoc.people.modified_by, context.profile._id])], // adds the user to the array, and then removes duplicates
+      modified_by: insertUserToArray(currentDoc.people.modified_by, context.profile._id), // adds the user to the array, and then removes duplicates
       last_modified_by: context.profile._id,
     },
     timestamps: {
@@ -102,6 +102,11 @@ async function modifyDoc<DocType, DataType>({
 
   // attempt to patch the article
   return await Model.findByIdAndUpdate(_id, { $set: data }, { returnOriginal: false });
+}
+
+function insertUserToArray(arr: mongoose.Types.ObjectId[], user_id: mongoose.Types.ObjectId) {
+  const setWithUniqueValuesOnly = new Set([...arr.map((_id) => _id.toHexString()), user_id.toHexString()]);
+  return [...setWithUniqueValuesOnly].map((_id) => new mongoose.Types.ObjectId(_id));
 }
 
 type CurrentDocType = CollectionSchemaFields &
