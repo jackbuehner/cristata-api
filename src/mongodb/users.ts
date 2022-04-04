@@ -133,16 +133,16 @@ const users = (): Collection => {
         };
         // find user by username or slug
         const user =
-          ((await findDoc({ ...findArgs, by: 'username' })) as unknown as IUserDoc | undefined) ||
-          ((await findDoc({ ...findArgs, by: 'slug' })) as unknown as IUserDoc | undefined);
+          ((await findDoc({ ...findArgs, by: 'username' })) as unknown as IUser | undefined) ||
+          ((await findDoc({ ...findArgs, by: 'slug' })) as unknown as IUser | undefined);
         return { exists: !!user, doc: user || null, methods: user?.methods };
       },
 
       userMethods: async (_, args, context: Context) => {
         const findArgs = { model: 'User', _id: args.username, context, fullAccess: true };
         const user =
-          ((await findDoc({ ...findArgs, by: 'username' })) as unknown as IUserDoc | undefined) ||
-          ((await findDoc({ ...findArgs, by: 'slug' })) as unknown as IUserDoc | undefined);
+          ((await findDoc({ ...findArgs, by: 'username' })) as unknown as IUser | undefined) ||
+          ((await findDoc({ ...findArgs, by: 'slug' })) as unknown as IUser | undefined);
         return user?.methods || [];
       },
     },
@@ -222,8 +222,12 @@ const users = (): Collection => {
           })()
         ),
       userResendInvite: async (_, args, context: Context) => {
-        const user = (await findDoc({ model: 'User', _id: args._id, context })) as unknown as IUser &
-          PassportLocalDocument;
+        const user = (await findDoc({
+          model: 'User',
+          _id: args._id,
+          context,
+          lean: false,
+        })) as unknown as IUserDoc & PassportLocalDocument;
         const { temporary } = getPasswordStatus(user.flags);
         if (!temporary)
           throw new ForbiddenError('you cannot resend an invite for a user who already has an account');
@@ -231,8 +235,12 @@ const users = (): Collection => {
         return await setTemporaryPassword(user, 'reinvite', context);
       },
       userMigrateToPassword: async (_, args, context: Context) => {
-        const user = (await findDoc({ model: 'User', _id: args._id, context })) as unknown as IUser &
-          PassportLocalDocument;
+        const user = (await findDoc({
+          model: 'User',
+          _id: args._id,
+          context,
+          lean: false,
+        })) as unknown as IUserDoc & PassportLocalDocument;
         const { temporary } = getPasswordStatus(user.flags);
         const isLocal = user.methods.includes('local');
         if (temporary || isLocal)
