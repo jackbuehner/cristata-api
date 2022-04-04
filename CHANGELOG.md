@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/jackbuehner/cristata-api/compare/v2.7.0...v2.8.0) (2022-04-04)
+
+
+### Features
+
+* support current datetime in public rules ([ec8a4a7](https://github.com/jackbuehner/cristata-api/commit/ec8a4a7184ca4d418951f7c282a73dbf8b272349))
+
 ## [2.7.0](https://github.com/jackbuehner/cristata-api/compare/v2.7.0-0...v2.7.0) (2022-04-04)
 
 
