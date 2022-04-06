@@ -24,6 +24,9 @@ router.get('/user-photo/:user_id', async (req, res) => {
     // get the user
     const user = await User.findById(user_id);
 
+    // tell clients to cache profile photos for 5 minutes
+    res.set('Cache-control', 'public, max-age=300');
+
     // pipe the request to the user photo url
     if (user.photo) {
       const externalReq = https.request(user.photo, (externalRes) => {
