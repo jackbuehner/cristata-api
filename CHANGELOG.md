@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.9.0](https://github.com/jackbuehner/cristata-api/compare/v2.8.0...v2.9.0) (2022-04-06)
+
+
+### Features
+
+* tell clients to cache profile photos for 5 minutes ([5d0b37b](https://github.com/jackbuehner/cristata-api/commit/5d0b37bd8dd30e3356d5f5ea59e9763565524876))
+
 ## [2.8.0](https://github.com/jackbuehner/cristata-api/compare/v2.7.0...v2.8.0) (2022-04-04)
 
 
