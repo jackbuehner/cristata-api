@@ -13,6 +13,7 @@ function genCollection(input: GenCollectionInput): Collection {
     typeDefs,
     resolvers,
     schemaFields,
+    schemaDef: input.schemaDef,
     actionAccess: input.actionAccess,
   };
 }
