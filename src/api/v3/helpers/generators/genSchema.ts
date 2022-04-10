@@ -272,7 +272,107 @@ interface SchemaDef {
     value: SetterValueType;
   };
   rule?: { match: RegExp; message: string };
+  /**
+   * Configure the way the field appears in the CMS.
+   */
+  field?: FieldDef;
 }
+
+interface FieldDef {
+  /**
+   * Field label.
+   */
+  label?: string;
+  /**
+   * Field description.
+   */
+  description?: string;
+  /**
+   * Whether the field is read only
+   */
+  readonly?: boolean;
+  /**
+   * The order in which this field appears (default: -1)
+   */
+  order?: number;
+  /**
+   * Configure this field as a select
+   */
+  options?: StringOption[] | NumberOption[];
+  /**
+   * Hide this field
+   */
+  hidden?: boolean;
+  /**
+   * Configure this field as a reference to another collection.
+   */
+  reference?: {
+    /**
+     * The singular version of the collection name.
+     */
+    collection?: string;
+    /**
+     * The fields
+     */
+    fields: { _id?: string; name?: string };
+    /**
+     * Require these fields for the found doc to be selectable.
+     */
+    require?: string[];
+  };
+  /**
+   * Configure tiptap for the field.
+   *
+   * Only applies to the field with key 'body'.
+   */
+  tiptap?: TiptapOptions;
+}
+
+interface TiptapOptions {
+  type: string;
+  isHTMLkey?: string;
+  layouts?: {
+    key: string;
+    options: { value: string; label: string }[];
+  };
+  keys_article?: {
+    headline: string;
+    description: string;
+    categories: string;
+    caption: string;
+    photo_url: string;
+    authors: string;
+    target_publish_at: string;
+  };
+  features: {
+    fontFamilies?: {
+      name: string;
+      label?: string;
+      disabled?: boolean;
+    }[];
+    fontSizes?: string[];
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+    strike?: boolean;
+    code?: boolean;
+    bulletList?: boolean;
+    orderedList?: boolean;
+    textStylePicker?: boolean;
+    horizontalRule?: boolean;
+    widgets?: {
+      photoWidget?: boolean;
+      sweepwidget?: boolean;
+      youtube?: boolean;
+    };
+    link?: boolean;
+    comment?: boolean;
+    trackChanges?: boolean;
+  };
+}
+
+type StringOption = { label: string; value: string; disabled?: boolean };
+type NumberOption = { label: string; value: number; disabled?: boolean };
 
 type SetterValueType =
   | string
@@ -384,5 +484,9 @@ export type {
   SchemaType,
   SchemaDefaultValueType,
   SetterValueType,
+  StringOption,
+  NumberOption,
+  FieldDef,
+  TiptapOptions,
 };
 export { genSchema, isCustomGraphSchemaType, isTypeTuple, isSchemaDef, isSchemaRef, isSchemaDefOrType };
