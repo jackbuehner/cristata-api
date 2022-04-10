@@ -383,6 +383,103 @@
         "Field": {
             "type": "object"
         },
+        "FieldDef": {
+            "properties": {
+                "description": {
+                    "description": "Field description.",
+                    "type": "string"
+                },
+                "hidden": {
+                    "description": "Hide this field",
+                    "type": "boolean"
+                },
+                "label": {
+                    "description": "Field label.",
+                    "type": "string"
+                },
+                "options": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "properties": {
+                                    "disabled": {
+                                        "type": "boolean"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "items": {
+                                "properties": {
+                                    "disabled": {
+                                        "type": "boolean"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array"
+                        }
+                    ],
+                    "description": "Configure this field as a select"
+                },
+                "order": {
+                    "description": "The order in which this field appears (default: -1)",
+                    "type": "number"
+                },
+                "readonly": {
+                    "description": "Whether the field is read only",
+                    "type": "boolean"
+                },
+                "reference": {
+                    "description": "Configure this field as a reference to another collection.",
+                    "properties": {
+                        "collection": {
+                            "description": "The singular version of the collection name.",
+                            "type": "string"
+                        },
+                        "fields": {
+                            "description": "The fields",
+                            "properties": {
+                                "_id": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "require": {
+                            "description": "Require these fields for the found doc to be selectable.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "tiptap": {
+                    "$ref": "#/definitions/TiptapOptions",
+                    "description": "Configure tiptap for the field.\n\nOnly applies to the field with key 'body'."
+                }
+            },
+            "type": "object"
+        },
         "FilterQuery<unknown>": {
             "allOf": [
                 {
@@ -1405,6 +1502,10 @@
                     ],
                     "description": "A default value to use for a new document.\n\nIf a string is provided, the string value will be used for every new\ndocument.\n\nIf a code specification is provided, a new code will be generated\nfor each new document."
                 },
+                "field": {
+                    "$ref": "#/definitions/FieldDef",
+                    "description": "Configure the way the field appears in the CMS."
+                },
                 "modifiable": {
                     "type": "boolean"
                 },
@@ -2013,6 +2114,143 @@
                 },
                 "public": {
                     "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "TiptapOptions": {
+            "properties": {
+                "features": {
+                    "properties": {
+                        "bold": {
+                            "type": "boolean"
+                        },
+                        "bulletList": {
+                            "type": "boolean"
+                        },
+                        "code": {
+                            "type": "boolean"
+                        },
+                        "comment": {
+                            "type": "boolean"
+                        },
+                        "fontFamilies": {
+                            "items": {
+                                "properties": {
+                                    "disabled": {
+                                        "type": "boolean"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "fontSizes": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "horizontalRule": {
+                            "type": "boolean"
+                        },
+                        "italic": {
+                            "type": "boolean"
+                        },
+                        "link": {
+                            "type": "boolean"
+                        },
+                        "orderedList": {
+                            "type": "boolean"
+                        },
+                        "strike": {
+                            "type": "boolean"
+                        },
+                        "textStylePicker": {
+                            "type": "boolean"
+                        },
+                        "trackChanges": {
+                            "type": "boolean"
+                        },
+                        "underline": {
+                            "type": "boolean"
+                        },
+                        "widgets": {
+                            "properties": {
+                                "photoWidget": {
+                                    "type": "boolean"
+                                },
+                                "sweepwidget": {
+                                    "type": "boolean"
+                                },
+                                "youtube": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                },
+                "isHTMLkey": {
+                    "type": "string"
+                },
+                "keys_article": {
+                    "properties": {
+                        "authors": {
+                            "type": "string"
+                        },
+                        "caption": {
+                            "type": "string"
+                        },
+                        "categories": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "headline": {
+                            "type": "string"
+                        },
+                        "photo_url": {
+                            "type": "string"
+                        },
+                        "target_publish_at": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
+                "layouts": {
+                    "properties": {
+                        "key": {
+                            "type": "string"
+                        },
+                        "options": {
+                            "items": {
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "type": {
+                    "type": "string"
                 }
             },
             "type": "object"
