@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.10.0](https://github.com/jackbuehner/cristata-api/compare/v2.9.0...v2.10.0) (2022-04-10)
+
+
+### Features
+
+* add field types to schema defs ([e20ab18](https://github.com/jackbuehner/cristata-api/commit/e20ab18cf6ae42732804a6c8d1ff3b157ef4039a))
+* export common types and type guards ([7dae9b2](https://github.com/jackbuehner/cristata-api/commit/7dae9b2f8b8b87b57e9a26c26e5aa1f32f8137f2))
+* keep schema defs after generating collection schema and types ([f8b85e0](https://github.com/jackbuehner/cristata-api/commit/f8b85e05e0b51ea5a0abab0b388303df92a1cb50))
+
 ## [2.9.0](https://github.com/jackbuehner/cristata-api/compare/v2.8.0...v2.9.0) (2022-04-06)
 
 
