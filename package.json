@@ -7,12 +7,12 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "release": "npm run build:json-schema && standard-version",
+    "release": "standard-version",
     "build": "tsc --build && tsc --declaration && npm run lint",
     "check": "tsc && npm run lint",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "postinstall": "patch-package",
+    "postinstall": "patch-package --error-on-fail false",
     "heroku-cleanup": "patch-package",
     "build:json-schema": "typescript-json-schema ./tsconfig.json GenCollectionInput --out ./src/json-schemas/collection.schema.json"
   },
