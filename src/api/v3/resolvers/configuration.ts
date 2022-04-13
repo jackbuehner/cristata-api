@@ -5,10 +5,26 @@ import { isObject } from '../../../utils/isObject';
 const configuration = {
   Query: {
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    configuration: () => {
+    configuration: (_: unknown, __: unknown, context: Context) => {
       return {
         dashboard: {},
         navigation: {},
+        collection: async ({ name }: { name: string }) => {
+          const collection = context.config.collections.find((col) => col.name === name);
+
+          if (collection) {
+            return {
+              name,
+              canPublish: collection.canPublish,
+              withPermissions: collection.withPermissions,
+              schemaDef: collection.schemaDef,
+              generationOptions: collection.generationOptions,
+            };
+          }
+
+          // if the collection does not exist, return null
+          return null;
+        },
       };
     },
   },

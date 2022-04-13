@@ -1,9 +1,18 @@
 import { gql } from '../helpers/gql';
 
-const configuration = gql`
+const base = gql`
   type Configuration {
+    void: Void
+  }
+
+  type Query {
+    configuration(): Configuration 
+  }
+`;
+
+const dashboard = gql`
+  extend type Configuration {
     dashboard: ConfigurationDashboard!
-    navigation: ConfigurationNavigation!
   }
 
   type ConfigurationDashboard {
@@ -36,6 +45,12 @@ const configuration = gql`
     lastModifiedBy: String!
     lastModifiedAt: String!
   }
+`;
+
+const navigation = gql`
+  extend type Configuration {
+    navigation: ConfigurationNavigation!
+  }
 
   type ConfigurationNavigation {
     """
@@ -65,10 +80,29 @@ const configuration = gql`
     icon: String!
     to: String!
   }
+`;
 
-  type Query {
-    configuration(): Configuration 
+const collection = gql`
+  extend type Configuration {
+    collection(name: String!): ConfigurationCollection
+  }
+
+  type ConfigurationCollection {
+    name: String!
+    canPublish: Boolean
+    withPermissions: Boolean
+    """
+    Use SchemaDef type from genSchema.ts
+    """
+    schemaDef: JSON!
+    generationOptions: ConfigurationCollectionGenerationOptions
+  }
+
+  type ConfigurationCollectionGenerationOptions {
+    mandatoryWatchers: [String]
   }
 `;
+
+const configuration = base + dashboard + navigation + collection;
 
 export { configuration };
