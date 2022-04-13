@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.12.0](https://github.com/jackbuehner/cristata-api/compare/v2.11.0...v2.12.0) (2022-04-13)
+
+
+### Features
+
+* enable querying for collection configurations ([9c602cd](https://github.com/jackbuehner/cristata-api/commit/9c602cd69c44ac00877bf8f2c7f088fe9698886e))
+* keep options in configuration after collection generation ([eec9e5b](https://github.com/jackbuehner/cristata-api/commit/eec9e5b1404a4c41097f58c8827c97340c250c06))
+
 ## [2.11.0](https://github.com/jackbuehner/cristata-api/compare/v2.10.0...v2.11.0) (2022-04-11)
 
 
