@@ -1,6 +1,6 @@
 import { IResolvers } from '@graphql-tools/utils';
 import * as fluentIcons from '@fluentui/react-icons';
-import { SchemaDefType } from '../api/v3/helpers/generators/genSchema';
+import { GenSchemaInput, SchemaDefType } from '../api/v3/helpers/generators/genSchema';
 
 interface Configuration<CT = Collection> {
   /**
@@ -187,6 +187,7 @@ interface Collection {
   resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
   schemaFields: Record<string, unknown>;
   schemaDef: SchemaDefType;
+  generationOptions: GenSchemaInput['options'];
   actionAccess: CollectionPermissions;
 }
 
