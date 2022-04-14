@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.12.1](https://github.com/jackbuehner/cristata-api/compare/v2.12.0...v2.12.1) (2022-04-14)
+
+
+### Bug Fixes
+
+* user permissions objects not converted to user type ([64af08d](https://github.com/jackbuehner/cristata-api/commit/64af08de1581d80abd33f5e64a9e43ab46080b50))
+
 ## [2.12.0](https://github.com/jackbuehner/cristata-api/compare/v2.11.0...v2.12.0) (2022-04-13)
 
 
