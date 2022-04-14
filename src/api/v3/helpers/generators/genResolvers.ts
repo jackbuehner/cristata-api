@@ -33,7 +33,12 @@ import { isObjectId } from '../../../../utils/isObjectId';
 import pluralize from 'pluralize';
 import { useStageUpdateEmails } from './_useStageUpdateEmails';
 
-async function construct(doc: CollectionDoc | null, schemaRefs: [string, SchemaRef][], context: Context) {
+async function construct(
+  doc: CollectionDoc | null,
+  schemaRefs: [string, SchemaRef][],
+  context: Context,
+  helpers: Helpers
+) {
   if (doc === null) return null;
 
   // construct a document that includes
@@ -56,6 +61,13 @@ async function construct(doc: CollectionDoc | null, schemaRefs: [string, SchemaR
     // use an already resolved Promise for the first iteration,
     Promise.resolve()
   );
+
+  // reference user objects instead of user ids
+  if (constructedDoc && constructedDoc.permissions) {
+    return merge(constructedDoc, {
+      permissions: { users: await helpers.getUsers(doc.permissions.users || []) },
+    });
+  }
 
   return constructedDoc;
 }
@@ -84,7 +96,7 @@ function genResolvers(config: GenResolversInput) {
         _id: args[oneAccessorName],
         context,
       });
-      return await construct(doc, schemaRefs, context);
+      return await construct(doc, schemaRefs, context, helpers);
     };
   }
 
@@ -102,7 +114,7 @@ function genResolvers(config: GenResolversInput) {
       });
       return {
         ...paged,
-        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context))),
+        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, helpers))),
       };
     };
   }
@@ -128,7 +140,8 @@ function genResolvers(config: GenResolversInput) {
           fullAccess: true,
         }),
         schemaRefs,
-        context
+        context,
+        helpers
       );
     };
   }
@@ -151,7 +164,7 @@ function genResolvers(config: GenResolversInput) {
       });
       return {
         ...paged,
-        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context))),
+        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, helpers))),
       };
     };
   }
@@ -187,7 +200,7 @@ function genResolvers(config: GenResolversInput) {
       });
 
       // return a fully constructed doc
-      return await construct(doc, schemaRefs, context);
+      return await construct(doc, schemaRefs, context, helpers);
     };
   }
 
