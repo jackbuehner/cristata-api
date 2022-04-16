@@ -3,6 +3,7 @@ import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
+import { insertUserToArray } from '../../../utils/insertUserToArray';
 
 interface HideDoc {
   model: string;
@@ -48,7 +49,7 @@ async function hideDoc({ model, args, context, publishable }: HideDoc) {
   doc.hidden = args.hide;
 
   // set relevant collection metadata
-  doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
+  doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
   doc.people.last_modified_by = context.profile._id;
   doc.history = [
     ...doc.history,

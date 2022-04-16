@@ -3,6 +3,7 @@ import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
 import { ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
+import { insertUserToArray } from '../../../utils/insertUserToArray';
 
 interface WatchDoc {
   model: string;
@@ -30,7 +31,7 @@ async function watchDoc({ model, args, context }: WatchDoc) {
 
   // update document watchers
   if (args.watch) {
-    doc.people.watching = [...new Set([...doc.people.watching, args.watcher])]; // adds the user to the array, and then removes duplicates
+    doc.people.watching = insertUserToArray(doc.people.watching, args.watcher); // adds the user to the array, and then removes duplicates
   } else {
     doc.people.watching = doc.people.watching.filter((_id) => _id !== args.watcher);
   }

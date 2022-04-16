@@ -3,6 +3,7 @@ import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
 import { ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
+import { insertUserToArray } from '../../../utils/insertUserToArray';
 
 interface PublishDoc {
   model: string;
@@ -31,12 +32,12 @@ async function publishDoc({ model, args, context }: PublishDoc) {
   // set the publish properties
   if (args.publish) {
     doc.timestamps.published_at = args.published_at;
-    doc.people.published_by = [...new Set([...doc.people.published_by, context.profile._id])];
+    doc.people.published_by = insertUserToArray(doc.people.published_by, context.profile._id);
     doc.people.last_published_by = context.profile._id;
   }
 
   // set relevant collection metadata
-  doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
+  doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
   doc.people.last_modified_by = context.profile._id;
   doc.history = [
     ...doc.history,

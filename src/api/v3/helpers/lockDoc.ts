@@ -3,6 +3,7 @@ import { Context } from '../../../apollo';
 import mongoose from 'mongoose';
 import { ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
+import { insertUserToArray } from '../../../utils/insertUserToArray';
 
 interface LockDoc {
   model: string;
@@ -40,7 +41,7 @@ async function lockDoc({ model, args, context, publishable }: LockDoc) {
   doc.locked = args.lock;
 
   // set relevant collection metadata
-  doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
+  doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
   doc.people.last_modified_by = context.profile._id;
   doc.history = [
     ...doc.history,

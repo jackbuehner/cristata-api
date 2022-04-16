@@ -11,6 +11,7 @@ import {
 } from '../../../mongodb/db';
 import { merge } from 'merge-anything';
 import { convertNullPrototype } from '../../../utils/convertNullPrototype';
+import { insertUserToArray } from '../../../utils/insertUserToArray';
 
 interface ModifyDoc<DocType, DataType> {
   model: string;
@@ -102,11 +103,6 @@ async function modifyDoc<DocType, DataType>({
 
   // attempt to patch the article
   return await Model.findByIdAndUpdate(_id, { $set: data }, { returnOriginal: false });
-}
-
-function insertUserToArray(arr: mongoose.Types.ObjectId[], user_id: mongoose.Types.ObjectId) {
-  const setWithUniqueValuesOnly = new Set([...arr.map((_id) => _id.toHexString()), user_id.toHexString()]);
-  return [...setWithUniqueValuesOnly].map((_id) => new mongoose.Types.ObjectId(_id));
 }
 
 type CurrentDocType = CollectionSchemaFields &
