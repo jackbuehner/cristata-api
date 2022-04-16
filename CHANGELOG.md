@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.13.0](https://github.com/jackbuehner/cristata-api/compare/v2.12.1...v2.13.0) (2022-04-16)
+
+
+### Features
+
+* handle instances of 0 as an objectId ([2536a17](https://github.com/jackbuehner/cristata-api/commit/2536a17fc6b8acf121674ec0a06fb021d1b920f4))
+
+
+### Bug Fixes
+
+* stop duplicating user ids ([f11f542](https://github.com/jackbuehner/cristata-api/commit/f11f542f81dab6fb78ab26bbf5d215e636f48043))
+
 ### [2.12.1](https://github.com/jackbuehner/cristata-api/compare/v2.12.0...v2.12.1) (2022-04-14)
 
 
