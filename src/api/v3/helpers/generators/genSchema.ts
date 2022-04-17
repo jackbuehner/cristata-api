@@ -319,6 +319,11 @@ interface FieldDef {
      * Require these fields for the found doc to be selectable.
      */
     require?: string[];
+    /**
+     * Filter the query to the collection to exclude non-matching documents
+     * with a MongoDB filter query
+     */
+    filter: mongoose.FilterQuery<unknown>;
   };
   /**
    * Configure tiptap for the field.

@@ -463,6 +463,10 @@
                             },
                             "type": "object"
                         },
+                        "filter": {
+                            "$ref": "#/definitions/FilterQuery<unknown>",
+                            "description": "Filter the query to the collection to exclude non-matching documents\nwith a MongoDB filter query"
+                        },
                         "require": {
                             "description": "Require these fields for the found doc to be selectable.",
                             "items": {
