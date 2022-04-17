@@ -331,6 +331,27 @@ interface FieldDef {
    * Only applies to the field with key 'body'.
    */
   tiptap?: TiptapOptions;
+  /**
+   * Use a custom set of fields based on the collection's name.
+   *
+   * This only works for a parent field type of JSON.
+   */
+  custom?: Array<{
+    /**
+     * The name of the document that should use the fields
+     * from the `fields` key.
+     *
+     * Use `"default"` to a provide a default set of fields
+     * for when no other match is made.
+     */
+    name: string;
+    /**
+     * A set of schema definitions with fields.
+     *
+     * Each field should represent a key-value pair in the JSON.
+     */
+    fields: Record<string, SchemaDef>;
+  }>;
 }
 
 interface TiptapOptions {

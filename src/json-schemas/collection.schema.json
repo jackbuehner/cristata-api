@@ -385,6 +385,23 @@
         },
         "FieldDef": {
             "properties": {
+                "custom": {
+                    "description": "Use a custom set of fields based on the collection's name.\n\nThis only works for a parent field type of JSON.",
+                    "items": {
+                        "properties": {
+                            "fields": {
+                                "$ref": "#/definitions/Record<string,SchemaDef>",
+                                "description": "A set of schema definitions with fields.\n\nEach field should represent a key-value pair in the JSON."
+                            },
+                            "name": {
+                                "description": "The name of the document that should use the fields\nfrom the `fields` key.\n\nUse `\"default\"` to a provide a default set of fields\nfor when no other match is made.",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
                 "description": {
                     "description": "Field description.",
                     "type": "string"
@@ -1360,6 +1377,9 @@
             "type": "object"
         },
         "Record<string,1|-1|{$meta:\"textScore\";}>": {
+            "type": "object"
+        },
+        "Record<string,SchemaDef>": {
             "type": "object"
         },
         "Record<string,any>": {
