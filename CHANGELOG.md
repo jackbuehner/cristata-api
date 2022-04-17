@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.14.0](https://github.com/jackbuehner/cristata-api/compare/v2.13.0...v2.14.0) (2022-04-17)
+
+
+### Features
+
+* support fields for JSON data ([0fe01db](https://github.com/jackbuehner/cristata-api/commit/0fe01db3a5507ba726f12f2153d23ba99ff94e95))
+* support filters on a reference field ([ab11a8f](https://github.com/jackbuehner/cristata-api/commit/ab11a8fd1aea3c1112ede3765f8ea6a039d5cf92))
+
 ## [2.13.0](https://github.com/jackbuehner/cristata-api/compare/v2.12.1...v2.13.0) (2022-04-16)
 
 
