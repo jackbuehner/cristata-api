@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.15.0](https://github.com/jackbuehner/cristata-api/compare/v2.14.0...v2.15.0) (2022-04-19)
+
+
+### Features
+
+* expose accessor keys for collections via api ([35f7a40](https://github.com/jackbuehner/cristata-api/commit/35f7a408c39d5adf582509e84b42a47b65ad68b6))
+* support column definitions in schema definitions ([72a6527](https://github.com/jackbuehner/cristata-api/commit/72a65270f84dab2ef7ce46a358ff0578be34f07a))
+
 ## [2.14.0](https://github.com/jackbuehner/cristata-api/compare/v2.13.0...v2.14.0) (2022-04-17)
 
 
