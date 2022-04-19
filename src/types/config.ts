@@ -189,6 +189,7 @@ interface Collection {
   schemaDef: SchemaDefType;
   generationOptions: GenSchemaInput['options'];
   actionAccess: CollectionPermissions;
+  by: GenSchemaInput['by'];
 }
 
 type CollectionPermissionsType = {

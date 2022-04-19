@@ -96,10 +96,16 @@ const collection = gql`
     """
     schemaDef: JSON!
     generationOptions: ConfigurationCollectionGenerationOptions
+    by: ConfigurationCollectionBy!
   }
 
   type ConfigurationCollectionGenerationOptions {
     mandatoryWatchers: [String]
+  }
+
+  type ConfigurationCollectionBy {
+    one: String!
+    many: String!
   }
 `;
 

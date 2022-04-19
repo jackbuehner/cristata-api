@@ -1,5 +1,6 @@
 import { Context } from '../../../apollo';
 import { Configuration, ReturnedMainNavItem, ReturnedSubNavGroup, SubNavGroup } from '../../../types/config';
+import { hasKey } from '../../../utils/hasKey';
 import { isObject } from '../../../utils/isObject';
 
 const configuration = {
@@ -19,6 +20,16 @@ const configuration = {
               withPermissions: collection.withPermissions,
               schemaDef: collection.schemaDef,
               generationOptions: collection.generationOptions,
+              by: {
+                one:
+                  collection.by && hasKey('one', collection.by)
+                    ? collection.by.one[0]
+                    : collection.by?.[0] || '_id',
+                many:
+                  collection.by && hasKey('many', collection.by)
+                    ? collection.by.many[0]
+                    : collection.by?.[0] || '_id',
+              },
             };
           }
 
