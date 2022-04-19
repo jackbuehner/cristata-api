@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.1](https://github.com/jackbuehner/cristata-api/compare/v2.15.0...v2.15.1) (2022-04-19)
+
+
+### Bug Fixes
+
+* use correct document paths in notification emails ([2c8074c](https://github.com/jackbuehner/cristata-api/commit/2c8074c184f818aa1733e82de866219ad8683127))
+
 ## [2.15.0](https://github.com/jackbuehner/cristata-api/compare/v2.14.0...v2.15.0) (2022-04-19)
 
 
