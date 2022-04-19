@@ -276,6 +276,10 @@ interface SchemaDef {
    * Configure the way the field appears in the CMS.
    */
   field?: FieldDef;
+  /**
+   * Configure the column for the table view in the CMS.
+   */
+  column?: ColumnDef;
 }
 
 interface FieldDef {
@@ -352,6 +356,82 @@ interface FieldDef {
      */
     fields: Record<string, SchemaDef>;
   }>;
+}
+
+interface ColumnDef {
+  /**
+   * Column label.
+   */
+  label?: string;
+  /**
+   * The order in which this column appears (default: -1)
+   */
+  order?: number;
+  /**
+   * Width of the column in pixels. Defaults to `150`.
+   */
+  width?: number;
+  /**
+   * Whether the user can click on the column header to sort the
+   * column in ascendiing or descending order.
+   *
+   * This should only be enabled when the field is a type that
+   * can be sorted in a ascending or descending nature. For
+   * example, a field with object ids referencing docs in another
+   * collection can be sorted, but it may not sort in a way that
+   * makes sense to the user because it would sort by id instead
+   * of the name field in that document.
+   *
+   * Defaults to `false`.
+   */
+  sortable?: boolean;
+  /**
+   * Display values in this field as chips.
+   */
+  chips?:
+    | boolean
+    | {
+        value: string | number;
+        label?: string;
+        color?:
+          | 'primary'
+          | 'danger'
+          | 'success'
+          | 'red'
+          | 'orange'
+          | 'yellow'
+          | 'green'
+          | 'blue'
+          | 'turquoise'
+          | 'indigo'
+          | 'violet'
+          | 'neutral';
+      }[];
+  /**
+   * Hide this column
+   */
+  hidden?: boolean;
+  /**
+   * Configure this column as a reference to another collection.
+   *
+   * This tells
+   */
+  reference?: {
+    /**
+     * The singular version of the collection name.
+     *
+     * If this is not defined, the app will attempt to use
+     * the schema type as the collection name.
+     */
+    collection?: string;
+    /**
+     * The fields
+     */
+    fields: {
+      _id?: string;
+      name?: string;
+    };
+  };
 }
 
 interface TiptapOptions {
