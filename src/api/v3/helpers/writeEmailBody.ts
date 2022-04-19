@@ -1,6 +1,7 @@
 import pluralize from 'pluralize';
 import { uncapitalize } from '../../../utils/uncapitalize';
 import { get as getProperty } from 'object-path';
+import { camelToDashCase } from '../../../utils/camelToDashCase';
 
 interface WriteEmailBody {
   model: string;
@@ -19,8 +20,8 @@ function writeEmailBody({ model, identifier, fields, isMandatory, data }: WriteE
 
   const view = `
     This view the document, go to
-    <a href="${process.env.APP_URL}/cms/item/${pluralize(uncapitalize(model))}/${identifier}">
-    ${process.env.APP_URL}/cms/item/${pluralize(uncapitalize(model))}/${identifier}</a>.
+    <a href="${process.env.APP_URL}/cms/${camelToDashCase(pluralize(uncapitalize(model)))}/${identifier}">
+    ${process.env.APP_URL}/cms/${camelToDashCase(pluralize(uncapitalize(model)))}/${identifier}</a>.
   `;
 
   const values = fields.map((field) => {
