@@ -325,6 +325,13 @@ interface FieldDef {
      */
     require?: string[];
     /**
+     * Force these fields to be loaded into the CMS state. This is helpful
+     * for forcing fields to be available in the data that is provided to
+     * preview URLs. The fields must be available on the collection that
+     * is referenced.
+     */
+    forceLoadFields?: string[];
+    /**
      * Filter the query to the collection to exclude non-matching documents
      * with a MongoDB filter query
      */
