@@ -101,6 +101,7 @@ const collection = gql`
 
   type ConfigurationCollectionGenerationOptions {
     mandatoryWatchers: [String]
+    previewUrl: String
   }
 
   type ConfigurationCollectionBy {

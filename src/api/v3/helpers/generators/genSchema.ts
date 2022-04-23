@@ -48,6 +48,7 @@ interface GenSchemaInput {
         numMap?: Record<number, string>;
       }>;
     };
+    previewUrl?: string;
   };
   /**
    * Whether documents in this collection can be marked as published.
