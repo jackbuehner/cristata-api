@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.17.0](https://github.com/jackbuehner/cristata-api/compare/v2.16.0...v2.17.0) (2022-04-23)
+
+
+### Features
+
+* support setting the name field for a collection (defaults to "name") ([0826194](https://github.com/jackbuehner/cristata-api/commit/08261944085b57a01b908a4c8c810bc939e6340a))
+
 ## [2.16.0](https://github.com/jackbuehner/cristata-api/compare/v2.15.1...v2.16.0) (2022-04-23)
 
 
