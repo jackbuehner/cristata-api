@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.16.0](https://github.com/jackbuehner/cristata-api/compare/v2.15.1...v2.16.0) (2022-04-23)
+
+
+### Features
+
+* allow setting a preview url to be used bu the app ([1b74937](https://github.com/jackbuehner/cristata-api/commit/1b74937937c3aa65821ad6b78028f8903f8bab45))
+* enable forcing fields from a referenced collection to be loaded by the app ([7d29b3d](https://github.com/jackbuehner/cristata-api/commit/7d29b3df4dd7d1359380211bd15bff6f7a51c8df))
+
 ### [2.15.1](https://github.com/jackbuehner/cristata-api/compare/v2.15.0...v2.15.1) (2022-04-19)
 
 
