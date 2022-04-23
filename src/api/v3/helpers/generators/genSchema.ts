@@ -48,6 +48,7 @@ interface GenSchemaInput {
         numMap?: Record<number, string>;
       }>;
     };
+    nameField?: string;
     previewUrl?: string;
   };
   /**
