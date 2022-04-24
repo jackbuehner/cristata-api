@@ -11,6 +11,14 @@ function genSchema(input: GenSchemaInput): { typeDefs: string; schemaFields: Sch
   return { typeDefs, schemaFields };
 }
 
+/**
+ * Filter the result using MongoDB queries:
+ * https://www.mongodb.com/docs/manual/tutorial/query-documents/
+ *
+ * @TJS-additionalProperties true
+ */
+type FilterQuery = mongoose.RootQuerySelector<Record<string, unknown>>;
+
 interface GenSchemaInput {
   options?: {
     disableFindOneQuery?: boolean;
@@ -96,17 +104,24 @@ interface GenSchemaInput {
    * Specify rules for public queries.
    *
    * Use `false` to disallow public queries.
-   *
-   * `filter`: MongoDB filter to sort out documents that need to remain private
-   *           (use `{}` for no filter)
-   *
-   * `slugDateField`: the field to use to ensure that the publicBySlug query returns the
-   *                  correct slug
    */
   publicRules:
     | false
     | {
-        filter: mongoose.FilterQuery<unknown>;
+        /**
+         * MongoDB filter to sort out documents that need to remain private.
+         *
+         * Uses MongoDB queries: https://www.mongodb.com/docs/manual/tutorial/query-documents/
+         *
+         * _Use `{}` for no filter._
+         */
+        filter: FilterQuery;
+        /**
+         * The field to use to ensure that the publicBySlug query returns the
+         * correct slug.
+         *
+         * This is usually `'timestamps.published_at'`.
+         */
         slugDateField?: string;
       };
   /**
@@ -226,8 +241,20 @@ interface SchemaRef {
    * that contains the value to be used for this field.
    */
   field: string;
+  /**
+   * The type of the field from the referenced collection.
+   * Use the same syntax as the type property defined
+   * on the destination field.
+   */
   fieldType: SchemaType;
+  /**
+   * Whether this field can be accessed without authentication.
+   */
   public?: boolean;
+  /**
+   * Configure the column for the table view in the CMS.
+   */
+  column?: ColumnDef;
 }
 
 /**
@@ -252,8 +279,39 @@ function isSchemaRef(
 }
 
 interface SchemaDef {
+  /**
+   * The type of this field.
+   *
+   * If the type is `'ObjectId'` or `['ObjectId']`, a type type can be provided
+   * so that the API knows which collection it references. This allows querying
+   * fields in the referenced collection. Otherwise, only the ObjectId is returned.
+   *
+   * __Examples:__
+   *
+   * ```
+   * // an integer
+   * `{ type: 'Int', ...rest }`
+   *
+   * // an array of strings
+   * `{ type: ['String'], ...rest }`
+   *
+   * // an array of ObjectIds, but not connected to their referenced collection
+   * `{ type: ['ObjectId'], ...rest }`
+   *
+   * // an array of ObjectIds that reference documents in the User collection
+   * `{ type: ['[User]', ['ObjectId']], ...rest }`  // note the location of quotation marks
+   * ```
+   */
   type: SchemaType;
+  /**
+   * Whether this field is required.
+   */
   required?: boolean;
+  /**
+   * Whether this field must be unique.
+   *
+   * _This is validated by mongoose._
+   */
   unique?: boolean;
   // objects only; whether values not in the schema can be saved to the db
   strict?: boolean;
@@ -267,12 +325,71 @@ interface SchemaDef {
    * for each new document.
    */
   default?: SchemaDefaultValueType;
+  /**
+   * Whether this field can be modified.
+   */
   modifiable?: boolean;
+  /**
+   * Whether this field can be accessed without authentication.
+   */
   public?: boolean;
+  /**
+   * Automatically set the value of this field if a condition on the document is met.
+   * In other words: if a document value matches the condition in this setter,
+   * set the value of this field to the specified value.
+   *
+   * _This only occurs after a document has been modified_.
+   *
+   * __Example:__
+   * ```
+   * {
+   *    // check if the stage field equals 5.2 and the slug field does not exist
+   *    "condition": { "$and": [{ "stage": { "$eq": 5.2 } }, { "slug": { "$exists": false } }] },
+   *    // set the value to a slugified version of the name
+   *    "value": { "slugify": "name" }
+   *  }
+   * ```
+   */
   setter?: {
+    /**
+     * The condition to be met. Uses a subset of MongoDB operators:
+     *
+     * Comparison operators:
+     * - $gt (number)
+     * - $gte (number)
+     * - $lt (number)
+     * - $lte (number)
+     * - $eq (number | string)
+     * - $ne (number | string)
+     *
+     * Element operators:
+     * - $exists (boolean)
+     *
+     * Logical operators:
+     * - $and (array)
+     * - $or (array)
+     *
+     * Logical operators may only reference field keys at the top level.
+     */
     condition: SetterCondition;
+    /**
+     * The value to be set.
+     *
+     * Be sure that the set value matches the type of this field.
+     * Values can be strings, integers, floats, booleans, arrays of string,
+     * arrays of integers, arrays of floats, or arrays of booleans.
+     *
+     * Special setter values can also be generated:
+     *
+     * - _Generated alphanumeric string_: `{ value: { code: 'alphanumeric', length: <length> }, ...rest }`
+     * - _Slug (string)_: `{ value: { slugify: <field-to-slugify> }, ...rest }`
+     */
     value: SetterValueType;
   };
+  /**
+   * Return an error to the client if the new value for this field
+   * does not match the provided regular expression.
+   */
   rule?: { match: RegExp; message: string };
   /**
    * Configure the way the field appears in the CMS.
@@ -320,7 +437,7 @@ interface FieldDef {
     /**
      * The fields
      */
-    fields: { _id?: string; name?: string };
+    fields?: { _id?: string; name?: string };
     /**
      * Require these fields for the found doc to be selectable.
      */
@@ -336,7 +453,7 @@ interface FieldDef {
      * Filter the query to the collection to exclude non-matching documents
      * with a MongoDB filter query
      */
-    filter: mongoose.FilterQuery<unknown>;
+    filter?: FilterQuery;
   };
   /**
    * Configure tiptap for the field.
@@ -436,7 +553,7 @@ interface ColumnDef {
     /**
      * The fields
      */
-    fields: {
+    fields?: {
       _id?: string;
       name?: string;
     };

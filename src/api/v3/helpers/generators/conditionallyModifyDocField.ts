@@ -43,6 +43,9 @@ function isLogicalOperator(operator: AnyOperator): operator is LogicalOperator {
   return logicalOperatorKeys.includes(Object.keys(operator)[0]);
 }
 
+/**
+ * @TJS-additionalProperties true
+ */
 type Field = Record<string, AnyOperator>;
 
 // combined operator types

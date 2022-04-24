@@ -14,7 +14,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "postinstall": "patch-package --error-on-fail false",
     "heroku-cleanup": "patch-package",
-    "build:json-schema": "typescript-json-schema ./tsconfig.json GenCollectionInput --out ./src/json-schemas/collection.schema.json"
+    "build:json-schema": "typescript-json-schema ./tsconfig.json GenCollectionInput --out ./src/json-schemas/collection.schema.json --defaultProps --noExtraProps --required"
   },
   "standard-version": {
     "scripts": {
