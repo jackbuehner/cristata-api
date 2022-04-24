@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.18.0](https://github.com/jackbuehner/cristata-api/compare/v2.17.1...v2.18.0) (2022-04-24)
+
+
+### Features
+
+* add comments and stricter implimentation of collection json schema ([88cf443](https://github.com/jackbuehner/cristata-api/commit/88cf443450b1dce3ca6770dddff546d56ecad31f))
+
 ### [2.17.1](https://github.com/jackbuehner/cristata-api/compare/v2.17.0...v2.17.1) (2022-04-24)
 
 
