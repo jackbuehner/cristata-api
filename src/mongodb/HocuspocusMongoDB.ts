@@ -37,11 +37,6 @@ export class HocuspocusMongoDB implements Extension {
    * onCreateDocument hook
    */
   async onCreateDocument(data: onCreateDocumentPayload): Promise<any> {
-    // remove server path from document name
-    if (process.env.TENANT) {
-      data.documentName = data.documentName.replace(`${process.env.TENANT}/`, '');
-    }
-
     const persistedDocument = await this.provider.getYDoc(data.documentName);
     const newUpdates = encodeStateAsUpdate(data.document);
 

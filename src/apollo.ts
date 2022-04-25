@@ -71,10 +71,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
     };
 
     // determine the subpath for the server, if applicable
-    let path = '';
-    if (process.env.TENANT) {
-      path = `/${process.env.TENANT}`;
-    }
+    const path = '';
 
     // initialize apollo
     const apollo = new Apollo({

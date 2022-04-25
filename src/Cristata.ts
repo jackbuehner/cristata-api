@@ -57,17 +57,12 @@ class Cristata {
       // use hocuspocus at '/hocupocus' and use wss at '/websocket'
       onUpgrade: async ({ request, socket, head }) => {
         try {
-          let pathname = url.parse(request.url).pathname;
+          const pathname = url.parse(request.url).pathname;
           const origin = request.headers.origin;
 
           // ensure request is from a allowed origin
           if (this.config.allowedOrigins.includes(origin) === false) {
             throw new Error(`${origin} is not allowed to access websockets`);
-          }
-
-          // remove prefix from pathname
-          if (process.env.TENANT) {
-            pathname = pathname.replace(`/${process.env.TENANT}`, '');
           }
 
           // find auth cookie
