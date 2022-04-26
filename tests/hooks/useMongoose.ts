@@ -33,8 +33,10 @@ function useMongoose(): {
   });
 
   const createModel: CreateModel = (name, customFields = undefined, withPermissions = false) => {
+    const tenantDB = mongoose.connection.useDb('db_2', { useCache: true });
+
     // delete the model if it already exists
-    delete mongoose.models[name];
+    delete tenantDB.models[name];
 
     // create the schema
     const Schema = new mongoose.Schema(
@@ -49,10 +51,10 @@ function useMongoose(): {
     Schema.plugin(aggregatePaginate);
 
     // create the model
-    mongoose.model(name, Schema);
+    tenantDB.model(name, Schema);
 
     // return the model
-    return mongoose.model(name);
+    return tenantDB.model(name);
   };
 
   return { mongoose, mongoServer, createModel };

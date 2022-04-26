@@ -25,6 +25,9 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
               typeDefs: '',
               resolvers: {},
               schemaFields: {},
+              schemaDef: {},
+              generationOptions: {},
+              by: ['_id', 'ObjectId'],
             },
           ]
         : [],
@@ -35,6 +38,7 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
         database: '',
         options: '',
       },
+      dashboard: { collectionRows: [] },
       defaultSender: 'Cristata <noreply@example.com>',
       minimumClientVersion: '0.0.0',
       tenantDisplayName: 'Test Tenant',
@@ -53,8 +57,10 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
           two_factor_authentication: false,
           next_step: undefined,
           methods: ['local'],
+          tenant: 'db_2',
         }
       : undefined,
+    tenant: 'db_2',
   };
 }
 
