@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/jackbuehner/cristata-api/compare/v2.18.0...v3.0.0) (2022-04-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* require tenant id
+* remove support for subpaths based on tenant env variable
+
+### Features
+
+* remove support for subpaths based on tenant env variable ([93f2326](https://github.com/jackbuehner/cristata-api/commit/93f232602cd7a77dc6fe29bdba6ff5b3c0c7710e))
+* require tenant id ([ab5097d](https://github.com/jackbuehner/cristata-api/commit/ab5097dd3b4730b577ec1268ac7dcc13fd72b1ed))
+
 ## [2.18.0](https://github.com/jackbuehner/cristata-api/compare/v2.17.1...v2.18.0) (2022-04-24)
 
 
