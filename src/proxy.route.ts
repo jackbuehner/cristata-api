@@ -2,7 +2,6 @@ import corsAnywhere from 'cors-anywhere';
 import crypto from 'crypto';
 import { Router } from 'express';
 import { requireAdmin } from './middleware/requireAdmin';
-import { Configuration } from './types/config';
 
 /**
  * This router contains the proxy route.
@@ -11,12 +10,12 @@ import { Configuration } from './types/config';
  *
  * This proxy only works on allowed origins. See `allowedOrigins` in `/middleware/cors`.
  */
-function factory(config: Configuration): Router {
+function factory(): Router {
   const router = Router();
 
   // create a CORS proxy
   const proxy = corsAnywhere.createServer({
-    originWhitelist: config.allowedOrigins, // only allow specified origins
+    originWhitelist: [`https://cristata.app`, /\.example2\.com$/], // only allow from cristata.app and its subdomains
     requireHeader: [], // don't require headers
     removeHeaders: ['cookie', 'cookie2'], // do not forward cookies
   });

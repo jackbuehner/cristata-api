@@ -21,6 +21,7 @@ interface CanDo {
 
 async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
   requireAuthentication(context);
+  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
 
   // get the permsissions for the collection
   const permissions = context.config.collections.find((collection) => collection.name === model).actionAccess;
@@ -77,7 +78,7 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
         tp
           .filter((team) => typeof team === 'string' && !isObjectId(team))
           .map(async (slug) => {
-            const foundTeam = await mongoose.model('Team').findOne({ slug });
+            const foundTeam = await tenantDB.model('Team').findOne({ slug });
             const teamId: mongoose.Types.ObjectId | null = foundTeam?._id || null;
             return teamId;
           })

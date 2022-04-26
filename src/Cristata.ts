@@ -3,11 +3,12 @@ import { Application } from 'express';
 import Keygrip from 'keygrip';
 import semver from 'semver';
 import url from 'url';
+import ws from 'ws';
 import helpers from './api/v3/helpers';
 import { GenCollectionInput } from './api/v3/helpers/generators/genCollection';
-import { apollo, apolloWSS } from './apollo';
+import { apollo } from './apollo';
 import { createExpressApp } from './app';
-import { db } from './mongodb/db';
+import { createMongooseModels, db } from './mongodb/db';
 import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
 import teams from './mongodb/teams.collection.json';
 import { users } from './mongodb/users';
@@ -20,27 +21,50 @@ function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Coll
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
 }
 
-class Cristata {
-  config: Configuration = undefined;
-  #express: Application = undefined;
+if (!process.env.MONGO_DB_USERNAME) throw new Error('MONGO_DB_USERNAME not defined in env');
+if (!process.env.MONGO_DB_PASSWORD) throw new Error('MONGO_DB_PASSWORD not defined in env');
+if (!process.env.MONGO_DB_HOST) throw new Error('MONGO_DB_HOST not defined in env');
 
-  constructor(config: Configuration<Collection | GenCollectionInput>) {
-    this.config = {
-      ...config,
-      collections: [
-        users(),
-        helpers.generators.genCollection(teams as unknown as GenCollectionInput),
-        ...config.collections
-          .filter((col): col is GenCollectionInput => !isCollection(col))
-          .filter((col) => col.name !== 'User')
-          .filter((col) => col.name !== 'Team')
-          .map((col) => helpers.generators.genCollection(col)),
-        ...config.collections
-          .filter((col): col is Collection => isCollection(col))
-          .filter((col) => col.name !== 'User')
-          .filter((col) => col.name !== 'Team'),
-      ],
-    };
+class Cristata {
+  config: Record<string, Configuration> = {};
+  #express: Application = undefined;
+  #apolloWss: Record<string, ws.Server> = {};
+  #tenants: string[] = [process.env.TENANT];
+
+  constructor(config?: Configuration<Collection | GenCollectionInput>) {
+    if (config) {
+      // only require tenant to be in env if a config is provided
+      if (!process.env.TENANT) throw new Error('TENANT not defined in env');
+
+      this.config[process.env.TENANT] = {
+        ...config,
+        collections: [
+          users(process.env.TENANT),
+          helpers.generators.genCollection(teams as unknown as GenCollectionInput, process.env.TENANT),
+          ...config.collections
+            .filter((col): col is GenCollectionInput => !isCollection(col))
+            .filter((col) => col.name !== 'User')
+            .filter((col) => col.name !== 'Team')
+            .map((col) => helpers.generators.genCollection(col, process.env.TENANT)),
+          ...config.collections
+            .filter((col): col is Collection => isCollection(col))
+            .filter((col) => col.name !== 'User')
+            .filter((col) => col.name !== 'Team'),
+        ],
+      };
+
+      // initialize a subscription server for graphql subscriptions
+      this.#apolloWss[process.env.TENANT] = new ws.Server({ noServer: true, path: `/v3` });
+    } else {
+      // fetch the configs for each tenant from the "tenants" collection in the database named "app"
+      // 1. set each config
+      // 2 set each apollo websocket server
+      // // initialize a subscription server for graphql subscriptions
+      // this.#apolloWss[process.env.TENANT] = new ws.Server({
+      //   noServer: true,
+      //   path: `/${process.env.TENANT}/v3`,
+      // });
+    }
   }
 
   /**
@@ -52,16 +76,22 @@ class Cristata {
     // configure the server
     const hocuspocus = Hocuspocus.configure({
       port: parseInt(process.env.PORT),
-      extensions: [new HocuspocusMongoDB(this.config)],
+      extensions: [new HocuspocusMongoDB(this.#tenants)],
 
       // use hocuspocus at '/hocupocus' and use wss at '/websocket'
       onUpgrade: async ({ request, socket, head }) => {
         try {
           const pathname = url.parse(request.url).pathname;
           const origin = request.headers.origin;
+          const { searchParams } = new URL('https://cristata.app' + request.url);
+
+          // ensure request has a valid tenant search param
+          const tenant = searchParams.get('tenant');
+          if (!tenant) throw new Error(`tenant search param must be specified`);
+          if (!this.#tenants.includes(tenant)) throw new Error(`tenant must exist`);
 
           // ensure request is from a allowed origin
-          if (this.config.allowedOrigins.includes(origin) === false) {
+          if (this.config[tenant].allowedOrigins.includes(origin) === false) {
             throw new Error(`${origin} is not allowed to access websockets`);
           }
 
@@ -87,11 +117,14 @@ class Cristata {
             throw new Error(`session cookie has been tampered with by the client`);
           }
 
+          const configs = Object.entries(this.config);
+          const root = configs.length === 1;
+
           // if the cookie is untampered, use the following appropriate handlers
           if (pathname.indexOf('/hocuspocus/') === 0) {
             // ensure client is up-to-date
-            const reqVersion = new URL('https://cristata.app' + request.url).searchParams.get('version');
-            const isClientUpdated = semver.gte(reqVersion, this.config.minimumClientVersion);
+            const reqVersion = searchParams.get('version');
+            const isClientUpdated = semver.gte(reqVersion, this.config[tenant].minimumClientVersion);
             if (!isClientUpdated) throw 'Client out of date!';
 
             // allow hocuspocus websocket to continue if the path starts with '/hocuspocus/
@@ -100,10 +133,10 @@ class Cristata {
             wss.handleUpgrade(request, socket, head, (ws) => {
               wss.emit('connection', ws, request);
             });
-          } else if (pathname === '/v3') {
+          } else if (pathname === (root ? `/v3` : `/v3/${tenant}`)) {
             // handle apollo subscriptions
-            apolloWSS.handleUpgrade(request, socket, head, (ws) => {
-              apolloWSS.emit('connection', ws, request);
+            this.#apolloWss[tenant].handleUpgrade(request, socket, head, (ws) => {
+              this.#apolloWss[tenant].emit('connection', ws, request);
             });
           }
           // otherwise, end the websocket connection request
@@ -128,7 +161,18 @@ class Cristata {
 
       onListen: async () => {
         try {
-          apollo(this.app, hocuspocus.httpServer, this.config);
+          // for each tenant with a config, create an api endpoint
+          const configs = Object.entries(this.config);
+          configs.forEach(async ([tenant, config]) =>
+            apollo(
+              this.app,
+              hocuspocus.httpServer,
+              this.#apolloWss[tenant],
+              tenant,
+              config,
+              configs.length === 1
+            )
+          );
         } catch (error) {
           console.error(error);
         }
@@ -158,14 +202,18 @@ class Cristata {
    * Connect to the database and initialize mongoose.
    */
   async #connectDb(): Promise<void> {
-    await db(this.config);
+    await db(process.env.TENANT);
+
+    // for each tenant with a config, create mongoose models
+    const configs = Object.entries(this.config);
+    await Promise.all(configs.map(async ([tenant, config]) => await createMongooseModels(config, tenant)));
   }
 
   /**
    * Gets the express app. Starts the app if it is not started.
    */
   get app(): Application {
-    if (!this.#express) this.#express = createExpressApp(this.config);
+    if (!this.#express) this.#express = createExpressApp();
     return this.#express;
   }
 }

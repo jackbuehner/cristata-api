@@ -65,7 +65,7 @@ async function construct(
   // reference user objects instead of user ids
   if (constructedDoc && constructedDoc.permissions) {
     return merge(constructedDoc, {
-      permissions: { users: await helpers.getUsers(doc.permissions.users || []) },
+      permissions: { users: await helpers.getUsers(doc.permissions.users || [], context) },
     });
   }
 
@@ -73,7 +73,7 @@ async function construct(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-function genResolvers(config: GenResolversInput) {
+function genResolvers(config: GenResolversInput, tenant: string) {
   const { name, helpers, options } = config;
   const publicRules = findAndReplace(config.publicRules, `Date.now()`, new Date());
   const [oneAccessorName] = calcAccessor('one', config.by);
@@ -82,6 +82,8 @@ function genResolvers(config: GenResolversInput) {
   const schemaRefs = Object.entries(config.schemaDef).filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<
     [string, SchemaRef]
   >;
+
+  const tenantDB = mongoose.connection.useDb(tenant, { useCache: true });
 
   const Query: ResolverType = {};
 
@@ -214,7 +216,7 @@ function genResolvers(config: GenResolversInput) {
           helpers.requireAuthentication(context);
         }
 
-        const Model = mongoose.model<CollectionDoc>(name);
+        const Model = tenantDB.model<CollectionDoc>(name);
         const argNames = query.accepts?.split(',').map((field) => field.split(':')[0]) || [];
 
         let populatedPipline = query.pipeline;
@@ -387,13 +389,14 @@ function genResolvers(config: GenResolversInput) {
   const baselineResolvers = { Query, Mutation, Subscription };
   if (!config.withSubscription) delete baselineResolvers.Subscription;
 
-  const customResolvers = genCustomResolvers({ name, helpers, ...config });
+  const customResolvers = genCustomResolvers({ name, helpers, ...config }, tenant);
 
   return { ...baselineResolvers, ...customResolvers };
 }
 
 type ResolverType = Record<string, (parent, args, context: Context, info) => Promise<unknown | unknown[]>>;
-function genCustomResolvers(input: GenResolversInput): ResolverType {
+function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverType {
+  const tenantDB = mongoose.connection.useDb(tenant, { useCache: true });
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
 
   /**
@@ -431,7 +434,7 @@ function genCustomResolvers(input: GenResolversInput): ResolverType {
                 // get the model from the type
                 // * the provided type MUST be the name of a model (sans square brackets)
                 const modelName = def.type[0].replace('[', '').replace(']', '');
-                const Model = mongoose.model(modelName);
+                const Model = tenantDB.model(modelName);
 
                 // if the model does not exist, return a schema error
                 if (!Model)
@@ -482,7 +485,7 @@ function genCustomResolvers(input: GenResolversInput): ResolverType {
               // get the model from the type
               // * the provided type MUST be the name of a model (sans square brackets)
               const modelName = def.type[0].replace('[', '').replace(']', '');
-              const Model = mongoose.model(modelName);
+              const Model = tenantDB.model(modelName);
 
               // if the model does not exist, return a schema error
               if (!Model)

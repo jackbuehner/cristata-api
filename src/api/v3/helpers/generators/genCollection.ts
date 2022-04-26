@@ -2,9 +2,9 @@ import helpers from '../';
 import { Collection, CollectionPermissions } from '../../../../types/config';
 import { GenSchemaInput } from './genSchema';
 
-function genCollection(input: GenCollectionInput): Collection {
+function genCollection(input: GenCollectionInput, tenant: string): Collection {
   const { typeDefs, schemaFields } = helpers.generators.genSchema(input);
-  const resolvers = helpers.generators.genResolvers({ helpers, ...input });
+  const resolvers = helpers.generators.genResolvers({ helpers, ...input }, tenant);
 
   return {
     name: input.name,

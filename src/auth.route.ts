@@ -3,7 +3,6 @@ import { NextFunction, Request, Response, Router } from 'express';
 import passport from 'passport';
 import { requireAuth } from './middleware/requireAuth';
 import { deserializeUser } from './passport';
-import { isArray } from './utils/isArray';
 
 // load environmental variables
 dotenv.config();
@@ -53,26 +52,6 @@ router.post('/clear', (req: Request, res: Response) => {
   }
 });
 
-// redirect client to github for authentication
-router.get(
-  '/github',
-  passport.authenticate('github', { scope: ['user', 'read:org', 'write:org', 'read:discussion'] })
-);
-
-// listen for github auth response
-router.get('/github/callback', (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('github', (err, user) => {
-    if (user.errors && isArray(user.errors) && user.errors.length > 0)
-      handleError(new Error(`${user.errors[0][0]}: ${user.errors[0][1]}`), req, res, true);
-    if (err) handleError(err, req, res);
-    if (!user) res.redirect(process.env.APP_URL + '/sign-in');
-    req.logIn(user, (err) => {
-      if (err) handleError(err, req, res);
-      res.redirect(process.env.APP_URL + '/sign-in');
-    });
-  })(req, res, next);
-});
-
 // authenticate using the local strategy
 router.post('/local', (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: Error | null, user, authErr: Error) => {
@@ -99,14 +78,17 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
       req.logIn(user, (err) => {
         if (err) handleError(err, req, res);
         else if (req.body.redirect === false) {
-          deserializeUser({ _id: user._id, provider: user.provider, next_step: user.next_step }).then(
-            (result) => {
-              // error message
-              if (typeof result === 'string') res.status(401).json({ error: result });
-              // user object
-              else res.json({ data: result });
-            }
-          );
+          deserializeUser({
+            _id: user._id,
+            provider: user.provider,
+            next_step: user.next_step,
+            tenant: user.tenant,
+          }).then((result) => {
+            // error message
+            if (typeof result === 'string') res.status(401).json({ error: result });
+            // user object
+            else res.json({ data: result });
+          });
         } else res.redirect(process.env.APP_URL + '/sign-in');
       });
     }

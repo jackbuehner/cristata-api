@@ -10,50 +10,53 @@ import { getPasswordStatus } from '../utils/getPasswordStatus';
 import { sendEmail } from '../utils/sendEmail';
 import { slugify } from '../utils/slugify';
 
-const users = (): Collection => {
+const users = (tenant: string): Collection => {
   const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication, withPubSub } = helpers;
 
-  const collection = genCollection({
-    name: 'User',
-    canPublish: false,
-    withPermissions: false,
-    withSubscription: true,
-    publicRules: { filter: {} },
-    schemaDef: {
-      name: { type: 'String', required: true, modifiable: true, public: true, default: 'New User' },
-      slug: { type: 'String', required: true, modifiable: true, public: true, default: 'new-user' },
-      phone: { type: 'Float', modifiable: true },
-      email: { type: 'String', modifiable: true, public: true },
-      twitter: { type: 'String', modifiable: true, public: true },
-      biography: { type: 'String', modifiable: true, public: true },
-      current_title: { type: 'String', modifiable: true, public: true },
-      timestamps: {
-        joined_at: { type: 'Date', required: true, default: '0001-01-01T01:00:00.000+00:00' },
-        left_at: { type: 'Date', required: true, default: '0001-01-01T01:00:00.000+00:00' },
-        last_login_at: { type: 'Date', required: true, default: new Date().toISOString() },
-        last_active_at: { type: 'Date', required: true, default: new Date().toISOString() },
+  const collection = genCollection(
+    {
+      name: 'User',
+      canPublish: false,
+      withPermissions: false,
+      withSubscription: true,
+      publicRules: { filter: {} },
+      schemaDef: {
+        name: { type: 'String', required: true, modifiable: true, public: true, default: 'New User' },
+        slug: { type: 'String', required: true, modifiable: true, public: true, default: 'new-user' },
+        phone: { type: 'Float', modifiable: true },
+        email: { type: 'String', modifiable: true, public: true },
+        twitter: { type: 'String', modifiable: true, public: true },
+        biography: { type: 'String', modifiable: true, public: true },
+        current_title: { type: 'String', modifiable: true, public: true },
+        timestamps: {
+          joined_at: { type: 'Date', required: true, default: '0001-01-01T01:00:00.000+00:00' },
+          left_at: { type: 'Date', required: true, default: '0001-01-01T01:00:00.000+00:00' },
+          last_login_at: { type: 'Date', required: true, default: new Date().toISOString() },
+          last_active_at: { type: 'Date', required: true, default: new Date().toISOString() },
+        },
+        photo: { type: 'String', modifiable: true, public: true },
+        github_id: { type: 'Number', public: true },
+        group: { type: 'Float', modifiable: true, public: true, default: '5.10' },
+        methods: { type: ['String'], default: [] },
+        retired: { type: 'Boolean', default: false },
+        flags: { type: ['String'], required: true, default: [] },
       },
-      photo: { type: 'String', modifiable: true, public: true },
-      github_id: { type: 'Number', public: true },
-      group: { type: 'Float', modifiable: true, public: true, default: '5.10' },
-      methods: { type: ['String'], default: [] },
-      retired: { type: 'Boolean', default: false },
-      flags: { type: ['String'], required: true, default: [] },
+      actionAccess: {
+        get: { teams: [0], users: [] },
+        create: { teams: [0], users: [] },
+        modify: { teams: ['admin', 'managing-editors'], users: [] },
+        hide: { teams: [0], users: [] },
+        lock: { teams: ['admin'], users: [] },
+        watch: { teams: [0], users: [] },
+        deactivate: { teams: ['admin', 'managing-editors'], users: [] },
+        delete: { teams: ['admin'], users: [] },
+      },
+      options: {
+        disableFindOneQuery: true,
+      },
     },
-    actionAccess: {
-      get: { teams: [0], users: [] },
-      create: { teams: [0], users: [] },
-      modify: { teams: ['admin', 'managing-editors'], users: [] },
-      hide: { teams: [0], users: [] },
-      lock: { teams: ['admin'], users: [] },
-      watch: { teams: [0], users: [] },
-      deactivate: { teams: ['admin', 'managing-editors'], users: [] },
-      delete: { teams: ['admin'], users: [] },
-    },
-    options: {
-      disableFindOneQuery: true,
-    },
-  });
+    tenant
+  );
 
   collection.typeDefs += gql`
     extend type User {
@@ -181,7 +184,8 @@ const users = (): Collection => {
         );
       },
       userPasswordChange: async (_, { oldPassword, newPassword }, context: Context) => {
-        const Model = mongoose.model<IUser & PassportLocalDocument>('User');
+        const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+        const Model = tenantDB.model<IUser & PassportLocalDocument>('User');
         const user = await Model.findById(context.profile._id);
         const changedUser = (await user.changePassword(oldPassword, newPassword)) as IUser &
           PassportLocalDocument;

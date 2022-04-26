@@ -11,36 +11,45 @@ import {
   onRequestPayload,
   onUpgradePayload,
 } from '@hocuspocus/server';
-
-import { applyUpdate, encodeStateAsUpdate } from 'yjs';
 import { MongodbPersistence } from 'y-mongodb';
-import { Configuration } from '../types/config';
+import { applyUpdate, encodeStateAsUpdate } from 'yjs';
 
 export class HocuspocusMongoDB implements Extension {
-  provider: MongodbPersistence;
+  provider: Record<string, MongodbPersistence>;
 
   /**
    * Constructor
    */
-  constructor(config: Configuration) {
-    // destructure connection info from config
-    const { username, password, host, database, options } = config.connection;
+  constructor(tenants: string[]) {
+    const username = process.env.MONGO_DB_USERNAME;
+    const password = process.env.MONGO_DB_PASSWORD;
+    const host = process.env.MONGO_DB_HOST;
+    const options = `retryWrites=true&w=majority`;
+
+    // create a provider object with a provider for each tenant
+    const provider: Record<string, MongodbPersistence> = {};
+    tenants.forEach((tenant) => {
+      provider[tenant] = new MongodbPersistence(
+        `mongodb+srv://${username}:${password}@${host}/${tenant}?${options}`,
+        'hocuspocus'
+      );
+    });
 
     // set the provider database and collection
-    this.provider = new MongodbPersistence(
-      `mongodb+srv://${username}:${password}@${host}/${database}?${options}`,
-      'hocuspocus'
-    );
+    this.provider = provider;
   }
 
   /**
    * onCreateDocument hook
    */
   async onCreateDocument(data: onCreateDocumentPayload): Promise<any> {
-    const persistedDocument = await this.provider.getYDoc(data.documentName);
+    // get the tenant from the request params so we can use the correct provider
+    const tenant = data.requestParameters.get('tenant');
+
+    const persistedDocument = await this.provider[tenant].getYDoc(data.documentName);
     const newUpdates = encodeStateAsUpdate(data.document);
 
-    await this.store(data.documentName, newUpdates);
+    await this.store(data.documentName, tenant, newUpdates);
     applyUpdate(data.document, encodeStateAsUpdate(persistedDocument));
 
     // force the document to update once the newUpdates and persistedDocument
@@ -52,7 +61,7 @@ export class HocuspocusMongoDB implements Extension {
     // use the documents update handler directly instead of using the onChange hook
     // to skip the first change that's triggered by the applyUpdate above
     data.document.on('update', (update: Uint8Array) => {
-      this.store(data.documentName, update);
+      this.store(data.documentName, tenant, update);
     });
   }
 
@@ -66,8 +75,8 @@ export class HocuspocusMongoDB implements Extension {
   /**
    * store updates in y-leveldb persistence
    */
-  async store(documentName: string, update: Uint8Array): Promise<any> {
-    return this.provider.storeUpdate(documentName, update);
+  async store(documentName: string, tenant: string, update: Uint8Array): Promise<any> {
+    return this.provider[tenant].storeUpdate(documentName, update);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-empty-function

@@ -31,7 +31,8 @@ async function modifyDoc<DocType, DataType>({
   modify,
 }: ModifyDoc<DocType, DataType>) {
   requireAuthentication(context);
-  const Model = mongoose.model<typeof data>(model);
+  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+  const Model = tenantDB.model<typeof data>(model);
 
   // set defaults
   if (publishable === undefined) publishable = false;

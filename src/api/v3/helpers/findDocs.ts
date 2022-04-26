@@ -22,7 +22,8 @@ interface FindDocs {
 
 async function findDocs({ model, args, context, fullAccess, accessRule }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
-  const Model = mongoose.model<CollectionDoc>(model);
+  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+  const Model = tenantDB.model<CollectionDoc>(model);
 
   const { _ids, filter, offset } = args;
   let { limit, sort, page } = args;

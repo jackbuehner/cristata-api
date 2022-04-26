@@ -27,7 +27,8 @@ async function findDoc({
   lean,
 }: FindDoc): Promise<LeanCollectionDoc | HydratedCollectionDoc> {
   if (!fullAccess) requireAuthentication(context);
-  const Model = mongoose.model<CollectionDoc>(model);
+  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+  const Model = tenantDB.model<CollectionDoc>(model);
 
   // whether the collection docs contain the standard teams and user permissions object
   const withStandardPermissions = context.config.collections.find((col) => col.name === model).withPermissions;

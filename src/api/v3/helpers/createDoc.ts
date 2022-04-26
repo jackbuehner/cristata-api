@@ -18,7 +18,8 @@ interface CreateDoc<DataType> {
 
 async function createDoc<DataType>({ model, args, context, withPermissions, modify }: CreateDoc<DataType>) {
   requireAuthentication(context);
-  const Model = mongoose.model(model);
+  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+  const Model = tenantDB.model(model);
 
   // add relevant collection metadata
   args.people = {

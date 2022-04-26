@@ -13,7 +13,8 @@ const router = Router();
 router.get('/user-photo/:user_id', async (req, res) => {
   try {
     // define model
-    const User = mongoose.model<IUser>('User');
+    const tenantDB = mongoose.connection.useDb((req.user as IDeserializedUser).tenant, { useCache: true });
+    const User = tenantDB.model<IUser>('User');
 
     // make authenticated user available
     const authUser = req.user as IDeserializedUser;

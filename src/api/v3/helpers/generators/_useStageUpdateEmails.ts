@@ -14,6 +14,7 @@ async function useStageUpdateEmails(
   gc: GenResolversInput
 ): Promise<void> {
   if (gc.options?.watcherNotices && gc.options.mandatoryWatchers) {
+    const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
     const doc = merge(currentDoc, data);
 
     const flatten = (arr) => {
@@ -37,7 +38,7 @@ async function useStageUpdateEmails(
             })
             .filter((x): x is mongoose.Types.ObjectId[] => !!x)
         ).map(async (_id) => {
-          const profile = await mongoose.model('User').findById(_id); // get the profile, which may contain an email
+          const profile = await tenantDB.model('User').findById(_id); // get the profile, which may contain an email
           if (hasKey('email', profile)) return profile.email;
           return null;
         })
@@ -48,7 +49,7 @@ async function useStageUpdateEmails(
       await Promise.all(
         //@ts-expect-error people exists on doc
         doc?.people?.watching?.map(async (_id) => {
-          const profile = await mongoose.model('User').findById(_id); // get the profile, which may contain an email
+          const profile = await tenantDB.model('User').findById(_id); // get the profile, which may contain an email
           if (hasKey('email', profile)) return profile.email;
           return null;
         })

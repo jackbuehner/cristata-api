@@ -17,7 +17,8 @@ const core = {
 
       const collectionNamesPluralized = collectionNames.map((name) => mongoose.pluralize()(name));
 
-      const Model = mongoose.model(collectionNames[0]);
+      const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+      const Model = tenantDB.model(collectionNames[0]);
 
       const pipeline: mongoose.PipelineStage[] = [
         { $addFields: { in: collectionNamesPluralized[0] } },
@@ -62,10 +63,10 @@ const core = {
     },
   },
   CollectionActivity: {
-    user: ({ user }) => getUsers(user),
+    user: ({ user }, __, context: Context) => getUsers(user, context),
   },
   CollectionPermissions: {
-    users: ({ users }) => getUsers(users),
+    users: ({ users }, __, context: Context) => getUsers(users, context),
   },
 };
 

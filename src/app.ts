@@ -1,4 +1,3 @@
-import './passport';
 import compression from 'compression';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
@@ -11,15 +10,15 @@ import { apiRouter3 } from './api/v3/routes';
 import { authRouter } from './auth.route';
 import { corsConfig } from './middleware/cors';
 import { requireAuth } from './middleware/requireAuth';
-import { proxyRouterFactory } from './proxy.route';
-import { Configuration } from './types/config';
 import { IUser } from './mongodb/users';
+import './passport';
 import { IDeserializedUser } from './passport';
+import { proxyRouterFactory } from './proxy.route';
 
 // load environmental variables
 dotenv.config();
 
-function createExpressApp(config: Configuration): Application {
+function createExpressApp(): Application {
   // create express app
   const app = express();
 
@@ -81,7 +80,7 @@ function createExpressApp(config: Configuration): Application {
   );
 
   // enable CORS for the app
-  app.use(cors(corsConfig(config)));
+  app.use(cors(corsConfig()));
 
   // parse incoming request body
   app.use(express.json());
@@ -110,7 +109,7 @@ function createExpressApp(config: Configuration): Application {
   // connect routers to app
   app.use(`/auth`, authRouter); // authentication routes
   app.use(`/v3`, apiRouter3); // API v3 routes
-  app.use(proxyRouterFactory(config)); // CORS proxy routes
+  app.use(proxyRouterFactory()); // CORS proxy routes
 
   app.get(``, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);
@@ -120,7 +119,8 @@ function createExpressApp(config: Configuration): Application {
   app.use(async (req, res, next) => {
     try {
       if (req.isAuthenticated()) {
-        const user = await mongoose.model<IUser>('User').findById((req.user as IDeserializedUser)._id, null);
+        const tenantDB = mongoose.connection.useDb((req.user as IDeserializedUser).tenant, { useCache: true });
+        const user = await tenantDB.model<IUser>('User').findById((req.user as IDeserializedUser)._id, null);
         const now = new Date();
         if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
           // only update if time is more than 15 seconds away

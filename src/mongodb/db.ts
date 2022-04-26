@@ -80,9 +80,11 @@ function convertTopNestedObjectsToSubdocuments(
   return complexSchemaFields;
 }
 
-async function db(config: Configuration): Promise<void> {
-  // destructure connection info from config
-  const { username, password, host, database, options } = config.connection;
+async function db(database = `app`): Promise<void> {
+  const username = process.env.MONGO_DB_USERNAME;
+  const password = process.env.MONGO_DB_PASSWORD;
+  const host = process.env.MONGO_DB_HOST;
+  const options = `retryWrites=true&w=majority`;
 
   // connect to mongoDB
   if (username && password) {
@@ -90,6 +92,10 @@ async function db(config: Configuration): Promise<void> {
   } else {
     await mongoose.connect(`mongodb://127.0.0.1/${database}?${options}`);
   }
+}
+
+async function createMongooseModels(config: Configuration, tenant: string): Promise<void> {
+  const tenantDB = mongoose.connection.useDb(tenant, { useCache: true });
 
   // create the schema and model for each collection
   config.collections.forEach((collection) => {
@@ -149,17 +155,17 @@ async function db(config: Configuration): Promise<void> {
       });
 
     // create the model based on the schema
-    mongoose.model(collection.name, Schema);
+    tenantDB.model(collection.name, Schema);
 
     // activate the passport strategy for mongoose users
     if (collection.name === 'User') {
-      passport.use(mongoose.model('User').createStrategy());
+      passport.use((tenantDB.model('User') as mongoose.PassportLocalModel<mongoose.Document>).createStrategy());
     }
   });
 
   // force a user with the name 'Unknown' and slug 'unknown-user-internal'
   await (async () => {
-    const User = mongoose.model('User');
+    const User = tenantDB.model('User');
     const unknownUserExists = !!(await User.findOne({ name: 'Unknown', slug: 'unknown-user-internal' }));
     if (!unknownUserExists) {
       const newUser = new User({
@@ -199,7 +205,7 @@ async function db(config: Configuration): Promise<void> {
       }),
   ];
 
-  const Team = mongoose.model('Team');
+  const Team = tenantDB.model('Team');
   await Promise.all(
     requiredTeams.map(async (team) => {
       const exists = !!(await Team.findOne({ _id: team._id }));
@@ -257,6 +263,7 @@ interface PublishableCollectionSchemaFields {
 
 export {
   db,
+  createMongooseModels,
   collectionSchemaFields,
   publishableCollectionSchemaFields,
   withPermissionsCollectionSchemaFields,

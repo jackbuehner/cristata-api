@@ -15,14 +15,11 @@ import { Server } from 'http';
 import { merge } from 'merge-anything';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import ws from 'ws';
+import { collectionResolvers, configurationResolvers, coreResolvers, s3Resolvers } from './api/v3/resolvers';
+import { collectionTypeDefs, configurationTypeDefs, coreTypeDefs, s3TypeDefs } from './api/v3/typeDefs';
 import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
-import { collectionTypeDefs, coreTypeDefs, s3TypeDefs, configurationTypeDefs } from './api/v3/typeDefs';
-import { collectionResolvers, coreResolvers, s3Resolvers, configurationResolvers } from './api/v3/resolvers';
 import { Configuration } from './types/config';
-
-// initialize a subscription server for graphql subscriptions
-const apolloWSS = new ws.Server({ noServer: true, path: '/v3' });
 
 // create publish-subscribe class for managing subscriptions
 const pubsub = new PubSub();
@@ -33,7 +30,14 @@ const pubsub = new PubSub();
  * @param app express app
  * @param server http server
  */
-async function apollo(app: Application, server: Server, config: Configuration): Promise<void> {
+async function apollo(
+  app: Application,
+  server: Server,
+  wss: ws.Server,
+  tenant: string,
+  config: Configuration,
+  root = false
+): Promise<void> {
   try {
     const typeDefs = [
       graphqls2s.transpileSchema(
@@ -65,13 +69,11 @@ async function apollo(app: Application, server: Server, config: Configuration): 
     const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
       return {
         config: { ...config, connection: null },
-        isAuthenticated: req.isAuthenticated(),
+        isAuthenticated: req.isAuthenticated() && (req.user as IDeserializedUser).tenant === tenant,
         profile: req.user as IDeserializedUser,
+        tenant: tenant,
       };
     };
-
-    // determine the subpath for the server, if applicable
-    const path = '';
 
     // initialize apollo
     const apollo = new Apollo({
@@ -97,7 +99,7 @@ async function apollo(app: Application, server: Server, config: Configuration): 
           async serverWillStart() {
             return {
               async drainServer() {
-                apolloWSS.close();
+                wss.close();
               },
             };
           },
@@ -125,12 +127,12 @@ async function apollo(app: Application, server: Server, config: Configuration): 
         execute,
         subscribe,
       },
-      apolloWSS
+      wss
     );
 
     // required logic for integrating with Express
     await apollo.start();
-    apollo.applyMiddleware({ app, path: `${path}/v3`, cors: corsConfig(config) });
+    apollo.applyMiddleware({ app, path: root ? `/v3` : `/v3/${tenant}`, cors: corsConfig() });
   } catch (error) {
     console.error(error);
   }
@@ -140,17 +142,11 @@ interface Context {
   config: Configuration;
   isAuthenticated: boolean;
   profile?: IDeserializedUser;
+  tenant: string;
 }
 
 const collectionPeopleResolvers = collectionResolvers.CollectionPeople;
 const publishableCollectionPeopleResolvers = collectionResolvers.PublishableCollectionPeople;
 
 export type { Context };
-export {
-  apollo,
-  apolloWSS,
-  collectionPeopleResolvers,
-  collectionTypeDefs,
-  publishableCollectionPeopleResolvers,
-  pubsub,
-};
+export { apollo, collectionPeopleResolvers, collectionTypeDefs, publishableCollectionPeopleResolvers, pubsub };
