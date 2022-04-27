@@ -16,6 +16,7 @@ import { Collection, Configuration } from './types/config';
 import { hasKey } from './utils/hasKey';
 import { parseCookies } from './utils/parseCookies';
 import { wss } from './websocket';
+import mongoose, { ObjectId } from 'mongoose';
 
 function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
@@ -36,35 +37,12 @@ class Cristata {
       // only require tenant to be in env if a config is provided
       if (!process.env.TENANT) throw new Error('TENANT not defined in env');
 
-      this.config[process.env.TENANT] = {
-        ...config,
-        collections: [
-          users(process.env.TENANT),
-          helpers.generators.genCollection(teams as unknown as GenCollectionInput, process.env.TENANT),
-          ...config.collections
-            .filter((col): col is GenCollectionInput => !isCollection(col))
-            .filter((col) => col.name !== 'User')
-            .filter((col) => col.name !== 'Team')
-            .map((col) => helpers.generators.genCollection(col, process.env.TENANT)),
-          ...config.collections
-            .filter((col): col is Collection => isCollection(col))
-            .filter((col) => col.name !== 'User')
-            .filter((col) => col.name !== 'Team'),
-        ],
-      };
+      this.config[process.env.TENANT] = constructCollections(config, process.env.TENANT);
 
       // initialize a subscription server for graphql subscriptions
       this.#apolloWss[process.env.TENANT] = new ws.Server({ noServer: true, path: `/v3` });
-    } else {
-      // fetch the configs for each tenant from the "tenants" collection in the database named "app"
-      // 1. set each config
-      // 2 set each apollo websocket server
-      // // initialize a subscription server for graphql subscriptions
-      // this.#apolloWss[process.env.TENANT] = new ws.Server({
-      //   noServer: true,
-      //   path: `/${process.env.TENANT}/v3`,
-      // });
     }
+    // NOTE: tenants will be fetch from the app db if a tenant is not provided to the constructor
   }
 
   /**
@@ -202,7 +180,27 @@ class Cristata {
    * Connect to the database and initialize mongoose.
    */
   async #connectDb(): Promise<void> {
-    await db(process.env.TENANT);
+    if (process.env.TENANT) await db(process.env.TENANT);
+    else {
+      await db();
+
+      // get the tenants
+      const tenantsCollection = mongoose.connection.db.collection('tenants');
+      const tenants = await tenantsCollection
+        .find<{ _id: ObjectId; name: string; config: Configuration }>({})
+        .toArray();
+
+      tenants.forEach(({ name, config }) => {
+        // add each tenant to the config
+        this.config[name] = constructCollections(config, name);
+
+        // initialize a subscription server for graphql subscriptions
+        this.#apolloWss[name] = new ws.Server({
+          noServer: true,
+          path: tenants.length === 1 ? `/v3` : `/${name}/v3`,
+        });
+      });
+    }
 
     // for each tenant with a config, create mongoose models
     const configs = Object.entries(this.config);
@@ -216,6 +214,32 @@ class Cristata {
     if (!this.#express) this.#express = createExpressApp();
     return this.#express;
   }
+}
+
+function constructCollections(
+  config: Configuration<Collection | GenCollectionInput>,
+  tenant: string
+): Configuration {
+  if (tenant === 'admin') throw new Error('cannot create a database for tenant with name "admin"');
+  if (tenant === 'local') throw new Error('cannot create a database for tenant with name "local"');
+  if (tenant === 'users') throw new Error('cannot create a database for tenant with name "users"');
+
+  return {
+    ...config,
+    collections: [
+      users(tenant),
+      helpers.generators.genCollection(teams as unknown as GenCollectionInput, tenant),
+      ...config.collections
+        .filter((col): col is GenCollectionInput => !isCollection(col))
+        .filter((col) => col.name !== 'User')
+        .filter((col) => col.name !== 'Team')
+        .map((col) => helpers.generators.genCollection(col, tenant)),
+      ...config.collections
+        .filter((col): col is Collection => isCollection(col))
+        .filter((col) => col.name !== 'User')
+        .filter((col) => col.name !== 'Team'),
+    ],
+  };
 }
 
 // keep errors silent
