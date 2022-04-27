@@ -85,6 +85,7 @@ const navigation = gql`
 const collection = gql`
   extend type Configuration {
     collection(name: String!): ConfigurationCollection
+    collections(): [ConfigurationCollection]
   }
 
   type ConfigurationCollection {
@@ -97,6 +98,11 @@ const collection = gql`
     schemaDef: JSON!
     generationOptions: ConfigurationCollectionGenerationOptions
     by: ConfigurationCollectionBy!
+    raw: JSON!
+  }
+
+  type Mutation {
+    setRawConfigurationCollection(name: String!, raw: JSON!): JSON
   }
 
   type ConfigurationCollectionGenerationOptions {

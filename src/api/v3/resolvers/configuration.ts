@@ -1,5 +1,11 @@
 import { Context } from '../../../apollo';
-import { Configuration, ReturnedMainNavItem, ReturnedSubNavGroup, SubNavGroup } from '../../../types/config';
+import {
+  Collection,
+  Configuration,
+  ReturnedMainNavItem,
+  ReturnedSubNavGroup,
+  SubNavGroup,
+} from '../../../types/config';
 import { hasKey } from '../../../utils/hasKey';
 import { isObject } from '../../../utils/isObject';
 
@@ -30,13 +36,25 @@ const configuration = {
                     ? collection.by.many[0]
                     : collection.by?.[0] || '_id',
               },
+              raw: collection.raw,
             };
           }
 
           // if the collection does not exist, return null
           return null;
         },
+        collections: () =>
+          context.config.collections.filter((col) => col.name !== 'User' && col.name !== 'Team'),
       };
+    },
+  },
+  Mutation: {
+    setRawConfigurationCollection: (
+      _: unknown,
+      { name, raw }: { name: string; raw: Collection },
+      context: Context
+    ): Collection => {
+      return raw;
     },
   },
   ConfigurationDashboard: {

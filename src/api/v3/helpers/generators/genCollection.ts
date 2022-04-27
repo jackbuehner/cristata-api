@@ -17,6 +17,7 @@ function genCollection(input: GenCollectionInput, tenant: string): Collection {
     generationOptions: input.options,
     actionAccess: input.actionAccess,
     by: input.by,
+    raw: input,
   };
 }
 
