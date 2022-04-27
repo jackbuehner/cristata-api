@@ -54,7 +54,12 @@ router.post('/clear', (req: Request, res: Response) => {
 
 // authenticate using the local strategy
 router.post('/local', (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('local', (err: Error | null, user, authErr: Error) => {
+  // get then tenant so we know which local strategy to use
+  const searchParams = req.query as unknown as URLSearchParams;
+  const tenant = searchParams.get('tenant');
+
+  // use the local strategy for the provided tenant
+  passport.authenticate(`local-${tenant}`, (err: Error | null, user, authErr: Error) => {
     // handle error
     if (err) handleError(err, req, res, true);
     // handle authentication error

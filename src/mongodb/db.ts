@@ -159,7 +159,9 @@ async function createMongooseModels(config: Configuration, tenant: string): Prom
 
     // activate the passport strategy for mongoose users
     if (collection.name === 'User') {
-      passport.use((tenantDB.model('User') as mongoose.PassportLocalModel<mongoose.Document>).createStrategy());
+      passport.use(
+        (tenantDB.model('User') as mongoose.PassportLocalModel<mongoose.Document>).createStrategy({ tenant })
+      );
     }
   });
 

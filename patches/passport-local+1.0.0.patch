@@ -1,0 +1,14 @@
+diff --git a/node_modules/passport-local/lib/strategy.js b/node_modules/passport-local/lib/strategy.js
+index e54e92a..6e0cbf3 100644
+--- a/node_modules/passport-local/lib/strategy.js
++++ b/node_modules/passport-local/lib/strategy.js
+@@ -50,7 +50,8 @@ function Strategy(options, verify) {
+   this._passwordField = options.passwordField || 'password';
+   
+   passport.Strategy.call(this);
+-  this.name = 'local';
++  if (options.tenant) this.name = `local-${options.tenant}`
++  else this.name = 'local';
+   this._verify = verify;
+   this._passReqToCallback = options.passReqToCallback;
+ }
