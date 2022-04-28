@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/jackbuehner/cristata-api/compare/v3.0.2...v3.1.0) (2022-04-28)
+
+
+### Features
+
+* add queries and mutations for finding and modifying collections ([3f92093](https://github.com/jackbuehner/cristata-api/commit/3f920937b052dc78ccbdc759b008b96279295a00))
+* require cookies to be in a secure context from the same site (except in development mode) ([8083b50](https://github.com/jackbuehner/cristata-api/commit/8083b50775ce3df7f54d180f9603a00b23966097))
+* stop checking for allowed origins now that cookies are stricter ([f81bd06](https://github.com/jackbuehner/cristata-api/commit/f81bd06fde870198634defe471eaa4efe52a6e58))
+* support authentication when multiple tenants are available ([496ee55](https://github.com/jackbuehner/cristata-api/commit/496ee55e623bc8794601830fe95a12aa2e76e382))
+* support s start file to start the server without a defined tenant ([7d091b8](https://github.com/jackbuehner/cristata-api/commit/7d091b8b7603325dd1ddcba1576bb17f6423189f))
+
+
+### Bug Fixes
+
+* patch types for passport-local-mongoose to reflect other patches ([60477cb](https://github.com/jackbuehner/cristata-api/commit/60477cb471a7a19727f093ad2624b40ce876afb6))
+* push tenant names to the tenants array ([2c34fd1](https://github.com/jackbuehner/cristata-api/commit/2c34fd1e52d1a468320b22d4ba20e3417ce29ecd))
+* use correct cookie name for websockets ([08f0ff0](https://github.com/jackbuehner/cristata-api/commit/08f0ff04bd96c69936d5b9fa9d6ea28bd4c94e50))
+
 ### [3.0.2](https://github.com/jackbuehner/cristata-api/compare/v3.0.1...v3.0.2) (2022-04-26)
 
 
