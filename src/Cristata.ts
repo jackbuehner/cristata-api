@@ -73,7 +73,7 @@ class Cristata {
             return;
           }
           const parsedCookies = parseCookies(request.headers.cookie);
-          const authCookie = parsedCookies.find((cookie) => cookie.name === 'github-auth-session');
+          const authCookie = parsedCookies.find((cookie) => cookie.name === '__Host-cristata-session');
           if (!authCookie) {
             socket.end(); // end if no auth cookie
             return;
