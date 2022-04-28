@@ -8,8 +8,8 @@
   "main": "dist/index.js",
   "scripts": {
     "release": "standard-version",
-    "start": "node dist/start.js",
-    "dev": "nodemon src/start.ts",
+    "start": "cross-env APP_URL=${APP_URL:=https://cristata.app} node dist/start.js",
+    "dev": "cross-env APP_URL=${APP_URL:=https://cristata.app} nodemon src/start.ts",
     "build": "tsc --build && tsc --declaration && npm run lint",
     "check": "tsc && npm run lint",
     "test": "jest",
@@ -71,6 +71,7 @@
     "cookie-session": "^1.4.0",
     "cors": "^2.8.5",
     "cors-anywhere": "^0.4.4",
+    "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "find-and-replace-anything": "^3.0.2",
