@@ -22,6 +22,7 @@ function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Coll
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
 }
 
+if (!process.env.COOKIE_SESSION_SECRET) throw new Error('COOKIE_SESSION_SECRET not defined in env');
 if (!process.env.MONGO_DB_USERNAME) throw new Error('MONGO_DB_USERNAME not defined in env');
 if (!process.env.MONGO_DB_PASSWORD) throw new Error('MONGO_DB_PASSWORD not defined in env');
 if (!process.env.MONGO_DB_HOST) throw new Error('MONGO_DB_HOST not defined in env');
