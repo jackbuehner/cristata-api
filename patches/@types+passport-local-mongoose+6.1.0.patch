@@ -1,5 +1,5 @@
 diff --git a/node_modules/@types/passport-local-mongoose/index.d.ts b/node_modules/@types/passport-local-mongoose/index.d.ts
-index 64e2bb8..b88114c 100644
+index 64e2bb8..8347c5a 100755
 --- a/node_modules/@types/passport-local-mongoose/index.d.ts
 +++ b/node_modules/@types/passport-local-mongoose/index.d.ts
 @@ -4,7 +4,6 @@
@@ -10,3 +10,12 @@ index 64e2bb8..b88114c 100644
  /// <reference types="passport-local" />
  
  declare module 'mongoose' {
+@@ -42,7 +41,7 @@ declare module 'mongoose' {
+         register(user: T, password: string, cb: (err: any, account: any) => void): void;
+         findByUsername(username: string, selectHashSaltFields: boolean): Query<T, T>;
+         findByUsername(username: string, selectHashSaltFields: boolean, cb: (err: any, account: any) => void): any;
+-        createStrategy(): passportLocal.Strategy;
++        createStrategy(options: { tenant: string }): passportLocal.Strategy;
+     }
+ 
+     // error messages
