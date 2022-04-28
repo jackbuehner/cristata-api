@@ -2,7 +2,7 @@ tasks:
   - name: Install dependencies (npm)
     init: npm install && gp sync-done npmi
 
-  - name: Start app (React)
+  - name: Start server
     init: gp sync-await npmi # wait for npm install to finish
     command: npm run dev:server
     openMode: tab-after
