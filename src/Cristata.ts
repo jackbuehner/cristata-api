@@ -193,6 +193,7 @@ class Cristata {
       tenants.forEach(({ name, config }) => {
         // add each tenant to the config
         this.config[name] = constructCollections(config, name);
+        this.#tenants.push(name);
 
         // initialize a subscription server for graphql subscriptions
         this.#apolloWss[name] = new ws.Server({
