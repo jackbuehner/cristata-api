@@ -2,6 +2,7 @@ import pluralize from 'pluralize';
 import { uncapitalize } from '../../../utils/uncapitalize';
 import { get as getProperty } from 'object-path';
 import { camelToDashCase } from '../../../utils/camelToDashCase';
+import { Context } from '../../../apollo';
 
 interface WriteEmailBody {
   model: string;
@@ -13,15 +14,20 @@ interface WriteEmailBody {
   }>;
   isMandatory?: boolean;
   data: Record<string, unknown>;
+  context: Context;
 }
 
-function writeEmailBody({ model, identifier, fields, isMandatory, data }: WriteEmailBody): string {
+function writeEmailBody({ model, identifier, fields, isMandatory, data, context }: WriteEmailBody): string {
   const message = `The stage has been changed for a document you are watching on Cristata.`;
 
   const view = `
     This view the document, go to
-    <a href="${process.env.APP_URL}/cms/${camelToDashCase(pluralize(uncapitalize(model)))}/${identifier}">
-    ${process.env.APP_URL}/cms/${camelToDashCase(pluralize(uncapitalize(model)))}/${identifier}</a>.
+    <a href="${process.env.APP_URL}/${context.profile.tenant}/cms/${camelToDashCase(
+    pluralize(uncapitalize(model))
+  )}/${identifier}">
+    ${process.env.APP_URL}/${context.profile.tenant}/cms/${camelToDashCase(
+    pluralize(uncapitalize(model))
+  )}/${identifier}</a>.
   `;
 
   const values = fields.map((field) => {

@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
 import passport from 'passport';
 import { requireAuth } from './middleware/requireAuth';
-import { deserializeUser } from './passport';
+import { deserializeUser, IDeserializedUser } from './passport';
 
 // load environmental variables
 dotenv.config();
@@ -77,7 +77,12 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
     // don't sign in if user is missing after authentication
     else if (!user) {
       if (req.body.redirect === false) res.json({ error: 'user is missing' });
-      else res.redirect(req.body.server ? req.baseUrl + '/local' : process.env.APP_URL + '/sign-in');
+      else
+        res.redirect(
+          req.body.server
+            ? req.baseUrl + '/local'
+            : process.env.APP_URL + '/' + (req.user as IDeserializedUser).tenant + '/sign-in'
+        );
     } else {
       // sign in
       req.logIn(user, (err) => {
@@ -94,7 +99,7 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
             // user object
             else res.json({ data: result });
           });
-        } else res.redirect(process.env.APP_URL + '/sign-in');
+        } else res.redirect(process.env.APP_URL + '/' + (req.user as IDeserializedUser).tenant + '/sign-in');
       });
     }
   })(req, res, next);

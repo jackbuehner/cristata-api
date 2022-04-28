@@ -76,6 +76,7 @@ async function useStageUpdateEmails(
         { name: '_id', label: 'Unique ID' },
       ],
       data: doc,
+      context,
     };
 
     const emailBody = gc.helpers.writeEmailBody(bodySettings);
