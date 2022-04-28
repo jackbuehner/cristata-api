@@ -89,13 +89,17 @@ function createExpressApp(): Application {
   // pretty print sent json
   app.set('json spaces', 2);
 
+  // assume that the proxy to the express server is secure
+  app.set('trust proxy', 1); // trust first proxy
+
   // store session in the client cookie
   app.use(
     cookieSession({
-      name: 'github-auth-session',
+      name: '__Host-cristata-session',
       secret: process.env.COOKIE_SESSION_SECRET,
-      domain: process.env.COOKIE_DOMAIN,
       path: '/',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
+      secure: true,
     })
   );
 
