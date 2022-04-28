@@ -1,3 +1,12 @@
 {
-  "recommendations": ["dbaeumer.vscode-eslint", "graphql.vscode-graphql"]
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "graphql.vscode-graphql",
+    "eamodio.gitlens",
+    "vscode-icons-team.vscode-icons",
+    "aaron-bond.better-comments",
+    "esbenp.prettier-vscode",
+    "github.vscode-pull-request-github",
+    "tamasfe.even-better-toml"
+  ]
 }

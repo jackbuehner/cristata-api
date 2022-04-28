@@ -11,6 +11,12 @@ tasks:
     command: npm run dev:server
     openMode: tab-after
 
+ports:
+  - port: 3000
+    onOpen: ignore
+    name: Cristata Server
+    visibility: public
+
 github:
   # configure continuous prebuilds for GitHub repositories
   prebuilds:
@@ -32,4 +38,10 @@ github:
 vscode:
   extensions:
     - dbaeumer.vscode-eslint
-    - graphql.vscode-graphql
+    - tamasfe.even-better-toml
+    - GitHub.vscode-pull-request-github
+    - GraphQL.vscode-graphql
+    - esbenp.prettier-vscode
+    - eamodio.gitlens
+    - vscode-icons-team.vscode-icons
+    - aaron-bond.better-comments
