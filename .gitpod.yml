@@ -1,16 +1,38 @@
+additionalRepositories:
+  - url: https://github.com/jackbuehner/cristata-app
+    checkoutLocation: cristata-app
+
 tasks:
   - name: Install dependencies (npm)
-    init: npm install && gp sync-done npmi
+    init: |
+      npm install
+      gp sync-done npmi
+      cd ../cristata-app
+      npm install
+      gp sync-done npmia
 
   - name: Start server
     init: gp sync-await npmi # wait for npm install to finish
-    command: npm run dev:server
+    command: npm run dev
     openMode: tab-after
+    env:
+      PORT: 3000
+
+  - name: Start app
+    init: gp sync-await npmia # wait for npm install to finish
+    command: cd ../cristata-app && npm run dev
+    openMode: tab-after
+    env:
+      PORT: 4000
 
 ports:
   - port: 3000
     onOpen: ignore
     name: Cristata Server
+    visibility: public
+  - port: 4000
+    onOpen: ignore
+    name: Cristata App
     visibility: public
 
 github:
