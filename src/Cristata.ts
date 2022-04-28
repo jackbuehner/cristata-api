@@ -60,18 +60,12 @@ class Cristata {
       onUpgrade: async ({ request, socket, head }) => {
         try {
           const pathname = url.parse(request.url).pathname;
-          const origin = request.headers.origin;
           const { searchParams } = new URL('https://cristata.app' + request.url);
 
           // ensure request has a valid tenant search param
           const tenant = searchParams.get('tenant');
           if (!tenant) throw new Error(`tenant search param must be specified`);
           if (!this.#tenants.includes(tenant)) throw new Error(`tenant must exist`);
-
-          // ensure request is from a allowed origin
-          if (this.config[tenant].allowedOrigins.includes(origin) === false) {
-            throw new Error(`${origin} is not allowed to access websockets`);
-          }
 
           // find auth cookie
           if (!request.headers.cookie) {
