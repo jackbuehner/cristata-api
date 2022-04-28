@@ -67,12 +67,9 @@ async function apollo(
 
     // add auth info to context
     const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
-      return {
-        config: { ...config, connection: null },
-        isAuthenticated: req.isAuthenticated() && (req.user as IDeserializedUser).tenant === tenant,
-        profile: req.user as IDeserializedUser,
-        tenant: tenant,
-      };
+      const isAuthenticated = req.isAuthenticated() && (req.user as IDeserializedUser).tenant === tenant;
+      const profile = req.user as IDeserializedUser;
+      return { config, isAuthenticated, profile, tenant };
     };
 
     // initialize apollo
@@ -109,8 +106,12 @@ async function apollo(
           async requestDidStart(): Promise<GraphQLRequestListener | void> {
             return {
               async didEncounterErrors(requestContext: GraphQLRequestContext) {
-                console.error('Apollo::didEncounterErrors::request', requestContext.request);
-                console.error('Apollo::didEncounterErrors::context', requestContext.context);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { http, ...prunedRequest } = requestContext.request;
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { config, db, ...prunedContext } = requestContext.context;
+                console.error('Apollo::didEncounterErrors::prunedRequest', prunedRequest);
+                console.error('Apollo::didEncounterErrors::prunedContext', prunedContext);
                 console.error('Apollo::didEncounterErrors::errors', requestContext.errors);
               },
             };
