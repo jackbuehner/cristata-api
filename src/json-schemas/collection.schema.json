@@ -2123,6 +2123,7 @@
                 "rule": {
                     "additionalProperties": false,
                     "defaultProperties": [],
+                    "description": "Return an error to the client if the new value for this field\ndoes not match the provided regular expression.",
                     "properties": {
                         "match": {
                             "$ref": "#/definitions/RegExp"

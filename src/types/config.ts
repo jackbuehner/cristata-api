@@ -21,6 +21,12 @@ interface Configuration<CT = Collection> {
     database: string;
     options: string;
   };
+  secrets: {
+    aws: {
+      accessKeyId: string;
+      secretAccessKey: string;
+    };
+  };
   /**
    * The default sender name and email to be used by AWS SES when no other
    * email is specified.

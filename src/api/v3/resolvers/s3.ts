@@ -11,7 +11,7 @@ const s3 = {
       context: Context
     ): Promise<{ signedRequest: string; location: string }> => {
       requireAuthentication(context);
-      const s3 = new aws.S3();
+      const s3 = new aws.S3({ credentials: context.config.secrets.aws });
 
       const s3Params = {
         Bucket: s3Bucket,
