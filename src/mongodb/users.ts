@@ -178,6 +178,7 @@ const users = (tenant: string): Collection => {
           modifyDoc({
             model: 'User',
             data: { ...input, _id },
+            _id,
             context,
             fullAccess: isSelf,
           })

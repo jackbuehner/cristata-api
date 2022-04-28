@@ -16,6 +16,8 @@ import { insertUserToArray } from '../../../utils/insertUserToArray';
 interface ModifyDoc<DocType, DataType> {
   model: string;
   data: CollectionDoc;
+  by?: string;
+  _id: mongoose.Types.ObjectId | string | number | Date;
   context: Context;
   publishable?: boolean;
   fullAccess?: boolean;
@@ -29,6 +31,8 @@ async function modifyDoc<DocType, DataType>({
   publishable,
   fullAccess,
   modify,
+  _id,
+  by,
 }: ModifyDoc<DocType, DataType>) {
   requireAuthentication(context);
   const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
@@ -38,12 +42,8 @@ async function modifyDoc<DocType, DataType>({
   if (publishable === undefined) publishable = false;
   if (fullAccess === undefined) fullAccess = false;
 
-  // remove _id from the data object and convert it to an object id
-  const { _id: string_id } = data;
-  const _id = new mongoose.Types.ObjectId(string_id as string);
-
   // if the current document does not exist OR the user does not have access, throw an error
-  const currentDoc = (await findDoc({ model, _id, context, fullAccess })) as CurrentDocType;
+  const currentDoc = (await findDoc({ model, _id, by, context, fullAccess })) as CurrentDocType;
   if (!currentDoc)
     throw new ApolloError(
       'the document you are trying to modify does not exist or you do not have access',
@@ -103,7 +103,7 @@ async function modifyDoc<DocType, DataType>({
   await modify?.(currentDoc as DocType, data as unknown as DataType);
 
   // attempt to patch the article
-  return await Model.findByIdAndUpdate(_id, { $set: data }, { returnOriginal: false });
+  return await Model.findOneAndUpdate({ [by || '_id']: '_id' }, { $set: data }, { returnOriginal: false });
 }
 
 type CurrentDocType = CollectionSchemaFields &

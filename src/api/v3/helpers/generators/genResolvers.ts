@@ -262,12 +262,16 @@ function genResolvers(config: GenResolversInput, tenant: string) {
   }
 
   if (options?.disableModifyMutation !== true) {
-    Mutation[`${uncapitalize(name)}Modify`] = async (parent, { _id, input }, context) => {
+    Mutation[`${uncapitalize(name)}Modify`] = async (
+      parent,
+      { [oneAccessorName]: _accessor, input },
+      context
+    ) => {
       // check input rules
-      Object.keys(flattenObject({ _id, input } as never)).forEach((key) => {
+      Object.keys(flattenObject({ [oneAccessorName]: _accessor, input } as never)).forEach((key) => {
         const inputRule: SchemaDef['rule'] = getProperty(input.schemaDef, key)?.rule;
         if (inputRule) {
-          const match = getProperty({ _id, input }, key)?.match(inputRule.match);
+          const match = getProperty({ [oneAccessorName]: _accessor, input }, key)?.match(inputRule.match);
           if (match === null || match === undefined) throw new UserInputError(inputRule.message);
         }
       });
@@ -277,7 +281,9 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         'MODIFIED',
         helpers.modifyDoc<mongoose.Document, mongoose.LeanDocument<mongoose.Document>>({
           model: name,
-          data: { ...input, _id },
+          data: { ...input, [oneAccessorName]: _accessor },
+          _id: _accessor,
+          by: oneAccessorName,
           context,
           modify: async (currentDoc, data) => {
             conditionallyModifyDocField(currentDoc, data, config);
