@@ -156,11 +156,44 @@ class Cristata {
     try {
       hocuspocus
         .listen()
-        .then(() =>
-          console.log(
-            `Cristata server listening on port ${process.env.PORT}! API, authentication, webhooks, and hocuspocus are running.`
-          )
-        )
+        .then(async () => {
+          if (process.env.NODE_ENV === 'development') {
+            try {
+              console.clear();
+              console.log(`\x1b[32mServer started successfully!\x1b[0m`);
+              console.log(``);
+              console.log(`You can now view \x1b[1m${process.env.npm_package_name}\x1b[0m in the browser.`);
+              console.log(``);
+              console.log(`  \x1b[1mLocal\x1b[0m:            http://localhost:${process.env.PORT}`);
+              console.log(
+                `  \x1b[1mOn Your Network\x1b[0m:  http://${(await import('address')).ip()}:${process.env.PORT}`
+              );
+              console.log();
+              console.log(`To create a production build, use \x1b[36mnpm run build\x1b[0m.`);
+              console.log(`To update JSON schemas, use \x1b[94mnpm run build:json-schema\x1b[0m.`);
+              console.log(`To run tests, use \x1b[94mnpm run test\x1b[0m.`);
+              console.log(``);
+
+              const { ESLint } = await import('eslint');
+              const eslint = new ESLint({ useEslintrc: true });
+              console.log(`\x1b[36mChecking for issues...\x1b[0m`);
+              const results = await eslint.lintFiles(['src/**/*']);
+              const formatter = await eslint.loadFormatter('stylish');
+              const resultText = formatter.format(results);
+              console.log(resultText);
+
+              const hasErrors = !!results.find((result) => result.errorCount > 0);
+              if (hasErrors) process.exit(1);
+            } catch (error) {
+              console.error(`Error linting:`, error);
+              process.exit(1);
+            }
+          } else {
+            console.log(
+              `Cristata server listening on port ${process.env.PORT}! API, authentication, webhooks, and hocuspocus are running.`
+            );
+          }
+        })
         .catch((err: Error) =>
           console.error(
             `Failed to start Cristata  server on port ${process.env.PORT}! Message: ${JSON.stringify(err)}`
