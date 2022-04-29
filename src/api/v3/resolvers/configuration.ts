@@ -49,11 +49,7 @@ const configuration = {
     },
   },
   Mutation: {
-    setRawConfigurationCollection: (
-      _: unknown,
-      { name, raw }: { name: string; raw: Collection },
-      context: Context
-    ): Collection => {
+    setRawConfigurationCollection: (_: unknown, { raw }: { name: string; raw: Collection }): Collection => {
       return raw;
     },
   },

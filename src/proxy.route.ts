@@ -1,7 +1,5 @@
 import corsAnywhere from 'cors-anywhere';
-import crypto from 'crypto';
 import { Router } from 'express';
-import { requireAdmin } from './middleware/requireAdmin';
 
 /**
  * This router contains the proxy route.
