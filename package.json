@@ -9,13 +9,14 @@
   "scripts": {
     "release": "standard-version",
     "start": "cross-env APP_URL=${APP_URL:=https://cristata.app} NODE_ENV=development node dist/start.js",
-    "dev": "cross-env APP_URL=${APP_URL:=https://cristata.app} NODE_ENV=development nodemon src/start.ts",
+    "dev": "tsc && tsc --watch & cross-env APP_URL=${APP_URL:=https://cristata.app} NODE_ENV=development nodemon dist/start.js",
     "build": "tsc --build && tsc --declaration && cross-env NODE_ENV=production npm run lint",
     "check": "tsc && npm run lint",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "postinstall": "patch-package --error-on-fail false",
     "heroku-cleanup": "patch-package",
+    "watch": "tsc --watch",
     "build:json-schema": "typescript-json-schema ./tsconfig.json GenCollectionInput --out ./src/json-schemas/collection.schema.json --defaultProps --noExtraProps --required"
   },
   "standard-version": {
@@ -56,7 +57,6 @@
     "mongodb-memory-server": "^8.4.1",
     "nodemon": "^2.0.7",
     "standard-version": "^9.3.2",
-    "ts-node": "^9.1.1",
     "typescript": "^4.3.0"
   },
   "dependencies": {

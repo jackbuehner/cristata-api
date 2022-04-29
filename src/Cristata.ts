@@ -52,6 +52,11 @@ class Cristata {
   async start(): Promise<void> {
     await this.#connectDb();
 
+    if (process.env.NODE_ENV === 'development') {
+      console.clear();
+      console.log(`\x1b[36mStarting the server...\x1b[0m`);
+    }
+
     // configure the server
     const hocuspocus = Hocuspocus.configure({
       port: parseInt(process.env.PORT),
@@ -172,7 +177,7 @@ class Cristata {
               console.log(`To create a production build, use \x1b[36mnpm run build\x1b[0m.`);
               console.log(`To run tests, use \x1b[94mnpm run test\x1b[0m.`);
               console.log(``);
-              console.log(`Change any file or type "rs" to automatically restart the server.`);
+              console.log(`Type "rs" to manually restart the server.`);
 
               const { ESLint } = await import('eslint');
               const eslint = new ESLint({ useEslintrc: true });
@@ -218,6 +223,11 @@ class Cristata {
     else {
       await db();
 
+      if (process.env.NODE_ENV === 'development') {
+        console.clear();
+        console.log(`\x1b[36mCreating tenants...\x1b[0m`);
+      }
+
       // get the tenants
       const tenantsCollection = mongoose.connection.db.collection('tenants');
       const tenants = await tenantsCollection
@@ -235,6 +245,10 @@ class Cristata {
           path: tenants.length === 1 ? `/v3` : `/${name}/v3`,
         });
       });
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.clear();
     }
 
     // for each tenant with a config, create mongoose models

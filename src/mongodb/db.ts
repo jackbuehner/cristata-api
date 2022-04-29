@@ -81,6 +81,11 @@ function convertTopNestedObjectsToSubdocuments(
 }
 
 async function db(database = `app`): Promise<void> {
+  if (process.env.NODE_ENV === 'development') {
+    console.clear();
+    console.log(`\x1b[36mConnecting to the database...\x1b[0m`);
+  }
+
   const username = process.env.MONGO_DB_USERNAME;
   const password = process.env.MONGO_DB_PASSWORD;
   const host = process.env.MONGO_DB_HOST;
@@ -95,6 +100,10 @@ async function db(database = `app`): Promise<void> {
 }
 
 async function createMongooseModels(config: Configuration, tenant: string): Promise<void> {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`\x1b[36mCreating models for ${tenant}...\x1b[0m`);
+  }
+
   const tenantDB = mongoose.connection.useDb(tenant, { useCache: true });
 
   // create the schema and model for each collection
