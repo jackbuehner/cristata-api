@@ -25,6 +25,7 @@ tasks:
     openMode: split-right # split terminal with server on left and app on right
     env:
       PORT: 4000
+      REACT_APP_API_BASE_URL: 3000-$GITPOD_WORKSPACE_ID.$GITPOD_WORKSPACE_CLUSTER_HOST
 
 ports:
   - port: 3000
