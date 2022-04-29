@@ -26,6 +26,10 @@ interface Configuration<CT = Collection> {
       accessKeyId: string;
       secretAccessKey: string;
     };
+    fathom: {
+      siteId: string;
+      dashboardPassword: string;
+    };
   };
   /**
    * The default sender name and email to be used by AWS SES when no other

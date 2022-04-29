@@ -15,8 +15,20 @@ import { Server } from 'http';
 import { merge } from 'merge-anything';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import ws from 'ws';
-import { collectionResolvers, configurationResolvers, coreResolvers, s3Resolvers } from './api/v3/resolvers';
-import { collectionTypeDefs, configurationTypeDefs, coreTypeDefs, s3TypeDefs } from './api/v3/typeDefs';
+import {
+  collectionResolvers,
+  configurationResolvers,
+  coreResolvers,
+  s3Resolvers,
+  analyticsResolvers,
+} from './api/v3/resolvers';
+import {
+  collectionTypeDefs,
+  configurationTypeDefs,
+  coreTypeDefs,
+  s3TypeDefs,
+  analyticsTypeDefs,
+} from './api/v3/typeDefs';
 import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
 import { Configuration } from './types/config';
@@ -46,6 +58,7 @@ async function apollo(
           collectionTypeDefs,
           s3TypeDefs,
           configurationTypeDefs,
+          analyticsTypeDefs,
           ...config.collections.map((collection) => collection.typeDefs),
         ].join()
       ),
@@ -56,6 +69,7 @@ async function apollo(
       s3Resolvers,
       collectionResolvers,
       configurationResolvers,
+      analyticsResolvers,
       ...config.collections.map((collection) => collection.resolvers)
     );
 

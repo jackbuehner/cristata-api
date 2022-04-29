@@ -26,14 +26,6 @@ function factory(): Router {
     proxy.emit('request', req, res);
   });
 
-  // send the analytics url
-  router.get('/analytics/dashboard', requireAdmin, (req, res) => {
-    const password = crypto.createHash('sha256').update(process.env.FATHOM_DASHBOARD_PASSWORD).digest('hex'); // hash the password
-    res.json({
-      url: `https://app.usefathom.com/share/${process.env.FATHOM_SITE_ID}/wordpress?password=${password}`,
-    });
-  });
-
   return router;
 }
 
