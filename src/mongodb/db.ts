@@ -182,7 +182,8 @@ async function createMongooseModels(config: Configuration, tenant: string): Prom
   })();
 
   // force the following teams to exist
-  const requiredTeams = [
+  type RequiredTeam = { name: string; slug: string; _id: mongoose.Types.ObjectId };
+  const requiredTeams: RequiredTeam[] = [
     {
       name: 'Administrators',
       slug: 'admin',
@@ -193,18 +194,18 @@ async function createMongooseModels(config: Configuration, tenant: string): Prom
       slug: 'managing-editors',
       _id: new mongoose.Types.ObjectId('000000000000000000000003'),
     },
-    ...config.defaultTeams
+    ...(config.defaultTeams
       ?.filter((team) => team.id !== '000000000000000000000001')
       .filter((team) => team.slug !== 'admin')
       .filter((team) => team.id !== '000000000000000000000003')
       .filter((team) => team.slug !== 'managing-editors')
-      .map((team) => {
+      .map((team): RequiredTeam => {
         return {
           name: team.name,
           slug: slugify(team.slug),
           _id: new mongoose.Types.ObjectId(team.id),
         };
-      }),
+      }) || ([] as RequiredTeam[])),
   ];
 
   const Team = tenantDB.model('Team');
