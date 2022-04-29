@@ -180,10 +180,16 @@ class Cristata {
               const results = await eslint.lintFiles(['src/**/*']);
               const formatter = await eslint.loadFormatter('stylish');
               const resultText = formatter.format(results);
-              console.log(resultText);
+              if (resultText) console.log(resultText);
 
               const hasErrors = !!results.find((result) => result.errorCount > 0);
               if (hasErrors) process.exit(1);
+              if (!resultText) {
+                process.stdout.cursorTo(0);
+                process.stdout.moveCursor(0, -1);
+                process.stdout.clearLine(0);
+                process.stdout.write(`\x1b[32mNo issues found.\x1b[0m\n`);
+              }
             } catch (error) {
               console.error(`Error linting:`, error);
               process.exit(1);
