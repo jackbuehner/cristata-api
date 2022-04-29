@@ -30,6 +30,7 @@ tasks:
       REACT_APP_GITPOD_APP_PORT: 4000
       REACT_APP_GITPOD_SERVER_PORT: 3000
       BROWSER: none
+      WDS_SOCKET_PORT: 0 # tell webpack to use not specifiy a port since gitpod ports are part of the pathname
 
 ports:
   - port: 3000
