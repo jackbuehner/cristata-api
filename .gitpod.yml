@@ -10,10 +10,12 @@ tasks:
       cd ../cristata-app
       npm install
       gp sync-done npmia
-      exit
+    command: exit
 
   - name: server
-    init: gp sync-await npmi # wait for npm install to finish
+    init: |
+      gp sync-await npmi
+      npm run dev:prepare
     command: npm run dev
     openMode: tab-after
     env:
