@@ -3,25 +3,26 @@ additionalRepositories:
     checkoutLocation: cristata-app
 
 tasks:
-  - name: Install dependencies (npm)
+  - name: install dependencies (npm)
     init: |
       npm install
       gp sync-done npmi
       cd ../cristata-app
       npm install
       gp sync-done npmia
+      exit
 
-  - name: Start server
+  - name: server
     init: gp sync-await npmi # wait for npm install to finish
     command: npm run dev
     openMode: tab-after
     env:
       PORT: 3000
 
-  - name: Start app
+  - name: app
     init: gp sync-await npmia # wait for npm install to finish
     command: cd ../cristata-app && npm run dev
-    openMode: tab-after
+    openMode: split-right # split terminal with server on left and app on right
     env:
       PORT: 4000
 
