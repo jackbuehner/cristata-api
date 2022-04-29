@@ -170,9 +170,9 @@ class Cristata {
               );
               console.log();
               console.log(`To create a production build, use \x1b[36mnpm run build\x1b[0m.`);
-              console.log(`To update JSON schemas, use \x1b[94mnpm run build:json-schema\x1b[0m.`);
               console.log(`To run tests, use \x1b[94mnpm run test\x1b[0m.`);
               console.log(``);
+              console.log(`Change any file or type "rs" to automatically restart the server.`);
 
               const { ESLint } = await import('eslint');
               const eslint = new ESLint({ useEslintrc: true });

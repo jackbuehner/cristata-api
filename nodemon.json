@@ -1,10 +1,9 @@
 {
-  "watch": "src/**/*.ts",
+  "watch": "src/**/*",
   "execMap": {
     "ts": "ts-node"
   },
   "events": {
-    "start": "clear && printf \"\\e[3J\" && printf \"Starting server...\"",
-    "restart": "clear && printf \"\\e[3J\" && printf \"Detected changes! Restarting server...\""
+    "start": "clear && printf \"\\e[3J\" && printf \"\\e[36mStarting the server...\\e[0m\n\""
   }
 }
