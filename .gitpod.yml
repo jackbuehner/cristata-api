@@ -64,3 +64,5 @@ vscode:
     - eamodio.gitlens
     - vscode-icons-team.vscode-icons
     - aaron-bond.better-comments
+
+workspaceLocation: cristata-api/.vscode/cristata.code-workspace
