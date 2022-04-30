@@ -1599,6 +1599,9 @@
     },
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "workbench.editor.labelFormat": "default",
-    "extensions.ignoreRecommendations": true
+    "extensions.ignoreRecommendations": true,
+    "files.exclude": {
+      "**/node_modules": true
+    }
   }
 }
