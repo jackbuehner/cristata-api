@@ -32,6 +32,7 @@ class Cristata {
   #express: Application = undefined;
   #apolloWss: Record<string, ws.Server> = {};
   #tenants: string[] = [process.env.TENANT];
+  #hocuspocus: typeof Hocuspocus = undefined;
 
   constructor(config?: Configuration<Collection | GenCollectionInput>) {
     if (config) {
@@ -58,7 +59,7 @@ class Cristata {
     }
 
     // configure the server
-    const hocuspocus = Hocuspocus.configure({
+    this.#hocuspocus = Hocuspocus.configure({
       port: parseInt(process.env.PORT),
       extensions: [new HocuspocusMongoDB(this.#tenants)],
 
@@ -145,7 +146,7 @@ class Cristata {
             apollo(
               this,
               this.app,
-              hocuspocus.httpServer,
+              this.#hocuspocus.httpServer,
               this.#apolloWss[tenant],
               tenant,
               config,
@@ -160,7 +161,7 @@ class Cristata {
 
     // start the http server and hocuspocus websocket server
     try {
-      hocuspocus
+      this.#hocuspocus
         .listen()
         .then(async () => {
           if (process.env.NODE_ENV === 'development') {
