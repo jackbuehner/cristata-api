@@ -570,8 +570,12 @@
                         "defaultProperties": [],
                         "properties": {
                             "fields": {
-                                "$ref": "#/definitions/Record<string,SchemaDef>",
-                                "description": "A set of schema definitions with fields.\n\nEach field should represent a key-value pair in the JSON."
+                                "additionalProperties": {
+                                    "$ref": "#/definitions/SchemaDef"
+                                },
+                                "defaultProperties": [],
+                                "description": "A set of schema definitions with fields.\n\nEach field should represent a key-value pair in the JSON.",
+                                "type": "object"
                             },
                             "name": {
                                 "description": "The name of the document that should use the fields\nfrom the `fields` key.\n\nUse `\"default\"` to a provide a default set of fields\nfor when no other match is made.",
@@ -1912,11 +1916,6 @@
             "type": "object"
         },
         "Record<string,1|-1|{$meta:\"textScore\";}>": {
-            "additionalProperties": false,
-            "defaultProperties": [],
-            "type": "object"
-        },
-        "Record<string,SchemaDef>": {
             "additionalProperties": false,
             "defaultProperties": [],
             "type": "object"

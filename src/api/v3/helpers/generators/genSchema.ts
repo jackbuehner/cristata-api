@@ -492,7 +492,7 @@ interface FieldDef {
      *
      * Each field should represent a key-value pair in the JSON.
      */
-    fields: Record<string, SchemaDef>;
+    fields: { [key: string]: SchemaDef };
   }>;
 }
 
