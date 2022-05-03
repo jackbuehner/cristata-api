@@ -8,7 +8,7 @@
   "main": "dist/index.js",
   "scripts": {
     "release": "standard-version",
-    "start": "cross-env APP_URL=${APP_URL:=https://cristata.app} NODE_ENV=development node dist/start.js",
+    "start": "cross-env APP_URL=${APP_URL:=https://cristata.app} node dist/start.js",
     "dev:prepare": "tsc",
     "dev": "npm run dev:prepare && tsc --watch & cross-env APP_URL=${APP_URL:=https://cristata.app} NODE_ENV=development nodemon dist/start.js",
     "build": "tsc --build && tsc --declaration && cross-env NODE_ENV=production npm run lint",
