@@ -7,14 +7,11 @@ import {
 } from 'apollo-server-core';
 import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
 import { GraphQLRequestContext, GraphQLRequestListener } from 'apollo-server-plugin-base';
-import { Application } from 'express';
 import { execute, subscribe } from 'graphql';
 import { graphqls2s } from 'graphql-s2s';
 import { PubSub } from 'graphql-subscriptions';
-import { Server } from 'http';
 import { merge } from 'merge-anything';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import ws from 'ws';
 import {
   collectionResolvers,
   configurationResolvers,
@@ -39,19 +36,13 @@ const pubsub = new PubSub();
 
 /**
  * Starts the Apollo GraphQL server.
- *
- * @param app express app
- * @param server http server
  */
-async function apollo(
-  cristata: Cristata,
-  app: Application,
-  server: Server,
-  wss: ws.Server,
-  tenant: string,
-  config: Configuration,
-  root = false
-): Promise<void> {
+async function apollo(cristata: Cristata, tenant: string, root = false): Promise<void> {
+  const app = cristata.app;
+  const server = cristata.hocuspocus.httpServer;
+  const wss = cristata.apolloWss[tenant];
+  const config = cristata.config[tenant];
+
   try {
     const typeDefs = [
       graphqls2s.transpileSchema(

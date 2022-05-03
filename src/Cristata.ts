@@ -30,9 +30,9 @@ if (!process.env.MONGO_DB_HOST) throw new Error('MONGO_DB_HOST not defined in en
 class Cristata {
   config: Record<string, Configuration> = {};
   #express: Application = undefined;
-  #apolloWss: Record<string, ws.Server> = {};
+  apolloWss: Record<string, ws.Server> = {};
   #tenants: string[] = [process.env.TENANT];
-  #hocuspocus: typeof Hocuspocus = undefined;
+  hocuspocus: typeof Hocuspocus = undefined;
 
   constructor(config?: Configuration<Collection | GenCollectionInput>) {
     if (config) {
@@ -42,7 +42,7 @@ class Cristata {
       this.config[process.env.TENANT] = constructCollections(config, process.env.TENANT);
 
       // initialize a subscription server for graphql subscriptions
-      this.#apolloWss[process.env.TENANT] = new ws.Server({ noServer: true, path: `/v3` });
+      this.apolloWss[process.env.TENANT] = new ws.Server({ noServer: true, path: `/v3` });
     }
     // NOTE: tenants will be fetch from the app db if a tenant is not provided to the constructor
   }
@@ -59,7 +59,7 @@ class Cristata {
     }
 
     // configure the server
-    this.#hocuspocus = Hocuspocus.configure({
+    this.hocuspocus = Hocuspocus.configure({
       port: parseInt(process.env.PORT),
       extensions: [new HocuspocusMongoDB(this.#tenants)],
 
@@ -114,8 +114,8 @@ class Cristata {
             });
           } else if (pathname === (root ? `/v3` : `/v3/${tenant}`)) {
             // handle apollo subscriptions
-            this.#apolloWss[tenant].handleUpgrade(request, socket, head, (ws) => {
-              this.#apolloWss[tenant].emit('connection', ws, request);
+            this.apolloWss[tenant].handleUpgrade(request, socket, head, (ws) => {
+              this.apolloWss[tenant].emit('connection', ws, request);
             });
           }
           // otherwise, end the websocket connection request
@@ -141,18 +141,7 @@ class Cristata {
       onListen: async () => {
         try {
           // for each tenant with a config, create an api endpoint
-          const configs = Object.entries(this.config);
-          configs.forEach(async ([tenant, config]) =>
-            apollo(
-              this,
-              this.app,
-              this.#hocuspocus.httpServer,
-              this.#apolloWss[tenant],
-              tenant,
-              config,
-              configs.length === 1
-            )
-          );
+          this.#tenants.forEach(async (tenant) => apollo(this, tenant, this.#tenants.length === 1));
         } catch (error) {
           console.error(error);
         }
@@ -161,7 +150,7 @@ class Cristata {
 
     // start the http server and hocuspocus websocket server
     try {
-      this.#hocuspocus
+      this.hocuspocus
         .listen()
         .then(async () => {
           if (process.env.NODE_ENV === 'development') {
@@ -242,7 +231,7 @@ class Cristata {
         this.#tenants.push(name);
 
         // initialize a subscription server for graphql subscriptions
-        this.#apolloWss[name] = new ws.Server({
+        this.apolloWss[name] = new ws.Server({
           noServer: true,
           path: tenants.length === 1 ? `/v3` : `/${name}/v3`,
         });
