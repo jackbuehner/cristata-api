@@ -1,4 +1,6 @@
+import mongoose, { ObjectId } from 'mongoose';
 import { Context } from '../../../apollo';
+import { constructCollections } from '../../../Cristata';
 import {
   Collection,
   Configuration,
@@ -49,7 +51,29 @@ const configuration = {
     },
   },
   Mutation: {
-    setRawConfigurationCollection: (_: unknown, { raw }: { name: string; raw: Collection }): Collection => {
+    setRawConfigurationCollection: async (
+      _: unknown,
+      { name, raw }: { name: string; raw: Collection },
+      context: Context
+    ): Promise<Collection> => {
+      const tenantsCollection = mongoose.connection.db.collection<{
+        _id: ObjectId;
+        name: string;
+        config: Configuration;
+      }>('tenants');
+
+      // update the config in the database
+      const res = await tenantsCollection.findOneAndUpdate(
+        { name: context.tenant, 'config.collections.name': name },
+        { $set: { 'config.collections.$': raw } },
+        { returnDocument: 'after' }
+      );
+
+      // update the config in the cristata instance
+      context.cristata.config[context.tenant] = constructCollections(res.value.config, context.tenant);
+      await context.restartApollo();
+
+      // return the value that is now available in the cristata instance
       return raw;
     },
   },
