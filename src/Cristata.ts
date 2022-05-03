@@ -143,6 +143,7 @@ class Cristata {
           const configs = Object.entries(this.config);
           configs.forEach(async ([tenant, config]) =>
             apollo(
+              this,
               this.app,
               hocuspocus.httpServer,
               this.#apolloWss[tenant],

@@ -29,6 +29,7 @@ import {
   s3TypeDefs,
   analyticsTypeDefs,
 } from './api/v3/typeDefs';
+import Cristata from './Cristata';
 import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
 import { Configuration } from './types/config';
@@ -43,6 +44,7 @@ const pubsub = new PubSub();
  * @param server http server
  */
 async function apollo(
+  cristata: Cristata,
   app: Application,
   server: Server,
   wss: ws.Server,
@@ -83,7 +85,7 @@ async function apollo(
     const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
       const isAuthenticated = req.isAuthenticated() && (req.user as IDeserializedUser).tenant === tenant;
       const profile = req.user as IDeserializedUser;
-      return { config, isAuthenticated, profile, tenant };
+      return { config, isAuthenticated, profile, tenant, cristata };
     };
 
     // initialize apollo
@@ -123,7 +125,7 @@ async function apollo(
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { http, ...prunedRequest } = requestContext.request;
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { config, db, ...prunedContext } = requestContext.context;
+                const { config, db, cristata, ...prunedContext } = requestContext.context;
                 console.error('Apollo::didEncounterErrors::prunedRequest', prunedRequest);
                 console.error('Apollo::didEncounterErrors::prunedContext', prunedContext);
                 console.error('Apollo::didEncounterErrors::errors', requestContext.errors);
@@ -158,6 +160,7 @@ interface Context {
   isAuthenticated: boolean;
   profile?: IDeserializedUser;
   tenant: string;
+  cristata: Cristata;
 }
 
 const collectionPeopleResolvers = collectionResolvers.CollectionPeople;
