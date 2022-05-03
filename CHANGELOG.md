@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/jackbuehner/cristata-api/compare/v3.1.0...v4.0.0) (2022-05-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* store fathom credentials in config
+* store aws credentials in config
+
+### Features
+
+* expose cristata instance to apollo server ([cb51856](https://github.com/jackbuehner/cristata-api/commit/cb518567e0e0e9a5aa2badb14b917aa3b891a163))
+* in development, use eslint and prettier logging for every build ([5ecd061](https://github.com/jackbuehner/cristata-api/commit/5ecd0617de7dc61192f1b11cf3d3757385f637ea))
+* log when eslint finished without errors or warnings ([cea98e1](https://github.com/jackbuehner/cristata-api/commit/cea98e1e416220b3c6e06e50350e0e26237c7b48))
+* prune sensitive or unneeded fields from apollo error messages ([7c05d7c](https://github.com/jackbuehner/cristata-api/commit/7c05d7c2d1b2a3087e6641242ff8b52ef4dea936))
+* replace ts-node with built-in typescipt compiler in incrimental watch mode ([81adccb](https://github.com/jackbuehner/cristata-api/commit/81adccbaf460b5ec94548a2d66ad73597b789011))
+* restart dev server on any file change in src ([fd49d65](https://github.com/jackbuehner/cristata-api/commit/fd49d653c3c2756a216259d7baddf703e884759c))
+* save changes to configuration and then hot reload apollo server ([ef95482](https://github.com/jackbuehner/cristata-api/commit/ef95482ece7af91233c889aed4fcb5bb0975605f))
+* store aws credentials in config ([597f139](https://github.com/jackbuehner/cristata-api/commit/597f139b3c820c4b1b51548d0ee9d3afea0c21d7))
+* store fathom credentials in config ([63b6d77](https://github.com/jackbuehner/cristata-api/commit/63b6d77c9295e1c1199728ee2c2d6d17a9c94fdc))
+* store hocuspocus server in cristata instance ([8b02058](https://github.com/jackbuehner/cristata-api/commit/8b0205803a13c482583d7e7235e878838b7ac12c))
+* support hot reloading apollo server ([0f43e78](https://github.com/jackbuehner/cristata-api/commit/0f43e7887b2a8a9b26b7ac820315f1b29c3f6e47))
+* throw error when COOKIE_SESSION_SECRET not in env ([3492019](https://github.com/jackbuehner/cristata-api/commit/3492019f1f045599a45fad6966c19a4017d793f5))
+* use default app url when APP_URL env is not set ([cd05b09](https://github.com/jackbuehner/cristata-api/commit/cd05b0943f267822d72302dd5bdcc704eb4ab2ec))
+* use tenant in email and redirect urls ([63b0ac6](https://github.com/jackbuehner/cristata-api/commit/63b0ac69c17152e6ce6a5e29175823be7e95a6cd))
+
+
+### Bug Fixes
+
+* add fallback value for optional chain ([4fbe3ec](https://github.com/jackbuehner/cristata-api/commit/4fbe3ec555376d83e449d5ae95956ad22170e55c))
+* add missing part of collection item urls ([8e8b0a5](https://github.com/jackbuehner/cristata-api/commit/8e8b0a5b8fb002d0110c6d51bdcc33bc8463f55a))
+* allow any property name in fields as long as the value is a schema ([d107f8b](https://github.com/jackbuehner/cristata-api/commit/d107f8b9520444b2771cbef097ea00a6cf9b8c5d))
+* remove unused imports and variables ([32bef11](https://github.com/jackbuehner/cristata-api/commit/32bef11d1f35d4f80740e7fa26876db3b024a89f))
+* set WDS_SOCKET_PORT=0 for app env ([00c334c](https://github.com/jackbuehner/cristata-api/commit/00c334c589ced1fd7e7a15cc7c66b027d246d0e0))
+* use correct accessor for modify doc helper ([0c59ea2](https://github.com/jackbuehner/cristata-api/commit/0c59ea241eb082f87545d1583de96a0957f17bb5))
+* use string type instead of RegExp type since the serialized expression must be a string in JSON ([70e73d3](https://github.com/jackbuehner/cristata-api/commit/70e73d32e16fe455b43f0c34408185ef030b0556))
+
 ## [3.1.0](https://github.com/jackbuehner/cristata-api/compare/v3.0.2...v3.1.0) (2022-04-28)
 
 
