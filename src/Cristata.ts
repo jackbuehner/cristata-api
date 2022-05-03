@@ -1,5 +1,5 @@
 import { Server as Hocuspocus } from '@hocuspocus/server';
-import { Application } from 'express';
+import { Application, Router } from 'express';
 import Keygrip from 'keygrip';
 import semver from 'semver';
 import url from 'url';
@@ -31,6 +31,8 @@ class Cristata {
   config: Record<string, Configuration> = {};
   #express: Application = undefined;
   apolloWss: Record<string, ws.Server> = {};
+  #apolloMiddleware: Record<string, Router> = {};
+  #stopApollo: Record<string, () => Promise<void>> = {};
   #tenants: string[] = [process.env.TENANT];
   hocuspocus: typeof Hocuspocus = undefined;
 
@@ -140,8 +142,16 @@ class Cristata {
 
       onListen: async () => {
         try {
-          // for each tenant with a config, create an api endpoint
-          this.#tenants.forEach(async (tenant) => apollo(this, tenant, this.#tenants.length === 1));
+          // for each tenant, create middleware for an api server
+          this.#tenants.forEach(async (tenant) => {
+            const [middleware, stopApollo] = await apollo(this, tenant, this.#tenants.length === 1);
+            this.#apolloMiddleware[tenant] = middleware;
+            this.#stopApollo[tenant] = stopApollo;
+
+            this.app.use((req, res, next) => {
+              this.#apolloMiddleware[tenant](req, res, next);
+            });
+          });
         } catch (error) {
           console.error(error);
         }

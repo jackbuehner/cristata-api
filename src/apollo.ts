@@ -7,24 +7,25 @@ import {
 } from 'apollo-server-core';
 import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
 import { GraphQLRequestContext, GraphQLRequestListener } from 'apollo-server-plugin-base';
+import { Router } from 'express';
 import { execute, subscribe } from 'graphql';
 import { graphqls2s } from 'graphql-s2s';
 import { PubSub } from 'graphql-subscriptions';
 import { merge } from 'merge-anything';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import {
+  analyticsResolvers,
   collectionResolvers,
   configurationResolvers,
   coreResolvers,
   s3Resolvers,
-  analyticsResolvers,
 } from './api/v3/resolvers';
 import {
+  analyticsTypeDefs,
   collectionTypeDefs,
   configurationTypeDefs,
   coreTypeDefs,
   s3TypeDefs,
-  analyticsTypeDefs,
 } from './api/v3/typeDefs';
 import Cristata from './Cristata';
 import { corsConfig } from './middleware/cors';
@@ -37,11 +38,15 @@ const pubsub = new PubSub();
 /**
  * Starts the Apollo GraphQL server.
  */
-async function apollo(cristata: Cristata, tenant: string, root = false): Promise<void> {
-  const app = cristata.app;
+async function apollo(
+  cristata: Cristata,
+  tenant: string,
+  root = false
+): Promise<[Router, () => Promise<void>]> {
   const server = cristata.hocuspocus.httpServer;
   const wss = cristata.apolloWss[tenant];
   const config = cristata.config[tenant];
+  const collections = config.collections;
 
   try {
     const typeDefs = [
@@ -52,7 +57,7 @@ async function apollo(cristata: Cristata, tenant: string, root = false): Promise
           s3TypeDefs,
           configurationTypeDefs,
           analyticsTypeDefs,
-          ...config.collections.map((collection) => collection.typeDefs),
+          ...collections.map((collection) => collection.typeDefs),
         ].join()
       ),
     ];
@@ -63,7 +68,7 @@ async function apollo(cristata: Cristata, tenant: string, root = false): Promise
       collectionResolvers,
       configurationResolvers,
       analyticsResolvers,
-      ...config.collections.map((collection) => collection.resolvers)
+      ...collections.map((collection) => collection.resolvers)
     );
 
     // create the base executable schema
@@ -138,9 +143,13 @@ async function apollo(cristata: Cristata, tenant: string, root = false): Promise
       wss
     );
 
-    // required logic for integrating with Express
+    // start the server
     await apollo.start();
-    apollo.applyMiddleware({ app, path: root ? `/v3` : `/v3/${tenant}`, cors: corsConfig() });
+
+    // required middleware for integrating with express
+    const apolloMiddleware = apollo.getMiddleware({ path: root ? `/v3` : `/v3/${tenant}`, cors: corsConfig() });
+
+    return [apolloMiddleware, apollo.stop];
   } catch (error) {
     console.error(error);
   }
