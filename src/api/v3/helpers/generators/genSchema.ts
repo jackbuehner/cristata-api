@@ -390,7 +390,19 @@ interface SchemaDef {
    * Return an error to the client if the new value for this field
    * does not match the provided regular expression.
    */
-  rule?: { match: RegExp; message: string };
+  rule?: {
+    /**
+     * A regular expression which the input must match.
+     */
+    regexp: {
+      pattern: string;
+      flags: string;
+    };
+    /**
+     * The message to send if the input does not match the regular expression.
+     */
+    message: string;
+  };
   /**
    * Configure the way the field appears in the CMS.
    */

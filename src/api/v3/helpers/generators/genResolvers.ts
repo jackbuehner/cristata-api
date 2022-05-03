@@ -240,7 +240,9 @@ function genResolvers(config: GenResolversInput, tenant: string) {
       Object.keys(flattenObject(args)).forEach((key) => {
         const inputRule: SchemaDef['rule'] = getProperty(config.schemaDef, key)?.rule;
         if (inputRule) {
-          const match = getProperty(args, key)?.match(inputRule.match);
+          const match = getProperty(args, key)?.match(
+            new RegExp(inputRule.regexp.pattern, inputRule.regexp.flags)
+          );
           if (match === null || match === undefined) throw new UserInputError(inputRule.message);
         }
       });
@@ -271,7 +273,9 @@ function genResolvers(config: GenResolversInput, tenant: string) {
       Object.keys(flattenObject({ [oneAccessorName]: _accessor, input } as never)).forEach((key) => {
         const inputRule: SchemaDef['rule'] = getProperty(input.schemaDef, key)?.rule;
         if (inputRule) {
-          const match = getProperty({ [oneAccessorName]: _accessor, input }, key)?.match(inputRule.match);
+          const match = getProperty({ [oneAccessorName]: _accessor, input }, key)?.match(
+            new RegExp(inputRule.regexp.pattern, inputRule.regexp.flags)
+          );
           if (match === null || match === undefined) throw new UserInputError(inputRule.message);
         }
       });

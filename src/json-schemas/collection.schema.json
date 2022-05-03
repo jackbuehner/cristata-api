@@ -1656,7 +1656,7 @@
                     "description": "[`$setWindowFields` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/setWindowFields/)",
                     "properties": {
                         "output": {
-                            "$ref": "#/definitions/Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"week\"|\"quarter\"|\"millisecond\";};}>"
+                            "$ref": "#/definitions/Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\";};}>"
                         },
                         "partitionBy": {},
                         "sortBy": {
@@ -1936,54 +1936,9 @@
             "defaultProperties": [],
             "type": "object"
         },
-        "Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"week\"|\"quarter\"|\"millisecond\";};}>": {
+        "Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\";};}>": {
             "additionalProperties": false,
             "defaultProperties": [],
-            "type": "object"
-        },
-        "RegExp": {
-            "additionalProperties": false,
-            "defaultProperties": [],
-            "properties": {
-                "dotAll": {
-                    "type": "boolean"
-                },
-                "flags": {
-                    "type": "string"
-                },
-                "global": {
-                    "type": "boolean"
-                },
-                "ignoreCase": {
-                    "type": "boolean"
-                },
-                "lastIndex": {
-                    "type": "number"
-                },
-                "multiline": {
-                    "type": "boolean"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "sticky": {
-                    "type": "boolean"
-                },
-                "unicode": {
-                    "type": "boolean"
-                }
-            },
-            "required": [
-                "dotAll",
-                "flags",
-                "global",
-                "ignoreCase",
-                "lastIndex",
-                "multiline",
-                "source",
-                "sticky",
-                "unicode"
-            ],
             "type": "object"
         },
         "RootQuerySelector<Record<string,unknown>>": {
@@ -2125,16 +2080,32 @@
                     "defaultProperties": [],
                     "description": "Return an error to the client if the new value for this field\ndoes not match the provided regular expression.",
                     "properties": {
-                        "match": {
-                            "$ref": "#/definitions/RegExp"
-                        },
                         "message": {
+                            "description": "The message to send if the input does not match the regular expression.",
                             "type": "string"
+                        },
+                        "regexp": {
+                            "additionalProperties": false,
+                            "defaultProperties": [],
+                            "description": "A regular expression which the input must match.",
+                            "properties": {
+                                "flags": {
+                                    "type": "string"
+                                },
+                                "pattern": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "flags",
+                                "pattern"
+                            ],
+                            "type": "object"
                         }
                     },
                     "required": [
-                        "match",
-                        "message"
+                        "message",
+                        "regexp"
                     ],
                     "type": "object"
                 },
