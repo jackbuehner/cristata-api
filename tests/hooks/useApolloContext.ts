@@ -1,6 +1,8 @@
-import { CollectionPermissions } from '../../src/types/config';
+import { CollectionPermissions, Configuration } from '../../src/types/config';
 import { Context } from '../../src/apollo';
 import mongoose from 'mongoose';
+import { GenCollectionInput } from '../../src/api/v3/helpers/generators/genCollection';
+import Cristata from '../../src/Cristata';
 
 interface UseApolloContext {
   isAuthenticated?: boolean;
@@ -13,36 +15,47 @@ interface UseApolloContext {
 }
 
 function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloContext): Context {
-  return {
-    config: {
-      allowedOrigins: [],
-      collections: collection
-        ? [
-            {
-              name: collection.name,
-              withPermissions: collection.withPermissions,
-              actionAccess: collection.actionAccess,
-              typeDefs: '',
-              resolvers: {},
-              schemaFields: {},
-              schemaDef: {},
-              generationOptions: {},
-              by: ['_id', 'ObjectId'],
-            },
-          ]
-        : [],
-      connection: {
-        username: '',
-        password: '',
-        host: '',
-        database: '',
-        options: '',
-      },
-      dashboard: { collectionRows: [] },
-      defaultSender: 'Cristata <noreply@example.com>',
-      minimumClientVersion: '0.0.0',
-      tenantDisplayName: 'Test Tenant',
+  const config: Configuration = {
+    allowedOrigins: [],
+    collections: collection
+      ? [
+          {
+            name: collection.name,
+            withPermissions: collection.withPermissions,
+            actionAccess: collection.actionAccess,
+            typeDefs: '',
+            resolvers: {},
+            schemaFields: {},
+            schemaDef: {},
+            generationOptions: {},
+            by: ['_id', 'ObjectId'],
+            raw: {} as GenCollectionInput,
+          },
+        ]
+      : [],
+    connection: {
+      username: '',
+      password: '',
+      host: '',
+      database: '',
+      options: '',
     },
+    dashboard: { collectionRows: [] },
+    defaultSender: 'Cristata <noreply@example.com>',
+    minimumClientVersion: '0.0.0',
+    tenantDisplayName: 'Test Tenant',
+    secrets: {
+      aws: { accessKeyId: '', secretAccessKey: '' },
+      fathom: { dashboardPassword: '', siteId: '' },
+    },
+    navigation: {
+      main: [],
+      sub: [] as unknown as Configuration['navigation']['sub'],
+    },
+  };
+
+  return {
+    config: config,
     isAuthenticated: !!isAuthenticated,
     profile: isAuthenticated
       ? {
@@ -61,6 +74,8 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
         }
       : undefined,
     tenant: 'db_2',
+    cristata: {} as unknown as Cristata,
+    restartApollo: () => null,
   };
 }
 
