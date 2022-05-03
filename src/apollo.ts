@@ -47,6 +47,7 @@ async function apollo(
   const wss = cristata.apolloWss[tenant];
   const config = cristata.config[tenant];
   const collections = config.collections;
+  const restartApollo = () => cristata.restartApollo(tenant);
 
   try {
     const typeDefs = [
@@ -81,7 +82,7 @@ async function apollo(
     const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
       const isAuthenticated = req.isAuthenticated() && (req.user as IDeserializedUser).tenant === tenant;
       const profile = req.user as IDeserializedUser;
-      return { config, isAuthenticated, profile, tenant, cristata };
+      return { config, isAuthenticated, profile, tenant, cristata, restartApollo };
     };
 
     // initialize apollo
@@ -121,7 +122,7 @@ async function apollo(
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { http, ...prunedRequest } = requestContext.request;
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { config, db, cristata, ...prunedContext } = requestContext.context;
+                const { config, db, cristata, restartApollo, ...prunedContext } = requestContext.context;
                 console.error('Apollo::didEncounterErrors::prunedRequest', prunedRequest);
                 console.error('Apollo::didEncounterErrors::prunedContext', prunedContext);
                 console.error('Apollo::didEncounterErrors::errors', requestContext.errors);
@@ -161,6 +162,7 @@ interface Context {
   profile?: IDeserializedUser;
   tenant: string;
   cristata: Cristata;
+  restartApollo: () => Promise<void>;
 }
 
 const collectionPeopleResolvers = collectionResolvers.CollectionPeople;

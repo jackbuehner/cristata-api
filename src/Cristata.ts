@@ -264,6 +264,15 @@ class Cristata {
     if (!this.#express) this.#express = createExpressApp();
     return this.#express;
   }
+
+  /**
+   * Hot reload/restart the Apollo GraphQL server for a specific tenant.
+   */
+  async restartApollo(tenant: string): Promise<void> {
+    const [middleware, stopApollo] = await apollo(this, tenant, this.#tenants.length === 1);
+    this.#apolloMiddleware[tenant] = middleware;
+    this.#stopApollo[tenant] = stopApollo;
+  }
 }
 
 function constructCollections(
@@ -295,4 +304,5 @@ function constructCollections(
 // keep errors silent
 process.on('unhandledRejection', () => null);
 
+export { constructCollections };
 export default Cristata;
