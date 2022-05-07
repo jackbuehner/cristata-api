@@ -1,9 +1,10 @@
 import { Model } from 'mongoose';
-import { useApolloContext, useMongoose } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose, useWebsocket } from '../../../../tests/hooks';
 import { findDoc } from './findDoc';
 
 describe(`api >> v3 >> helpers >> findDoc`, () => {
   const { mongoose, createModel } = useMongoose();
+  useWebsocket();
 
   // name of the collection to use in these tests
   const colName = 'Document';

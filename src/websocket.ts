@@ -98,7 +98,15 @@ const wsPingCheck = setInterval(() => {
 
 // clean up any functions that depend on the websocket server
 wss.on('close', () => {
-  clearInterval(wsPingCheck);
+  terminateWsPingCheck();
 });
 
-export { wss };
+/**
+ * Terminates the interval that checks whether a websocket is active
+ * and pings it to prevent Heroku from disconnecting it.
+ */
+function terminateWsPingCheck() {
+  clearInterval(wsPingCheck);
+}
+
+export { wss, terminateWsPingCheck };
