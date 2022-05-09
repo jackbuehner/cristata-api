@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.1.0](https://github.com/jackbuehner/cristata-api/compare/v4.0.4...v4.1.0) (2022-05-09)
+
+
+### Features
+
+* remove allowed origins config option ([498544b](https://github.com/jackbuehner/cristata-api/commit/498544bb869a7fae6f2b25cfb455b9a16c12bdb3))
+* remove connection from config ([989bc2a](https://github.com/jackbuehner/cristata-api/commit/989bc2ace741c3bd42d7dc4b58fcf8bb463a8538))
+
 ### [4.0.4](https://github.com/jackbuehner/cristata-api/compare/v4.0.3...v4.0.4) (2022-05-09)
 
 ### [4.0.3](https://github.com/jackbuehner/cristata-api/compare/v4.0.2...v4.0.3) (2022-05-07)
