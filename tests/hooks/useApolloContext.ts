@@ -16,7 +16,6 @@ interface UseApolloContext {
 
 function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloContext): Context {
   const config: Configuration = {
-    allowedOrigins: [],
     collections: collection
       ? [
           {

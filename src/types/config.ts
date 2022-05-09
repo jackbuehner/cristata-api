@@ -12,7 +12,6 @@ interface Configuration<CT = Collection> {
    *
    * [Read more on MDN.](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
    */
-  allowedOrigins: string[];
   collections: Array<CT>;
   connection: {
     username: string;
