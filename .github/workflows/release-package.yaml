@@ -5,7 +5,7 @@ on:
     types: [created]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -25,7 +25,7 @@ jobs:
           COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
 
   publish-gpr:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -63,7 +63,18 @@ jobs:
           MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
           COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
 
-      # - name: Publish
-      #   run: npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    needs: [test, publish-gpr]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: cristata-api
+          heroku_email: heroku@jackbuehner.com
