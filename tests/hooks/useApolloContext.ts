@@ -32,13 +32,6 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
           },
         ]
       : [],
-    connection: {
-      username: '',
-      password: '',
-      host: '',
-      database: '',
-      options: '',
-    },
     dashboard: { collectionRows: [] },
     defaultSender: 'Cristata <noreply@example.com>',
     minimumClientVersion: '0.0.0',

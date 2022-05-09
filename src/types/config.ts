@@ -13,13 +13,6 @@ interface Configuration<CT = Collection> {
    * [Read more on MDN.](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
    */
   collections: Array<CT>;
-  connection: {
-    username: string;
-    password: string;
-    host: string;
-    database: string;
-    options: string;
-  };
   secrets: {
     aws: {
       accessKeyId: string;
