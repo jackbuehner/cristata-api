@@ -17,10 +17,10 @@ jobs:
       - name: Run tests
         run: npm test
         env:
-          ENV_MONGO_DB_USERNAME: ${{ secrets.MONGO_DB_USERNAME }}
-          ENV_MONGO_DB_PASSWORD: ${{ secrets.MONGO_DB_PASSWORD }}
-          ENV_MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
-          ENV_COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
+          MONGO_DB_USERNAME: ${{ secrets.MONGO_DB_USERNAME }}
+          MONGO_DB_PASSWORD: ${{ secrets.MONGO_DB_PASSWORD }}
+          MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
+          COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
 
   publish-gpr:
     needs: build
