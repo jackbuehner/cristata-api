@@ -16,16 +16,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create .env file
-        uses: ozaytsev86/create-env-file@v1
-        with:
-          ENV_MONGO_DB_USERNAME: ${{ secrets.MONGO_DB_USERNAME }}
-          ENV_MONGO_DB_PASSWORD: ${{ secrets.MONGO_DB_PASSWORD }}
-          ENV_MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
-          ENV_COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
-
       - name: Run tests
         run: npm test
+        env:
+          MONGO_DB_USERNAME: ${{ secrets.MONGO_DB_USERNAME }}
+          MONGO_DB_PASSWORD: ${{ secrets.MONGO_DB_PASSWORD }}
+          MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
+          COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
 
   publish-gpr:
     needs: build
@@ -42,16 +39,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create .env file
-        uses: ozaytsev86/create-env-file@v1
-        with:
-          ENV_MONGO_DB_USERNAME: ${{ secrets.MONGO_DB_USERNAME }}
-          ENV_MONGO_DB_PASSWORD: ${{ secrets.MONGO_DB_PASSWORD }}
-          ENV_MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
-          ENV_COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
-
       - name: Build
         run: npm run build
+        env:
+          MONGO_DB_USERNAME: ${{ secrets.MONGO_DB_USERNAME }}
+          MONGO_DB_PASSWORD: ${{ secrets.MONGO_DB_PASSWORD }}
+          MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
+          COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
 
       - name: Publish
         run: npm publish
