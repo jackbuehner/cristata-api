@@ -37,7 +37,22 @@ jobs:
           node-version: 16
           registry-url: https://npm.pkg.github.com/
 
+      - name: Cache node modules
+        id: node-cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Cache MongoDB binaries
+        id: mongodb-cache
+        uses: actions/cache@v2
+        with:
+          path: cache/mongodb-binaries
+          key: mongodb-binaries-${{ hashFiles('cache/mongodb-binaries') }}
+
       - name: Install dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Build
@@ -48,7 +63,7 @@ jobs:
           MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
           COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
 
-      - name: Publish
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Publish
+      #   run: npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
