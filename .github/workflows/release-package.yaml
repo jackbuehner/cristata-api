@@ -12,7 +12,7 @@ jobs:
           node-version: 16
 
       - name: Install dependencies
-        run: npm ci
+        run: echo ${{ secrets.GITHUB_TOKEN }} && npm ci
 
       - name: Create .env file
         uses: ozaytsev86/create-env-file@v1
