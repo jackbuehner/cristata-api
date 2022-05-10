@@ -23,6 +23,7 @@ import { gql } from './gql';
 import { genCollection } from './generators/genCollection';
 import { genResolvers } from './generators/genResolvers';
 import { writeEmailBody } from './writeEmailBody';
+import { findOrCreateDoc } from './findOrCreateDoc';
 
 const helpers = {
   createDoc,
@@ -42,6 +43,7 @@ const helpers = {
   gql,
   generators: { genCollection, genResolvers, genSchema },
   writeEmailBody,
+  findOrCreateDoc,
 };
 
 type Helpers = typeof helpers;
@@ -73,4 +75,5 @@ export { genCollection };
 export { genResolvers };
 export { genSchema };
 export { writeEmailBody };
+export { findOrCreateDoc };
 export default helpers;

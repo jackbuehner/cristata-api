@@ -261,6 +261,36 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         })
       );
     };
+
+    Mutation[`${uncapitalize(name)}FindOrCreate`] = async (
+      parent,
+      { [oneAccessorName]: _accessor, ...args },
+      context
+    ) => {
+      // check input rules
+      Object.keys(flattenObject({ [oneAccessorName]: _accessor, ...args } as never)).forEach((key) => {
+        const inputRule: SchemaDef['rule'] = getProperty(config.schemaDef, key)?.rule;
+        if (inputRule) {
+          const match = getProperty({ [oneAccessorName]: _accessor, ...args }, key)?.match(
+            new RegExp(inputRule.regexp.pattern, inputRule.regexp.flags)
+          );
+          if (match === null || match === undefined) throw new UserInputError(inputRule.message);
+        }
+      });
+
+      //TODO: support pub sub
+      return helpers.findOrCreateDoc<mongoose.LeanDocument<mongoose.Document>>({
+        model: name,
+        _id: _accessor,
+        by: oneAccessorName,
+        args,
+        context,
+        withPermissions: config.withPermissions,
+        modify: async (currentDoc, data) => {
+          conditionallyModifyDocField(currentDoc, data, config);
+        },
+      });
+    };
   }
 
   if (options?.disableModifyMutation !== true) {

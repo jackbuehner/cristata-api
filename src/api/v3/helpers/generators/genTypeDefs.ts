@@ -632,12 +632,12 @@ function genMutations(
   options: GenSchemaInput['options'],
   modifyInputType?: string
 ): string {
-  const createString = () => {
+  const createString = (exclude: string[] = []) => {
     const schemaTop = schema.filter((field): field is [string, SchemaDef] => isSchemaDef(field[1]));
 
     // list the modifiable top-level fields
     const fieldString = schemaTop
-      .filter(([, fieldDef]) => fieldDef.modifiable)
+      .filter(([key, fieldDef]) => fieldDef.modifiable && !exclude.includes(key))
       .map(
         ([fieldName, fieldDef]) =>
           `${fieldName}: ${calcGraphFieldType(fieldDef, { optionalInitial: true, useMongooseType: true })}`
@@ -659,6 +659,13 @@ function genMutations(
               Create a new ${typeName} document.
               """
               ${uncapitalize(typeName)}Create(${createString()}): ${typeName}
+
+              """
+              Find a ${typeName} document, but create a new one if it does not exist.
+              """
+              ${uncapitalize(typeName)}FindOrCreate(${oneAccessorName}: ${oneAccessorType}, ${createString([
+              oneAccessorName,
+            ])}): ${typeName}
             `
           : ``
       }
