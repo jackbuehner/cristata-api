@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.2.0](https://github.com/jackbuehner/cristata-api/compare/v4.1.0...v4.2.0) (2022-05-10)
+
+
+### Features
+
+* support app api token authentication ([79870a6](https://github.com/jackbuehner/cristata-api/commit/79870a662633686f91c5ed6bd1971b4045ab0ef9))
+
+
+### Bug Fixes
+
+* convert string dates into date objects for aggregation ([788e402](https://github.com/jackbuehner/cristata-api/commit/788e402adec1b110b528ea9ccc4c0e2a811d8ed5))
+
 ## [4.1.0](https://github.com/jackbuehner/cristata-api/compare/v4.0.4...v4.1.0) (2022-05-09)
 
 
