@@ -23,6 +23,14 @@ interface Configuration<CT = Collection> {
       dashboardPassword: string;
     };
   };
+  tokens?: Array<{
+    name: string;
+    token: string;
+    expires: string | 'never'; // ISO date OR 'never'
+    scope: {
+      admin: true;
+    };
+  }>;
   /**
    * The default sender name and email to be used by AWS SES when no other
    * email is specified.

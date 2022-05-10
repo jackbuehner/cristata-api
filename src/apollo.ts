@@ -12,6 +12,7 @@ import { execute, subscribe } from 'graphql';
 import { graphqls2s } from 'graphql-s2s';
 import { PubSub } from 'graphql-subscriptions';
 import { merge } from 'merge-anything';
+import mongoose from 'mongoose';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import {
   analyticsResolvers,
@@ -80,6 +81,27 @@ async function apollo(
 
     // add auth info to context
     const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
+      if (req.headers.authorization) {
+        const [type, token] = req.headers.authorization.split(' ');
+        if (type === 'app-token') {
+          const matchedToken = config.tokens?.find(({ token: appToken }) => appToken === token);
+          const isAuthenticated = !!matchedToken;
+          const profile: IDeserializedUser = {
+            _id: new mongoose.Types.ObjectId('000000000000000000000000'),
+            email: 'token@cristata.app',
+            methods: ['local'],
+            name: 'TOKEN_' + matchedToken.name,
+            next_step: '',
+            provider: 'local',
+            teams: matchedToken.scope.admin === true ? ['000000000000000000000001'] : [],
+            tenant: tenant,
+            two_factor_authentication: false,
+            username: 'TOKEN_' + matchedToken.name,
+          };
+          return { config, isAuthenticated, profile, tenant, cristata, restartApollo };
+        }
+      }
+
       const isAuthenticated = req.isAuthenticated() && (req.user as IDeserializedUser).tenant === tenant;
       const profile = req.user as IDeserializedUser;
       return { config, isAuthenticated, profile, tenant, cristata, restartApollo };
