@@ -76,7 +76,7 @@ async function construct(
 function genResolvers(config: GenResolversInput, tenant: string) {
   const { name, helpers, options } = config;
   const publicRules = findAndReplace(config.publicRules, `Date.now()`, new Date());
-  const [oneAccessorName] = calcAccessor('one', config.by);
+  const [oneAccessorName, oneAccessorType] = calcAccessor('one', config.by);
   const hasPublic = JSON.stringify(config.schemaDef).includes(`"public":true`);
   const hasSlug = hasKey('slug', config.schemaDef) && (config.schemaDef.slug as SchemaDef).type === 'String';
   const schemaRefs = Object.entries(config.schemaDef).filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<
@@ -92,10 +92,12 @@ function genResolvers(config: GenResolversInput, tenant: string) {
      * Finds a single document by the accessor specified in the config.
      */
     Query[uncapitalize(name)] = async (parent, args, context) => {
+      console.log(oneAccessorType);
       const doc = await helpers.findDoc({
         model: name,
         by: oneAccessorName,
-        _id: args[oneAccessorName],
+        _id:
+          oneAccessorType.replace('!', '') === 'Date' ? new Date(args[oneAccessorName]) : args[oneAccessorName],
         context,
       });
       return await construct(doc, schemaRefs, context, helpers);
@@ -136,7 +138,10 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         await helpers.findDoc({
           model: name,
           by: oneAccessorName,
-          _id: args[oneAccessorName],
+          _id:
+            oneAccessorType.replace('!', '') === 'Date'
+              ? new Date(args[oneAccessorName])
+              : args[oneAccessorName],
           filter: publicRules.filter,
           context,
           fullAccess: true,
