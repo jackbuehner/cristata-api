@@ -144,12 +144,15 @@ class Cristata {
         try {
           // for each tenant, create middleware for an api server
           this.#tenants.forEach(async (tenant) => {
-            const [middleware, stopApollo] = await apollo(this, tenant, this.#tenants.length === 1);
-            this.#apolloMiddleware[tenant] = middleware;
-            this.#stopApollo[tenant] = stopApollo;
+            if (this.config[tenant]) {
+              const [middleware, stopApollo] = await apollo(this, tenant, this.#tenants.length === 1);
+              this.#apolloMiddleware[tenant] = middleware;
+              this.#stopApollo[tenant] = stopApollo;
+            }
 
             this.app.use((req, res, next) => {
-              this.#apolloMiddleware[tenant](req, res, next);
+              if (this.#apolloMiddleware[tenant]) this.#apolloMiddleware[tenant](req, res, next);
+              else next();
             });
           });
         } catch (error) {
