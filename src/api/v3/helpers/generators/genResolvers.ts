@@ -92,7 +92,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
      * Finds a single document by the accessor specified in the config.
      */
     Query[uncapitalize(name)] = async (parent, args, context) => {
-      console.log(oneAccessorType);
       const doc = await helpers.findDoc({
         model: name,
         by: oneAccessorName,
