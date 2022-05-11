@@ -103,7 +103,7 @@ async function modifyDoc<DocType, DataType>({
   await modify?.(currentDoc as DocType, data as unknown as DataType);
 
   // attempt to patch the article
-  return await Model.findOneAndUpdate({ [by || '_id']: '_id' }, { $set: data }, { returnOriginal: false });
+  return await Model.findOneAndUpdate({ [by || '_id']: _id }, { $set: data }, { returnOriginal: false });
 }
 
 type CurrentDocType = CollectionSchemaFields &
