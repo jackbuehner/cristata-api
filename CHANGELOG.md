@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.2.1](https://github.com/jackbuehner/cristata-api/compare/v4.2.0...v4.2.1) (2022-05-11)
+
+
+### Bug Fixes
+
+* remove console log ([4645b39](https://github.com/jackbuehner/cristata-api/commit/4645b39425db25f9042705044fe7ff61103cb94e))
+* wait for tenant config to be available before starting apollo ([23815cd](https://github.com/jackbuehner/cristata-api/commit/23815cdd1f7245fc5ddfd51c3c7eff910e3b16f5))
+
 ## [4.2.0](https://github.com/jackbuehner/cristata-api/compare/v4.1.0...v4.2.0) (2022-05-10)
 
 
