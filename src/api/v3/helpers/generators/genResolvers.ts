@@ -290,7 +290,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         helpers.modifyDoc<mongoose.Document, mongoose.LeanDocument<mongoose.Document>>({
           model: name,
           data: { ...input, [oneAccessorName]: _accessor },
-          _id: _accessor,
+          _id: oneAccessorType.replace('!', '') === 'Date' ? new Date(_accessor) : _accessor,
           by: oneAccessorName,
           context,
           modify: async (currentDoc, data) => {
