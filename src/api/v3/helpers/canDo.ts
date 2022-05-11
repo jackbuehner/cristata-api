@@ -74,16 +74,17 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
         .map((team) => new mongoose.Types.ObjectId(team)),
       // treat other strings in the teams array as team names
       // (e.g. 'admin' represents the _id of the team named 'admin')
-      ...(await Promise.all(
-        tp
-          .filter((team) => typeof team === 'string' && !isObjectId(team))
-          .map(async (slug) => {
-            const foundTeam = await tenantDB.model('Team').findOne({ slug });
-            const teamId: mongoose.Types.ObjectId | null = foundTeam?._id || null;
-            return teamId;
-          })
-          .filter((teamId) => !!teamId)
-      )),
+      ...(
+        await Promise.all(
+          tp
+            .filter((team) => typeof team === 'string' && !isObjectId(team))
+            .map(async (slug) => {
+              const foundTeam = await tenantDB.model('Team').findOne({ slug });
+              const teamId: mongoose.Types.ObjectId | null = foundTeam?._id || null;
+              return teamId;
+            })
+        )
+      ).filter((teamId) => !!teamId),
     ];
 
     // return true if the collection permissions includes one of the current user's teams
