@@ -43,7 +43,13 @@ function genTypeDefs(input: GenSchemaInput): string {
     ${
       hasPublic
         ? genPrunedTypes(
-            [['_id', { type: 'ObjectId', required: true, public: true }], ...schema],
+            [
+              ['_id', { type: 'ObjectId', required: true, public: true }],
+              // ensure that the timestamps nested schema always exists
+              ...(input.schemaDef.timestamps
+                ? schema
+                : [['timestamps', {}] as [string, NestedSchemaDefType], ...schema]),
+            ],
             typeName,
             input.canPublish
           )
