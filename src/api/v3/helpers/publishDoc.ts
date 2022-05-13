@@ -7,15 +7,16 @@ import { insertUserToArray } from '../../../utils/insertUserToArray';
 
 interface PublishDoc {
   model: string;
+  by?: string;
+  _id: mongoose.Types.ObjectId | string | number | Date;
   args: {
-    _id: mongoose.Types.ObjectId;
     published_at?: string; // ISO date string
     publish?: boolean;
   };
   context: Context;
 }
 
-async function publishDoc({ model, args, context }: PublishDoc) {
+async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
   requireAuthentication(context);
 
   // set defaults
@@ -23,7 +24,7 @@ async function publishDoc({ model, args, context }: PublishDoc) {
   if (args.published_at === undefined) args.published_at = new Date().toISOString();
 
   // get the document
-  const doc = await findDoc({ model, _id: args._id, context, lean: false });
+  const doc = await findDoc({ model, by, _id, context, lean: false });
 
   //if the user cannot hide documents in the collection, return an error
   if (!(await canDo({ action: 'publish', model, context, doc: doc as never })))

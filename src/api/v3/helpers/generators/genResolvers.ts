@@ -347,10 +347,12 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 
   if (options?.disablePublishMutation !== true && config.canPublish) {
     Mutation[`${uncapitalize(name)}Publish`] = async (parent, args, context) => {
+      const by = oneAccessorName;
+      const _id = oneAccessorType.replace('!', '') === 'Date' ? new Date(args[by]) : args[oneAccessorName];
       return await helpers.withPubSub(
         name.toUpperCase(),
         'DELETED',
-        helpers.publishDoc({ model: name, args, context })
+        helpers.publishDoc({ model: name, args, context, by, _id })
       );
     };
   }
