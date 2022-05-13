@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.3.0](https://github.com/jackbuehner/cristata-api/compare/v4.2.1...v4.3.0) (2022-05-13)
+
+
+### Features
+
+* support publishing with non-_id accessorrs ([d07f886](https://github.com/jackbuehner/cristata-api/commit/d07f886c0373b30438575891bc80c3cf01864666))
+
+
+### Bug Fixes
+
+* convert date accessors when modifying docs ([c5f3060](https://github.com/jackbuehner/cristata-api/commit/c5f3060fe1960e520353e1e44f52e5155768e1a4))
+* ensure that timestamps are always available on pruned types ([7e722b5](https://github.com/jackbuehner/cristata-api/commit/7e722b5ba0db6e825fa55b1d43cfd761f8e9a231))
+* find by actual value instead of '_id' when modifying ([8c4ca1f](https://github.com/jackbuehner/cristata-api/commit/8c4ca1f8b22c2c0cc6674262aab7dc9f308d5f5f))
+* wait for team ids to resolve before removing falsy array values ([37d3062](https://github.com/jackbuehner/cristata-api/commit/37d30626a69c681b609721843f8bae18d2785abb))
+
 ### [4.2.1](https://github.com/jackbuehner/cristata-api/compare/v4.2.0...v4.2.1) (2022-05-11)
 
 
