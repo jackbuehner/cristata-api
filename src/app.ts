@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import { apiRouter3 } from './api/v3/routes';
 import { authRouter } from './auth.route';
+import Cristata from './Cristata';
 import { corsConfig } from './middleware/cors';
 import { requireAuth } from './middleware/requireAuth';
 import { IUser } from './mongodb/users';
@@ -18,7 +19,7 @@ import { proxyRouterFactory } from './proxy.route';
 // load environmental variables
 dotenv.config();
 
-function createExpressApp(): Application {
+function createExpressApp(cristata: Cristata): Application {
   // create express app
   const app = express();
 
@@ -131,6 +132,44 @@ function createExpressApp(): Application {
           user.timestamps.last_active_at = now.toISOString();
         }
         user.save();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    next();
+  });
+
+  // track number of requests for billing purposes
+  app.use(async (req, res, next) => {
+    try {
+      const tenant: string | null = (() => {
+        const path = new URL(req.url, `http://${req.headers.host}`).pathname.replace('/v3/', '');
+        const tenant = path.match(/(.*?)\//)?.[0] || path;
+        if (cristata.tenants.includes(tenant)) return tenant;
+        return null;
+      })();
+
+      if (tenant) {
+        const year = new Date().getUTCFullYear();
+        const month = new Date().getUTCMonth() + 1; // start at 1
+        const day = new Date().getUTCDate();
+
+        if (req.hostname === 'cristata.app' || process.env.NODE_ENV === 'development') {
+          await cristata.tenantsCollection.findOneAndUpdate(
+            { name: tenant },
+            { $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 } }
+          );
+        } else {
+          await cristata.tenantsCollection.findOneAndUpdate(
+            { name: tenant },
+            {
+              $inc: {
+                [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
+                [`billing.metrics.${year}.${month}.${day}.total`]: 1,
+              },
+            }
+          );
+        }
       }
     } catch (error) {
       console.error(error);
