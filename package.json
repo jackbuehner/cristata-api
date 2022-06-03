@@ -95,6 +95,7 @@
     "passport-local-mongoose": "6.1.0",
     "patch-package": "^6.4.7",
     "pluralize": "^8.0.0",
+    "stripe": "^9.6.0",
     "subscriptions-transport-ws": "^0.11.0",
     "typescript-json-schema": "0.53.0",
     "ws": "^7.5.5",
