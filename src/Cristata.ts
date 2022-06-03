@@ -17,6 +17,7 @@ import { hasKey } from './utils/hasKey';
 import { parseCookies } from './utils/parseCookies';
 import { wss } from './websocket';
 import mongoose, { ObjectId } from 'mongoose';
+import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 
 function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
@@ -34,6 +35,7 @@ class Cristata {
   #apolloMiddleware: Record<string, Router> = {};
   #stopApollo: Record<string, () => Promise<void>> = {};
   #tenants: string[] = [process.env.TENANT];
+  tenantsCollection: MongoCollection<{ _id: ObjectId; name: string; config: Configuration }> | null = null;
   hocuspocus: typeof Hocuspocus = undefined;
 
   constructor(config?: Configuration<Collection | GenCollectionInput>) {
@@ -233,8 +235,8 @@ class Cristata {
       }
 
       // get the tenants
-      const tenantsCollection = mongoose.connection.db.collection('tenants');
-      const tenants = await tenantsCollection
+      this.tenantsCollection = mongoose.connection.db.collection('tenants');
+      const tenants = await this.tenantsCollection
         .find<{ _id: ObjectId; name: string; config: Configuration }>({})
         .toArray();
 
