@@ -80,7 +80,7 @@
     "express": "^4.17.1",
     "find-and-replace-anything": "^3.0.2",
     "generate-password": "^1.7.0",
-    "graphql": "^15.7.1",
+    "graphql": "^15.7.2",
     "graphql-s2s": "^0.22.0",
     "graphql-subscriptions": "^2.0.0",
     "helmet": "^4.6.0",
