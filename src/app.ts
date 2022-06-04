@@ -17,6 +17,9 @@ import { IDeserializedUser } from './passport';
 import { proxyRouterFactory } from './proxy.route';
 import { unless } from './middleware/unless';
 import { stripeRouterFactory } from './stripe.route';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 
 // load environmental variables
 dotenv.config();
@@ -163,7 +166,23 @@ function createExpressApp(cristata: Cristata): Application {
             { $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 } }
           );
         } else {
-          await cristata.tenantsCollection.findOneAndUpdate(
+          // get the tenant document
+          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+
+          // update usage in stripe
+          if (tenantDoc.billing.stripe_subscription_items?.api_usage.id) {
+            await stripe.subscriptionItems.createUsageRecord(
+              tenantDoc.billing.stripe_subscription_items.api_usage.id,
+              {
+                quantity: 1,
+                action: 'increment',
+                timestamp: 'now',
+              }
+            );
+          }
+
+          // update usage in the database
+          await cristata.tenantsCollection.updateOne(
             { name: tenant },
             {
               $inc: {
