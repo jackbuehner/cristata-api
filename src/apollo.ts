@@ -16,6 +16,7 @@ import mongoose from 'mongoose';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import {
   analyticsResolvers,
+  billingResolvers,
   collectionResolvers,
   configurationResolvers,
   coreResolvers,
@@ -23,6 +24,7 @@ import {
 } from './api/v3/resolvers';
 import {
   analyticsTypeDefs,
+  billingTypeDefs,
   collectionTypeDefs,
   configurationTypeDefs,
   coreTypeDefs,
@@ -59,6 +61,7 @@ async function apollo(
           s3TypeDefs,
           configurationTypeDefs,
           analyticsTypeDefs,
+          billingTypeDefs,
           ...collections.map((collection) => collection.typeDefs),
         ].join()
       ),
@@ -70,6 +73,7 @@ async function apollo(
       collectionResolvers,
       configurationResolvers,
       analyticsResolvers,
+      billingResolvers,
       ...collections.map((collection) => collection.resolvers)
     );
 

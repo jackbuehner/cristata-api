@@ -17,6 +17,7 @@ import { hasKey } from './utils/hasKey';
 import { parseCookies } from './utils/parseCookies';
 import { wss } from './websocket';
 import mongoose, { ObjectId } from 'mongoose';
+import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 
 function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
@@ -33,7 +34,23 @@ class Cristata {
   apolloWss: Record<string, ws.Server> = {};
   #apolloMiddleware: Record<string, Router> = {};
   #stopApollo: Record<string, () => Promise<void>> = {};
-  #tenants: string[] = [process.env.TENANT];
+  tenants: string[] = [process.env.TENANT];
+  tenantsCollection: MongoCollection<{
+    _id: ObjectId;
+    name: string;
+    config: Configuration;
+    billing: {
+      stripe_customer_id?: string;
+      stripe_subscription_id?: string;
+      subscription_active: boolean;
+      subscription_last_payment?: string;
+      metrics: {
+        [key: number | undefined]: {
+          [key: number | undefined]: { [key: number | undefined]: { billable?: number; total: number } };
+        };
+      };
+    };
+  }> | null = null;
   hocuspocus: typeof Hocuspocus = undefined;
 
   constructor(config?: Configuration<Collection | GenCollectionInput>) {
@@ -63,7 +80,7 @@ class Cristata {
     // configure the server
     this.hocuspocus = Hocuspocus.configure({
       port: parseInt(process.env.PORT),
-      extensions: [new HocuspocusMongoDB(this.#tenants)],
+      extensions: [new HocuspocusMongoDB(this.tenants)],
 
       // use hocuspocus at '/hocupocus' and use wss at '/websocket'
       onUpgrade: async ({ request, socket, head }) => {
@@ -74,7 +91,7 @@ class Cristata {
           // ensure request has a valid tenant search param
           const tenant = searchParams.get('tenant');
           if (!tenant) throw new Error(`tenant search param must be specified`);
-          if (!this.#tenants.includes(tenant)) throw new Error(`tenant must exist`);
+          if (!this.tenants.includes(tenant)) throw new Error(`tenant must exist`);
 
           // find auth cookie
           if (!request.headers.cookie) {
@@ -143,9 +160,9 @@ class Cristata {
       onListen: async () => {
         try {
           // for each tenant, create middleware for an api server
-          this.#tenants.forEach(async (tenant) => {
+          this.tenants.forEach(async (tenant) => {
             if (this.config[tenant]) {
-              const [middleware, stopApollo] = await apollo(this, tenant, this.#tenants.length === 1);
+              const [middleware, stopApollo] = await apollo(this, tenant, this.tenants.length === 1);
               this.#apolloMiddleware[tenant] = middleware;
               this.#stopApollo[tenant] = stopApollo;
             }
@@ -233,15 +250,15 @@ class Cristata {
       }
 
       // get the tenants
-      const tenantsCollection = mongoose.connection.db.collection('tenants');
-      const tenants = await tenantsCollection
+      this.tenantsCollection = mongoose.connection.db.collection('tenants');
+      const tenants = await this.tenantsCollection
         .find<{ _id: ObjectId; name: string; config: Configuration }>({})
         .toArray();
 
       tenants.forEach(({ name, config }) => {
         // add each tenant to the config
         this.config[name] = constructCollections(config, name);
-        this.#tenants.push(name);
+        this.tenants.push(name);
 
         // initialize a subscription server for graphql subscriptions
         this.apolloWss[name] = new ws.Server({
@@ -264,7 +281,7 @@ class Cristata {
    * Gets the express app. Starts the app if it is not started.
    */
   get app(): Application {
-    if (!this.#express) this.#express = createExpressApp();
+    if (!this.#express) this.#express = createExpressApp(this);
     return this.#express;
   }
 
@@ -272,7 +289,7 @@ class Cristata {
    * Hot reload/restart the Apollo GraphQL server for a specific tenant.
    */
   async restartApollo(tenant: string): Promise<void> {
-    const [middleware, stopApollo] = await apollo(this, tenant, this.#tenants.length === 1);
+    const [middleware, stopApollo] = await apollo(this, tenant, this.tenants.length === 1);
     this.#apolloMiddleware[tenant] = middleware;
     this.#stopApollo[tenant] = stopApollo;
   }

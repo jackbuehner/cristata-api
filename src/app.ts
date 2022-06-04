@@ -8,17 +8,20 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import { apiRouter3 } from './api/v3/routes';
 import { authRouter } from './auth.route';
+import Cristata from './Cristata';
 import { corsConfig } from './middleware/cors';
 import { requireAuth } from './middleware/requireAuth';
 import { IUser } from './mongodb/users';
 import './passport';
 import { IDeserializedUser } from './passport';
 import { proxyRouterFactory } from './proxy.route';
+import { unless } from './middleware/unless';
+import { stripeRouterFactory } from './stripe.route';
 
 // load environmental variables
 dotenv.config();
 
-function createExpressApp(): Application {
+function createExpressApp(cristata: Cristata): Application {
   // create express app
   const app = express();
 
@@ -83,7 +86,7 @@ function createExpressApp(): Application {
   app.use(cors(corsConfig()));
 
   // parse incoming request body
-  app.use(express.json());
+  app.use(unless('/stripe/webhook', express.json()));
   app.use(express.urlencoded({ extended: true }));
 
   // pretty print sent json
@@ -114,6 +117,7 @@ function createExpressApp(): Application {
   app.use(`/auth`, authRouter); // authentication routes
   app.use(`/v3`, apiRouter3); // API v3 routes
   app.use(proxyRouterFactory()); // CORS proxy routes
+  app.use(stripeRouterFactory(cristata)); // stripe routes
 
   app.get(``, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);
@@ -131,6 +135,44 @@ function createExpressApp(): Application {
           user.timestamps.last_active_at = now.toISOString();
         }
         user.save();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    next();
+  });
+
+  // track number of requests for billing purposes
+  app.use(async (req, res, next) => {
+    try {
+      const tenant: string | null = (() => {
+        const path = new URL(req.url, `http://${req.headers.host}`).pathname.replace('/v3/', '');
+        const tenant = path.match(/(.*?)\//)?.[0] || path;
+        if (cristata.tenants.includes(tenant)) return tenant;
+        return null;
+      })();
+
+      if (tenant) {
+        const year = new Date().getUTCFullYear();
+        const month = new Date().getUTCMonth() + 1; // start at 1
+        const day = new Date().getUTCDate();
+
+        if (req.hostname === 'cristata.app' || process.env.NODE_ENV === 'development') {
+          await cristata.tenantsCollection.findOneAndUpdate(
+            { name: tenant },
+            { $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 } }
+          );
+        } else {
+          await cristata.tenantsCollection.findOneAndUpdate(
+            { name: tenant },
+            {
+              $inc: {
+                [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
+                [`billing.metrics.${year}.${month}.${day}.total`]: 1,
+              },
+            }
+          );
+        }
       }
     } catch (error) {
       console.error(error);
