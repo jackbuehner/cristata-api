@@ -48,7 +48,7 @@ const billing = {
         Namespace: 'AWS/S3',
         MetricName: 'BucketSizeBytes',
         StartTime: (() => {
-          const startTime = new Date(Date.now() - 3600 * 24 * 1000);
+          const startTime = new Date(Date.now() - 3600 * 24 * 1000 * 1.5);
           startTime.setUTCHours(0);
           startTime.setUTCMinutes(0);
           startTime.setUTCSeconds(0);
@@ -73,7 +73,7 @@ const billing = {
         (resolve: (value: number) => unknown, reject: (reason: aws.AWSError) => void) => {
           cw.getMetricStatistics(params, (err, data) => {
             if (err) reject(err);
-            else resolve(data.Datapoints?.[0].Average || 0);
+            else resolve(data.Datapoints?.[0]?.Average || 0);
           });
         }
       );
