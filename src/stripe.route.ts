@@ -39,7 +39,7 @@ function factory(cristata: Cristata): Router {
                 price: 'price_1L6klvHoKn7kS1oW98lNQcak',
               },
               {
-                price: 'price_1L6khoHoKn7kS1oWzHeC9bCl',
+                price: 'price_1L71k0HoKn7kS1oWlx7Slxcb',
               },
             ],
             mode: 'subscription',
@@ -133,8 +133,19 @@ function factory(cristata: Cristata): Router {
         ) {
           try {
             const tenant = data.object.metadata.tenant;
-            const customer = data.object.customer;
-            const subscription = data.object.subscription;
+            const customerId = data.object.customer;
+            const subscriptionId = data.object.subscription;
+            const nowISO = new Date().toISOString();
+
+            // get the subscription item ids from the subscription
+            // so we can update the usage of the metered usage items
+            // as needed
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const subscriptionItems = subscription.items.data;
+            const coreCostItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNUf3MIbVhegG');
+            const fileStorageItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNbPOQgizef9O');
+            const databaseItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNWSsMWaUMGHv');
+            const apiUsageItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNSaiLK2VfUVZ');
 
             // store the subscription and customer details in the tenant data object
             await cristata.tenantsCollection.findOneAndUpdate(
@@ -143,10 +154,18 @@ function factory(cristata: Cristata): Router {
               },
               {
                 $set: {
-                  'billing.stripe_customer_id': customer,
-                  'billing.stripe_subscription_id': subscription,
+                  'billing.stripe_customer_id': customerId,
+                  'billing.stripe_subscription_id': subscriptionId,
                   'billing.subscription_active': true,
-                  'billing.subscription_last_payment': new Date().toISOString(),
+                  'billing.subscription_last_payment': nowISO,
+                  'billing.stripe_subscription_items.core.id': coreCostItem.id,
+                  'billing.stripe_subscription_items.core.usage_reported_at': nowISO,
+                  'billing.stripe_subscription_items.file_storage.id': fileStorageItem.id,
+                  'billing.stripe_subscription_items.file_storage.usage_reported_at': nowISO,
+                  'billing.stripe_subscription_items.database_usage.id': databaseItem.id,
+                  'billing.stripe_subscription_items.database_usage.usage_reported_at': nowISO,
+                  'billing.stripe_subscription_items.api_usage.id': apiUsageItem.id,
+                  'billing.stripe_subscription_items.api_usage.usage_reported_at': nowISO,
                 },
               }
             );
