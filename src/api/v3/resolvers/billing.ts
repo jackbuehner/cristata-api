@@ -29,12 +29,15 @@ const billing = {
 
       const calculatedMonthMetrics = Object.values(foundMonthMetrics).reduce((sum, day) => {
         return {
-          billable: sum.billable + day.billable,
-          total: sum.total + day.total,
+          billable: sum.billable || 0 + day.billable || 0,
+          total: sum.total || 0 + day.total || 0,
         };
       });
 
-      return calculatedMonthMetrics;
+      return {
+        billable: calculatedMonthMetrics.billable || 0,
+        total: calculatedMonthMetrics.total || 0,
+      };
     },
     storage: async (
       _: unknown,
