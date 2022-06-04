@@ -47,8 +47,8 @@ const billing = {
 
       const calculatedMonthMetrics = Object.values(foundMonthMetrics).reduce((sum, day) => {
         return {
-          billable: sum.billable || 0 + day.billable || 0,
-          total: sum.total || 0 + day.total || 0,
+          billable: (sum.billable || 0) + (day.billable || 0),
+          total: (sum.total || 0) + (day.total || 0),
         };
       });
 
