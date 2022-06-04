@@ -6,13 +6,31 @@ import aws from 'aws-sdk';
 
 const billing = {
   Query: {
-    billing: async (_: never, __: never, context: Context): Promise<{ usage: Record<string, never> }> => {
+    billing: async (
+      _: never,
+      __: never,
+      context: Context
+    ): Promise<{
+      usage: Record<string, never>;
+      stripe_customer_id?: string;
+      stripe_subscription_id?: string;
+      subscription_last_payment?: string;
+      subscription_active: boolean;
+    }> => {
       requireAuthentication(context);
       const isAdmin = context.profile.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
+      const tenantDoc = await context.cristata.tenantsCollection.findOne({
+        name: context.tenant,
+      });
+
       return {
         usage: {},
+        stripe_customer_id: tenantDoc?.billing?.stripe_customer_id,
+        stripe_subscription_id: tenantDoc?.billing?.stripe_subscription_id,
+        subscription_last_payment: tenantDoc?.billing?.subscription_last_payment,
+        subscription_active: tenantDoc?.billing?.subscription_active || false,
       };
     },
   },

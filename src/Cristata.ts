@@ -40,6 +40,10 @@ class Cristata {
     name: string;
     config: Configuration;
     billing: {
+      stripe_customer_id?: string;
+      stripe_subscription_id?: string;
+      subscription_active: boolean;
+      subscription_last_payment?: string;
       metrics: {
         [key: number | undefined]: {
           [key: number | undefined]: { [key: number | undefined]: { billable?: number; total: number } };

@@ -10,6 +10,10 @@ const billing = gql`
     Gets the usage to be used for billing
     """
     usage: Usage!
+    stripe_customer_id: String
+    stripe_subscription_id: String
+    subscription_last_payment: String
+    subscription_active: Boolean!
   }
 
   type Usage {

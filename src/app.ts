@@ -15,6 +15,8 @@ import { IUser } from './mongodb/users';
 import './passport';
 import { IDeserializedUser } from './passport';
 import { proxyRouterFactory } from './proxy.route';
+import { unless } from './middleware/unless';
+import { stripeRouterFactory } from './stripe.route';
 
 // load environmental variables
 dotenv.config();
@@ -84,7 +86,7 @@ function createExpressApp(cristata: Cristata): Application {
   app.use(cors(corsConfig()));
 
   // parse incoming request body
-  app.use(express.json());
+  app.use(unless('/stripe/webhook', express.json()));
   app.use(express.urlencoded({ extended: true }));
 
   // pretty print sent json
@@ -115,6 +117,7 @@ function createExpressApp(cristata: Cristata): Application {
   app.use(`/auth`, authRouter); // authentication routes
   app.use(`/v3`, apiRouter3); // API v3 routes
   app.use(proxyRouterFactory()); // CORS proxy routes
+  app.use(stripeRouterFactory(cristata)); // stripe routes
 
   app.get(``, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);
