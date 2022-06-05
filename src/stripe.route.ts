@@ -29,28 +29,37 @@ function factory(cristata: Cristata): Router {
             billing_address_collection: 'auto',
             line_items: [
               {
-                price: 'price_1L6kjiHoKn7kS1oWqfKScMNe',
+                // core cost
+                price: 'price_1L7RwcHoKn7kS1oWT9DnHcpB',
                 quantity: 1,
               },
               {
-                price: 'price_1L7MkuHoKn7kS1oWFi3d1BBm',
+                // photo and file storage
+                price: 'price_1L7RoYHoKn7kS1oWaaYhmycd',
               },
               {
-                price: 'price_1L7M76HoKn7kS1oWITu15nqR',
+                // mongodb
+                price: 'price_1L7Rq1HoKn7kS1oW5gDbZNeZ',
               },
               {
-                price: 'price_1L71k0HoKn7kS1oWlx7Slxcb',
+                // api usage (external)
+                price: 'price_1L7RsOHoKn7kS1oW7JqIqV4r',
               },
               {
-                // cristata.app
-                price: 'price_1L7PqBHoKn7kS1oWpz02SVuw',
+                // cristata.app api usage (internal)
+                price: 'price_1L7RmXHoKn7kS1oWV5rpdKN5',
               },
               {
                 // premium integrations and custom fields/previews
                 price: 'price_1L7RVLHoKn7kS1oW4eMPEDKF',
+                quantity: 1,
               },
             ],
             mode: 'subscription',
+            allow_promotion_codes: true,
+            subscription_data: {
+              trial_period_days: 2,
+            },
             phone_number_collection: { enabled: true },
             success_url: `${process.env.APP_URL}/configuration/billing/payments?success=true&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.APP_URL}/configuration/billing/payments?canceled=true`,
