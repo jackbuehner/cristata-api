@@ -191,7 +191,18 @@ function createExpressApp(cristata: Cristata): Application {
         );
 
         // for external usage, also count it towards billable api usage
-        if (req.hostname !== 'cristata.app' && process.env.NODE_ENV !== 'development') {
+        const originHostname = (() => {
+          try {
+            return new URL(req.headers.origin).hostname;
+          } catch {
+            return 'SERVER_SIDE_REQUEST';
+          }
+        })();
+        const internalDomain = 'cristata.app';
+        const isInternalUse =
+          originHostname.indexOf(internalDomain) === originHostname.length - internalDomain.length;
+
+        if (!isInternalUse && process.env.NODE_ENV !== 'development') {
           {
             // update usage in stripe
             if (tenantDoc.billing.stripe_subscription_items?.api_usage.id) {
