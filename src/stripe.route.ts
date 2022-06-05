@@ -13,6 +13,7 @@ function factory(cristata: Cristata): Router {
 
   // handle stripe payments
   router.post('/stripe/create-checkout-session', async (req, res) => {
+    console.log(process.env.STRIPE_SECRET_KEY);
     try {
       if (req.isAuthenticated()) {
         const user = req.user as IDeserializedUser;
@@ -30,28 +31,28 @@ function factory(cristata: Cristata): Router {
             line_items: [
               {
                 // core cost
-                price: 'price_1L7RwcHoKn7kS1oWT9DnHcpB',
+                price: 'price_1L7SECHoKn7kS1oW6JrXN7AI',
                 quantity: 1,
               },
               {
                 // photo and file storage
-                price: 'price_1L7RoYHoKn7kS1oWaaYhmycd',
+                price: 'price_1L7SE5HoKn7kS1oWTY4igElZ',
               },
               {
                 // mongodb
-                price: 'price_1L7Rq1HoKn7kS1oW5gDbZNeZ',
+                price: 'price_1L7SE9HoKn7kS1oWC1BTOlev',
               },
               {
                 // api usage (external)
-                price: 'price_1L7RsOHoKn7kS1oW7JqIqV4r',
+                price: 'price_1L7SEHHoKn7kS1oWXmCOLF8F',
               },
               {
                 // cristata.app api usage (internal)
-                price: 'price_1L7RmXHoKn7kS1oWV5rpdKN5',
+                price: 'price_1L7SDiHoKn7kS1oWnaahztcK',
               },
               {
                 // premium integrations and custom fields/previews
-                price: 'price_1L7RVLHoKn7kS1oW4eMPEDKF',
+                price: 'price_1L7SDPHoKn7kS1oWb18xRVXN',
                 quantity: 1,
               },
             ],
@@ -159,12 +160,12 @@ function factory(cristata: Cristata): Router {
             // as needed
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
             const subItems = subscription.items.data;
-            const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_LoNUf3MIbVhegG');
-            const fileStorageItem = subItems.find((sub) => sub.plan.product === 'prod_LoNbPOQgizef9O');
-            const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_LoNWSsMWaUMGHv');
-            const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_LoNSaiLK2VfUVZ');
-            const cristataAppUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp3yr5Uyr9kYh5');
-            const integrationsItem = subItems.find((sub) => sub.plan.product === 'prod_Lp5gfaMbFluFUI');
+            const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6R5i02xdW8cD');
+            const fileStorageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QsCWpOAPGtu');
+            const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6Rh3tUVYRCCq');
+            const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6RMiFbCxbO3a');
+            const cristataAppUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QZrB2Wa9zq4');
+            const integrationsItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QhM2v3AoJiA');
 
             // store the subscription and customer details in the tenant data object
             await cristata.tenantsCollection.findOneAndUpdate(
