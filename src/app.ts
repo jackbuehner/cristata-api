@@ -193,6 +193,9 @@ function createExpressApp(cristata: Cristata): Application {
                 [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
                 [`billing.metrics.${year}.${month}.${day}.total`]: 1,
               },
+              $set: {
+                'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
+              },
             }
           );
         }
