@@ -154,6 +154,19 @@ function createExpressApp(cristata: Cristata): Application {
     return null;
   }
 
+  function isInternalUse(req: Request) {
+    const originHostname = (() => {
+      try {
+        return new URL(req.headers.origin).hostname;
+      } catch {
+        return 'SERVER_SIDE_REQUEST';
+      }
+    })();
+    const internalDomain = 'cristata.app';
+    const isInternal = originHostname.indexOf(internalDomain) === originHostname.length - internalDomain.length;
+    return isInternal || process.env.NODE_ENV === 'development';
+  }
+
   // track number of requests for billing purposes
   app.use(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -191,18 +204,7 @@ function createExpressApp(cristata: Cristata): Application {
         );
 
         // for external usage, also count it towards billable api usage
-        const originHostname = (() => {
-          try {
-            return new URL(req.headers.origin).hostname;
-          } catch {
-            return 'SERVER_SIDE_REQUEST';
-          }
-        })();
-        const internalDomain = 'cristata.app';
-        const isInternalUse =
-          originHostname.indexOf(internalDomain) === originHostname.length - internalDomain.length;
-
-        if (!isInternalUse && process.env.NODE_ENV !== 'development') {
+        if (!isInternalUse(req) && process.env.NODE_ENV !== 'development') {
           {
             // update usage in stripe
             if (tenantDoc.billing.stripe_subscription_items?.api_usage.id) {
@@ -326,6 +328,23 @@ function createExpressApp(cristata: Cristata): Application {
   // update storage usage metric in stripe every 15 minutes and on server start
   updateStorageUsageMetric();
   setInterval(updateStorageUsageMetric, 1000 * 60 * 15);
+
+  // end external requests if the tenant does not have an active subscription
+  // ! this must be the last middleware
+  app.use(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const tenant = calcTenant(req);
+      if (tenant) {
+        const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+        const hasPaid = tenantDoc.billing.subscription_active;
+        if (isInternalUse(req)) next();
+        else if (hasPaid) next();
+        else res.status(402).end();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  });
 
   // return the app
   return app;
