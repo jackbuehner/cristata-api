@@ -41,6 +41,10 @@ function factory(cristata: Cristata): Router {
               {
                 price: 'price_1L71k0HoKn7kS1oWlx7Slxcb',
               },
+              {
+                // cristata.app
+                price: 'price_1L7PqBHoKn7kS1oWpz02SVuw',
+              },
             ],
             mode: 'subscription',
             phone_number_collection: { enabled: true },
@@ -146,6 +150,9 @@ function factory(cristata: Cristata): Router {
             const fileStorageItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNbPOQgizef9O');
             const databaseItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNWSsMWaUMGHv');
             const apiUsageItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNSaiLK2VfUVZ');
+            const cristataAppUsageItem = subscriptionItems.find(
+              (sub) => sub.plan.product === 'prod_Lp3yr5Uyr9kYh5'
+            );
 
             // store the subscription and customer details in the tenant data object
             await cristata.tenantsCollection.findOneAndUpdate(
@@ -166,6 +173,8 @@ function factory(cristata: Cristata): Router {
                   'billing.stripe_subscription_items.database_usage.usage_reported_at': nowISO,
                   'billing.stripe_subscription_items.api_usage.id': apiUsageItem.id,
                   'billing.stripe_subscription_items.api_usage.usage_reported_at': nowISO,
+                  'billing.stripe_subscription_items.app_usage.id': cristataAppUsageItem.id,
+                  'billing.stripe_subscription_items.app_usage.usage_reported_at': nowISO,
                 },
               }
             );

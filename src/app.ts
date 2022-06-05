@@ -164,40 +164,60 @@ function createExpressApp(cristata: Cristata): Application {
         const month = new Date().getUTCMonth() + 1; // start at 1
         const day = new Date().getUTCDate();
 
-        if (req.hostname === 'cristata.app' || process.env.NODE_ENV === 'development') {
-          await cristata.tenantsCollection.findOneAndUpdate(
-            { name: tenant },
-            { $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 } }
-          );
-        } else {
-          // get the tenant document
-          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+        // get the tenant document
+        const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
 
-          // update usage in stripe
-          if (tenantDoc.billing.stripe_subscription_items?.api_usage.id) {
-            await stripe.subscriptionItems.createUsageRecord(
-              tenantDoc.billing.stripe_subscription_items.api_usage.id,
+        // update usage in stripe
+        if (tenantDoc.billing.stripe_subscription_items?.app_usage.id) {
+          await stripe.subscriptionItems.createUsageRecord(
+            tenantDoc.billing.stripe_subscription_items.app_usage.id,
+            {
+              quantity: 1,
+              action: 'increment',
+              timestamp: 'now',
+            }
+          );
+        }
+
+        // update usage in the database
+        await cristata.tenantsCollection.findOneAndUpdate(
+          { name: tenant },
+          {
+            $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 },
+            $set: {
+              'billing.stripe_subscription_items.app_usage.usage_reported_at': new Date().toISOString(),
+            },
+          }
+        );
+
+        // for external usage, also count it towards billable api usage
+        if (req.hostname !== 'cristata.app' && process.env.NODE_ENV !== 'development') {
+          {
+            // update usage in stripe
+            if (tenantDoc.billing.stripe_subscription_items?.api_usage.id) {
+              await stripe.subscriptionItems.createUsageRecord(
+                tenantDoc.billing.stripe_subscription_items.api_usage.id,
+                {
+                  quantity: 1,
+                  action: 'increment',
+                  timestamp: 'now',
+                }
+              );
+            }
+
+            // update usage in the database
+            await cristata.tenantsCollection.updateOne(
+              { name: tenant },
               {
-                quantity: 1,
-                action: 'increment',
-                timestamp: 'now',
+                $inc: {
+                  [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
+                },
+                $set: {
+                  'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
+                },
               }
             );
           }
-
-          // update usage in the database
-          await cristata.tenantsCollection.updateOne(
-            { name: tenant },
-            {
-              $inc: {
-                [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
-                [`billing.metrics.${year}.${month}.${day}.total`]: 1,
-              },
-              $set: {
-                'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
-              },
-            }
-          );
         }
       }
     } catch (error) {

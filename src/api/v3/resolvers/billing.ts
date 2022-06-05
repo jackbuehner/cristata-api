@@ -1,10 +1,8 @@
 import { ForbiddenError } from 'apollo-server-errors';
 import aws from 'aws-sdk';
-import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import Stripe from 'stripe';
 import { Context } from '../../../apollo';
-import { flattenObject } from '../../../utils/flattenObject';
 import { requireAuthentication } from '../helpers';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 
@@ -48,48 +46,28 @@ const billing = {
 
           if (subscriptionId) {
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-            const start = new Date(subscription.current_period_start * 1000);
-            const end = new Date(subscription.current_period_end * 1000);
 
-            if (subscription.status !== 'canceled') {
-              const inPeriod = Object.entries(tenantDoc.billing.metrics).filter(([year, months]) => {
-                if (parseInt(year) !== start.getFullYear() || parseInt(year) !== end.getFullYear())
-                  return false;
+            if (subscription.status !== 'canceled' && tenantDoc.billing.stripe_subscription_items.api_usage) {
+              const billableApiUsage = tenantDoc.billing.stripe_subscription_items.api_usage
+                ? await stripe.subscriptionItems
+                    .listUsageRecordSummaries(tenantDoc.billing.stripe_subscription_items.api_usage.id, {
+                      limit: 1,
+                    })
+                    .then(({ data }) => data[0].total_usage)
+                : 0;
 
-                return Object.entries(months).filter(([month, days]) => {
-                  if (parseInt(month) !== start.getUTCMonth() + 1 || parseInt(month) !== end.getUTCMonth() + 1)
-                    return false;
-
-                  return Object.keys(days).filter(
-                    (day) => parseInt(day) >= start.getUTCDate() && parseInt(day) <= end.getUTCDate()
-                  );
-                });
-              });
-
-              const eachMetric = flattenObject(merge({}, ...inPeriod.map((v) => v[1]))) as Record<
-                string,
-                number
-              >;
-
-              const calculatedMetrics = Object.entries(eachMetric).reduce(
-                (sum, [key, value]) => {
-                  if (key.includes('.billable')) {
-                    return { billable: sum.billable + (value || 0), total: sum.total };
-                  }
-
-                  if (key.includes('.total')) {
-                    return { billable: sum.billable, total: sum.total + (value || 0) };
-                  }
-
-                  return { billable: sum.billable, total: sum.total };
-                },
-                { billable: 0, total: 0 }
-              );
+              const internalApiUsage = tenantDoc.billing.stripe_subscription_items.app_usage
+                ? await stripe.subscriptionItems
+                    .listUsageRecordSummaries(tenantDoc.billing.stripe_subscription_items.app_usage.id, {
+                      limit: 1,
+                    })
+                    .then(({ data }) => data[0].total_usage)
+                : 0;
 
               return {
-                billable: calculatedMetrics.billable || 0,
-                total: calculatedMetrics.total || 0,
-                since: start.toISOString(),
+                billable: billableApiUsage,
+                total: internalApiUsage,
+                since: new Date(subscription.current_period_start * 1000).toISOString(),
               };
             }
           }
