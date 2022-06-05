@@ -50,6 +50,7 @@ class Cristata {
         database_usage: { id: string; usage_reported_at: string };
         api_usage: { id: string; usage_reported_at: string };
         app_usage: { id: string; usage_reported_at: string };
+        integrations: { id: string; usage_reported_at: string };
       };
       metrics: {
         [key: number | undefined]: {

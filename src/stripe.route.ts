@@ -45,6 +45,10 @@ function factory(cristata: Cristata): Router {
                 // cristata.app
                 price: 'price_1L7PqBHoKn7kS1oWpz02SVuw',
               },
+              {
+                // premium integrations and custom fields/previews
+                price: 'price_1L7RVLHoKn7kS1oW4eMPEDKF',
+              },
             ],
             mode: 'subscription',
             phone_number_collection: { enabled: true },
@@ -145,14 +149,13 @@ function factory(cristata: Cristata): Router {
             // so we can update the usage of the metered usage items
             // as needed
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-            const subscriptionItems = subscription.items.data;
-            const coreCostItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNUf3MIbVhegG');
-            const fileStorageItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNbPOQgizef9O');
-            const databaseItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNWSsMWaUMGHv');
-            const apiUsageItem = subscriptionItems.find((sub) => sub.plan.product === 'prod_LoNSaiLK2VfUVZ');
-            const cristataAppUsageItem = subscriptionItems.find(
-              (sub) => sub.plan.product === 'prod_Lp3yr5Uyr9kYh5'
-            );
+            const subItems = subscription.items.data;
+            const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_LoNUf3MIbVhegG');
+            const fileStorageItem = subItems.find((sub) => sub.plan.product === 'prod_LoNbPOQgizef9O');
+            const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_LoNWSsMWaUMGHv');
+            const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_LoNSaiLK2VfUVZ');
+            const cristataAppUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp3yr5Uyr9kYh5');
+            const integrationsItem = subItems.find((sub) => sub.plan.product === 'prod_Lp5gfaMbFluFUI');
 
             // store the subscription and customer details in the tenant data object
             await cristata.tenantsCollection.findOneAndUpdate(
@@ -175,6 +178,8 @@ function factory(cristata: Cristata): Router {
                   'billing.stripe_subscription_items.api_usage.usage_reported_at': nowISO,
                   'billing.stripe_subscription_items.app_usage.id': cristataAppUsageItem.id,
                   'billing.stripe_subscription_items.app_usage.usage_reported_at': nowISO,
+                  'billing.stripe_subscription_items.integrations.id': integrationsItem.id,
+                  'billing.stripe_subscription_items.integrations.usage_reported_at': nowISO,
                 },
               }
             );
