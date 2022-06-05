@@ -63,41 +63,7 @@ const billing = {
       context: Context
     ): Promise<{ database: number; files: number }> => {
       const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-
-      const cw = new aws.CloudWatch({ credentials: context.config.secrets.aws });
-      const params = {
-        Namespace: 'AWS/S3',
-        MetricName: 'BucketSizeBytes',
-        StartTime: (() => {
-          const startTime = new Date(Date.now() - 3600 * 24 * 1000 * 1.5);
-          startTime.setUTCHours(0);
-          startTime.setUTCMinutes(0);
-          startTime.setUTCSeconds(0);
-          return startTime;
-        })(),
-        EndTime: new Date(),
-        Period: 3600,
-        Dimensions: [
-          {
-            Name: 'BucketName',
-            Value: 'paladin-photo-library',
-          },
-          {
-            Name: 'StorageType',
-            Value: 'StandardStorage',
-          },
-        ],
-        Statistics: ['Average'],
-        Unit: 'Bytes',
-      };
-      const s3Size = await new Promise(
-        (resolve: (value: number) => unknown, reject: (reason: aws.AWSError) => void) => {
-          cw.getMetricStatistics(params, (err, data) => {
-            if (err) reject(err);
-            else resolve(data.Datapoints?.[0]?.Average || 0);
-          });
-        }
-      );
+      const s3Size = await calcS3Storage('paladin-photo-library', context.config.secrets.aws);
 
       return {
         database: (await tenantDB.db.stats()).dataSize,
@@ -107,4 +73,43 @@ const billing = {
   },
 };
 
-export { billing };
+async function calcS3Storage(bucket: string, credentials: Context['config']['secrets']['aws']) {
+  const cw = new aws.CloudWatch({ credentials });
+  const params = {
+    Namespace: 'AWS/S3',
+    MetricName: 'BucketSizeBytes',
+    StartTime: (() => {
+      const startTime = new Date(Date.now() - 3600 * 24 * 1000 * 1.5);
+      startTime.setUTCHours(0);
+      startTime.setUTCMinutes(0);
+      startTime.setUTCSeconds(0);
+      return startTime;
+    })(),
+    EndTime: new Date(),
+    Period: 3600,
+    Dimensions: [
+      {
+        Name: 'BucketName',
+        Value: bucket,
+      },
+      {
+        Name: 'StorageType',
+        Value: 'StandardStorage',
+      },
+    ],
+    Statistics: ['Average'],
+    Unit: 'Bytes',
+  };
+  const s3Size = await new Promise(
+    (resolve: (value: number) => unknown, reject: (reason: aws.AWSError) => void) => {
+      cw.getMetricStatistics(params, (err, data) => {
+        if (err) reject(err);
+        else resolve(data.Datapoints?.[0]?.Average || 0);
+      });
+    }
+  );
+
+  return s3Size;
+}
+
+export { billing, calcS3Storage };
