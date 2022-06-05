@@ -245,12 +245,12 @@ function factory(cristata: Cristata): Router {
         if (
           hasKey('customer', data.object) &&
           typeof data.object.customer === 'string' &&
-          hasKey('subscription', data.object) &&
-          typeof data.object.subscription === 'string'
+          hasKey('id', data.object) &&
+          typeof data.object.id === 'string'
         ) {
           try {
             const customer = data.object.customer;
-            const subscription = data.object.subscription;
+            const subscription = data.object.id;
 
             // store the subscription and customer details in the tenant data object
             await cristata.tenantsCollection.findOneAndUpdate(
