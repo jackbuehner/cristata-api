@@ -181,7 +181,7 @@ function createExpressApp(cristata: Cristata): Application {
         const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
 
         // update usage in stripe
-        if (tenantDoc.billing.stripe_subscription_items?.app_usage.id) {
+        if (tenantDoc.billing.stripe_subscription_items?.app_usage?.id) {
           await stripe.subscriptionItems.createUsageRecord(
             tenantDoc.billing.stripe_subscription_items.app_usage.id,
             {
@@ -207,7 +207,7 @@ function createExpressApp(cristata: Cristata): Application {
         if (!isInternalUse(req) && process.env.NODE_ENV !== 'development') {
           {
             // update usage in stripe
-            if (tenantDoc.billing.stripe_subscription_items?.api_usage.id) {
+            if (tenantDoc.billing.stripe_subscription_items?.api_usage?.id) {
               await stripe.subscriptionItems.createUsageRecord(
                 tenantDoc.billing.stripe_subscription_items.api_usage.id,
                 {
