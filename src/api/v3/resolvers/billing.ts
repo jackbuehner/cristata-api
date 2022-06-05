@@ -1,8 +1,12 @@
 import { ForbiddenError } from 'apollo-server-errors';
-import { Context } from '../../../apollo';
-import { requireAuthentication } from '../helpers';
-import mongoose from 'mongoose';
 import aws from 'aws-sdk';
+import { merge } from 'merge-anything';
+import mongoose from 'mongoose';
+import Stripe from 'stripe';
+import { Context } from '../../../apollo';
+import { flattenObject } from '../../../utils/flattenObject';
+import { requireAuthentication } from '../helpers';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 
 const billing = {
   Query: {
@@ -36,26 +40,90 @@ const billing = {
   },
 
   Usage: {
-    api: async (_: unknown, { year, month }: { year: number; month: number }, context: Context) => {
-      const foundMonthMetrics = (
-        await context.cristata.tenantsCollection.findOne({
-          [`billing.metrics.${year}.${month}`]: { $exists: true },
-        })
-      )?.billing?.metrics?.[year]?.[month];
+    api: async (_: unknown, { year, month }: { year?: number; month?: number }, context: Context) => {
+      try {
+        if (year === undefined && month === undefined) {
+          const tenantDoc = await context.cristata.tenantsCollection.findOne({ name: context.tenant });
+          const subscriptionId = tenantDoc.billing.stripe_subscription_id;
 
-      if (!foundMonthMetrics) return null;
+          if (subscriptionId) {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const start = new Date(subscription.current_period_start * 1000);
+            const end = new Date(subscription.current_period_end * 1000);
 
-      const calculatedMonthMetrics = Object.values(foundMonthMetrics).reduce((sum, day) => {
+            if (subscription.status !== 'canceled') {
+              const inPeriod = Object.entries(tenantDoc.billing.metrics).filter(([year, months]) => {
+                if (parseInt(year) !== start.getFullYear() || parseInt(year) !== end.getFullYear())
+                  return false;
+
+                return Object.entries(months).filter(([month, days]) => {
+                  if (parseInt(month) !== start.getUTCMonth() + 1 || parseInt(month) !== end.getUTCMonth() + 1)
+                    return false;
+
+                  return Object.keys(days).filter(
+                    (day) => parseInt(day) >= start.getUTCDate() && parseInt(day) <= end.getUTCDate()
+                  );
+                });
+              });
+
+              const eachMetric = flattenObject(merge({}, ...inPeriod.map((v) => v[1]))) as Record<
+                string,
+                number
+              >;
+
+              const calculatedMetrics = Object.entries(eachMetric).reduce(
+                (sum, [key, value]) => {
+                  if (key.includes('.billable')) {
+                    return { billable: sum.billable + (value || 0), total: sum.total };
+                  }
+
+                  if (key.includes('.total')) {
+                    return { billable: sum.billable, total: sum.total + (value || 0) };
+                  }
+
+                  return { billable: sum.billable, total: sum.total };
+                },
+                { billable: 0, total: 0 }
+              );
+
+              return {
+                billable: calculatedMetrics.billable || 0,
+                total: calculatedMetrics.total || 0,
+                since: start.toISOString(),
+              };
+            }
+          }
+        }
+
+        year = new Date().getUTCFullYear();
+        month = new Date().getUTCMonth() + 1;
+
+        const foundMonthMetrics = (
+          await context.cristata.tenantsCollection.findOne({
+            [`billing.metrics.${year}.${month}`]: { $exists: true },
+          })
+        )?.billing?.metrics?.[year]?.[month];
+
+        if (!foundMonthMetrics) return null;
+
+        const calculatedMonthMetrics = Object.values(foundMonthMetrics).reduce(
+          (sum, day) => {
+            return {
+              billable: sum.billable + (day.billable || 0),
+              total: sum.total + (day.total || 0),
+            };
+          },
+          { billable: 0, total: 0 }
+        );
+
         return {
-          billable: (sum.billable || 0) + (day.billable || 0),
-          total: (sum.total || 0) + (day.total || 0),
+          billable: calculatedMonthMetrics.billable || 0,
+          total: calculatedMonthMetrics.total || 0,
+          since: new Date(year, month, 1).toISOString(),
         };
-      });
-
-      return {
-        billable: calculatedMonthMetrics.billable || 0,
-        total: calculatedMonthMetrics.total || 0,
-      };
+      } catch (error) {
+        console.error(error);
+      }
     },
     storage: async (
       _: unknown,

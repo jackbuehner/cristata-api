@@ -17,13 +17,14 @@ const billing = gql`
   }
 
   type Usage {
-    api(year: Int!, month: Int!): ApiUsage
+    api(year: Int, month: Int): ApiUsage
     storage: UsageStorage!
   }
 
   type ApiUsage {
     billable: Float!
     total: Float!
+    since: Date!
   }
 
   type UsageStorage {
