@@ -18,6 +18,8 @@ import { proxyRouterFactory } from './proxy.route';
 import { unless } from './middleware/unless';
 import { stripeRouterFactory } from './stripe.route';
 import Stripe from 'stripe';
+import { NextFunction } from 'express-serve-static-core';
+import { calcS3Storage } from './api/v3/resolvers/billing';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 
@@ -145,15 +147,17 @@ function createExpressApp(cristata: Cristata): Application {
     next();
   });
 
+  function calcTenant(req: Request) {
+    const path = new URL(req.url, `http://${req.headers.host}`).pathname.replace('/v3/', '');
+    const tenant = path.match(/(.*?)\//)?.[0] || path;
+    if (cristata.tenants.includes(tenant)) return tenant;
+    return null;
+  }
+
   // track number of requests for billing purposes
-  app.use(async (req, res, next) => {
+  app.use(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const tenant: string | null = (() => {
-        const path = new URL(req.url, `http://${req.headers.host}`).pathname.replace('/v3/', '');
-        const tenant = path.match(/(.*?)\//)?.[0] || path;
-        if (cristata.tenants.includes(tenant)) return tenant;
-        return null;
-      })();
+      const tenant = calcTenant(req);
 
       if (tenant) {
         const year = new Date().getUTCFullYear();
@@ -198,6 +202,96 @@ function createExpressApp(cristata: Cristata): Application {
     }
     next();
   });
+
+  function updateDatabaseUsageMetric() {
+    try {
+      const tenants = cristata.tenants;
+
+      tenants
+        .filter((tenant) => !!tenant)
+        .forEach(async (tenant) => {
+          const tenantDb = mongoose.connection.useDb(tenant, { useCache: true });
+          const tenantDbStats = await tenantDb.db.stats();
+          const tenantDbSizeGb = tenantDbStats.dataSize / 1000000000;
+
+          // get the tenant document
+          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+
+          // update usage in stripe
+          if (tenantDoc.billing.stripe_subscription_items?.database_usage.id) {
+            await stripe.subscriptionItems.createUsageRecord(
+              tenantDoc.billing.stripe_subscription_items.database_usage.id,
+              {
+                quantity: Math.ceil(tenantDbSizeGb),
+                action: 'set',
+                timestamp: 'now',
+              }
+            );
+          }
+
+          // update timestamp in the database
+          await cristata.tenantsCollection.updateOne(
+            { name: tenant },
+            {
+              $set: {
+                'billing.stripe_subscription_items.database_usage.usage_reported_at': new Date().toISOString(),
+              },
+            }
+          );
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function updateStorageUsageMetric() {
+    try {
+      const tenants = cristata.tenants;
+
+      tenants
+        .filter((tenant) => !!tenant)
+        .forEach(async (tenant) => {
+          // get the tenant document
+          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+
+          // calculate the current s3 size
+          const s3Size = await calcS3Storage('paladin-photo-library', tenantDoc.config.secrets.aws);
+          const s3SizeGb = s3Size / 1000000000;
+
+          // update usage in stripe
+          if (tenantDoc.billing.stripe_subscription_items?.file_storage.id) {
+            await stripe.subscriptionItems.createUsageRecord(
+              tenantDoc.billing.stripe_subscription_items.file_storage.id,
+              {
+                quantity: Math.ceil(s3SizeGb),
+                action: 'set',
+                timestamp: 'now',
+              }
+            );
+          }
+
+          // update timestamp in the database
+          await cristata.tenantsCollection.updateOne(
+            { name: tenant },
+            {
+              $set: {
+                'billing.stripe_subscription_items.file_storage.usage_reported_at': new Date().toISOString(),
+              },
+            }
+          );
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  // update database usage metric in stripe every 15 minutes and on server start
+  updateDatabaseUsageMetric();
+  setInterval(updateDatabaseUsageMetric, 1000 * 60 * 15);
+
+  // update storage usage metric in stripe every 15 minutes and on server start
+  updateStorageUsageMetric();
+  setInterval(updateStorageUsageMetric, 1000 * 60 * 15);
 
   // return the app
   return app;

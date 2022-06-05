@@ -33,10 +33,10 @@ function factory(cristata: Cristata): Router {
                 quantity: 1,
               },
               {
-                price: 'price_1L6kqlHoKn7kS1oW6Pg7xJxC',
+                price: 'price_1L7MkuHoKn7kS1oWFi3d1BBm',
               },
               {
-                price: 'price_1L6klvHoKn7kS1oW98lNQcak',
+                price: 'price_1L7M76HoKn7kS1oWITu15nqR',
               },
               {
                 price: 'price_1L71k0HoKn7kS1oWlx7Slxcb',
