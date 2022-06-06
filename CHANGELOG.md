@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.4.0](https://github.com/jackbuehner/cristata-api/compare/v4.3.0...v4.4.0) (2022-06-06)
+
+
+### Features
+
+* add premium integrations to subscription price ([fe07ebd](https://github.com/jackbuehner/cristata-api/commit/fe07ebdc74d56c32039aaab8805083c00d23c8fc))
+* block external requests when not subscribed ([05eb5a6](https://github.com/jackbuehner/cristata-api/commit/05eb5a6fd8de4d8097b3091116430a19cffcfec8))
+* enable simple subscriptions in test mode ([#6](https://github.com/jackbuehner/cristata-api/issues/6)) ([b3c8512](https://github.com/jackbuehner/cristata-api/commit/b3c85129a828407c1c70fe30b476a0e3eec07c88))
+* increment api usage count in stripe billing ([8607934](https://github.com/jackbuehner/cristata-api/commit/8607934aad2b8e453015216971aa773ed71ca04f))
+* meter storage and save to stripe ([bfd2e8c](https://github.com/jackbuehner/cristata-api/commit/bfd2e8c4386fb7e85b00d97b6240c2030315b25e))
+* provide api metrics for billing period if month is not set ([108a12e](https://github.com/jackbuehner/cristata-api/commit/108a12e07278a40605f91271a5f79193af1b9257))
+* record in db when api usage was reported to stripe ([8bd1f29](https://github.com/jackbuehner/cristata-api/commit/8bd1f29d17946a244e9432686d6c70db267abdfe))
+* store stripe subscription item ids in tenant doc ([8e70d0b](https://github.com/jackbuehner/cristata-api/commit/8e70d0bf8c89293fd1aa4c50f601f48ae5a6b0e4))
+* support pull quotes in tiptap configuation ([234ae09](https://github.com/jackbuehner/cristata-api/commit/234ae094f49e2b7954a57dfbf376abdfa7acc82e))
+* track interbal api usage with a stripe product ([12abaf9](https://github.com/jackbuehner/cristata-api/commit/12abaf913030903b241445b038b98f0aa3945e58))
+* use new prices for subscription ([feeebab](https://github.com/jackbuehner/cristata-api/commit/feeebabe8be16cc864ea793803b9254122283a3a))
+
+
+### Bug Fixes
+
+* billing replaced to 0 instead of adding all billing entries ([9476ec9](https://github.com/jackbuehner/cristata-api/commit/9476ec925f61f1d97103def728b517a20e5d3ea7))
+* check for internal domain in origin instead of hostname ([8a138ac](https://github.com/jackbuehner/cristata-api/commit/8a138acfc80fa86963895a6ba1b7798580171335))
+* expect subscription property be named id instead of subscription ([03b2401](https://github.com/jackbuehner/cristata-api/commit/03b2401d841bcf19830791d5ec82b04ec20e4b39))
+* unhandled undefined key ([7e4a8d7](https://github.com/jackbuehner/cristata-api/commit/7e4a8d7f4e68e02d521d40d78dda108f057d4b4e))
+* use live mode price and product ids ([34a9cdf](https://github.com/jackbuehner/cristata-api/commit/34a9cdf0f4c2ce579a9a956e1fc315d64418bef7))
+
 ## [4.3.0](https://github.com/jackbuehner/cristata-api/compare/v4.2.1...v4.3.0) (2022-05-13)
 
 
