@@ -2811,6 +2811,9 @@
                         "orderedList": {
                             "type": "boolean"
                         },
+                        "pullQuote": {
+                            "type": "boolean"
+                        },
                         "strike": {
                             "type": "boolean"
                         },

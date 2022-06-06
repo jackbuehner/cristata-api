@@ -612,6 +612,7 @@ interface TiptapOptions {
     link?: boolean;
     comment?: boolean;
     trackChanges?: boolean;
+    pullQuote?: boolean;
   };
 }
 
