@@ -34,7 +34,8 @@ class Cristata {
   apolloWss: Record<string, ws.Server> = {};
   #apolloMiddleware: Record<string, Router> = {};
   #stopApollo: Record<string, () => Promise<void>> = {};
-  tenants: string[] = [process.env.TENANT];
+  tenants: string[] = [];
+  hasTenantPaid: Record<string, boolean> = {};
   tenantsCollection: MongoCollection<{
     _id: ObjectId;
     name: string;
@@ -67,6 +68,7 @@ class Cristata {
       if (!process.env.TENANT) throw new Error('TENANT not defined in env');
 
       this.config[process.env.TENANT] = constructCollections(config, process.env.TENANT);
+      this.tenants.push(process.env.TENANT);
 
       // initialize a subscription server for graphql subscriptions
       this.apolloWss[process.env.TENANT] = new ws.Server({ noServer: true, path: `/v3` });
@@ -263,17 +265,22 @@ class Cristata {
         .find<{ _id: ObjectId; name: string; config: Configuration }>({})
         .toArray();
 
-      tenants.forEach(({ name, config }) => {
-        // add each tenant to the config
-        this.config[name] = constructCollections(config, name);
-        this.tenants.push(name);
+      tenants
+        .filter((tenant) => !!tenant)
+        .forEach(({ name, config }) => {
+          // add each tenant to the config
+          this.config[name] = constructCollections(config, name);
+          this.tenants.push(name);
 
-        // initialize a subscription server for graphql subscriptions
-        this.apolloWss[name] = new ws.Server({
-          noServer: true,
-          path: tenants.length === 1 ? `/v3` : `/${name}/v3`,
+          // initialize a subscription server for graphql subscriptions
+          this.apolloWss[name] = new ws.Server({
+            noServer: true,
+            path: tenants.length === 1 ? `/v3` : `/${name}/v3`,
+          });
         });
-      });
+
+      // check each tenant's subscription stats
+      await this.#refreshTenantSubscriptionStatus();
     }
 
     if (process.env.NODE_ENV === 'development') {
@@ -291,6 +298,39 @@ class Cristata {
   get app(): Application {
     if (!this.#express) this.#express = createExpressApp(this);
     return this.#express;
+  }
+
+  /**
+   * Check the subscription status of every tenant and store it in
+   * `this.hasTenantPaid[tenant]`;
+   *
+   * This function creates an interval that runs every 15 minutes
+   * and on initial function execution.
+   */
+  async #refreshTenantSubscriptionStatus() {
+    if (process.env.NODE_ENV === 'development') {
+      console.clear();
+      console.log(`\x1b[36mChecking tenant subscription statuses...\x1b[0m`);
+    }
+
+    // check each tenant's subscription status
+    const checkEachTenant = async () => {
+      await Promise.all(
+        this.tenants.map(async (tenant) => {
+          try {
+            const tenantDoc = await this.tenantsCollection.findOne({ name: tenant });
+            const hasPaid = tenantDoc.billing.subscription_active;
+            this.hasTenantPaid[tenant] = hasPaid;
+          } catch (error) {
+            console.error(error);
+          }
+        })
+      );
+    };
+
+    // check on function execution and every subsequent 15 minutes
+    await checkEachTenant();
+    return setInterval(checkEachTenant, 1000 * 60 * 15);
   }
 
   /**

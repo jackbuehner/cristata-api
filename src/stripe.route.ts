@@ -193,6 +193,9 @@ function factory(cristata: Cristata): Router {
                 },
               }
             );
+
+            // immediately update the tenant pay status
+            cristata.hasTenantPaid[tenant] = true;
           } catch (error) {
             console.error(`Failed to update tenant after checkout.session.completed`, error);
             return res
@@ -214,7 +217,7 @@ function factory(cristata: Cristata): Router {
             const subscription = data.object.subscription;
 
             // store the subscription and customer details in the tenant data object
-            await cristata.tenantsCollection.findOneAndUpdate(
+            const tenantDoc = await cristata.tenantsCollection.findOneAndUpdate(
               {
                 'billing.stripe_customer_id': customer,
                 'billing.stripe_subscription_id': subscription,
@@ -226,6 +229,9 @@ function factory(cristata: Cristata): Router {
                 },
               }
             );
+
+            // immediately update the tenant pay status
+            cristata.hasTenantPaid[tenantDoc.value.name] = true;
           } catch (error) {
             console.error(`Failed to update tenant after invoice.paid`, error);
             return res.status(400).send(`⚠️  Failed to update tenant after invoice.paid: ${error.message}`);
@@ -245,7 +251,7 @@ function factory(cristata: Cristata): Router {
             const subscription = data.object.subscription;
 
             // store the subscription and customer details in the tenant data object
-            await cristata.tenantsCollection.findOneAndUpdate(
+            const tenantDoc = await cristata.tenantsCollection.findOneAndUpdate(
               {
                 'billing.stripe_customer_id': customer,
                 'billing.stripe_subscription_id': subscription,
@@ -256,6 +262,9 @@ function factory(cristata: Cristata): Router {
                 },
               }
             );
+
+            // immediately update the tenant pay status
+            cristata.hasTenantPaid[tenantDoc.value.name] = false;
           } catch (error) {
             console.error(`Failed to update tenant after invoice.payment_failed`, error);
             return res
@@ -277,7 +286,7 @@ function factory(cristata: Cristata): Router {
             const subscription = data.object.id;
 
             // store the subscription and customer details in the tenant data object
-            await cristata.tenantsCollection.findOneAndUpdate(
+            const tenantDoc = await cristata.tenantsCollection.findOneAndUpdate(
               {
                 'billing.stripe_customer_id': customer,
                 'billing.stripe_subscription_id': subscription,
@@ -288,6 +297,9 @@ function factory(cristata: Cristata): Router {
                 },
               }
             );
+
+            // immediately update the tenant pay status
+            cristata.hasTenantPaid[tenantDoc.value.name] = false;
           } catch (error) {
             console.error(`Failed to update tenant after customer.subscription.deleted`, error);
             return res

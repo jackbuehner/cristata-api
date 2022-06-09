@@ -338,12 +338,11 @@ function createExpressApp(cristata: Cristata): Application {
 
   // end external requests if the tenant does not have an active subscription
   // ! this must be the last middleware
-  app.use(async (req: Request, res: Response, next: NextFunction) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     try {
       const tenant = calcTenant(req);
       if (tenant) {
-        const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
-        const hasPaid = tenantDoc.billing.subscription_active;
+        const hasPaid = cristata.hasTenantPaid[tenant];
         if (isInternalUse(req)) next();
         else if (hasPaid) next();
         else res.status(402).end();
