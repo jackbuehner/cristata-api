@@ -129,21 +129,25 @@ function createExpressApp(cristata: Cristata): Application {
   });
 
   // update user last active timestamp
-  app.use(async (req, res, next) => {
-    try {
-      if (req.isAuthenticated()) {
-        const tenantDB = mongoose.connection.useDb((req.user as IDeserializedUser).tenant, { useCache: true });
-        const user = await tenantDB.model<IUser>('User').findById((req.user as IDeserializedUser)._id, null);
-        const now = new Date();
-        if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
-          // only update if time is more than 15 seconds away
-          user.timestamps.last_active_at = now.toISOString();
+  app.use((req, res, next) => {
+    req.on('end', async () => {
+      try {
+        if (req.isAuthenticated()) {
+          const tenantDB = mongoose.connection.useDb((req.user as IDeserializedUser).tenant, {
+            useCache: true,
+          });
+          const user = await tenantDB.model<IUser>('User').findById((req.user as IDeserializedUser)._id, null);
+          const now = new Date();
+          if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
+            // only update if time is more than 15 seconds away
+            user.timestamps.last_active_at = now.toISOString();
+          }
+          user.save();
         }
-        user.save();
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
+    });
     next();
   });
 
@@ -169,73 +173,76 @@ function createExpressApp(cristata: Cristata): Application {
 
   // track number of requests for billing purposes
   app.use(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const tenant = calcTenant(req);
+    req.on('end', async () => {
+      try {
+        const tenant = calcTenant(req);
+        const responseWasSuccessful = res.statusCode >= 200 && res.statusCode < 300;
 
-      if (tenant) {
-        const year = new Date().getUTCFullYear();
-        const month = new Date().getUTCMonth() + 1; // start at 1
-        const day = new Date().getUTCDate();
+        if (tenant && responseWasSuccessful) {
+          const year = new Date().getUTCFullYear();
+          const month = new Date().getUTCMonth() + 1; // start at 1
+          const day = new Date().getUTCDate();
 
-        // get the tenant document
-        const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+          // get the tenant document
+          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
 
-        // update usage in stripe
-        if (tenantDoc.billing.stripe_subscription_items?.app_usage?.id) {
-          await stripe.subscriptionItems.createUsageRecord(
-            tenantDoc.billing.stripe_subscription_items.app_usage.id,
-            {
-              quantity: 1,
-              action: 'increment',
-              timestamp: 'now',
-            }
-          );
-        }
-
-        // update usage in the database
-        await cristata.tenantsCollection.findOneAndUpdate(
-          { name: tenant },
-          {
-            $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 },
-            $set: {
-              'billing.stripe_subscription_items.app_usage.usage_reported_at': new Date().toISOString(),
-            },
-          }
-        );
-
-        // for external usage, also count it towards billable api usage
-        if (!isInternalUse(req) && process.env.NODE_ENV !== 'development') {
-          {
-            // update usage in stripe
-            if (tenantDoc.billing.stripe_subscription_items?.api_usage?.id) {
-              await stripe.subscriptionItems.createUsageRecord(
-                tenantDoc.billing.stripe_subscription_items.api_usage.id,
-                {
-                  quantity: 1,
-                  action: 'increment',
-                  timestamp: 'now',
-                }
-              );
-            }
-
-            // update usage in the database
-            await cristata.tenantsCollection.updateOne(
-              { name: tenant },
+          // update usage in stripe
+          if (tenantDoc.billing.stripe_subscription_items?.app_usage?.id) {
+            await stripe.subscriptionItems.createUsageRecord(
+              tenantDoc.billing.stripe_subscription_items.app_usage.id,
               {
-                $inc: {
-                  [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
-                },
-                $set: {
-                  'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
-                },
+                quantity: 1,
+                action: 'increment',
+                timestamp: 'now',
               }
             );
           }
+
+          // update usage in the database
+          await cristata.tenantsCollection.findOneAndUpdate(
+            { name: tenant },
+            {
+              $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 },
+              $set: {
+                'billing.stripe_subscription_items.app_usage.usage_reported_at': new Date().toISOString(),
+              },
+            }
+          );
+
+          // for external usage, also count it towards billable api usage
+          if (!isInternalUse(req) && process.env.NODE_ENV !== 'development') {
+            {
+              // update usage in stripe
+              if (tenantDoc.billing.stripe_subscription_items?.api_usage?.id) {
+                await stripe.subscriptionItems.createUsageRecord(
+                  tenantDoc.billing.stripe_subscription_items.api_usage.id,
+                  {
+                    quantity: 1,
+                    action: 'increment',
+                    timestamp: 'now',
+                  }
+                );
+              }
+
+              // update usage in the database
+              await cristata.tenantsCollection.updateOne(
+                { name: tenant },
+                {
+                  $inc: {
+                    [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
+                  },
+                  $set: {
+                    'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
+                  },
+                }
+              );
+            }
+          }
         }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
+    });
     next();
   });
 
