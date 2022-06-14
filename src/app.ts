@@ -90,6 +90,12 @@ function createExpressApp(cristata: Cristata): Application {
   // enable CORS for the app
   app.use(cors(corsConfig()));
 
+  // update user last active timestamp
+  app.use(updateUserTimestamp);
+
+  // track number of requests for billing purposes
+  app.use(trackRequests);
+
   // parse incoming request body
   app.use(unless('/stripe/webhook', express.json()));
   app.use(express.urlencoded({ extended: true }));
@@ -126,124 +132,6 @@ function createExpressApp(cristata: Cristata): Application {
 
   app.get(``, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);
-  });
-
-  // update user last active timestamp
-  app.use((req, res, next) => {
-    req.on('end', async () => {
-      try {
-        if (req.isAuthenticated()) {
-          const tenantDB = mongoose.connection.useDb((req.user as IDeserializedUser).tenant, {
-            useCache: true,
-          });
-          const user = await tenantDB.model<IUser>('User').findById((req.user as IDeserializedUser)._id, null);
-          const now = new Date();
-          if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
-            // only update if time is more than 15 seconds away
-            user.timestamps.last_active_at = now.toISOString();
-          }
-          user.save();
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    });
-    next();
-  });
-
-  function calcTenant(req: Request) {
-    const path = new URL(req.url, `http://${req.headers.host}`).pathname.replace('/v3/', '');
-    const tenant = path.match(/(.*?)\//)?.[0] || path;
-    if (cristata.tenants.includes(tenant)) return tenant;
-    return null;
-  }
-
-  function isInternalUse(req: Request) {
-    const originHostname = (() => {
-      try {
-        return new URL(req.headers.origin).hostname;
-      } catch {
-        return 'SERVER_SIDE_REQUEST';
-      }
-    })();
-    const internalDomain = 'cristata.app';
-    const isInternal = originHostname.indexOf(internalDomain) === originHostname.length - internalDomain.length;
-    return isInternal || process.env.NODE_ENV === 'development';
-  }
-
-  // track number of requests for billing purposes
-  app.use(async (req: Request, res: Response, next: NextFunction) => {
-    req.on('end', async () => {
-      try {
-        const tenant = calcTenant(req);
-        const responseWasSuccessful = res.statusCode >= 200 && res.statusCode < 300;
-
-        if (tenant && responseWasSuccessful) {
-          const year = new Date().getUTCFullYear();
-          const month = new Date().getUTCMonth() + 1; // start at 1
-          const day = new Date().getUTCDate();
-
-          // get the tenant document
-          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
-
-          // update usage in stripe
-          if (tenantDoc.billing.stripe_subscription_items?.app_usage?.id) {
-            await stripe.subscriptionItems.createUsageRecord(
-              tenantDoc.billing.stripe_subscription_items.app_usage.id,
-              {
-                quantity: 1,
-                action: 'increment',
-                timestamp: 'now',
-              }
-            );
-          }
-
-          // update usage in the database
-          await cristata.tenantsCollection.findOneAndUpdate(
-            { name: tenant },
-            {
-              $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 },
-              $set: {
-                'billing.stripe_subscription_items.app_usage.usage_reported_at': new Date().toISOString(),
-              },
-            }
-          );
-
-          // for external usage, also count it towards billable api usage
-          if (!isInternalUse(req) && process.env.NODE_ENV !== 'development') {
-            {
-              // update usage in stripe
-              if (tenantDoc.billing.stripe_subscription_items?.api_usage?.id) {
-                await stripe.subscriptionItems.createUsageRecord(
-                  tenantDoc.billing.stripe_subscription_items.api_usage.id,
-                  {
-                    quantity: 1,
-                    action: 'increment',
-                    timestamp: 'now',
-                  }
-                );
-              }
-
-              // update usage in the database
-              await cristata.tenantsCollection.updateOne(
-                { name: tenant },
-                {
-                  $inc: {
-                    [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
-                  },
-                  $set: {
-                    'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
-                  },
-                }
-              );
-            }
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    });
-    next();
   });
 
   function updateDatabaseUsageMetric() {
@@ -354,6 +242,122 @@ function createExpressApp(cristata: Cristata): Application {
 
   // return the app
   return app;
+
+  function updateUserTimestamp(req: Request, res: Response, next: NextFunction) {
+    req.on('end', async () => {
+      try {
+        if (req.isAuthenticated()) {
+          const tenantDB = mongoose.connection.useDb((req.user as IDeserializedUser).tenant, {
+            useCache: true,
+          });
+          const user = await tenantDB.model<IUser>('User').findById((req.user as IDeserializedUser)._id, null);
+          const now = new Date();
+          if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
+            // only update if time is more than 15 seconds away
+            user.timestamps.last_active_at = now.toISOString();
+          }
+          user.save();
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    });
+    next();
+  }
+
+  function calcTenant(req: Request) {
+    const path = new URL(req.url, `http://${req.headers.host}`).pathname.replace('/v3/', '');
+    const tenant = path.match(/(.*?)\//)?.[0] || path;
+    if (cristata.tenants.includes(tenant)) return tenant;
+    return null;
+  }
+
+  function isInternalUse(req: Request) {
+    const originHostname = (() => {
+      try {
+        return new URL(req.headers.origin).hostname;
+      } catch {
+        return 'SERVER_SIDE_REQUEST';
+      }
+    })();
+    const internalDomain = 'cristata.app';
+    const isInternal = originHostname.indexOf(internalDomain) === originHostname.length - internalDomain.length;
+    return isInternal || process.env.NODE_ENV === 'development';
+  }
+
+  function trackRequests(req: Request, res: Response, next: NextFunction) {
+    req.on('end', async () => {
+      try {
+        const tenant = calcTenant(req);
+        const responseWasSuccessful = res.statusCode >= 200 && res.statusCode < 300;
+
+        if (tenant && responseWasSuccessful) {
+          const year = new Date().getUTCFullYear();
+          const month = new Date().getUTCMonth() + 1; // start at 1
+          const day = new Date().getUTCDate();
+
+          // get the tenant document
+          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+
+          // update usage in stripe
+          if (tenantDoc.billing.stripe_subscription_items?.app_usage?.id) {
+            await stripe.subscriptionItems.createUsageRecord(
+              tenantDoc.billing.stripe_subscription_items.app_usage.id,
+              {
+                quantity: 1,
+                action: 'increment',
+                timestamp: 'now',
+              }
+            );
+          }
+
+          // update usage in the database
+          await cristata.tenantsCollection.findOneAndUpdate(
+            { name: tenant },
+            {
+              $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 },
+              $set: {
+                'billing.stripe_subscription_items.app_usage.usage_reported_at': new Date().toISOString(),
+              },
+            }
+          );
+
+          // for external usage, also count it towards billable api usage
+          if (!isInternalUse(req) && process.env.NODE_ENV !== 'development') {
+            {
+              // update usage in stripe
+              if (tenantDoc.billing.stripe_subscription_items?.api_usage?.id) {
+                await stripe.subscriptionItems.createUsageRecord(
+                  tenantDoc.billing.stripe_subscription_items.api_usage.id,
+                  {
+                    quantity: 1,
+                    action: 'increment',
+                    timestamp: 'now',
+                  }
+                );
+              }
+
+              // update usage in the database
+              await cristata.tenantsCollection.updateOne(
+                { name: tenant },
+                {
+                  $inc: {
+                    [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
+                  },
+                  $set: {
+                    'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
+                  },
+                }
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    });
+    next();
+  }
 }
 
 export { createExpressApp };
