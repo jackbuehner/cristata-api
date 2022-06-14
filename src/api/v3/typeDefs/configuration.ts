@@ -117,6 +117,48 @@ const collection = gql`
   }
 `;
 
-const configuration = base + dashboard + navigation + collection;
+const security = gql`
+  extend type Configuration {
+    security: ConfigurationSecurity!
+  }
+
+  type ConfigurationSecurity {
+    introspection: Boolean!
+    secrets: ConfigurationSecuritySecrets!
+    tokens: [ConfigurationSecurityToken]!
+  }
+
+  type ConfigurationSecuritySecrets {
+    aws: ConfigurationSecuritySecretsAws
+    fathom: ConfigurationSecuritySecretsFathom
+  }
+
+  type ConfigurationSecuritySecretsAws {
+    accessKeyId: String!
+    secretAccessKey: String!
+  }
+
+  type ConfigurationSecuritySecretsFathom {
+    siteId: String!
+    dashboardPassword: String!
+  }
+
+  type ConfigurationSecurityToken {
+    name: String!
+    token: String!
+    expires: String!
+    scope: ConfigurationSecurityTokenScope!
+  }
+
+  type ConfigurationSecurityTokenScope {
+    admin: Boolean
+  }
+
+  type Mutation {
+    setSecret(key: String!, value: String!): String!
+  }
+`;
+
+const configuration = base + dashboard + navigation + collection + security;
 
 export { configuration };

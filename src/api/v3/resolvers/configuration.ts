@@ -1,3 +1,4 @@
+import { ForbiddenError } from 'apollo-server-errors';
 import mongoose, { ObjectId } from 'mongoose';
 import { Context } from '../../../apollo';
 import { constructCollections } from '../../../Cristata';
@@ -10,6 +11,7 @@ import {
 } from '../../../types/config';
 import { hasKey } from '../../../utils/hasKey';
 import { isObject } from '../../../utils/isObject';
+import { requireAuthentication } from '../helpers';
 
 const configuration = {
   Query: {
@@ -18,6 +20,7 @@ const configuration = {
       return {
         dashboard: {},
         navigation: {},
+        security: {},
         collection: async ({ name }: { name: string }) => {
           const collection = context.config.collections.find((col) => col.name === name);
 
@@ -76,6 +79,27 @@ const configuration = {
       // return the value that is now available in the cristata instance
       return raw;
     },
+    setSecret: async (_: unknown, { key, value }: { key: string; value: Collection }, context: Context) => {
+      requireAuthentication(context);
+      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantsCollection = context.cristata.tenantsCollection;
+
+      // update the config in the database
+      const res = await tenantsCollection.findOneAndUpdate(
+        { name: context.tenant },
+        { $set: { [`config.secrets.${key}`]: value } },
+        { returnDocument: 'after' }
+      );
+
+      // update the config in the cristata instance
+      context.cristata.config[context.tenant] = constructCollections(res.value.config, context.tenant);
+      await context.restartApollo();
+
+      // return the value that is now available in the cristata instance
+      return value;
+    },
   },
   ConfigurationDashboard: {
     collectionRows: (
@@ -115,6 +139,44 @@ const configuration = {
     },
     sub: (_: unknown, { key }: { key: string }, context: Context): ReturnedSubNavGroup[] => {
       return filterHidden(context.config.navigation.sub[key], context);
+    },
+  },
+  ConfigurationSecurity: {
+    introspection: (_: unknown, __: unknown, context: Context): boolean => {
+      requireAuthentication(context);
+      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      try {
+        return context.config.introspection || false;
+      } catch {
+        return false;
+      }
+    },
+    secrets: (_: unknown, __: unknown, context: Context): Configuration['secrets'] => {
+      requireAuthentication(context);
+      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      try {
+        return context.config.secrets;
+      } catch {
+        return {
+          aws: null,
+          fathom: null,
+        };
+      }
+    },
+    tokens: (_: unknown, __: unknown, context: Context): Configuration['tokens'] => {
+      requireAuthentication(context);
+      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      try {
+        return context.config.tokens;
+      } catch {
+        return [];
+      }
     },
   },
 };

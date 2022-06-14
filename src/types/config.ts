@@ -14,11 +14,11 @@ interface Configuration<CT = Collection> {
    */
   collections: Array<CT>;
   secrets: {
-    aws: {
+    aws?: {
       accessKeyId: string;
       secretAccessKey: string;
     };
-    fathom: {
+    fathom?: {
       siteId: string;
       dashboardPassword: string;
     };
