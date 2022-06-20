@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.0.0](https://github.com/jackbuehner/cristata-api/compare/v4.6.0...v5.0.0) (2022-06-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* require archive permissions on actionAccess
+
+### Features
+
+* add archive mutations and types to collections ([27cd2c2](https://github.com/jackbuehner/cristata-api/commit/27cd2c2d5660092808463bcb6cba9658a3b5b289))
+* add archived property to all collection document schemas ([ba1409c](https://github.com/jackbuehner/cristata-api/commit/ba1409c23a55f9eb8624d81bf675221754a32d81))
+* add helper to archive documents ([3181b59](https://github.com/jackbuehner/cristata-api/commit/3181b5999a150d20007d36fc1210461f3e041920))
+* require archive permissions on actionAccess ([26df990](https://github.com/jackbuehner/cristata-api/commit/26df990d0ada6de4c7609d84681426c3b63bec8c))
+
+
+### Bug Fixes
+
+* never try to convert lean doc to full mongoose Document when it is undefined ([2c3d0ef](https://github.com/jackbuehner/cristata-api/commit/2c3d0ef4fc181cd0326f06fa60bcd9913e0354db))
+
 ## [4.6.0](https://github.com/jackbuehner/cristata-api/compare/v4.5.1...v4.6.0) (2022-06-20)
 
 
