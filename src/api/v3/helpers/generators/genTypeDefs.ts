@@ -708,7 +708,7 @@ function genMutations(
               """
               ${uncapitalize(
                 typeName
-              )}Archive(${oneAccessorName}: ${oneAccessorType}, archived: Boolean): ${typeName}
+              )}Archive(${oneAccessorName}: ${oneAccessorType}, archive: Boolean): ${typeName}
             `
           : ``
       }
