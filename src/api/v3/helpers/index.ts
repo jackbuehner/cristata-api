@@ -4,6 +4,7 @@ import {
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
 
+import { archiveDoc } from './archiveDoc';
 import { createDoc } from './createDoc';
 import { modifyDoc } from './modifyDoc';
 import { hideDoc } from './hideDoc';
@@ -25,6 +26,7 @@ import { genResolvers } from './generators/genResolvers';
 import { writeEmailBody } from './writeEmailBody';
 
 const helpers = {
+  archiveDoc,
   createDoc,
   modifyDoc,
   hideDoc,
@@ -54,6 +56,7 @@ type CollectionDoc = CollectionSchemaFields &
   Partial<{ timestamps: Record<string, unknown> }>;
 
 export type { CollectionDoc, Helpers };
+export { archiveDoc };
 export { createDoc };
 export { modifyDoc };
 export { hideDoc };
