@@ -10,14 +10,9 @@ async function createTextIndex(
   tenantDB: mongoose.Connection
 ): Promise<void> {
   const { textIndexFieldNames } = collection;
+  const fieldNames = [...textIndexFieldNames, 'hidden'];
 
-  if (textIndexFieldNames.length === 0) {
-    return;
-  }
-
-  console.log(`\x1b[36mCreating text search index for ${collection.name} collection...\x1b[0m`);
-
-  Schema.index(merge({}, ...textIndexFieldNames.map((fieldName) => ({ [fieldName]: 'text' }))), {
+  Schema.index(merge({}, ...fieldNames.map((fieldName) => ({ [fieldName]: 'text' }))), {
     name: 'textIndex',
     background: false,
   });
