@@ -29,6 +29,7 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
             generationOptions: {},
             by: ['_id', 'ObjectId'],
             raw: {} as GenCollectionInput,
+            textIndexFieldNames: [],
           },
         ]
       : [],
