@@ -34,6 +34,7 @@ interface GenSchemaInput {
     disableCreateMutation?: boolean;
     disableModifyMutation?: boolean;
     disableHideMutation?: boolean;
+    disableArchiveMutation?: boolean;
     disableLockMutation?: boolean;
     disableWatchMutation?: boolean;
     disableDeleteMutation?: boolean;

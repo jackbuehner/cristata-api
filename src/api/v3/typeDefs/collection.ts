@@ -7,6 +7,7 @@ const collection = gql`
     people: CollectionPeople
     hidden: Boolean!
     locked: Boolean!
+    archived: Boolean!
     history: [CollectionHistory]
   }
 

@@ -696,6 +696,23 @@ function genMutations(
           : ``
       }
       ${
+        options?.disableArchiveMutation !== true
+          ? `
+              """
+              Set whether an existing ${typeName} document is archived.
+        
+              This mutation sets archived: true by default.
+        
+              Archived ${typeName} documents should not be presented to clients
+              unless they explicitly request to view archived items.
+              """
+              ${uncapitalize(
+                typeName
+              )}Archive(${oneAccessorName}: ${oneAccessorType}, archived: Boolean): ${typeName}
+            `
+          : ``
+      }
+      ${
         options?.disableLockMutation !== true
           ? `
               """
