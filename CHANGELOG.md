@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.5.0](https://github.com/jackbuehner/cristata-api/compare/v4.4.0...v4.5.0) (2022-06-20)
+
+
+### Features
+
+* create text indexes for each collection and keep the included fields in sync with the collection config ([2d27fec](https://github.com/jackbuehner/cristata-api/commit/2d27fecd5bee32d90d842e80893d29420e5f7ec3))
+* execute middleware that does not affect the response after it has been sent ([e99d227](https://github.com/jackbuehner/cristata-api/commit/e99d227124b1cc416f2a74a15bc68d192fd944d5))
+* only check subscription status every 15 minutes and when stripe sends a webhook instead of on every request ([4158b50](https://github.com/jackbuehner/cristata-api/commit/4158b50e2391781f6f18bf7c9a9285cd14ec1cad))
+* support defining fields to be added to a mongodb text index ([490cad0](https://github.com/jackbuehner/cristata-api/commit/490cad056dc19010588301d573f2ee7dad76f6ae))
+* support querying secrets and tokens and mutating secrets ([e3b9bb5](https://github.com/jackbuehner/cristata-api/commit/e3b9bb549e8f480e170eb78fcf0f2691141e98ad))
+
+
+### Bug Fixes
+
+* move past-request db update middleware to before json and urlencoded middleware to ensure that they run ([99a8762](https://github.com/jackbuehner/cristata-api/commit/99a876206cc81e95cec13b8ca1c41f83e7882e1c))
+
 ## [4.4.0](https://github.com/jackbuehner/cristata-api/compare/v4.3.0...v4.4.0) (2022-06-06)
 
 
