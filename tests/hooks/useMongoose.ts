@@ -3,6 +3,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import {
   collectionSchemaFields,
   convertTopNestedObjectsToSubdocuments,
+  publishableCollectionSchemaFields,
   withPermissionsCollectionSchemaFields,
 } from '../../src/mongodb/db';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
@@ -32,7 +33,12 @@ function useMongoose(): {
     if (mongoServer) await mongoServer.stop();
   });
 
-  const createModel: CreateModel = (name, customFields = undefined, withPermissions = false) => {
+  const createModel: CreateModel = (
+    name,
+    customFields = undefined,
+    withPermissions = false,
+    canPublish = false
+  ) => {
     const tenantDB = mongoose.connection.useDb('db_2', { useCache: true });
 
     // delete the model if it already exists
@@ -43,6 +49,7 @@ function useMongoose(): {
       convertTopNestedObjectsToSubdocuments({
         ...collectionSchemaFields,
         ...(withPermissions ? withPermissionsCollectionSchemaFields : {}),
+        ...(canPublish ? publishableCollectionSchemaFields : {}),
         ...(customFields || {}),
       })
     );
@@ -63,7 +70,8 @@ function useMongoose(): {
 type CreateModel = (
   name: string,
   customFields?: Record<string, SchemaDefinitionProperty>,
-  withPermissions?: boolean
+  withPermissions?: boolean,
+  canPublish?: boolean
 ) => Model<unknown>;
 
 export { useMongoose };

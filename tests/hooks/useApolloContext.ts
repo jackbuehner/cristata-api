@@ -8,6 +8,7 @@ interface UseApolloContext {
   isAuthenticated?: boolean;
   collection?: {
     name: string;
+    canPublish?: boolean;
     withPermissions: boolean;
     actionAccess: CollectionPermissions;
   };
@@ -22,6 +23,7 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
             name: collection.name,
             withPermissions: collection.withPermissions,
             actionAccess: collection.actionAccess,
+            canPublish: collection.canPublish,
             typeDefs: '',
             resolvers: {},
             schemaFields: {},
