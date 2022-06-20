@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/jackbuehner/cristata-api/compare/v5.0.1...v5.1.0) (2022-06-20)
+
+
+### Features
+
+* add archive to CollectionActionAccess query ([bad2406](https://github.com/jackbuehner/cristata-api/commit/bad2406d0756e1709ad700a8443a37ab20044e79))
+
+
+### Bug Fixes
+
+* change typo from archived to archive in typedefs ([fe09c7c](https://github.com/jackbuehner/cristata-api/commit/fe09c7c448dc9beaeea1377b9a92aa56e0357f5b))
+
 ### [5.0.1](https://github.com/jackbuehner/cristata-api/compare/v5.0.0...v5.0.1) (2022-06-20)
 
 ## [5.0.0](https://github.com/jackbuehner/cristata-api/compare/v4.6.0...v5.0.0) (2022-06-20)
