@@ -23,6 +23,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
           modify: { users: [0], teams: [0] },
           hide: { users: [0], teams: [0] },
           lock: { users: [0], teams: [0] },
+          archive: { users: [0], teams: [0] },
           watch: { users: [0], teams: [0] },
           delete: { users: [0], teams: [0] },
         },
