@@ -48,6 +48,7 @@ const users = (tenant: string): Collection => {
         hide: { teams: [0], users: [] },
         lock: { teams: ['admin'], users: [] },
         watch: { teams: [0], users: [] },
+        archive: { teams: [], users: [] },
         deactivate: { teams: ['admin', 'managing-editors'], users: [] },
         delete: { teams: ['admin'], users: [] },
       },

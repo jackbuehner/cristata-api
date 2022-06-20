@@ -12,6 +12,49 @@
             "additionalProperties": false,
             "defaultProperties": [],
             "properties": {
+                "archive": {
+                    "additionalProperties": false,
+                    "defaultProperties": [],
+                    "properties": {
+                        "teams": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        "users": {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            0
+                                        ],
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "teams",
+                        "users"
+                    ],
+                    "type": "object"
+                },
                 "bypassDocPermissions": {
                     "additionalProperties": false,
                     "defaultProperties": [],
@@ -444,6 +487,7 @@
                 }
             },
             "required": [
+                "archive",
                 "create",
                 "delete",
                 "get",

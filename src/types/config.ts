@@ -220,7 +220,7 @@ interface CollectionPermissions {
   lock: CollectionPermissionsType;
   watch: CollectionPermissionsType;
   publish?: CollectionPermissionsType;
-  archive?: CollectionPermissionsType;
+  archive: CollectionPermissionsType;
   deactivate?: CollectionPermissionsType; // users only
   delete: CollectionPermissionsType;
   bypassDocPermissions?: CollectionPermissionsType;
