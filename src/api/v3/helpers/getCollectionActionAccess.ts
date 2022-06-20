@@ -19,6 +19,7 @@ interface GetCollectionActionAccessReturn {
   lock: boolean;
   watch: boolean;
   publish: boolean;
+  archive: boolean;
   deactivate: boolean | null;
   delete: boolean;
 }
@@ -42,6 +43,7 @@ async function getCollectionActionAccess({
     lock: await canDo({ model, action: 'lock', context, doc }),
     watch: await canDo({ model, action: 'watch', context, doc }),
     publish: await canDo({ model, action: 'publish', context, doc }),
+    archive: await canDo({ model, action: 'archive', context, doc }),
     deactivate: model === 'User' ? await canDo({ model, action: 'deactivate', context, doc }) : null,
     delete: await canDo({ model, action: 'delete', context, doc }),
   };

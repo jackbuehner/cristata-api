@@ -73,6 +73,7 @@ const collection = gql`
     Only for collections that allow publishing
     """
     publish: Boolean
+    archive: Boolean
     """
     Only for the users collection
     """
