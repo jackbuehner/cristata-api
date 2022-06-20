@@ -81,9 +81,9 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
 
   const pipeline: mongoose.PipelineStage[] = [
     ...timestampBaselineBooleanFields,
+    { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: _ids ? { _id: { $in: _ids } } : {} },
-    { $match: filter ? filter : {} },
     { $sort: { 'timestamps.created_at': -1 } },
     ...(args.pipeline2 || []),
   ];

@@ -54,9 +54,9 @@ async function findDoc({
       };
 
   const pipeline: mongoose.PipelineStage[] = [
+    { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: { [by || '_id']: _id || null } },
-    { $match: filter ? filter : {} },
     { $sort: { 'timestamps.created_at': -1 } },
   ];
 
