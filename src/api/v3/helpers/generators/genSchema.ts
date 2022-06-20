@@ -4,11 +4,15 @@ import { genSchemaFields } from './genSchemaFields';
 import { hasKey } from '../../../../utils/hasKey';
 import { SetterCondition } from './conditionallyModifyDocField';
 
-function genSchema(input: GenSchemaInput): { typeDefs: string; schemaFields: SchemaDefinition } {
+function genSchema(input: GenSchemaInput): {
+  typeDefs: string;
+  schemaFields: SchemaDefinition;
+  textIndexFieldNames: string[];
+} {
   const typeDefs = genTypeDefs(input);
-  const schemaFields = genSchemaFields(input);
+  const { schemaFields, textIndexFieldNames } = genSchemaFields(input);
 
-  return { typeDefs, schemaFields };
+  return { typeDefs, schemaFields, textIndexFieldNames };
 }
 
 /**
@@ -411,6 +415,13 @@ interface SchemaDef {
    * Configure the column for the table view in the CMS.
    */
   column?: ColumnDef;
+  /**
+   * Adds this field to the text search index, which is used for quickly
+   * search for text in the collection. Only include string fields.
+   *
+   * [Read about text indexes.](https://www.mongodb.com/docs/manual/core/link-text-indexes/)
+   */
+  textSearch?: boolean;
 }
 
 interface FieldDef {

@@ -15,11 +15,16 @@ import {
 } from './genSchema';
 import { Schema as Type } from './genTypeDefs';
 
-function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
+function genSchemaFields(input: GenSchemaInput): {
+  schemaFields: SchemaDefinition;
+  textIndexFieldNames: string[];
+} {
   const schema = Object.entries(input.schemaDef).filter(
     (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef | [SchemaDefType]] =>
       isSchemaDefOrType(schemaDefItem[1]) || Array.isArray(schemaDefItem[1])
   );
+
+  const textIndexFieldNames: string[] = [];
 
   const genSchema = (schema: [string, SchemaDefType | SchemaDef | [SchemaDefType]][]) => {
     // merge the array of schema objects into a single object
@@ -72,6 +77,8 @@ function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
             else type = mongoose.Schema.Types.String;
           }
 
+          if (fieldDef.textSearch) textIndexFieldNames.push(fieldName);
+
           return {
             [fieldName]: {
               type: type,
@@ -107,7 +114,7 @@ function genSchemaFields(input: GenSchemaInput): SchemaDefinition {
     );
   };
 
-  return genSchema(schema);
+  return { schemaFields: genSchema(schema), textIndexFieldNames };
 }
 
 /**

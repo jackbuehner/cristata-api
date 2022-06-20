@@ -3,7 +3,7 @@ import { Collection, CollectionPermissions } from '../../../../types/config';
 import { GenSchemaInput } from './genSchema';
 
 function genCollection(input: GenCollectionInput, tenant: string): Collection {
-  const { typeDefs, schemaFields } = helpers.generators.genSchema(input);
+  const { typeDefs, schemaFields, textIndexFieldNames } = helpers.generators.genSchema(input);
   const resolvers = helpers.generators.genResolvers({ helpers, ...input }, tenant);
 
   return {
@@ -18,6 +18,7 @@ function genCollection(input: GenCollectionInput, tenant: string): Collection {
     actionAccess: input.actionAccess,
     by: input.by,
     raw: input,
+    textIndexFieldNames,
   };
 }
 
