@@ -80,7 +80,7 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   doc.history = [
     ...doc.history,
     {
-      type: 'archive',
+      type: archive ? 'archive' : 'unarchive',
       user: context.profile._id,
       at: new Date().toISOString(),
     },
