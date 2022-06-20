@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.0](https://github.com/jackbuehner/cristata-api/compare/v5.1.0...v5.2.0) (2022-06-20)
+
+
+### Features
+
+* distinguish between archive and unarchive in history ([d35c52d](https://github.com/jackbuehner/cristata-api/commit/d35c52d1a4e3d036802b6b1167380b57fe1e2b18))
+
 ## [5.1.0](https://github.com/jackbuehner/cristata-api/compare/v5.0.1...v5.1.0) (2022-06-20)
 
 
