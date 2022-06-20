@@ -5,6 +5,7 @@ import passport from 'passport';
 import passportLocalMongoose from 'passport-local-mongoose';
 import { Configuration } from '../types/config';
 import { slugify } from '../utils/slugify';
+import { createTextIndex } from './createTextIndex';
 
 mongoose.Schema.Types.String.checkRequired((v) => v !== null && v !== undefined);
 
@@ -165,6 +166,9 @@ async function createMongooseModels(config: Configuration, tenant: string): Prom
 
     // create the model based on the schema
     tenantDB.model(collection.name, Schema);
+
+    // create text search index
+    createTextIndex(collection, Schema, tenantDB);
 
     // activate the passport strategy for mongoose users
     if (collection.name === 'User') {
