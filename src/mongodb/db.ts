@@ -23,6 +23,7 @@ const collectionSchemaFields = {
   },
   hidden: { type: Boolean, required: true, default: false },
   locked: { type: Boolean, required: true, default: false },
+  archived: { type: Boolean, required: true, default: false },
   history: [
     {
       type: { type: String, required: true },
