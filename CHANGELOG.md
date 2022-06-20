@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.6.0](https://github.com/jackbuehner/cristata-api/compare/v4.5.1...v4.6.0) (2022-06-20)
+
+
+### Features
+
+* always create a textIndex for each collection ([5852832](https://github.com/jackbuehner/cristata-api/commit/5852832837acb83a4dc855728279213e1106f929))
+* apply query filter first to allow using $text ([3f75324](https://github.com/jackbuehner/cristata-api/commit/3f753244dc8965f48626696cd17905ddfd0e7cd4))
+
 ### [4.5.1](https://github.com/jackbuehner/cristata-api/compare/v4.5.0...v4.5.1) (2022-06-20)
 
 ## [4.5.0](https://github.com/jackbuehner/cristata-api/compare/v4.4.0...v4.5.0) (2022-06-20)
