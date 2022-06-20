@@ -64,7 +64,7 @@ async function findDoc({
   const doc = (await Model.aggregate(pipeline))[0];
 
   // return the document
-  if (lean !== false) return doc;
+  if (lean !== false || doc === undefined) return doc; // also return lean doc if the doc is undefined
   return Model.findById(doc._id); // as an instance of the mongoose Document class if lean === false
 }
 
