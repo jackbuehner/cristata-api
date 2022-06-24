@@ -1,7 +1,9 @@
 import { IResolvers } from '@graphql-tools/utils';
-import * as fluentIcons from '@fluentui/react-icons';
 import { GenSchemaInput, SchemaDefType } from '../api/v3/helpers/generators/genSchema';
 import { GenCollectionInput } from '../api/v3/helpers/generators/genCollection';
+import FluentIconsFontCodes from '@fluentui/react-icons/lib/utils/fonts/FluentSystemIcons-Regular.json';
+
+type FluentIconNames = keyof typeof FluentIconsFontCodes;
 
 interface Configuration<CT = Collection> {
   /**
@@ -91,7 +93,7 @@ interface Configuration<CT = Collection> {
   navigation: {
     main: Array<{
       label: string;
-      icon: keyof typeof fluentIcons;
+      icon: FluentIconNames;
       to: string | { first: string };
       isHidden?: boolean | { notInTeam: string | string[] };
       subNav?: 'forceCollapseForRoute' | 'hideMobile';
@@ -101,7 +103,7 @@ interface Configuration<CT = Collection> {
         label: string;
         items: Array<{
           label: string;
-          icon: keyof typeof fluentIcons;
+          icon: FluentIconNames;
           to: string;
           isHidden?: boolean | { notInTeam: string | string[] };
         }>;
@@ -124,7 +126,7 @@ interface Configuration<CT = Collection> {
          * The icon to appear in front of the label. Any icon from
          * `@fluentui/react-icons` is valid.
          */
-        icon: keyof typeof fluentIcons;
+        icon: FluentIconNames;
       };
       /**
        * The parts of the the location to navigate upon clicking an item in the
@@ -234,7 +236,7 @@ interface SubNavGroup {
   label: string;
   items: Array<{
     label: string;
-    icon: keyof typeof fluentIcons;
+    icon: FluentIconNames;
     to: string;
     isHidden?: boolean | { notInTeam: string | string[] };
   }>;

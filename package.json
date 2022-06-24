@@ -63,7 +63,7 @@
     "typescript": "^4.3.0"
   },
   "dependencies": {
-    "@fluentui/react-icons": "^2.0.153-canary.0",
+    "@fluentui/react-icons": "^2.0.173-rc.9",
     "@graphql-tools/schema": "^8.3.1",
     "@graphql-tools/utils": "^8.5.1",
     "@hocuspocus/extension-rocksdb": "1.0.0-alpha.59",
