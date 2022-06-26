@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.3.0](https://github.com/jackbuehner/cristata-api/compare/v5.2.0...v5.3.0) (2022-06-26)
+
+
+### Features
+
+* add option in json scalar to skip additional parsing ([e9d298c](https://github.com/jackbuehner/cristata-api/commit/e9d298c31ee3ec8f3db0142482b97691e1a199d2))
+
+
+### Bug Fixes
+
+* only use icon names ([c3ef9bd](https://github.com/jackbuehner/cristata-api/commit/c3ef9bd7fb27acca83d824fc0350bca2dc8a7400))
+
 ## [5.2.0](https://github.com/jackbuehner/cristata-api/compare/v5.1.0...v5.2.0) (2022-06-20)
 
 
