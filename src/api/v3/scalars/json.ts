@@ -9,7 +9,11 @@ const json = new GraphQLScalarType({
     return JSON.stringify(value);
   },
   parseValue(value) {
-    return converObjIsoDatesToDates(convertStringsToObjIds(JSON.parse(value)));
+    const parsed = JSON.parse(value);
+    if (parsed.skipAdditionalParsing === true) {
+      return parsed;
+    }
+    return converObjIsoDatesToDates(convertStringsToObjIds(parsed));
   },
 });
 
