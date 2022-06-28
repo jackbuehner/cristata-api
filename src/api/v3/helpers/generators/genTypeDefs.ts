@@ -641,9 +641,8 @@ function genMutations(
   const createString = () => {
     const schemaTop = schema.filter((field): field is [string, SchemaDef] => isSchemaDef(field[1]));
 
-    // list the modifiable top-level fields
+    // list the top-level fields
     const fieldString = schemaTop
-      .filter(([, fieldDef]) => fieldDef.modifiable)
       .map(
         ([fieldName, fieldDef]) =>
           `${fieldName}: ${calcGraphFieldType(fieldDef, { optionalInitial: true, useMongooseType: true })}`
