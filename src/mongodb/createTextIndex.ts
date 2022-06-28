@@ -2,7 +2,6 @@ import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import pluralize from 'pluralize';
 import { Collection } from '../types/config';
-import { uncapitalize } from '../utils/uncapitalize';
 
 async function createTextIndex(
   collection: Collection,
@@ -19,7 +18,7 @@ async function createTextIndex(
 
   // if the index already exists, but the fields in the index do not match,
   // recreate the index with the correct fields
-  const currentDbCollection = tenantDB.collection(uncapitalize(pluralize(collection.name)));
+  const currentDbCollection = tenantDB.collection(pluralize(collection.name).toLowerCase());
   // @ts-expect-error full: true is valid and has an effect
   const existingIndexes = (await currentDbCollection.getIndexes({ full: true })) || [];
   const existingTextIndex = existingIndexes.find((i) => i.name === 'textIndex');
