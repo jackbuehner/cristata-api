@@ -485,8 +485,8 @@ function genInputs(
 
         if (fieldName === 'permissions') {
           const permissionsFieldDefs: NestedSchemaDefType = {
-            users: { type: ['ObjectId'], modifiable: true },
-            teams: { type: ['ObjectId'], modifiable: true },
+            users: { type: ['ObjectId'] },
+            teams: { type: ['ObjectId'] },
           };
           schema.forEach(([key, value]) => {
             permissionsFieldDefs[key] = value;

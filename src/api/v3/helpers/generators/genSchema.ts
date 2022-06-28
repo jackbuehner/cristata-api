@@ -643,7 +643,7 @@ type SetterValueType =
 
 // allow nesting schema definitions inside objects
 type SchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType | SchemaRef | [SchemaDefType] };
-type NestedSchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType };
+type NestedSchemaDefType = { [key: string]: Omit<SchemaDef, 'modifiable'> | NestedSchemaDefType };
 
 /**
  * Checks that the input is a schema definition instead
