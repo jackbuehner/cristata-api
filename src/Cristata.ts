@@ -136,6 +136,7 @@ class Cristata {
             if (!isClientUpdated) throw 'Client out of date!';
 
             // allow hocuspocus websocket to continue if the path starts with '/hocuspocus/
+            return true;
           } else if (pathname === '/websocket') {
             // use the wss websocket if the path is '/websocket
             wss.handleUpgrade(request, socket, head, (ws) => {
@@ -151,6 +152,7 @@ class Cristata {
           else {
             socket.end();
           }
+          return false;
         } catch (error) {
           socket.end();
           console.error(error);

@@ -1,5 +1,5 @@
 diff --git a/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs b/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
-index 4242807..18ef750 100644
+index 8a1ba8b..23dc813 100644
 --- a/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
 +++ b/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
 @@ -1546,8 +1546,9 @@ class Hocuspocus {
@@ -14,8 +14,26 @@ index 4242807..18ef750 100644
              })
                  .catch(e => {
                  // if a hook rejects and the error is empty, do nothing
+@@ -1560,12 +1561,14 @@ class Hocuspocus {
+         });
+         server.on('upgrade', (request, socket, head) => {
+             this.hooks('onUpgrade', { request, socket, head })
+-                .then(() => {
++                .then((shouldHandleUpgrade) => {
+                 // let the default websocket server handle the connection if
+                 // prior hooks don't interfere
+-                websocketServer.handleUpgrade(request, socket, head, ws => {
++                if (shouldHandleUpgrade) {
++                  websocketServer.handleUpgrade(request, socket, head, ws => {
+                     websocketServer.emit('connection', ws, request);
+-                });
++                  });
++                }
+             })
+                 .catch(e => {
+                 // if a hook rejects and the error is empty, do nothing
 diff --git a/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js b/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
-index bf5c595..9b72b34 100644
+index 4db9ac9..c55ea12 100644
 --- a/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
 +++ b/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
 @@ -1517,8 +1517,9 @@ class Hocuspocus {
