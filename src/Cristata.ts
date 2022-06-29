@@ -370,7 +370,7 @@ function constructCollections(
 }
 
 // keep errors silent
-process.on('unhandledRejection', () => null);
+process.on('unhandledRejection', (error) => console.error(error));
 
 export { constructCollections };
 export default Cristata;
