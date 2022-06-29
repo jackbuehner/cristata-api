@@ -34,7 +34,14 @@ function genTypeDefs(input: GenSchemaInput): string {
   const [oneAccessorName, oneAccessorType] = calcAccessor('one', input.by);
   const [manyAccessorName, manyAccessorType] = calcAccessor('many', input.by);
   const onlyOneModifiable =
-    schemaSansRefs.filter(([, fieldDef]) => !Array.isArray(fieldDef) && fieldDef.modifiable).length === 1;
+    [
+      ...schemaSansRefs.filter(([, fieldDef]) => !Array.isArray(fieldDef) && fieldDef.modifiable),
+      ...schemaSansRefs.filter(
+        ([, fieldDef]) =>
+          Array.isArray(fieldDef) &&
+          fieldDef.some((d) => Object.entries(d).some(([, e]) => isSchemaDef(e) && e.modifiable))
+      ),
+    ].length === 1;
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
   const hasSlug = hasKey('slug', input.schemaDef) && (input.schemaDef.slug as SchemaDef).type === 'String';
 
