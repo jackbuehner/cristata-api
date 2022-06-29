@@ -186,7 +186,11 @@ function createExpressApp(cristata: Cristata): Application {
           const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
 
           // calculate the current s3 size
-          const s3Size = await calcS3Storage('paladin-photo-library', tenantDoc.config.secrets.aws);
+          const bucket = tenant === 'paladin-news' ? 'paladin-photo-library' : `app.cristata.${tenant}.photos`;
+          const s3Size = await calcS3Storage(bucket, {
+            accessKeyId: process.env.AWS_SECRET_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+          });
           const s3SizeGb = s3Size / 1000000000;
 
           // update usage in stripe

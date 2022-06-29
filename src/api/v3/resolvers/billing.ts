@@ -109,7 +109,9 @@ const billing = {
       context: Context
     ): Promise<{ database: number; files: number }> => {
       const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-      const s3Size = await calcS3Storage('paladin-photo-library', context.config.secrets.aws);
+      const bucket =
+        context.tenant === 'paladin-news' ? 'paladin-photo-library' : `app.cristata.${context.tenant}.photos`;
+      const s3Size = await calcS3Storage(bucket, context.config.secrets.aws);
 
       return {
         database: (await tenantDB.db.stats()).dataSize,
