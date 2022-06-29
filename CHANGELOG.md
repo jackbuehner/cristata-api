@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.5.0](https://github.com/jackbuehner/cristata-api/compare/v5.4.0...v5.5.0) (2022-06-29)
+
+
+### Features
+
+* add singleDocument option to collections ([2378e34](https://github.com/jackbuehner/cristata-api/commit/2378e34e7bdfda8438be4784519e0cd904ddd6ff))
+* support creating new collections ([d16028e](https://github.com/jackbuehner/cristata-api/commit/d16028e77884f559f6f6b9ba870e0805efea3888))
+
 ## [5.4.0](https://github.com/jackbuehner/cristata-api/compare/v5.3.0...v5.4.0) (2022-06-29)
 
 
