@@ -194,7 +194,7 @@ function createExpressApp(cristata: Cristata): Application {
           const s3SizeGb = s3Size / 1000000000;
 
           // update usage in stripe
-          if (tenantDoc.billing.stripe_subscription_items?.file_storage.id) {
+          if (tenantDoc.billing.stripe_subscription_items?.file_storage?.id) {
             await stripe.subscriptionItems.createUsageRecord(
               tenantDoc.billing.stripe_subscription_items.file_storage.id,
               {
