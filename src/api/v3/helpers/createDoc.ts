@@ -21,6 +21,14 @@ async function createDoc<DataType>({ model, args, context, withPermissions, modi
   const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
   const Model = tenantDB.model(model);
 
+  // refuse to create additional document for singleDocument collections
+  if (
+    context.config.collections.find((c) => c.name === model).singleDocument === true &&
+    (await Model.countDocuments()) > 0
+  ) {
+    throw new Error('cannot create additional document in singleDocument collection');
+  }
+
   // add relevant collection metadata
   args.people = {
     created_by: context.profile._id,

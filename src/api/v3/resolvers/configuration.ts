@@ -65,10 +65,32 @@ const configuration = {
         config: Configuration;
       }>('tenants');
 
-      // update the config in the database
+      // find the collection in the config
+      const collectionExists = !!(await tenantsCollection.findOne({
+        name: context.tenant,
+        'config.collections.name': name,
+      }));
+
+      if (collectionExists) {
+        // update the config in the database
+        const res = await tenantsCollection.findOneAndUpdate(
+          { name: context.tenant, 'config.collections.name': name },
+          { $set: { 'config.collections.$': raw } },
+          { returnDocument: 'after' }
+        );
+
+        // update the config in the cristata instance
+        context.cristata.config[context.tenant] = constructCollections(res.value.config, context.tenant);
+        await context.restartApollo();
+
+        // return the value that is now available in the cristata instance
+        return raw;
+      }
+
+      // create the collection
       const res = await tenantsCollection.findOneAndUpdate(
-        { name: context.tenant, 'config.collections.name': name },
-        { $set: { 'config.collections.$': raw } },
+        { name: context.tenant },
+        { $push: { 'config.collections': raw } },
         { returnDocument: 'after' }
       );
 

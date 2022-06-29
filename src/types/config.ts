@@ -205,6 +205,7 @@ interface Collection {
   by: GenSchemaInput['by'];
   raw: GenCollectionInput;
   textIndexFieldNames: string[];
+  singleDocument: boolean;
 }
 
 type CollectionPermissionsType = {

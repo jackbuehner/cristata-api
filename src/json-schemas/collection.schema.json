@@ -4602,6 +4602,9 @@
             "$ref": "#/definitions/SchemaDefType",
             "description": "The definition for the schema. GraphQL type definitions and the mongoose schema are\ngenerated from this."
         },
+        "singleDocument": {
+            "type": "boolean"
+        },
         "withPermissions": {
             "description": "Whether this collection allows setting permissions for each document\nin addition to global collection permissions.",
             "type": "boolean"
