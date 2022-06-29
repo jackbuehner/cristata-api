@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.0](https://github.com/jackbuehner/cristata-api/compare/v5.3.0...v5.4.0) (2022-06-29)
+
+
+### Features
+
+* log errors to console instead of suppressing them ([299942e](https://github.com/jackbuehner/cristata-api/commit/299942eb9be0fde664e1eb5def3330b7d53ecc6d))
+
+
+### Bug Fixes
+
+* allow non-modifiable fields to be set on creation ([2a0aa81](https://github.com/jackbuehner/cristata-api/commit/2a0aa81006c6fdd1b34ef88c35474744dadd0a88))
+* disallow setting modifiable: false on nested schema fields ([1f01d87](https://github.com/jackbuehner/cristata-api/commit/1f01d879e636bddfe5d028dc4b3ee7a1495c89a6))
+* prevent hocuspocus server from attempting to handle non-hocuspocus websocket upgrades ([ecb2d75](https://github.com/jackbuehner/cristata-api/commit/ecb2d752bf92c8bf88a20424f1c51fe143b04983))
+* use correct collection name for indexing ([80895b5](https://github.com/jackbuehner/cristata-api/commit/80895b5029f427fcee391c0869bcb6db21f5e9df))
+* use optional chaining for potentially undefined subscription ([1d9e8e7](https://github.com/jackbuehner/cristata-api/commit/1d9e8e7c71d243bb735e7a20145de36246090884))
+* use tenant photo library s3 buket instead of The Paladin's ([0d7173a](https://github.com/jackbuehner/cristata-api/commit/0d7173aa1681f2a5beb02ac86de6d96c66e5e74f))
+
 ## [5.3.0](https://github.com/jackbuehner/cristata-api/compare/v5.2.0...v5.3.0) (2022-06-26)
 
 
