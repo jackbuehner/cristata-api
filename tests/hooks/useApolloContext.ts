@@ -6,7 +6,7 @@ import Cristata from '../../src/Cristata';
 
 interface UseApolloContext {
   isAuthenticated?: boolean;
-  collection?: {
+  collection: {
     name: string;
     canPublish?: boolean;
     withPermissions: boolean;
@@ -32,6 +32,7 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
             by: ['_id', 'ObjectId'],
             raw: {} as GenCollectionInput,
             textIndexFieldNames: [],
+            singleDocument: false,
           },
         ]
       : [],
