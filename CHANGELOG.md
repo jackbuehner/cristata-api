@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.5.1](https://github.com/jackbuehner/cristata-api/compare/v5.5.0...v5.5.1) (2022-06-29)
+
+
+### Bug Fixes
+
+* add singleDocument: false to test collection ([75f1033](https://github.com/jackbuehner/cristata-api/commit/75f1033a175a8664c6bd752f0862a42e31f78843))
+
 ## [5.5.0](https://github.com/jackbuehner/cristata-api/compare/v5.4.0...v5.5.0) (2022-06-29)
 
 
