@@ -1,6 +1,3 @@
-image:
-  file: .gitpod.Dockerfile
-
 additionalRepositories:
   - url: https://github.com/jackbuehner/cristata-app
     checkoutLocation: cristata-app
