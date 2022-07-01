@@ -441,11 +441,17 @@ function genPrunedTypes(
 function genInputs(
   schema: Array<[string, SchemaDefType | SchemaDef | [SchemaDefType]]>,
   typeName: string,
-  typeInheritance = undefined
+  typeInheritance = undefined,
+  forceModify = false
 ) {
   const schemaTop = schema
     .filter((field): field is [string, SchemaDef] => isSchemaDef(field[1]))
-    .filter(([, fieldDef]) => fieldDef.modifiable);
+    .map((field) => {
+      if (forceModify) {
+        field[1].modifiable = true;
+      }
+      return field;
+    });
   const schemaNext = schema.filter(
     (field): field is [string, SchemaDefType | [SchemaDefType]] => !isSchemaDef(field[1])
   );
@@ -504,7 +510,9 @@ function genInputs(
         // generate input types for nested schemas
         return genInputs(
           schema,
-          `${typeName}${typeName.includes('ModifyInput') ? `` : `ModifyInput`}${capitalize(fieldName)}`
+          `${typeName}${typeName.includes('ModifyInput') ? `` : `ModifyInput`}${capitalize(fieldName)}`,
+          undefined,
+          forceModify
         );
       })
       .join('')}
