@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.5.2](https://github.com/jackbuehner/cristata-api/compare/v5.5.1...v5.5.2) (2022-07-01)
+
+
+### Bug Fixes
+
+* make nested fields always appear in input type ([95dbd5a](https://github.com/jackbuehner/cristata-api/commit/95dbd5a112c42576e018a8fec0a4954b678f3e41))
+
 ### [5.5.1](https://github.com/jackbuehner/cristata-api/compare/v5.5.0...v5.5.1) (2022-06-29)
 
 
