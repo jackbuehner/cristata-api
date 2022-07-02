@@ -13,7 +13,7 @@ import {
   SchemaDefaultValueType,
   SchemaDefType,
 } from './genSchema';
-import { Schema as Type } from './genTypeDefs';
+import { Type } from './genTypeDefs';
 
 function genSchemaFields(input: GenSchemaInput): {
   schemaFields: SchemaDefinition;

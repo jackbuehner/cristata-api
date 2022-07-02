@@ -1,8 +1,8 @@
 import mongoose, { SchemaDefinition } from 'mongoose';
-import { genTypeDefs } from './genTypeDefs';
-import { genSchemaFields } from './genSchemaFields';
 import { hasKey } from '../../../../utils/hasKey';
 import { SetterCondition } from './conditionallyModifyDocField';
+import { genSchemaFields } from './genSchemaFields';
+import { genTypeDefs } from './genTypeDefs';
 
 function genSchema(input: GenSchemaInput): {
   typeDefs: string;
@@ -655,6 +655,17 @@ function isSchemaDef(
   return typeof toCheck === 'object' && !Array.isArray(toCheck) && hasKey('type', toCheck);
 }
 
+function isNestedSchemaDefType(
+  toCheck: SchemaDefType | NestedSchemaDefType | SchemaDef | SchemaRef | [SchemaDefType]
+): toCheck is NestedSchemaDefType {
+  const isSchemaDefTypeOrNestedSchemaDefType =
+    typeof toCheck === 'object' && !Array.isArray(toCheck) && !isSchemaDef(toCheck) && !isSchemaRef(toCheck);
+  if (!isSchemaDefTypeOrNestedSchemaDefType) return false;
+  return Object.entries(toCheck).every(
+    ([, toCheckSub]) => !Array.isArray(toCheckSub) && !isSchemaRef(toCheckSub)
+  );
+}
+
 /**
  * Checks that the input is a schema definition instead
  * of an object containing schema definitions.
@@ -746,4 +757,12 @@ export type {
   FieldDef,
   TiptapOptions,
 };
-export { genSchema, isCustomGraphSchemaType, isTypeTuple, isSchemaDef, isSchemaRef, isSchemaDefOrType };
+export {
+  genSchema,
+  isCustomGraphSchemaType,
+  isTypeTuple,
+  isSchemaDef,
+  isSchemaRef,
+  isSchemaDefOrType,
+  isNestedSchemaDefType,
+};
