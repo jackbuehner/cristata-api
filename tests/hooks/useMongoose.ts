@@ -8,6 +8,7 @@ import {
 } from '../../src/mongodb/db';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { SchemaDefinitionProperty } from 'mongoose';
+import { merge } from 'merge-anything';
 
 /**
  * Create a MongoDB server in memory for tests and connect
@@ -33,6 +34,8 @@ function useMongoose(): {
     if (mongoServer) await mongoServer.stop();
   });
 
+  jest.setTimeout(10000);
+
   const createModel: CreateModel = (
     name,
     customFields = undefined,
@@ -46,12 +49,14 @@ function useMongoose(): {
 
     // create the schema
     const Schema = new mongoose.Schema(
-      convertTopNestedObjectsToSubdocuments({
-        ...collectionSchemaFields,
-        ...(withPermissions ? withPermissionsCollectionSchemaFields : {}),
-        ...(canPublish ? publishableCollectionSchemaFields : {}),
-        ...(customFields || {}),
-      })
+      convertTopNestedObjectsToSubdocuments(
+        merge(
+          collectionSchemaFields,
+          withPermissions ? withPermissionsCollectionSchemaFields : {},
+          canPublish ? publishableCollectionSchemaFields : {},
+          customFields || {}
+        )
+      ) as { [path: string]: SchemaDefinitionProperty<undefined> }
     );
 
     // enable pagination on aggregation
