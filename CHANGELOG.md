@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.6.0](https://github.com/jackbuehner/cristata-api/compare/v5.5.2...v5.6.0) (2022-07-04)
+
+
+### Features
+
+* **helpers/hideDoc:** use more structured function parameters ([7fe7b5d](https://github.com/jackbuehner/cristata-api/commit/7fe7b5d3f5d977f0c50398df0a84dfb0344d67e7))
+* **helpers/lockDoc:** use more structured function parameters ([00a3f5b](https://github.com/jackbuehner/cristata-api/commit/00a3f5be1afdce6bf307a6bd7e63211d7c812b8e))
+* **helpers/watchDoc:** use more structured function parameters ([0185a4e](https://github.com/jackbuehner/cristata-api/commit/0185a4e7d788df0ba023009482e33ddce1d0078a))
+
+
+### Bug Fixes
+
+* directly import Type because folder index file is not yet defined on initial run ([28938b1](https://github.com/jackbuehner/cristata-api/commit/28938b1cde8eac50300b2ceb409b059fa3790800))
+* use correct type for next_step property ([07f82a4](https://github.com/jackbuehner/cristata-api/commit/07f82a474873490bf540789e8e24c63d1cf1a6e9))
+
 ### [5.5.2](https://github.com/jackbuehner/cristata-api/compare/v5.5.1...v5.5.2) (2022-07-01)
 
 
