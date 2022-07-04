@@ -26,7 +26,7 @@ interface IDeserializedUser {
   email: string;
   teams: string[];
   two_factor_authentication: boolean;
-  next_step: string;
+  next_step?: string;
   methods: string[];
 }
 
