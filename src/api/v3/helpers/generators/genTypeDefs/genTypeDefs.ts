@@ -1,19 +1,17 @@
-import {
-  calcAccessor,
-  calcGraphFieldType,
-  genInputs,
-  genMutations,
-  genPrunedTypes,
-  genQueries,
-  genSubscriptions,
-  genTypes,
-  getInputInheritance,
-  getTypeInheritance,
-  parseSchemaComponents,
-  Type,
-} from '.';
+import { Type } from 'typescript';
 import { hasKey } from '../../../../../utils/hasKey';
 import { GenSchemaInput, SchemaDef } from '../genSchema';
+import { calcAccessor } from './calcAccessor';
+import { calcGraphFieldType } from './calcGraphFieldType';
+import { genInputs } from './genInputs';
+import { genMutations } from './genMutations';
+import { genPrunedTypes } from './genPrunedTypes';
+import { genQueries } from './genQueries';
+import { genSubscriptions } from './genSubscriptions';
+import { genTypes } from './genTypes';
+import { getInputInheritance } from './getInputInheritance';
+import { getTypeInheritance } from './getTypeInheritance';
+import { parseSchemaComponents } from './parseSchemaComponents';
 
 /**
  * Generate the type definitions for the GraphQL schema.

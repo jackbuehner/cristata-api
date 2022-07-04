@@ -1,8 +1,9 @@
-import { calcGraphFieldType, parseSchemaComponents } from '.';
 import { capitalize } from '../../../../../utils/capitalize';
 import { hasKey } from '../../../../../utils/hasKey';
 import { uncapitalize } from '../../../../../utils/uncapitalize';
 import { GenSchemaInput, SchemaDefType } from '../genSchema';
+import { calcGraphFieldType } from './calcGraphFieldType';
+import { parseSchemaComponents } from './parseSchemaComponents';
 
 interface GenMutationsParams {
   schema: SchemaDefType;

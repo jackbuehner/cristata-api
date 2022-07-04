@@ -2,7 +2,7 @@ import mongoose, { SchemaDefinition } from 'mongoose';
 import { hasKey } from '../../../../utils/hasKey';
 import { SetterCondition } from './conditionallyModifyDocField';
 import { genSchemaFields } from './genSchemaFields';
-import { genTypeDefs } from './genTypeDefs';
+import { genTypeDefs } from './genTypeDefs/genTypeDefs';
 
 function genSchema(input: GenSchemaInput): {
   typeDefs: string;

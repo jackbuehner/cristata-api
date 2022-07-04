@@ -17,7 +17,7 @@ import {
   SchemaDefType,
   SchemaRef,
 } from './genSchema';
-import { calcAccessor } from './genTypeDefs';
+import { calcAccessor } from './genTypeDefs/calcAccessor';
 import { merge } from 'merge-anything';
 import { capitalize } from '../../../../utils/capitalize';
 import { uncapitalize } from '../../../../utils/uncapitalize';

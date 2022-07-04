@@ -1,4 +1,4 @@
-import { calcGraphFieldType } from '.';
+import { calcGraphFieldType } from './calcGraphFieldType';
 import { isObject } from '../../../../../utils/isObject';
 import { SchemaType } from '../genSchema';
 

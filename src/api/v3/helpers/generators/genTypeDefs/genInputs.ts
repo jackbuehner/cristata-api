@@ -1,4 +1,3 @@
-import { calcGraphFieldType, parseSchemaComponents } from '.';
 import { capitalize } from '../../../../../utils/capitalize';
 import {
   isNestedSchemaDefType,
@@ -7,6 +6,8 @@ import {
   SchemaDef,
   SchemaDefType,
 } from '../genSchema';
+import { calcGraphFieldType } from './calcGraphFieldType';
+import { parseSchemaComponents } from './parseSchemaComponents';
 
 interface GenInputsParams {
   schema: SchemaDefType;
