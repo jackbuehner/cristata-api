@@ -331,10 +331,12 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 
   if (options?.disableLockMutation !== true) {
     Mutation[`${uncapitalize(name)}Lock`] = async (parent, args, context) => {
+      const accessor = { key: oneAccessorName, value: args[oneAccessorName] };
+
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
-        helpers.lockDoc({ model: name, args, context })
+        helpers.lockDoc({ model: name, accessor, lock: args.lock, context })
       );
     };
   }
