@@ -343,10 +343,12 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 
   if (options?.disableWatchMutation !== true) {
     Mutation[`${uncapitalize(name)}Watch`] = async (parent, args, context) => {
+      const accessor = { key: oneAccessorName, value: args[oneAccessorName] };
+
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
-        helpers.watchDoc({ model: name, args, context })
+        helpers.watchDoc({ model: name, accessor, watch: args.watch, watcher: args.watcher, context })
       );
     };
   }

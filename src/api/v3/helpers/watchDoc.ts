@@ -4,36 +4,71 @@ import mongoose from 'mongoose';
 import { ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { insertUserToArray } from '../../../utils/insertUserToArray';
+import { ApolloError } from 'apollo-server-core';
 
 interface WatchDoc {
+  /**
+   * The model name for the collection of the doc to be modified.
+   */
   model: string;
-  args: {
-    _id: mongoose.Types.ObjectId;
-    watcher?: mongoose.Types.ObjectId;
-    watch?: boolean;
+  accessor: {
+    /**
+     * The key of the accessor.
+     * @default '_id'
+     */
+    key?: string;
+    /**
+     * The value of the accessor to be targeted in the database
+     * (usually a unique `ObjectId`).
+     */
+    value: mongoose.Types.ObjectId | string | number | Date;
   };
+  /**
+   * Whether the document with the matching accessor key and value
+   * should be watched by the current user.
+   * @default true
+   */
+  watch?: boolean;
+  /**
+   * The unique id of the user who should be marked as
+   * watching or unwatching. Defaults to the current user.
+   */
+  watcher?: mongoose.Types.ObjectId;
+  /**
+   * An Apollo context object.
+   */
   context: Context;
 }
 
-async function watchDoc({ model, args, context }: WatchDoc) {
+async function watchDoc({ model, accessor, watch, watcher, context }: WatchDoc) {
   requireAuthentication(context);
 
   // set defaults
-  if (args.watch === undefined) args.watch = true;
-  if (args.watcher === undefined) args.watcher = context.profile._id;
+  if (watch === undefined) watch = true;
+  if (watcher === undefined || !mongoose.isValidObjectId(watcher)) watcher = context.profile._id;
+  else watcher = new mongoose.Types.ObjectId(watcher);
+  if (accessor.key === undefined) accessor.key = '_id';
 
   // get the document
-  const doc = await findDoc({ model, _id: args._id, context, lean: false });
+  const doc = await findDoc({ model, by: accessor.key, _id: accessor.value, context, lean: false });
 
-  // if the user cannot hide documents in the collection, return an error
+  // throw error if user cannot view the doc
+  if (!doc) {
+    throw new ApolloError(
+      'the document you are trying to watch does not exist or you do not have access',
+      'DOCUMENT_NOT_FOUND'
+    );
+  }
+
+  // if the user cannot watch this document, return an error
   if (!(await canDo({ action: 'watch', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot watch this document');
 
   // update document watchers
-  if (args.watch) {
-    doc.people.watching = insertUserToArray(doc.people.watching, args.watcher); // adds the user to the array, and then removes duplicates
+  if (watch) {
+    doc.people.watching = insertUserToArray(doc.people.watching, watcher); // adds the user to the array, and then removes duplicates
   } else {
-    doc.people.watching = doc.people.watching.filter((_id) => _id !== args.watcher);
+    doc.people.watching = doc.people.watching.filter((_id) => _id.toHexString() !== watcher.toHexString());
   }
 
   // save the document
