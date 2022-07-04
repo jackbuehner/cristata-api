@@ -4,27 +4,44 @@ import mongoose from 'mongoose';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { insertUserToArray } from '../../../utils/insertUserToArray';
-
 interface HideDoc {
+  /**
+   * The model name for the collection of the doc to be modified.
+   */
   model: string;
-  args: {
-    by?: string;
-    _id: mongoose.Types.ObjectId;
-    hide?: boolean;
+  accessor: {
+    /**
+     * The key of the accessor.
+     * @default '_id'
+     */
+    key?: string;
+    /**
+     * The value of the accessor to be targeted in the database
+     * (usually a unique `ObjectId`).
+     */
+    value: mongoose.Types.ObjectId | string | number | Date;
   };
+  /**
+   * Whether the document with the matching accessor key and value
+   * should be hidden.
+   * @default true
+   */
+  hide?: boolean;
+  /**
+   * An Apollo context object.
+   */
   context: Context;
-  publishable?: boolean;
 }
 
-async function hideDoc({ model, args, context, publishable }: HideDoc) {
+async function hideDoc({ model, accessor, hide, context }: HideDoc) {
   requireAuthentication(context);
 
   // set defaults
-  if (args.hide === undefined) args.hide = true;
-  if (publishable === undefined) publishable = false;
+  if (hide === undefined) hide = true;
+  if (accessor.key === undefined) accessor.key = '_id';
 
   // get the document
-  const doc = await findDoc({ model, by: args.by, _id: args[args.by || '_id'], context, lean: false });
+  const doc = await findDoc({ model, by: accessor.key, _id: accessor.value, context, lean: false });
 
   // throw error if user cannot view the doc
   if (!doc)
@@ -34,19 +51,20 @@ async function hideDoc({ model, args, context, publishable }: HideDoc) {
     );
 
   // if the document is currently published, do not modify unless user can publish
-  if (publishable) {
+  const canPublish = context.config.collections.find(({ name }) => name === model)?.canPublish;
+  if (canPublish) {
     const isPublished = !!doc.timestamps.published_at;
 
     if (isPublished && !(await canDo({ action: 'publish', model, context, doc: doc as never })))
       throw new ForbiddenError('you cannot hide this document when it is published');
   }
 
-  // if the user cannot hide documents in the collection, return an error
+  // if the user cannot hide this document, return an error
   if (!(await canDo({ action: 'hide', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot hide this document');
 
   // set the hidden property in the document
-  doc.hidden = args.hide;
+  doc.hidden = hide;
 
   // set relevant collection metadata
   doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);

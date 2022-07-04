@@ -307,10 +307,12 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 
   if (options?.disableHideMutation !== true) {
     Mutation[`${uncapitalize(name)}Hide`] = async (parent, args, context) => {
+      const accessor = { key: oneAccessorName, value: args[oneAccessorName] };
+
       return await helpers.withPubSub(
         name.toUpperCase(),
         'MODIFIED',
-        helpers.hideDoc({ model: name, args, context })
+        helpers.hideDoc({ model: name, accessor, hide: args.hide, context })
       );
     };
   }
