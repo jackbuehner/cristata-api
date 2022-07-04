@@ -71,7 +71,9 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
       : undefined,
     tenant: 'db_2',
     cristata: {} as unknown as Cristata,
-    restartApollo: () => null,
+    restartApollo: async () => {
+      return;
+    },
   };
 }
 
