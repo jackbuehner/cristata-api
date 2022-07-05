@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.6.1](https://github.com/jackbuehner/cristata-api/compare/v5.6.0...v5.6.1) (2022-07-05)
+
+
+### Bug Fixes
+
+* actually filter for modifiable fields ([c6a84ac](https://github.com/jackbuehner/cristata-api/commit/c6a84acf69763cbad5bcd13654e6b91dfa44c14a))
+* directly import typedef modules ([76547a7](https://github.com/jackbuehner/cristata-api/commit/76547a7c0782df05c4ac1644977178f008212ec5))
+
 ## [5.6.0](https://github.com/jackbuehner/cristata-api/compare/v5.5.2...v5.6.0) (2022-07-04)
 
 
