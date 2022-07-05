@@ -45,7 +45,8 @@ function genInputs({ typeName, typeInheritance, forceModify, ...args }: GenInput
       ${
         // list the field and type for each schema definition
         schemaDefs
-          ?.map(
+          ?.filter(([, fieldDef]) => fieldDef.modifiable === true)
+          .map(
             ([fieldName, fieldDef]) =>
               `${fieldName}: ${calcGraphFieldType(fieldDef, { allOptional: true, useMongooseType: true })}`
           )
@@ -101,7 +102,7 @@ function genInputs({ typeName, typeInheritance, forceModify, ...args }: GenInput
             fieldName
           )}`,
           typeInheritance: undefined,
-          forceModify: forceModify,
+          forceModify: true,
         });
       })
       .join('')}
