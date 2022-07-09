@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.7.0](https://github.com/jackbuehner/cristata-api/compare/v5.6.1...v5.7.0) (2022-07-09)
+
+
+### Features
+
+* support unlimited nested schema defs in name-based fields ([d384946](https://github.com/jackbuehner/cristata-api/commit/d384946d36eda568d3b0079ccf0a71a5d34e2924))
+
 ### [5.6.1](https://github.com/jackbuehner/cristata-api/compare/v5.6.0...v5.6.1) (2022-07-05)
 
 
