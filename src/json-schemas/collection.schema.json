@@ -614,12 +614,8 @@
                         "defaultProperties": [],
                         "properties": {
                             "fields": {
-                                "additionalProperties": {
-                                    "$ref": "#/definitions/SchemaDef"
-                                },
-                                "defaultProperties": [],
-                                "description": "A set of schema definitions with fields.\n\nEach field should represent a key-value pair in the JSON.",
-                                "type": "object"
+                                "$ref": "#/definitions/NestedSchemaDefType",
+                                "description": "A set of schema definitions with fields.\n\nEach field should represent a key-value pair in the JSON."
                             },
                             "name": {
                                 "description": "The name of the document that should use the fields\nfrom the `fields` key.\n\nUse `\"default\"` to a provide a default set of fields\nfor when no other match is made.",
@@ -850,6 +846,16 @@
                     },
                     {
                         "$ref": "#/definitions/Omit<SchemaDef,\"modifiable\">"
+                    },
+                    {
+                        "items": [
+                            {
+                                "$ref": "#/definitions/NestedSchemaDefType"
+                            }
+                        ],
+                        "maxItems": 1,
+                        "minItems": 1,
+                        "type": "array"
                     }
                 ]
             },

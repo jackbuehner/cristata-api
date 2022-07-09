@@ -504,7 +504,7 @@ interface FieldDef {
      *
      * Each field should represent a key-value pair in the JSON.
      */
-    fields: { [key: string]: SchemaDef };
+    fields: NestedSchemaDefType;
   }>;
 }
 
@@ -643,7 +643,9 @@ type SetterValueType =
 
 // allow nesting schema definitions inside objects
 type SchemaDefType = { [key: string]: SchemaDef | NestedSchemaDefType | SchemaRef | [SchemaDefType] };
-type NestedSchemaDefType = { [key: string]: Omit<SchemaDef, 'modifiable'> | NestedSchemaDefType };
+type NestedSchemaDefType = {
+  [key: string]: Omit<SchemaDef, 'modifiable'> | NestedSchemaDefType | [NestedSchemaDefType];
+};
 
 /**
  * Checks that the input is a schema definition instead
