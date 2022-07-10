@@ -62,6 +62,10 @@ const configuration = {
       { name, raw }: { name: string; raw: Collection },
       context: Context
     ): Promise<Collection> => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
       const tenantsCollection = mongoose.connection.db.collection<{
         _id: ObjectId;
         name: string;
