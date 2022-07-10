@@ -3,7 +3,7 @@ import { GenSchemaInput, SchemaDefType } from '../api/v3/helpers/generators/genS
 import { GenCollectionInput } from '../api/v3/helpers/generators/genCollection';
 import FluentIconsFontCodes from '@fluentui/react-icons/lib/utils/fonts/FluentSystemIcons-Regular.json';
 
-type FluentIconNames = keyof typeof FluentIconsFontCodes;
+type FluentIconNames = keyof typeof FluentIconsFontCodes | 'CircleSmall24Filled';
 
 interface Configuration<CT = Collection> {
   /**
