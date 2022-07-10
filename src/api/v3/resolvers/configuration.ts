@@ -1,5 +1,6 @@
 import { ForbiddenError } from 'apollo-server-errors';
 import mongoose, { ObjectId } from 'mongoose';
+import pluralize from 'pluralize';
 import { Context } from '../../../apollo';
 import { constructCollections } from '../../../Cristata';
 import {
@@ -9,9 +10,11 @@ import {
   ReturnedSubNavGroup,
   SubNavGroup,
 } from '../../../types/config';
+import { camelToDashCase } from '../../../utils/camelToDashCase';
+import { capitalize } from '../../../utils/capitalize';
 import { hasKey } from '../../../utils/hasKey';
 import { isObject } from '../../../utils/isObject';
-import { requireAuthentication } from '../helpers';
+import helpers, { requireAuthentication } from '../helpers';
 
 const configuration = {
   Query: {
@@ -159,8 +162,52 @@ const configuration = {
           return { ...item, to: item.to };
         });
     },
-    sub: (_: unknown, { key }: { key: string }, context: Context): ReturnedSubNavGroup[] => {
-      return filterHidden(context.config.navigation.sub[key], context);
+    sub: async (_: unknown, { key }: { key: string }, context: Context): Promise<ReturnedSubNavGroup[]> => {
+      const cmsNavConfig = [
+        ...filterHidden(
+          [
+            {
+              label: 'Collections',
+              items: await Promise.all(
+                context.config.collections
+                  .filter(({ name }) => name !== 'Team' && name !== 'User')
+                  .sort((a, b) => (a.navLabel || a.name).localeCompare(b.navLabel || b.name))
+                  .map(async (collection) => {
+                    const isHidden = !(await helpers.canDo({ model: collection.name, action: 'get', context }));
+                    const pluralName = pluralize(collection.name);
+                    const hyphenatedName = camelToDashCase(pluralName);
+                    let label = collection.navLabel || capitalize(hyphenatedName.replace('-', ' '));
+                    let to = `/cms/collection/${hyphenatedName}`;
+
+                    if (collection.name === 'Photo') {
+                      label = `Photo library`;
+                      to = `/cms/photos/library`;
+                    }
+
+                    return { label, icon: 'CircleSmall24Filled', to, isHidden };
+                  })
+              ),
+            },
+          ],
+          context
+        ),
+        ...filterHidden(context.config.navigation.sub[key], context),
+      ];
+
+      return cmsNavConfig.map((group) => {
+        return {
+          label: group.label,
+          items: group.items.map((item) => {
+            return {
+              label: item.label,
+              // use circle icon if no other icon is provided
+              icon: item.icon || 'CircleSmall24Filled',
+              to: item.to,
+              isHidden: item.isHidden,
+            };
+          }),
+        };
+      });
     },
   },
   ConfigurationSecurity: {
