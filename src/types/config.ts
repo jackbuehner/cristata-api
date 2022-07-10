@@ -196,6 +196,7 @@ interface Collection {
   name: string;
   canPublish?: boolean;
   withPermissions?: boolean;
+  navLabel?: string;
   typeDefs: string;
   resolvers: IResolvers<unknown, Record<string, unknown>, Record<string, unknown>, unknown>;
   schemaFields: Record<string, unknown>;

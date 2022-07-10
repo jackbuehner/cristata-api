@@ -4390,6 +4390,9 @@
             "description": "The name of this collection.",
             "type": "string"
         },
+        "navLabel": {
+            "type": "string"
+        },
         "options": {
             "additionalProperties": false,
             "defaultProperties": [],

@@ -21,6 +21,7 @@ function genCollection(input: GenCollectionInput, tenant: string): Collection {
 
   return {
     name: input.name,
+    navLabel: input.navLabel,
     canPublish: input.canPublish,
     withPermissions: input.withPermissions,
     typeDefs,
@@ -39,6 +40,7 @@ function genCollection(input: GenCollectionInput, tenant: string): Collection {
 interface GenCollectionInput extends GenSchemaInput {
   actionAccess: CollectionPermissions;
   singleDocument?: boolean;
+  navLabel?: string;
 }
 
 export type { GenCollectionInput };
