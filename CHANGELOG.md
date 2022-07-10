@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.8.0](https://github.com/jackbuehner/cristata-api/compare/v5.7.0...v5.8.0) (2022-07-10)
+
+
+### Features
+
+* include list of collections in side navigation ([642a50a](https://github.com/jackbuehner/cristata-api/commit/642a50a6a624ba727b3634b60f6d95018bf1e5b4))
+* support defining default side nav label for collections ([306e541](https://github.com/jackbuehner/cristata-api/commit/306e5416c5e36a584e56ee65f560bc14d453f621))
+
+
+### Bug Fixes
+
+* disallow non-admins from changing collection configurations ([a67cd4b](https://github.com/jackbuehner/cristata-api/commit/a67cd4b770af48dc3316b5fa925e1f298b60a359))
+* include small circle icon on fluent icon names ([7100565](https://github.com/jackbuehner/cristata-api/commit/71005652d9568593856467884a539ce9b8dbfe6c))
+
 ## [5.7.0](https://github.com/jackbuehner/cristata-api/compare/v5.6.1...v5.7.0) (2022-07-09)
 
 
