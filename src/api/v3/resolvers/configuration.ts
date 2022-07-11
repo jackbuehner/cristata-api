@@ -175,7 +175,16 @@ const configuration = {
               items: await Promise.all(
                 context.config.collections
                   .filter(({ name }) => name !== 'Team' && name !== 'User')
-                  .sort((a, b) => (a.navLabel || a.name).localeCompare(b.navLabel || b.name))
+                  .filter(({ navLabel }) => navLabel !== '__hidden')
+                  .sort((a, b) => {
+                    let nameA = a.navLabel || a.name;
+                    if (nameA.split('::').length === 2) nameA = nameA.split('::')[1];
+
+                    let nameB = b.navLabel || b.name;
+                    if (nameB.split('::').length === 2) nameB = nameB.split('::')[1];
+
+                    return nameA.localeCompare(nameB);
+                  })
                   .map(async (collection) => {
                     const isHidden = !(await helpers.canDo({ model: collection.name, action: 'get', context }));
                     const pluralName = pluralize(collection.name);
