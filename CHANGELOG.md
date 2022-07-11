@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.8.1](https://github.com/jackbuehner/cristata-api/compare/v5.8.0...v5.8.1) (2022-07-11)
+
+
+### Bug Fixes
+
+* ignore scope when sorting collections by name ([0258a94](https://github.com/jackbuehner/cristata-api/commit/0258a947739362383972bc8848e694af06f6371f))
+
 ## [5.8.0](https://github.com/jackbuehner/cristata-api/compare/v5.7.0...v5.8.0) (2022-07-10)
 
 
