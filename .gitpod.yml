@@ -8,7 +8,7 @@ tasks:
       npm install
       gp sync-done npmi
       cd ../cristata-app
-      npm install
+      npm install --legacy-peer-deps
       gp sync-done npmia
     command: exit
 
