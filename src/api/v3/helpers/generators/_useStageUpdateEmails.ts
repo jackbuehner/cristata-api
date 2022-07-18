@@ -39,7 +39,7 @@ async function useStageUpdateEmails(
             .filter((x): x is mongoose.Types.ObjectId[] => !!x)
         ).map(async (_id) => {
           const profile = await tenantDB.model('User').findById(_id); // get the profile, which may contain an email
-          if (hasKey('email', profile)) return profile.email;
+          if (profile && hasKey('email', profile)) return profile.email;
           return null;
         })
       )
