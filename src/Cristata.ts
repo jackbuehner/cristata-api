@@ -174,7 +174,14 @@ class Cristata {
           // for each tenant, create middleware for an api server
           this.tenants.forEach(async (tenant) => {
             if (this.config[tenant]) {
-              const [middleware, stopApollo] = await apollo(this, tenant, this.tenants.length === 1);
+              // start apollo
+              const apolloReturn = await apollo(this, tenant, this.tenants.length === 1);
+
+              // throw error if apollo failed to start
+              if (apolloReturn instanceof Error) throw apolloReturn;
+
+              // otherwise, set the middleware and stop function for the tenant
+              const [middleware, stopApollo] = apolloReturn;
               this.#apolloMiddleware[tenant] = middleware;
               this.#stopApollo[tenant] = stopApollo;
             }
@@ -337,9 +344,22 @@ class Cristata {
 
   /**
    * Hot reload/restart the Apollo GraphQL server for a specific tenant.
+   *
+   * _Returns an error if something went wrong._
    */
-  async restartApollo(tenant: string): Promise<void> {
-    const [middleware, stopApollo] = await apollo(this, tenant, this.tenants.length === 1);
+  async restartApollo(tenant: string): Promise<Error | void> {
+    // attempt to create an updated apollo middleware with the newest configuration
+    const apolloReturn = await apollo(this, tenant, this.tenants.length === 1);
+
+    // if an error, return the error to the function that called this function
+    // so it knows there was an issue
+    if (apolloReturn instanceof Error) {
+      return apolloReturn;
+    }
+
+    // otherwise, replace the old middleware and stop function with
+    // the new version
+    const [middleware, stopApollo] = apolloReturn;
     this.#apolloMiddleware[tenant] = middleware;
     this.#stopApollo[tenant] = stopApollo;
   }

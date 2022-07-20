@@ -72,38 +72,41 @@ const configuration = {
         config: Configuration;
       }>('tenants');
 
-      // find the collection in the config
-      const collectionExists = !!(await tenantsCollection.findOne({
-        name: context.tenant,
-        'config.collections.name': name,
-      }));
+      // construct the new config
+      const backup: Configuration<Collection> = JSON.parse(JSON.stringify(context.config));
+      const copy: Configuration<Collection> = JSON.parse(JSON.stringify(backup));
+      const colIndex = copy.collections.findIndex((col) => col.name === name);
+      if (colIndex === -1) copy.collections[copy.collections.length] = raw;
+      else copy.collections[colIndex] = raw;
 
-      if (collectionExists) {
-        // update the config in the database
-        const res = await tenantsCollection.findOneAndUpdate(
+      // update the config in the cristata instance
+      context.cristata.config[context.tenant] = constructCollections(copy, context.tenant);
+      const ret = await context.restartApollo();
+
+      // something went wrong
+      if (ret instanceof Error) {
+        // restore the old config
+        context.cristata.config[context.tenant] = constructCollections(backup, context.tenant);
+
+        // throw the error
+        throw ret;
+      }
+
+      if (colIndex === -1) {
+        // create the collection in the database
+        await tenantsCollection.findOneAndUpdate(
+          { name: context.tenant },
+          { $push: { 'config.collections': raw } },
+          { returnDocument: 'after' }
+        );
+      } else {
+        // update the collection config in the database
+        await tenantsCollection.findOneAndUpdate(
           { name: context.tenant, 'config.collections.name': name },
           { $set: { 'config.collections.$': raw } },
           { returnDocument: 'after' }
         );
-
-        // update the config in the cristata instance
-        context.cristata.config[context.tenant] = constructCollections(res.value.config, context.tenant);
-        await context.restartApollo();
-
-        // return the value that is now available in the cristata instance
-        return raw;
       }
-
-      // create the collection
-      const res = await tenantsCollection.findOneAndUpdate(
-        { name: context.tenant },
-        { $push: { 'config.collections': raw } },
-        { returnDocument: 'after' }
-      );
-
-      // update the config in the cristata instance
-      context.cristata.config[context.tenant] = constructCollections(res.value.config, context.tenant);
-      await context.restartApollo();
 
       // return the value that is now available in the cristata instance
       return raw;

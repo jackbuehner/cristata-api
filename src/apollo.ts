@@ -45,7 +45,7 @@ async function apollo(
   cristata: Cristata,
   tenant: string,
   root = false
-): Promise<[Router, () => Promise<void>]> {
+): Promise<[Router, () => Promise<void>] | Error> {
   const server = cristata.hocuspocus.httpServer;
   const wss = cristata.apolloWss[tenant];
   const config = cristata.config[tenant];
@@ -179,6 +179,11 @@ async function apollo(
     return [apolloMiddleware, apollo.stop];
   } catch (error) {
     console.error(error);
+
+    if (error.message) {
+      return new Error(error.message);
+    }
+    return new Error('unknown error');
   }
 }
 
@@ -188,7 +193,7 @@ interface Context {
   profile?: IDeserializedUser;
   tenant: string;
   cristata: Cristata;
-  restartApollo: () => Promise<void>;
+  restartApollo: () => Promise<Error | void>;
 }
 
 const collectionPeopleResolvers = collectionResolvers.CollectionPeople;
