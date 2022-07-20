@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.9.0](https://github.com/jackbuehner/cristata-api/compare/v5.8.1...v5.9.0) (2022-07-20)
+
+
+### Features
+
+* allow setting default organizers and members for a team ([b78c2d1](https://github.com/jackbuehner/cristata-api/commit/b78c2d1d4c1c7cd59e0de03a4110385aa5a4de08))
+* automatically update apollo whenever config changes in the database ([1027ea6](https://github.com/jackbuehner/cristata-api/commit/1027ea666ca979809aa45138b3a927bec1f858fd))
+* check collection config is valid before updating tenant config in database ([cc48b30](https://github.com/jackbuehner/cristata-api/commit/cc48b3003e2c8ff8af4a97176635dfb79498886f))
+* recreate mongoose models when collection config changes ([6f8a103](https://github.com/jackbuehner/cristata-api/commit/6f8a1039acc54e4987784d4e0588b3030454cde7))
+
+
+### Bug Fixes
+
+* add check for returned user doc existence ([b6ebb6c](https://github.com/jackbuehner/cristata-api/commit/b6ebb6c1c6a3d268d82f0d52a6f268b88bf34f8c))
+
 ### [5.8.1](https://github.com/jackbuehner/cristata-api/compare/v5.8.0...v5.8.1) (2022-07-11)
 
 
