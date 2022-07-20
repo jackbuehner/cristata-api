@@ -244,6 +244,9 @@ class Cristata {
               `Cristata server listening on port ${process.env.PORT}! API, authentication, webhooks, and hocuspocus are running.`
             );
           }
+
+          // listen for tenant changes
+          this.listenForConfigChange();
         })
         .catch((err: Error) =>
           console.error(
@@ -362,6 +365,25 @@ class Cristata {
     const [middleware, stopApollo] = apolloReturn;
     this.#apolloMiddleware[tenant] = middleware;
     this.#stopApollo[tenant] = stopApollo;
+  }
+
+  async listenForConfigChange(): Promise<void> {
+    this.tenantsCollection.watch().on('change', async (data) => {
+      if (data.ns.db === 'app' && data.ns.coll === 'tenants') {
+        const updatedFields = data.updateDescription.updatedFields;
+
+        // handle when a collection config changes
+        if (updatedFields.config?.collections) {
+          // get the updated doc
+          // @ts-expect-error the type is wrong
+          const newTentantDoc = await this.tenantsCollection.findOne({ _id: data.documentKey._id });
+
+          // update the config in the cristata instance
+          this.config[newTentantDoc.name] = constructCollections(newTentantDoc.config, newTentantDoc.name);
+          await this.restartApollo(newTentantDoc.name);
+        }
+      }
+    });
   }
 }
 
