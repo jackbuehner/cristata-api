@@ -196,17 +196,27 @@ async function createMongooseModels(config: Configuration, tenant: string): Prom
   })();
 
   // force the following teams to exist
-  type RequiredTeam = { name: string; slug: string; _id: mongoose.Types.ObjectId };
+  type RequiredTeam = {
+    name: string;
+    slug: string;
+    _id: mongoose.Types.ObjectId;
+    organizers: mongoose.Types.ObjectId[];
+    members: mongoose.Types.ObjectId[];
+  };
   const requiredTeams: RequiredTeam[] = [
     {
       name: 'Administrators',
       slug: 'admin',
       _id: new mongoose.Types.ObjectId('000000000000000000000001'),
+      organizers: [],
+      members: [],
     },
     {
       name: 'Managing Editors',
       slug: 'managing-editors',
       _id: new mongoose.Types.ObjectId('000000000000000000000003'),
+      organizers: [],
+      members: [],
     },
     ...(config.defaultTeams
       ?.filter((team) => team.id !== '000000000000000000000001')
@@ -218,6 +228,8 @@ async function createMongooseModels(config: Configuration, tenant: string): Prom
           name: team.name,
           slug: slugify(team.slug),
           _id: new mongoose.Types.ObjectId(team.id),
+          organizers: (team.organizers || []).map((organizer) => new mongoose.Types.ObjectId(organizer)),
+          members: (team.members || []).map((member) => new mongoose.Types.ObjectId(member)),
         };
       }) || ([] as RequiredTeam[])),
   ];
@@ -227,11 +239,7 @@ async function createMongooseModels(config: Configuration, tenant: string): Prom
     requiredTeams.map(async (team) => {
       const exists = !!(await Team.findOne({ _id: team._id }));
       if (!exists) {
-        const newTeam = new Team({
-          _id: team._id,
-          name: team.name,
-          slug: team.slug,
-        });
+        const newTeam = new Team(team);
         await newTeam.save();
       }
     })

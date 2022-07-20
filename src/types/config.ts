@@ -73,6 +73,16 @@ interface Configuration<CT = Collection> {
      * It should be 32 characters long.
      */
     id: string;
+    /**
+     * A array containing hexadecimal representations of a MongoDB ObjectId,
+     * where each value is the ObjectId of a user.
+     */
+    organizers: string[];
+    /**
+     * A array containing hexadecimal representations of a MongoDB ObjectId,
+     * where each value is the ObjectId of a user.
+     */
+    members: string[];
   }>;
   /**
    * The lowest version number permitted for clients connecting via websockets.
