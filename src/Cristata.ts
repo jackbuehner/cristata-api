@@ -367,6 +367,11 @@ class Cristata {
     this.#stopApollo[tenant] = stopApollo;
   }
 
+  /**
+   * Listens for when a tenant's configuration changes
+   * and recreate apollo server and mongoose models
+   * when needed.
+   */
   async listenForConfigChange(): Promise<void> {
     this.tenantsCollection.watch().on('change', async (data) => {
       if (data.ns.db === 'app' && data.ns.coll === 'tenants') {
@@ -380,7 +385,12 @@ class Cristata {
 
           // update the config in the cristata instance
           this.config[newTentantDoc.name] = constructCollections(newTentantDoc.config, newTentantDoc.name);
+
+          // restart apollo so it uses the newest config
           await this.restartApollo(newTentantDoc.name);
+
+          // recreate mongoose schema and models with newest collection schema
+          await createMongooseModels(newTentantDoc.config, newTentantDoc.name);
         }
       }
     });

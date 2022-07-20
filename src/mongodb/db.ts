@@ -165,6 +165,13 @@ async function createMongooseModels(config: Configuration, tenant: string): Prom
         usernameQueryFields: ['slug'],
       });
 
+    // delete the model if it already exists
+    // (for if recreating models after config change)
+    const existingModels = Object.keys(tenantDB.models);
+    if (existingModels.includes(collection.name)) {
+      tenantDB.deleteModel(collection.name);
+    }
+
     // create the model based on the schema
     tenantDB.model(collection.name, Schema);
 
