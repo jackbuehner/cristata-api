@@ -15,6 +15,7 @@ import { capitalize } from '../../../utils/capitalize';
 import { hasKey } from '../../../utils/hasKey';
 import { isObject } from '../../../utils/isObject';
 import helpers, { requireAuthentication } from '../helpers';
+import { GenCollectionInput } from '../helpers/generators/genCollection';
 
 const configuration = {
   Query: {
@@ -59,9 +60,9 @@ const configuration = {
   Mutation: {
     setRawConfigurationCollection: async (
       _: unknown,
-      { name, raw }: { name: string; raw: Collection },
+      { name, raw }: { name: string; raw?: GenCollectionInput },
       context: Context
-    ): Promise<Collection> => {
+    ): Promise<GenCollectionInput> => {
       helpers.requireAuthentication(context);
       const isAdmin = context.profile.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
@@ -72,11 +73,41 @@ const configuration = {
         config: Configuration;
       }>('tenants');
 
+      if (!raw) {
+        raw = {
+          name,
+          canPublish: false,
+          publicRules: false,
+          withPermissions: false,
+          withSubscription: false,
+          schemaDef: {
+            name: {
+              type: 'String',
+              modifiable: true,
+              required: true,
+              textSearch: true,
+              field: { label: 'Name', order: 1 },
+              column: { sortable: true, order: 1, width: 300 },
+            },
+          },
+          actionAccess: {
+            get: { teams: ['admin'], users: [] },
+            create: { teams: ['admin'], users: [] },
+            modify: { teams: ['admin'], users: [] },
+            hide: { teams: ['admin'], users: [] },
+            lock: { teams: ['admin'], users: [] },
+            archive: { teams: ['admin'], users: [] },
+            watch: { teams: ['admin'], users: [] },
+            delete: { teams: ['admin'], users: [] },
+          },
+        };
+      }
+
       // construct the new config
-      const backup: Configuration<Collection> = JSON.parse(JSON.stringify(context.config));
-      const copy: Configuration<Collection> = JSON.parse(JSON.stringify(backup));
+      const backup: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(context.config));
+      const copy: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(backup));
       const colIndex = copy.collections.findIndex((col) => col.name === name);
-      if (colIndex === -1) copy.collections[copy.collections.length] = raw;
+      if (colIndex === -1) copy.collections.push(raw);
       else copy.collections[colIndex] = raw;
 
       // update the config in the cristata instance
