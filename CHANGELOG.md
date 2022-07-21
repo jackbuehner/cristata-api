@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.11.0](https://github.com/jackbuehner/cristata-api/compare/v5.10.0...v5.11.0) (2022-07-21)
+
+
+### Features
+
+* support defining text fields as markdown fields ([e7fa974](https://github.com/jackbuehner/cristata-api/commit/e7fa97407790cadafee6e26a96250afca8b9dfc4))
+
+
+### Bug Fixes
+
+* check that collection object is truthy ([20ea527](https://github.com/jackbuehner/cristata-api/commit/20ea527ac7ad5269774bea59d0927773736a43e9))
+
 ## [5.10.0](https://github.com/jackbuehner/cristata-api/compare/v5.9.0...v5.10.0) (2022-07-21)
 
 
