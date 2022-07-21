@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.10.0](https://github.com/jackbuehner/cristata-api/compare/v5.9.0...v5.10.0) (2022-07-21)
+
+
+### Features
+
+* create a new collection wth default options by passing a name without a raw config ([d90d4a1](https://github.com/jackbuehner/cristata-api/commit/d90d4a1ce2c45862e413606f58124253f6544d43))
+* enable deleting collections ([6c56401](https://github.com/jackbuehner/cristata-api/commit/6c564018e7f0005743daa30373a7ba03cb91dc63))
+* use admin team id instead of slug for default action access ([d7b9ca7](https://github.com/jackbuehner/cristata-api/commit/d7b9ca70877f0d8ec5e376a84b8a0271e16d0bf9))
+
+
+### Bug Fixes
+
+* handle undefined return from regex match ([9c0c371](https://github.com/jackbuehner/cristata-api/commit/9c0c37137e1ec1b4ef72a4a48e480748f5d532e0))
+
 ## [5.9.0](https://github.com/jackbuehner/cristata-api/compare/v5.8.1...v5.9.0) (2022-07-20)
 
 
