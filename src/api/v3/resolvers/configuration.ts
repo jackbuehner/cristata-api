@@ -142,6 +142,49 @@ const configuration = {
       // return the value that is now available in the cristata instance
       return raw;
     },
+    deleteCollection: async (_: unknown, { name }: { name: string }, context: Context): Promise<void> => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantsCollection = mongoose.connection.db.collection<{
+        _id: ObjectId;
+        name: string;
+        config: Configuration;
+      }>('tenants');
+
+      // construct the new config
+      const backup: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(context.config));
+      const copy: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(backup));
+      const removed = copy.collections.filter((col) => col.name !== name);
+
+      // update the config in the cristata instance
+      context.cristata.config[context.tenant] = constructCollections(
+        { ...copy, collections: removed },
+        context.tenant
+      );
+      const ret = await context.restartApollo();
+
+      // something went wrong
+      if (ret instanceof Error) {
+        // restore the old config
+        context.cristata.config[context.tenant] = constructCollections(backup, context.tenant);
+
+        // throw the error
+        throw ret;
+      }
+
+      // delete the collection from the tenant config
+      await tenantsCollection.findOneAndUpdate(
+        { name: context.tenant, 'config.collections.name': name },
+        { $unset: { 'config.collections.$': '' } },
+        { returnDocument: 'after' }
+      );
+
+      // drop the collection from the database
+      const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+      tenantDB.dropCollection(name);
+    },
     setSecret: async (_: unknown, { key, value }: { key: string; value: Collection }, context: Context) => {
       requireAuthentication(context);
       const isAdmin = context.profile.teams.includes('000000000000000000000001');

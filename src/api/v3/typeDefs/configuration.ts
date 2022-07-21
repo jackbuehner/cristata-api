@@ -103,6 +103,7 @@ const collection = gql`
 
   type Mutation {
     setRawConfigurationCollection(name: String!, raw: JSON): JSON
+    deleteCollection(name: String!): Void
   }
 
   type ConfigurationCollectionGenerationOptions {
