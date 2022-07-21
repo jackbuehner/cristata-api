@@ -642,6 +642,10 @@
                     "description": "Field label.",
                     "type": "string"
                 },
+                "markdown": {
+                    "description": "Configure field to appear as markdown.\n\nOnly applies to String types.",
+                    "type": "boolean"
+                },
                 "options": {
                     "anyOf": [
                         {

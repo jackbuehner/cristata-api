@@ -486,6 +486,12 @@ interface FieldDef {
    */
   tiptap?: TiptapOptions;
   /**
+   * Configure field to appear as markdown.
+   *
+   * Only applies to String types.
+   */
+  markdown?: boolean;
+  /**
    * Use a custom set of fields based on the collection's name.
    *
    * This only works for a parent field type of JSON.
