@@ -18,7 +18,7 @@ import { parseSchemaComponents } from './parseSchemaComponents';
  */
 function genTypeDefs(input: GenSchemaInput): string {
   const { schemaDefs } = parseSchemaComponents(input.schemaDef);
-  const onlyOneModifiable = JSON.stringify(input.schemaDef).match(/"modifiable":true/g).length === 1;
+  const onlyOneModifiable = JSON.stringify(input.schemaDef).match(/"modifiable":true/g)?.length === 1;
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
   const hasSlug = hasKey('slug', input.schemaDef) && (input.schemaDef.slug as SchemaDef).type === 'String';
 
