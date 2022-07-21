@@ -411,7 +411,7 @@ function constructCollections(
       users(tenant),
       helpers.generators.genCollection(teams as unknown as GenCollectionInput, tenant),
       ...config.collections
-        .filter((col): col is GenCollectionInput => !isCollection(col))
+        .filter((col): col is GenCollectionInput => !!col && !isCollection(col))
         .filter((col) => col.name !== 'User')
         .filter((col) => col.name !== 'Team')
         .map((col) => helpers.generators.genCollection(col, tenant)),
