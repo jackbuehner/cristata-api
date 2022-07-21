@@ -91,14 +91,14 @@ const configuration = {
             },
           },
           actionAccess: {
-            get: { teams: ['admin'], users: [] },
-            create: { teams: ['admin'], users: [] },
-            modify: { teams: ['admin'], users: [] },
-            hide: { teams: ['admin'], users: [] },
-            lock: { teams: ['admin'], users: [] },
-            archive: { teams: ['admin'], users: [] },
-            watch: { teams: ['admin'], users: [] },
-            delete: { teams: ['admin'], users: [] },
+            get: { teams: ['000000000000000000000001'], users: [] },
+            create: { teams: ['000000000000000000000001'], users: [] },
+            modify: { teams: ['000000000000000000000001'], users: [] },
+            hide: { teams: ['000000000000000000000001'], users: [] },
+            lock: { teams: ['000000000000000000000001'], users: [] },
+            archive: { teams: ['000000000000000000000001'], users: [] },
+            watch: { teams: ['000000000000000000000001'], users: [] },
+            delete: { teams: ['000000000000000000000001'], users: [] },
           },
         };
       }
