@@ -3438,6 +3438,10 @@
                     ],
                     "type": "object"
                 },
+                "metaFrame": {
+                    "description": "URL to be loaded in an iFrame that can receive document data and present it.\n\nThis is helpful for previewing the header area of a document so it is\npossible to see how it will appear once it is published to a website or app.\n\nInclude the [iframe-resize](https://github.com/davidjbradshaw/iframe-resizer) content window script to allow the frame to\nautomaticallt resize to fit the frame contents.",
+                    "type": "string"
+                },
                 "type": {
                     "type": "string"
                 }

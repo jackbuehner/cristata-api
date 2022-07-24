@@ -606,6 +606,16 @@ interface TiptapOptions {
     authors: string;
     target_publish_at: string;
   };
+  /**
+   * URL to be loaded in an iFrame that can receive document data and present it.
+   *
+   * This is helpful for previewing the header area of a document so it is
+   * possible to see how it will appear once it is published to a website or app.
+   *
+   * Include the [iframe-resize](https://github.com/davidjbradshaw/iframe-resizer) content window script to allow the frame to
+   * automaticallt resize to fit the frame contents.
+   */
+  metaFrame?: string;
   features: {
     fontFamilies?: {
       name: string;
