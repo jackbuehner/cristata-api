@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.12.0](https://github.com/jackbuehner/cristata-api/compare/v5.11.0...v5.12.0) (2022-07-24)
+
+
+### Features
+
+* accept a frame url for generating a a tiptap field document's rendered header zone ([fdb6ad2](https://github.com/jackbuehner/cristata-api/commit/fdb6ad21214d8de920235c20951a1cd13a692361))
+
 ## [5.11.0](https://github.com/jackbuehner/cristata-api/compare/v5.10.0...v5.11.0) (2022-07-21)
 
 
