@@ -1,17 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import {
-  ApolloServerPluginDrainHttpServer,
-  ApolloServerPluginLandingPageGraphQLPlayground,
-  ContextFunction,
-} from 'apollo-server-core';
+import { ApolloServerPluginDrainHttpServer, ContextFunction } from 'apollo-server-core';
 import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
-import { GraphQLRequestContext, GraphQLRequestListener } from 'apollo-server-plugin-base';
 import { Router } from 'express';
 import { execute, subscribe } from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
 import mongoose from 'mongoose';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { makeGraphSchema } from './api/v3/graphql/makeGraphSchema';
+import { CloseWebsocketServerStop, GraphQLPlayground, LogErrorsToConsole } from './api/v3/graphql/plugins';
 import { collectionResolvers } from './api/v3/resolvers';
 import { collectionTypeDefs } from './api/v3/typeDefs';
 import Cristata from './Cristata';
@@ -74,58 +70,15 @@ async function apollo(
       introspection: config.introspection,
       plugins: [
         ApolloServerPluginDrainHttpServer({ httpServer: server }),
-        ApolloServerPluginLandingPageGraphQLPlayground({
-          settings: {
-            'general.betaUpdates': false,
-            'editor.theme': 'dark',
-            'editor.cursorShape': 'line',
-            'editor.reuseHeaders': true,
-            'tracing.hideTracingResponse': true,
-            'queryPlan.hideQueryPlanResponse': true,
-            'editor.fontSize': 14,
-            'editor.fontFamily': `'Dank Mono', 'Source Code Pro', 'Consolas', 'Inconsolata', 'Droid Sans Mono', 'Monaco', monospace`,
-            'request.credentials': 'include',
-          },
-        }),
-        {
-          // close the websocket subscription server when apollo server closed
-          async serverWillStart() {
-            return {
-              async drainServer() {
-                wss.close();
-              },
-            };
-          },
-        },
-        {
-          // log errors
-          async requestDidStart(): Promise<GraphQLRequestListener | void> {
-            return {
-              async didEncounterErrors(requestContext: GraphQLRequestContext) {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { http, ...prunedRequest } = requestContext.request;
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { config, db, cristata, restartApollo, ...prunedContext } = requestContext.context;
-                console.error('Apollo::didEncounterErrors::prunedRequest', prunedRequest);
-                console.error('Apollo::didEncounterErrors::prunedContext', prunedContext);
-                console.error('Apollo::didEncounterErrors::errors', requestContext.errors);
-              },
-            };
-          },
-        },
+        GraphQLPlayground(),
+        CloseWebsocketServerStop({ wss }),
+        LogErrorsToConsole(),
       ],
       context,
     });
 
     // attach subscription handler to subscriptionServer
-    SubscriptionServer.create(
-      {
-        schema,
-        execute,
-        subscribe,
-      },
-      wss
-    );
+    SubscriptionServer.create({ schema, execute, subscribe }, wss);
 
     // start the server
     await apollo.start();
