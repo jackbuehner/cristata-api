@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
   ApolloServerPluginDrainHttpServer,
   ApolloServerPluginLandingPageGraphQLPlayground,
@@ -9,27 +8,12 @@ import { ApolloServer as Apollo, ExpressContext } from 'apollo-server-express';
 import { GraphQLRequestContext, GraphQLRequestListener } from 'apollo-server-plugin-base';
 import { Router } from 'express';
 import { execute, subscribe } from 'graphql';
-import { graphqls2s } from 'graphql-s2s';
 import { PubSub } from 'graphql-subscriptions';
-import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import {
-  analyticsResolvers,
-  billingResolvers,
-  collectionResolvers,
-  configurationResolvers,
-  coreResolvers,
-  s3Resolvers,
-} from './api/v3/resolvers';
-import {
-  analyticsTypeDefs,
-  billingTypeDefs,
-  collectionTypeDefs,
-  configurationTypeDefs,
-  coreTypeDefs,
-  s3TypeDefs,
-} from './api/v3/typeDefs';
+import { makeGraphSchema } from './api/v3/graphql/makeGraphSchema';
+import { collectionResolvers } from './api/v3/resolvers';
+import { collectionTypeDefs } from './api/v3/typeDefs';
 import Cristata from './Cristata';
 import { corsConfig } from './middleware/cors';
 import { IDeserializedUser } from './passport';
@@ -53,35 +37,8 @@ async function apollo(
   const restartApollo = () => cristata.restartApollo(tenant);
 
   try {
-    const typeDefs = [
-      graphqls2s.transpileSchema(
-        [
-          coreTypeDefs,
-          collectionTypeDefs,
-          s3TypeDefs,
-          configurationTypeDefs,
-          analyticsTypeDefs,
-          billingTypeDefs,
-          ...collections.map((collection) => collection.typeDefs),
-        ].join()
-      ),
-    ];
-
-    const resolvers = merge(
-      coreResolvers,
-      s3Resolvers,
-      collectionResolvers,
-      configurationResolvers,
-      analyticsResolvers,
-      billingResolvers,
-      ...collections.map((collection) => collection.resolvers)
-    );
-
     // create the base executable schema
-    const schema = makeExecutableSchema({
-      typeDefs,
-      resolvers,
-    });
+    const schema = makeGraphSchema(collections);
 
     // add auth info to context
     const context: ContextFunction<ExpressContext, Context> = ({ req }) => {
