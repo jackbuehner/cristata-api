@@ -42,6 +42,7 @@
     "@types/express-serve-static-core": "^4.17.24",
     "@types/jest": "^27.0.0",
     "@types/mongodb": "^4.0.7",
+    "@types/node-fetch": "^2.6.2",
     "@types/object-path": "^0.11.1",
     "@types/passport": "^1.0.6",
     "@types/passport-github2": "^1.2.4",
@@ -101,7 +102,8 @@
     "typescript-json-schema": "0.53.0",
     "ws": "^7.5.5",
     "y-mongodb": "^0.1.11",
-    "y-protocols": "^1.0.5"
+    "y-protocols": "^1.0.5",
+    "zod": "^3.17.10"
   },
   "peerDependencies": {
     "passport-oauth2": "1.6.1"

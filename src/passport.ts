@@ -28,6 +28,11 @@ interface IDeserializedUser {
   two_factor_authentication: boolean;
   next_step?: string;
   methods: string[];
+  constantcontact?: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+  };
 }
 
 async function deserializeUser(
@@ -101,6 +106,7 @@ async function deserializeUser(
       two_factor_authentication: false,
       next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
       methods: doc.methods,
+      constantcontact: doc.constantcontact,
     };
     done?.(null, du);
     return du;

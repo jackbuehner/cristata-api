@@ -40,6 +40,11 @@ const users = (tenant: string): Collection => {
         methods: { type: ['String'], default: [] },
         retired: { type: 'Boolean', default: false },
         flags: { type: ['String'], required: true, default: [] },
+        constantcontact: {
+          access_token: { type: 'String' },
+          refresh_token: { type: 'String' },
+          expires_at: { type: 'Number' },
+        },
       },
       actionAccess: {
         get: { teams: [0], users: [] },
@@ -408,6 +413,11 @@ interface IUser extends CollectionSchemaFields {
   methods?: string[];
   retired?: boolean;
   flags: string[];
+  constantcontact?: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+  };
 }
 
 interface IUserTimestamps {
