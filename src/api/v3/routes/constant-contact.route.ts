@@ -34,7 +34,7 @@ router.get('/authorize', requireAuth, async (req, res) => {
   searchParams.set('redirect_uri', REDIRECT_URL);
   searchParams.set('response_type', 'code');
   searchParams.set('state', 'a');
-  searchParams.set('scope', 'contact_data+offline_access');
+  searchParams.set('scope', 'account_read+contact_data+offline_access');
 
   res.redirect(endpoint + '?' + searchParams.toString().replace(/%2B/g, '+'));
 });
@@ -98,6 +98,54 @@ router.get('/contact_lists', requireConstantContactAuth, async (req, res) => {
     res.json(validator.parse(contact_lists));
   } catch (error) {
     console.error('Failed to get Constant Contact contact lists:', error);
+    res.status(500).end();
+  }
+});
+
+router.get('/account_emails', requireConstantContactAuth, async (req, res) => {
+  const validator = z
+    .object({
+      email_id: z.number().int().positive(),
+      email_address: z.string().max(80),
+      confirm_status: z.literal('CONFIRMED').or(z.literal('UNCONFIRMED')),
+      confirm_time: z.string().optional(), // not available until email is confirmed
+      confirm_source_type: z
+        .union([z.literal('SITE_OWNER'), z.literal('SUPPORT'), z.literal('FORCEVERIFY'), z.literal('PARTNER')])
+        .optional(), // not available until email is confirmed
+      roles: z
+        .union([
+          z.literal('CONTACT'),
+          z.literal('BILLING'),
+          z.literal('JOURNALING'),
+          z.literal('REPLY_TO'),
+          z.literal('OTHER'),
+        ])
+        .array(),
+      pending_roles: z
+        .union([
+          z.literal('CONTACT'),
+          z.literal('BILLING'),
+          z.literal('JOURNALING'),
+          z.literal('REPLY_TO'),
+          z.literal('OTHER'),
+        ])
+        .array()
+        .optional(), // not available on account emails created a long time ago
+    })
+    .array();
+
+  try {
+    const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact.access_token}`;
+
+    const account_emails = await (
+      await fetch(BASE_URL + '/account/emails?' + req.query.toString(), {
+        headers: { Authorization, 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+    ).json();
+
+    res.json(validator.parse(account_emails).sort((a, b) => a.email_address.localeCompare(b.email_address)));
+  } catch (error) {
+    console.error('Failed to get Constant Contact account senders:', error);
     res.status(500).end();
   }
 });
