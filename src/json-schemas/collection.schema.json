@@ -4414,13 +4414,7 @@
                 "disableCreateMutation": {
                     "type": "boolean"
                 },
-                "disableCreatedSubscription": {
-                    "type": "boolean"
-                },
                 "disableDeleteMutation": {
-                    "type": "boolean"
-                },
-                "disableDeletedSubscription": {
                     "type": "boolean"
                 },
                 "disableFindManyQuery": {
@@ -4433,9 +4427,6 @@
                     "type": "boolean"
                 },
                 "disableLockMutation": {
-                    "type": "boolean"
-                },
-                "disableModifiedSubscription": {
                     "type": "boolean"
                 },
                 "disableModifyMutation": {
@@ -4625,10 +4616,6 @@
         "withPermissions": {
             "description": "Whether this collection allows setting permissions for each document\nin addition to global collection permissions.",
             "type": "boolean"
-        },
-        "withSubscription": {
-            "description": "Whether a subscription should be provided for listening to\ndocument creations, modifications, and deletions in this collection.",
-            "type": "boolean"
         }
     },
     "required": [
@@ -4637,8 +4624,7 @@
         "name",
         "publicRules",
         "schemaDef",
-        "withPermissions",
-        "withSubscription"
+        "withPermissions"
     ],
     "type": "object"
 }

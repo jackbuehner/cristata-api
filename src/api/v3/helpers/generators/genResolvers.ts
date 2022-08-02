@@ -1,10 +1,5 @@
 import { CollectionDoc, Helpers } from '..';
-import {
-  collectionPeopleResolvers,
-  Context,
-  publishableCollectionPeopleResolvers,
-  pubsub,
-} from '../../../../apollo';
+import { collectionPeopleResolvers, Context, publishableCollectionPeopleResolvers } from '../../../../apollo';
 import mongoose from 'mongoose';
 import {
   GenSchemaInput,
@@ -251,19 +246,15 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         }
       });
 
-      return await helpers.withPubSub(
-        name.toUpperCase(),
-        'CREATED',
-        helpers.createDoc<mongoose.LeanDocument<mongoose.Document>>({
-          model: name,
-          args,
-          context,
-          withPermissions: config.withPermissions,
-          modify: async (currentDoc, data) => {
-            conditionallyModifyDocField(currentDoc, data, config);
-          },
-        })
-      );
+      return await helpers.createDoc<mongoose.LeanDocument<mongoose.Document>>({
+        model: name,
+        args,
+        context,
+        withPermissions: config.withPermissions,
+        modify: async (currentDoc, data) => {
+          conditionallyModifyDocField(currentDoc, data, config);
+        },
+      });
     };
   }
 
@@ -284,24 +275,20 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         }
       });
 
-      return await helpers.withPubSub(
-        name.toUpperCase(),
-        'MODIFIED',
-        helpers.modifyDoc<mongoose.Document, mongoose.LeanDocument<mongoose.Document>>({
-          model: name,
-          data: { ...input, [oneAccessorName]: _accessor },
-          _id: oneAccessorType.replace('!', '') === 'Date' ? new Date(_accessor) : _accessor,
-          by: oneAccessorName,
-          context,
-          modify: async (currentDoc, data) => {
-            conditionallyModifyDocField(currentDoc, data, config);
+      return await helpers.modifyDoc<mongoose.Document, mongoose.LeanDocument<mongoose.Document>>({
+        model: name,
+        data: { ...input, [oneAccessorName]: _accessor },
+        _id: oneAccessorType.replace('!', '') === 'Date' ? new Date(_accessor) : _accessor,
+        by: oneAccessorName,
+        context,
+        modify: async (currentDoc, data) => {
+          conditionallyModifyDocField(currentDoc, data, config);
 
-            if (hasKey('stage', data) && hasKey('stage', currentDoc) && data.stage !== currentDoc.stage) {
-              useStageUpdateEmails(context, currentDoc, data, config);
-            }
-          },
-        })
-      );
+          if (hasKey('stage', data) && hasKey('stage', currentDoc) && data.stage !== currentDoc.stage) {
+            useStageUpdateEmails(context, currentDoc, data, config);
+          }
+        },
+      });
     };
   }
 
@@ -309,11 +296,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
     Mutation[`${uncapitalize(name)}Hide`] = async (parent, args, context) => {
       const accessor = { key: oneAccessorName, value: args[oneAccessorName] };
 
-      return await helpers.withPubSub(
-        name.toUpperCase(),
-        'MODIFIED',
-        helpers.hideDoc({ model: name, accessor, hide: args.hide, context })
-      );
+      return await helpers.hideDoc({ model: name, accessor, hide: args.hide, context });
     };
   }
 
@@ -321,11 +304,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
     Mutation[`${uncapitalize(name)}Archive`] = async (parent, args, context) => {
       const accessor = { key: oneAccessorName, value: args[oneAccessorName] };
 
-      return await helpers.withPubSub(
-        name.toUpperCase(),
-        'MODIFIED',
-        helpers.archiveDoc({ model: name, accessor, archive: args.archive, context })
-      );
+      return await helpers.archiveDoc({ model: name, accessor, archive: args.archive, context });
     };
   }
 
@@ -333,11 +312,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
     Mutation[`${uncapitalize(name)}Lock`] = async (parent, args, context) => {
       const accessor = { key: oneAccessorName, value: args[oneAccessorName] };
 
-      return await helpers.withPubSub(
-        name.toUpperCase(),
-        'MODIFIED',
-        helpers.lockDoc({ model: name, accessor, lock: args.lock, context })
-      );
+      return await helpers.lockDoc({ model: name, accessor, lock: args.lock, context });
     };
   }
 
@@ -345,21 +320,19 @@ function genResolvers(config: GenResolversInput, tenant: string) {
     Mutation[`${uncapitalize(name)}Watch`] = async (parent, args, context) => {
       const accessor = { key: oneAccessorName, value: args[oneAccessorName] };
 
-      return await helpers.withPubSub(
-        name.toUpperCase(),
-        'MODIFIED',
-        helpers.watchDoc({ model: name, accessor, watch: args.watch, watcher: args.watcher, context })
-      );
+      return await helpers.watchDoc({
+        model: name,
+        accessor,
+        watch: args.watch,
+        watcher: args.watcher,
+        context,
+      });
     };
   }
 
   if (options?.disableDeleteMutation !== true) {
     Mutation[`${uncapitalize(name)}Delete`] = async (parent, args, context) => {
-      return await helpers.withPubSub(
-        name.toUpperCase(),
-        'DELETED',
-        helpers.deleteDoc({ model: name, args, context })
-      );
+      return await helpers.deleteDoc({ model: name, args, context });
     };
   }
 
@@ -367,11 +340,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
     Mutation[`${uncapitalize(name)}Publish`] = async (parent, args, context) => {
       const by = oneAccessorName;
       const _id = oneAccessorType.replace('!', '') === 'Date' ? new Date(args[by]) : args[oneAccessorName];
-      return await helpers.withPubSub(
-        name.toUpperCase(),
-        'DELETED',
-        helpers.publishDoc({ model: name, args, context, by, _id })
-      );
+      return await helpers.publishDoc({ model: name, args, context, by, _id });
     };
   }
 
@@ -394,34 +363,13 @@ function genResolvers(config: GenResolversInput, tenant: string) {
             lean: false,
           });
           doc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
-          return helpers.withPubSub(name.toUpperCase(), 'MODIFIED', doc.save());
+          return doc.save();
         }
       };
     });
   }
 
-  const Subscription = {};
-
-  if (options?.disableCreatedSubscription !== true) {
-    Subscription[`${uncapitalize(name)}Created`] = {
-      subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_CREATED`]),
-    };
-  }
-
-  if (options?.disableModifiedSubscription !== true) {
-    Subscription[`${uncapitalize(name)}Modified`] = {
-      subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_MODIFIED`]),
-    };
-  }
-
-  if (options?.disableDeletedSubscription !== true) {
-    Subscription[`${uncapitalize(name)}Deleted`] = {
-      subscribe: () => pubsub.asyncIterator([`${name.toUpperCase()}_DELETED`]),
-    };
-  }
-
-  const baselineResolvers = { Query, Mutation, Subscription };
-  if (!config.withSubscription) delete baselineResolvers.Subscription;
+  const baselineResolvers = { Query, Mutation };
 
   const customResolvers = genCustomResolvers({ name, helpers, ...config }, tenant);
 

@@ -19,10 +19,6 @@ const core = gql`
     prevPage: Int
     nextPage: Int
   }
-
-  type Subscription {
-    void: Void 
-  }
 `;
 
 export { core };

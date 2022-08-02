@@ -11,7 +11,6 @@ function genCollection(input: GenCollectionInput, tenant: string): Collection {
     input.options.disableArchiveMutation = true;
     input.options.disableDeleteMutation = true;
     input.options.disablePublishMutation = true;
-    input.options.disableDeletedSubscription = true;
     input.options.disablePublicFindOneBySlugQuery = true;
     input.options.disablePublicFindOneQuery = true;
   }

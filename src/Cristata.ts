@@ -4,7 +4,6 @@ import mongoose, { ObjectId } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 import semver from 'semver';
 import url from 'url';
-import ws from 'ws';
 import helpers from './api/v3/helpers';
 import { GenCollectionInput } from './api/v3/helpers/generators/genCollection';
 import { apollo } from './apollo';
@@ -30,7 +29,6 @@ if (!process.env.MONGO_DB_HOST) throw new Error('MONGO_DB_HOST not defined in en
 class Cristata {
   config: Record<string, Configuration> = {};
   #express: Application = undefined;
-  apolloWss: Record<string, ws.Server> = {};
   #apolloMiddleware: Record<string, Router> = {};
   #stopApollo: Record<string, () => Promise<void>> = {};
   tenants: string[] = [];
@@ -68,9 +66,6 @@ class Cristata {
 
       this.config[process.env.TENANT] = constructCollections(config, process.env.TENANT);
       this.tenants.push(process.env.TENANT);
-
-      // initialize a subscription server for graphql subscriptions
-      this.apolloWss[process.env.TENANT] = new ws.Server({ noServer: true, path: `/v3` });
     }
     // NOTE: tenants will be fetch from the app db if a tenant is not provided to the constructor
   }
@@ -114,9 +109,6 @@ class Cristata {
             return;
           }
 
-          const configs = Object.entries(this.config);
-          const root = configs.length === 1;
-
           // if the cookie is untampered, use the following appropriate handlers
           if (pathname.indexOf('/hocuspocus/') === 0) {
             // ensure client is up-to-date
@@ -130,11 +122,6 @@ class Cristata {
             // use the wss websocket if the path is '/websocket
             wss.handleUpgrade(request, socket, head, (ws) => {
               wss.emit('connection', ws, request);
-            });
-          } else if (pathname === (root ? `/v3` : `/v3/${tenant}`)) {
-            // handle apollo subscriptions
-            this.apolloWss[tenant].handleUpgrade(request, socket, head, (ws) => {
-              this.apolloWss[tenant].emit('connection', ws, request);
             });
           }
           // otherwise, end the websocket connection request
@@ -272,12 +259,6 @@ class Cristata {
           // add each tenant to the config
           this.config[name] = constructCollections(config, name);
           this.tenants.push(name);
-
-          // initialize a subscription server for graphql subscriptions
-          this.apolloWss[name] = new ws.Server({
-            noServer: true,
-            path: tenants.length === 1 ? `/v3` : `/${name}/v3`,
-          });
         });
 
       // check each tenant's subscription stats

@@ -79,7 +79,6 @@ const configuration = {
           canPublish: false,
           publicRules: false,
           withPermissions: false,
-          withSubscription: false,
           schemaDef: {
             name: {
               type: 'String',

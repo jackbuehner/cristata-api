@@ -84,7 +84,6 @@
     "generate-password": "^1.7.0",
     "graphql": "^15.7.2",
     "graphql-s2s": "^0.22.0",
-    "graphql-subscriptions": "^2.0.0",
     "helmet": "^4.6.0",
     "http-proxy-middleware": "^2.0.0",
     "merge-anything": "^4.0.1",
@@ -98,9 +97,7 @@
     "patch-package": "^6.4.7",
     "pluralize": "^8.0.0",
     "stripe": "^9.6.0",
-    "subscriptions-transport-ws": "^0.11.0",
     "typescript-json-schema": "0.53.0",
-    "ws": "^7.5.5",
     "y-mongodb": "^0.1.11",
     "y-protocols": "^1.0.5",
     "zod": "^3.17.10"

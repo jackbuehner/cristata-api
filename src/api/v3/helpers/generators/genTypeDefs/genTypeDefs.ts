@@ -7,7 +7,6 @@ import { genInputs } from './genInputs';
 import { genMutations } from './genMutations';
 import { genPrunedTypes } from './genPrunedTypes';
 import { genQueries } from './genQueries';
-import { genSubscriptions } from './genSubscriptions';
 import { genTypes } from './genTypes';
 import { getInputInheritance } from './getInputInheritance';
 import { getTypeInheritance } from './getTypeInheritance';
@@ -76,15 +75,6 @@ function genTypeDefs(input: GenSchemaInput): string {
         ? calcGraphFieldType(schemaDefs.find(([, def]) => def.modifiable)[1], { useMongooseType: true })
         : undefined,
     })}
-    ${
-      input.withSubscription
-        ? genSubscriptions({
-            accessor: accessor,
-            options: input.options,
-            typeName: input.name,
-          })
-        : ``
-    }
   `;
 }
 

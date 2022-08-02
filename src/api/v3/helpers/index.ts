@@ -18,7 +18,6 @@ import { genSchema } from './generators/genSchema';
 import { requireAuthentication } from './requireAuthentication';
 import { getCollectionActionAccess } from './getCollectionActionAccess';
 import { publishDoc } from './publishDoc';
-import { withPubSub } from './withPubSub';
 import { getUsers } from './getUsers';
 import { gql } from './gql';
 import { genCollection } from './generators/genCollection';
@@ -39,7 +38,6 @@ const helpers = {
   requireAuthentication,
   getCollectionActionAccess,
   publishDoc,
-  withPubSub,
   getUsers,
   gql,
   generators: { genCollection, genResolvers, genSchema },
@@ -69,7 +67,6 @@ export { findDocs };
 export { requireAuthentication };
 export { getCollectionActionAccess };
 export { publishDoc };
-export { withPubSub };
 export { getUsers };
 export { gql };
 export { genCollection };

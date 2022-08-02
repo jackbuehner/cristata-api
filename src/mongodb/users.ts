@@ -11,14 +11,13 @@ import { sendEmail } from '../utils/sendEmail';
 import { slugify } from '../utils/slugify';
 
 const users = (tenant: string): Collection => {
-  const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication, withPubSub } = helpers;
+  const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication } = helpers;
 
   const collection = genCollection(
     {
       name: 'User',
       canPublish: false,
       withPermissions: false,
-      withSubscription: true,
       publicRules: { filter: {} },
       schemaDef: {
         name: { type: 'String', required: true, modifiable: true, public: true, default: 'New User' },
@@ -174,21 +173,17 @@ const users = (tenant: string): Collection => {
         const user = (await createDoc({ model: 'User', args, context })) as IUser & PassportLocalDocument;
 
         // return the user
-        return withPubSub('USER', 'CREATED', setTemporaryPassword(user, 'reinvite', context));
+        return setTemporaryPassword(user, 'reinvite', context);
       },
       userModify: (_, { _id, input }, context: Context) => {
         const isSelf = _id.toHexString() === context.profile._id.toHexString();
-        return withPubSub(
-          'USER',
-          'MODIFIED',
-          modifyDoc({
-            model: 'User',
-            data: { ...input, _id },
-            _id,
-            context,
-            fullAccess: isSelf,
-          })
-        );
+        return modifyDoc({
+          model: 'User',
+          data: { ...input, _id },
+          _id,
+          context,
+          fullAccess: isSelf,
+        });
       },
       userPasswordChange: async (_, { oldPassword, newPassword }, context: Context) => {
         const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
@@ -199,40 +194,35 @@ const users = (tenant: string): Collection => {
         changedUser.flags = changedUser.flags.filter((flag) => !flag.includes('TEMPORARY_PASSWORD'));
         return changedUser.save();
       },
-      userDeactivate: async (_, args, context: Context) =>
-        withPubSub(
-          'USER',
-          'MODIFIED',
-          (async () => {
-            requireAuthentication(context);
+      userDeactivate: async (_, args, context: Context) => {
+        requireAuthentication(context);
 
-            // set defaults
-            if (args.deactivate === undefined) args.deactivate = true;
+        // set defaults
+        if (args.deactivate === undefined) args.deactivate = true;
 
-            // get the document
-            const doc = await findDoc({ model: 'User', _id: args._id, context, lean: false });
+        // get the document
+        const doc = await findDoc({ model: 'User', _id: args._id, context, lean: false });
 
-            // if the user cannot retire other users in the collection, return an error
-            if (!(await canDo({ action: 'deactivate', model: 'User', context })))
-              throw new ForbiddenError('you cannot deactivate users');
+        // if the user cannot retire other users in the collection, return an error
+        if (!(await canDo({ action: 'deactivate', model: 'User', context })))
+          throw new ForbiddenError('you cannot deactivate users');
 
-            // set relevant collection metadata
-            doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
-            doc.people.last_modified_by = context.profile._id;
-            doc.retired = args.deactivate;
-            doc.history = [
-              ...doc.history,
-              {
-                type: args.deactivate ? 'deactivated' : 'activated',
-                user: context.profile._id,
-                at: new Date().toISOString(),
-              },
-            ];
+        // set relevant collection metadata
+        doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
+        doc.people.last_modified_by = context.profile._id;
+        doc.retired = args.deactivate;
+        doc.history = [
+          ...doc.history,
+          {
+            type: args.deactivate ? 'deactivated' : 'activated',
+            user: context.profile._id,
+            at: new Date().toISOString(),
+          },
+        ];
 
-            // save the document
-            return await doc.save();
-          })()
-        ),
+        // save the document
+        return await doc.save();
+      },
       userResendInvite: async (_, args, context: Context) => {
         const user = (await findDoc({
           model: 'User',

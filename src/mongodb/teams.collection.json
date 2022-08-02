@@ -2,7 +2,6 @@
   "name": "Team",
   "canPublish": false,
   "withPermissions": false,
-  "withSubscription": true,
   "publicRules": false,
   "schemaDef": {
     "name": { "type": "String", "required": true, "modifiable": true },

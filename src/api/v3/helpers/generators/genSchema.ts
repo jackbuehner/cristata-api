@@ -39,9 +39,6 @@ interface GenSchemaInput {
     disableWatchMutation?: boolean;
     disableDeleteMutation?: boolean;
     disablePublishMutation?: boolean;
-    disableCreatedSubscription?: boolean;
-    disableModifiedSubscription?: boolean;
-    disableDeletedSubscription?: boolean;
     /**
      * Keys of fields that contain ObjectIDs of the users who
      * must always receive notification emails when documents
@@ -75,11 +72,6 @@ interface GenSchemaInput {
    * in addition to global collection permissions.
    */
   withPermissions: boolean;
-  /**
-   * Whether a subscription should be provided for listening to
-   * document creations, modifications, and deletions in this collection.
-   */
-  withSubscription: boolean;
   /**
    * The name of this collection.
    */
