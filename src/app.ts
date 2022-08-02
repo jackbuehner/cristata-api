@@ -126,7 +126,7 @@ function createExpressApp(cristata: Cristata): Application {
 
   // connect routers to app
   app.use(`/auth`, authRouter); // authentication routes
-  app.use(`/v3`, apiRouter3); // API v3 routes
+  app.use(`/v3`, apiRouter3(cristata)); // API v3 routes
   app.use(proxyRouterFactory()); // CORS proxy routes
   app.use(stripeRouterFactory(cristata)); // stripe routes
 
