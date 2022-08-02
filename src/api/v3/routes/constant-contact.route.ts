@@ -59,7 +59,7 @@ function factory(cristata: Cristata): Router {
         const user = req.user as IDeserializedUser;
         storeTokens(user.tenant, user._id, tokens.access_token, tokens.refresh_token, tokens.expires_in);
 
-        res.redirect('/auth');
+        res.send('<script>window.close();</script > ');
         return;
       }
     }
