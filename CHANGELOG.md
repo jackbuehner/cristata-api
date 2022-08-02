@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.13.0](https://github.com/jackbuehner/cristata-api/compare/v5.12.0...v5.13.0) (2022-08-02)
+
+
+### Features
+
+* add consant contact email provider ([fce2ac8](https://github.com/jackbuehner/cristata-api/commit/fce2ac8814a4530fb9734515ba4cb6a3d1135b86))
+* **constant-contact:** add endpoint for getting account emails ([64fd294](https://github.com/jackbuehner/cristata-api/commit/64fd2949c84337369a7097904024bdad55ff37dd))
+* **constant-contact:** close window after auth response ([fe2ef29](https://github.com/jackbuehner/cristata-api/commit/fe2ef29112f2703eefb3cc98171498da2570e28d))
+
+
+### Bug Fixes
+
+* **constant-contact:** use correct inputs and outputs for creating emails ([5edc318](https://github.com/jackbuehner/cristata-api/commit/5edc318811793063e9d9d61a572b5428b8511c41))
+
 ## [5.12.0](https://github.com/jackbuehner/cristata-api/compare/v5.11.0...v5.12.0) (2022-07-24)
 
 
