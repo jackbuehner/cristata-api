@@ -15,7 +15,6 @@ import { users } from './mongodb/users';
 import { Collection, Configuration } from './types/config';
 import { checkSessionCookie } from './utils/checkSessionCookie';
 import { hasKey } from './utils/hasKey';
-import { wss } from './websocket';
 
 function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
@@ -87,7 +86,7 @@ class Cristata {
       extensions: [new HocuspocusMongoDB(this.tenants)],
 
       // use hocuspocus at '/hocupocus' and use wss at '/websocket'
-      onUpgrade: async ({ request, socket, head }) => {
+      onUpgrade: async ({ request, socket }) => {
         try {
           const pathname = url.parse(request.url).pathname;
           const { searchParams } = new URL('https://cristata.app' + request.url);
@@ -118,11 +117,6 @@ class Cristata {
 
             // allow hocuspocus websocket to continue if the path starts with '/hocuspocus/
             return true;
-          } else if (pathname === '/websocket') {
-            // use the wss websocket if the path is '/websocket
-            wss.handleUpgrade(request, socket, head, (ws) => {
-              wss.emit('connection', ws, request);
-            });
           }
           // otherwise, end the websocket connection request
           else {
@@ -130,9 +124,9 @@ class Cristata {
           }
           return false;
         } catch (error) {
-          socket.end();
           console.error(error);
         }
+        socket.end();
       },
 
       onRequest: async ({ request, response }) => {
