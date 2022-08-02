@@ -1,6 +1,7 @@
 import { Server as Hocuspocus } from '@hocuspocus/server';
 import { Application, Router } from 'express';
-import Keygrip from 'keygrip';
+import mongoose, { ObjectId } from 'mongoose';
+import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 import semver from 'semver';
 import url from 'url';
 import ws from 'ws';
@@ -13,11 +14,9 @@ import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
 import teams from './mongodb/teams.collection.json';
 import { users } from './mongodb/users';
 import { Collection, Configuration } from './types/config';
+import { checkSessionCookie } from './utils/checkSessionCookie';
 import { hasKey } from './utils/hasKey';
-import { parseCookies } from './utils/parseCookies';
 import { wss } from './websocket';
-import mongoose, { ObjectId } from 'mongoose';
-import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 
 function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
   return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
@@ -103,26 +102,16 @@ class Cristata {
           if (!tenant) throw new Error(`tenant search param must be specified`);
           if (!this.tenants.includes(tenant)) throw new Error(`tenant must exist`);
 
-          // find auth cookie
-          if (!request.headers.cookie) {
-            socket.end(); // end if no cookie is provided
-            return;
-          }
-          const parsedCookies = parseCookies(request.headers.cookie);
-          const authCookie = parsedCookies.find((cookie) => cookie.name === '__Host-cristata-session');
-          if (!authCookie) {
+          // verify session integrity
+          const sessionCookieError = checkSessionCookie(request.headers);
+          if (sessionCookieError) {
             socket.end(); // end if no auth cookie
+
+            if (sessionCookieError.message === 'SESSION_COOKIE_TAMPERED') {
+              throw new Error(`session cookie has been tampered with by the client`);
+            }
+
             return;
-          }
-
-          // verify cookie integrity
-          const keygrip = new Keygrip([process.env.COOKIE_SESSION_SECRET]);
-          const { name, value, signature } = authCookie;
-          const isUntampered = keygrip.verify(`${name}=${value}`, signature);
-
-          // if the cookie has been modified by the client, end the connection
-          if (!isUntampered) {
-            throw new Error(`session cookie has been tampered with by the client`);
           }
 
           const configs = Object.entries(this.config);
