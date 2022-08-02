@@ -2,18 +2,14 @@ import { Server as Hocuspocus } from '@hocuspocus/server';
 import { Application, Router } from 'express';
 import mongoose, { ObjectId } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
-import semver from 'semver';
-import url from 'url';
 import helpers from './api/v3/helpers';
 import { GenCollectionInput } from './api/v3/helpers/generators/genCollection';
 import { apollo } from './apollo';
 import { createExpressApp } from './app';
 import { createMongooseModels, db } from './mongodb/db';
-import { HocuspocusMongoDB } from './mongodb/HocuspocusMongoDB';
 import teams from './mongodb/teams.collection.json';
 import { users } from './mongodb/users';
 import { Collection, Configuration } from './types/config';
-import { checkSessionCookie } from './utils/checkSessionCookie';
 import { hasKey } from './utils/hasKey';
 
 function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
@@ -83,49 +79,9 @@ class Cristata {
     // configure the server
     this.hocuspocus = Hocuspocus.configure({
       port: parseInt(process.env.PORT),
-      extensions: [new HocuspocusMongoDB(this.tenants)],
 
-      // use hocuspocus at '/hocupocus' and use wss at '/websocket'
-      onUpgrade: async ({ request, socket }) => {
-        try {
-          const pathname = url.parse(request.url).pathname;
-          const { searchParams } = new URL('https://cristata.app' + request.url);
-
-          // ensure request has a valid tenant search param
-          const tenant = searchParams.get('tenant');
-          if (!tenant) throw new Error(`tenant search param must be specified`);
-          if (!this.tenants.includes(tenant)) throw new Error(`tenant must exist`);
-
-          // verify session integrity
-          const sessionCookieError = checkSessionCookie(request.headers);
-          if (sessionCookieError) {
-            socket.end(); // end if no auth cookie
-
-            if (sessionCookieError.message === 'SESSION_COOKIE_TAMPERED') {
-              throw new Error(`session cookie has been tampered with by the client`);
-            }
-
-            return;
-          }
-
-          // if the cookie is untampered, use the following appropriate handlers
-          if (pathname.indexOf('/hocuspocus/') === 0) {
-            // ensure client is up-to-date
-            const reqVersion = searchParams.get('version');
-            const isClientUpdated = semver.gte(reqVersion, this.config[tenant].minimumClientVersion);
-            if (!isClientUpdated) throw 'Client out of date!';
-
-            // allow hocuspocus websocket to continue if the path starts with '/hocuspocus/
-            return true;
-          }
-          // otherwise, end the websocket connection request
-          else {
-            socket.end();
-          }
-          return false;
-        } catch (error) {
-          console.error(error);
-        }
+      // disable websockets
+      onUpgrade: async ({ socket }) => {
         socket.end();
       },
 
