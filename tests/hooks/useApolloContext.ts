@@ -1,8 +1,8 @@
-import { CollectionPermissions, Configuration } from '../../src/types/config';
-import { Context } from '../../src/apollo';
+import { CollectionPermissions, Configuration } from '../../src/api/types/config';
+import { Context } from '../../src/api/graphql/server';
 import mongoose from 'mongoose';
-import { GenCollectionInput } from '../../src/api/v3/helpers/generators/genCollection';
-import Cristata from '../../src/Cristata';
+import { GenCollectionInput } from '../../src/api/graphql/helpers/generators/genCollection';
+import Cristata from '../../src/api/Cristata';
 
 interface UseApolloContext {
   isAuthenticated?: boolean;

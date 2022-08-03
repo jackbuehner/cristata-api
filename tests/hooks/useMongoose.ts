@@ -5,7 +5,7 @@ import {
   convertTopNestedObjectsToSubdocuments,
   publishableCollectionSchemaFields,
   withPermissionsCollectionSchemaFields,
-} from '../../src/mongodb/db';
+} from '../../src/api/mongodb/db';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { SchemaDefinitionProperty } from 'mongoose';
 import { merge } from 'merge-anything';

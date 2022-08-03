@@ -1,9 +1,8 @@
-import { useApolloContext, useMongoose, useWebsocket } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../../tests/hooks';
 import { getUsers } from './getUsers';
 
 describe(`api >> v3 >> helpers >> getUsers`, () => {
   const { createModel } = useMongoose();
-  useWebsocket();
 
   const c: Parameters<typeof useApolloContext>[0] = {
     isAuthenticated: true,

@@ -1,11 +1,10 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-core';
 import { Model } from 'mongoose';
-import { useApolloContext, useMongoose, useWebsocket } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../../tests/hooks';
 import { hideDoc } from './hideDoc';
 
 describe(`api >> v3 >> helpers >> hideDoc`, () => {
   const { createModel } = useMongoose();
-  useWebsocket();
 
   // name of the collection to use in these tests
   const colName = 'Document';

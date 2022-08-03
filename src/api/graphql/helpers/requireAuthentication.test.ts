@@ -1,10 +1,9 @@
 import { AuthenticationError } from 'apollo-server-errors';
-import { useApolloContext, useMongoose, useWebsocket } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../../tests/hooks';
 import { requireAuthentication } from './requireAuthentication';
 
 describe(`api >> v3 >> helpers >> requireAuthentication`, () => {
   useMongoose();
-  useWebsocket();
 
   const c: Parameters<typeof useApolloContext>[0] = {
     isAuthenticated: true,

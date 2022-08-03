@@ -1,10 +1,9 @@
 import { Model } from 'mongoose';
-import { useApolloContext, useMongoose, useWebsocket } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../../tests/hooks';
 import { getCollectionActionAccess } from './getCollectionActionAccess';
 
 describe(`api >> v3 >> helpers >> getCollectionActionAccess`, () => {
   const { createModel } = useMongoose();
-  useWebsocket();
 
   const c: Parameters<typeof useApolloContext>[0] = {
     isAuthenticated: true,
