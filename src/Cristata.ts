@@ -4,7 +4,7 @@ import mongoose, { ObjectId } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 import { GenCollectionInput } from './api/graphql/helpers/generators/genCollection';
 import { apollo } from './api/graphql/server';
-import { createExpressApp } from './app';
+import { createExpressApp } from './api/app';
 import { createMongooseModels, db } from './mongodb/db';
 import { Collection, Configuration } from './types/config';
 import { constructCollections } from './utils/constructCollections';
