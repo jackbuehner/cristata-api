@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.0](https://github.com/jackbuehner/cristata-api/compare/v5.13.0...v6.0.0) (2022-08-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* move entry point to /api
+* remove index file
+* replace hocuspocus server with node http server
+* remove yjs websockets
+* remove gtihub paylaod websocket server
+
+### Features
+
+* move entry point to /api ([991abcc](https://github.com/jackbuehner/cristata-api/commit/991abcca51ac3b45f3075603c93d6904e97c29b5))
+* remove gtihub paylaod websocket server ([b93df52](https://github.com/jackbuehner/cristata-api/commit/b93df525755bf379bead38cae37c97035097939a))
+* remove index file ([6c35b97](https://github.com/jackbuehner/cristata-api/commit/6c35b97f4df6cd26b44ff658899cb5e7d5db773b))
+* remove yjs websockets ([417fbed](https://github.com/jackbuehner/cristata-api/commit/417fbed4d2deb9d1c7bc5955e9dd5b73a5cb114d))
+* replace hocuspocus server with node http server ([812bc62](https://github.com/jackbuehner/cristata-api/commit/812bc623ed1115e5b8ae713083a16912e81b3a26))
+
 ## [5.13.0](https://github.com/jackbuehner/cristata-api/compare/v5.12.0...v5.13.0) (2022-08-02)
 
 
