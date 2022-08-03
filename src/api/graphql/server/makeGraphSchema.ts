@@ -2,7 +2,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphQLSchema } from 'graphql';
 import { graphqls2s } from 'graphql-s2s';
 import { merge } from 'merge-anything';
-import { Collection } from '../../../types/config';
+import { Collection } from '../../types/config';
 import {
   coreResolvers,
   s3Resolvers,

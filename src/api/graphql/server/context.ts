@@ -3,7 +3,7 @@ import { ExpressContext } from 'apollo-server-express';
 import mongoose from 'mongoose';
 import Cristata from '../../Cristata';
 import { IDeserializedUser } from '../../app/passport';
-import { Configuration } from '../../../types/config';
+import { Configuration } from '../../types/config';
 
 interface Input extends ExpressContext {
   __cristata: {

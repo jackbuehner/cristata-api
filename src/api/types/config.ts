@@ -1,6 +1,6 @@
 import { IResolvers } from '@graphql-tools/utils';
-import { GenSchemaInput, SchemaDefType } from '../api/graphql/helpers/generators/genSchema';
-import { GenCollectionInput } from '../api/graphql/helpers/generators/genCollection';
+import { GenSchemaInput, SchemaDefType } from '../graphql/helpers/generators/genSchema';
+import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
 import FluentIconsFontCodes from '@fluentui/react-icons/lib/utils/fonts/FluentSystemIcons-Regular.json';
 
 type FluentIconNames = keyof typeof FluentIconsFontCodes | 'CircleSmall24Filled';

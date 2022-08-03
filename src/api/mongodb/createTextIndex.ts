@@ -1,7 +1,7 @@
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import pluralize from 'pluralize';
-import { Collection } from '../../types/config';
+import { Collection } from '../types/config';
 
 async function createTextIndex(
   collection: Collection,

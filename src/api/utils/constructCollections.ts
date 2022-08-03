@@ -2,7 +2,7 @@ import helpers from '../graphql/helpers';
 import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
 import teams from '../mongodb/teams.collection.json';
 import { users } from '../mongodb/users';
-import { Collection, Configuration } from '../../types/config';
+import { Collection, Configuration } from '../types/config';
 import { hasKey } from './hasKey';
 
 function constructCollections(

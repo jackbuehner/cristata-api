@@ -6,7 +6,7 @@ import { GenCollectionInput } from './graphql/helpers/generators/genCollection';
 import { apollo } from './graphql/server';
 import { createExpressApp } from './app';
 import { createMongooseModels, db } from './mongodb/db';
-import { Collection, Configuration } from '../types/config';
+import { Collection, Configuration } from './types/config';
 import { constructCollections } from './utils/constructCollections';
 
 if (!process.env.COOKIE_SESSION_SECRET) throw new Error('COOKIE_SESSION_SECRET not defined in env');

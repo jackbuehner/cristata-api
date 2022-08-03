@@ -1,5 +1,5 @@
 import helpers from '..';
-import { Collection, CollectionPermissions } from '../../../../types/config';
+import { Collection, CollectionPermissions } from '../../../types/config';
 import { GenSchemaInput } from './genSchema';
 
 function genCollection(input: GenCollectionInput, tenant: string): Collection {

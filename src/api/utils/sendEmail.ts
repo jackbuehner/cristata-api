@@ -1,6 +1,6 @@
 import aws from 'aws-sdk';
 import dotenv from 'dotenv';
-import { Configuration } from '../../types/config';
+import { Configuration } from '../types/config';
 
 // load environmental variables
 dotenv.config();

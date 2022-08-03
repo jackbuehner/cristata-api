@@ -5,7 +5,7 @@ import mongoose, { PassportLocalDocument } from 'mongoose';
 import helpers, { genCollection } from '../graphql/helpers';
 import { Context } from '../graphql/server';
 import { CollectionSchemaFields, GitHubTeamNodeID } from './db';
-import { Collection } from '../../types/config';
+import { Collection } from '../types/config';
 import { getPasswordStatus } from '../utils/getPasswordStatus';
 import { sendEmail } from '../utils/sendEmail';
 import { slugify } from '../utils/slugify';

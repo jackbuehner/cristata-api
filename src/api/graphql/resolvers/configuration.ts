@@ -9,7 +9,7 @@ import {
   ReturnedMainNavItem,
   ReturnedSubNavGroup,
   SubNavGroup,
-} from '../../../types/config';
+} from '../../types/config';
 import { camelToDashCase } from '../../utils/camelToDashCase';
 import { capitalize } from '../../utils/capitalize';
 import { hasKey } from '../../utils/hasKey';
