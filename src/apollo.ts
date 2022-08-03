@@ -18,7 +18,7 @@ async function apollo(
   tenant: string,
   root = false
 ): Promise<[Router, () => Promise<void>] | Error> {
-  const server = cristata.hocuspocus.httpServer;
+  const server = cristata.server;
   const config = cristata.config[tenant];
   const collections = config.collections;
 

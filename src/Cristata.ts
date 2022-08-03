@@ -1,5 +1,5 @@
-import { Server as Hocuspocus } from '@hocuspocus/server';
 import { Application, Router } from 'express';
+import http from 'http';
 import mongoose, { ObjectId } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 import helpers from './api/v3/helpers';
@@ -52,7 +52,7 @@ class Cristata {
       };
     };
   }> | null = null;
-  hocuspocus: typeof Hocuspocus = undefined;
+  server = http.createServer();
 
   constructor(config?: Configuration<Collection | GenCollectionInput>) {
     if (config) {
@@ -76,111 +76,93 @@ class Cristata {
       console.log(`\x1b[36mStarting the server...\x1b[0m`);
     }
 
-    // configure the server
-    this.hocuspocus = Hocuspocus.configure({
-      port: parseInt(process.env.PORT),
-
-      // disable websockets
-      onUpgrade: async ({ socket }) => {
-        socket.end();
-      },
-
-      onRequest: async ({ request, response }) => {
-        try {
-          // when a request is made to the server, load the app
-          this.app(request, response);
-        } catch (error) {
-          response.destroy();
-          console.error(error);
-        }
-      },
-
-      onListen: async () => {
-        try {
-          // for each tenant, create middleware for an api server
-          this.tenants.forEach(async (tenant) => {
-            if (this.config[tenant]) {
-              // start apollo
-              const apolloReturn = await apollo(this, tenant, this.tenants.length === 1);
-
-              // throw error if apollo failed to start
-              if (apolloReturn instanceof Error) throw apolloReturn;
-
-              // otherwise, set the middleware and stop function for the tenant
-              const [middleware, stopApollo] = apolloReturn;
-              this.#apolloMiddleware[tenant] = middleware;
-              this.#stopApollo[tenant] = stopApollo;
-            }
-
-            this.app.use((req, res, next) => {
-              if (this.#apolloMiddleware[tenant]) this.#apolloMiddleware[tenant](req, res, next);
-              else next();
-            });
-          });
-        } catch (error) {
-          console.error(error);
-        }
-      },
+    // when a request is made to the server, load the app
+    this.server.on('request', (request, response) => {
+      try {
+        this.app(request, response);
+      } catch (error) {
+        response.destroy();
+        console.error(error);
+      }
     });
 
-    // start the http server and hocuspocus websocket server
-    try {
-      this.hocuspocus
-        .listen()
-        .then(async () => {
-          if (process.env.NODE_ENV === 'development') {
-            try {
-              console.clear();
-              console.log(`\x1b[32mServer started successfully!\x1b[0m`);
-              console.log(``);
-              console.log(`You can now view \x1b[1m${process.env.npm_package_name}\x1b[0m in the browser.`);
-              console.log(``);
-              console.log(`  \x1b[1mLocal\x1b[0m:            http://localhost:${process.env.PORT}`);
-              console.log(
-                `  \x1b[1mOn Your Network\x1b[0m:  http://${(await import('address')).ip()}:${process.env.PORT}`
-              );
-              console.log();
-              console.log(`To create a production build, use \x1b[36mnpm run build\x1b[0m.`);
-              console.log(`To run tests, use \x1b[94mnpm run test\x1b[0m.`);
-              console.log(``);
-              console.log(`Type "rs" to manually restart the server.`);
+    // when the server starts,
+    // create apollo graphql server middleware for each tenant
+    this.server.on('listening', () => {
+      try {
+        this.tenants.forEach(async (tenant) => {
+          if (this.config[tenant]) {
+            // start apollo
+            const apolloReturn = await apollo(this, tenant, this.tenants.length === 1);
 
-              const { ESLint } = await import('eslint');
-              const eslint = new ESLint({ useEslintrc: true });
-              console.log(`\x1b[36mChecking for issues...\x1b[0m`);
-              const results = await eslint.lintFiles(['src/**/*']);
-              const formatter = await eslint.loadFormatter('stylish');
-              const resultText = formatter.format(results);
-              if (resultText) console.log(resultText);
+            // throw error if apollo failed to start
+            if (apolloReturn instanceof Error) throw apolloReturn;
 
-              const hasErrors = !!results.find((result) => result.errorCount > 0);
-              if (hasErrors) process.exit(1);
-              if (!resultText) {
-                process.stdout.cursorTo(0);
-                process.stdout.moveCursor(0, -1);
-                process.stdout.clearLine(0);
-                process.stdout.write(`\x1b[32mNo issues found.\x1b[0m\n`);
-              }
-            } catch (error) {
-              console.error(`Error linting:`, error);
-              process.exit(1);
-            }
-          } else {
-            console.log(
-              `Cristata server listening on port ${process.env.PORT}! API, authentication, webhooks, and hocuspocus are running.`
-            );
+            // otherwise, set the middleware and stop function for the tenant
+            const [middleware, stopApollo] = apolloReturn;
+            this.#apolloMiddleware[tenant] = middleware;
+            this.#stopApollo[tenant] = stopApollo;
           }
 
-          // listen for tenant changes
-          this.listenForConfigChange();
-        })
-        .catch((err: Error) =>
-          console.error(
-            `Failed to start Cristata  server on port ${process.env.PORT}! Message: ${JSON.stringify(err)}`
-          )
-        );
+          this.app.use((req, res, next) => {
+            if (this.#apolloMiddleware[tenant]) this.#apolloMiddleware[tenant](req, res, next);
+            else next();
+          });
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    // start the server
+    try {
+      this.server.listen(parseInt(process.env.PORT), async () => {
+        if (process.env.NODE_ENV === 'development') {
+          try {
+            console.clear();
+            console.log(`\x1b[32mServer started successfully!\x1b[0m`);
+            console.log(``);
+            console.log(`You can now view \x1b[1m${process.env.npm_package_name}\x1b[0m in the browser.`);
+            console.log(``);
+            console.log(`  \x1b[1mLocal\x1b[0m:            http://localhost:${process.env.PORT}`);
+            console.log(
+              `  \x1b[1mOn Your Network\x1b[0m:  http://${(await import('address')).ip()}:${process.env.PORT}`
+            );
+            console.log();
+            console.log(`To create a production build, use \x1b[36mnpm run build\x1b[0m.`);
+            console.log(`To run tests, use \x1b[94mnpm run test\x1b[0m.`);
+            console.log(``);
+            console.log(`Type "rs" to manually restart the server.`);
+
+            const { ESLint } = await import('eslint');
+            const eslint = new ESLint({ useEslintrc: true });
+            console.log(`\x1b[36mChecking for issues...\x1b[0m`);
+            const results = await eslint.lintFiles(['src/**/*']);
+            const formatter = await eslint.loadFormatter('stylish');
+            const resultText = formatter.format(results);
+            if (resultText) console.log(resultText);
+
+            const hasErrors = !!results.find((result) => result.errorCount > 0);
+            if (hasErrors) process.exit(1);
+            if (!resultText) {
+              process.stdout.cursorTo(0);
+              process.stdout.moveCursor(0, -1);
+              process.stdout.clearLine(0);
+              process.stdout.write(`\x1b[32mNo issues found.\x1b[0m\n`);
+            }
+          } catch (error) {
+            console.error(`Error linting:`, error);
+            process.exit(1);
+          }
+        } else {
+          console.log(`Cristata server listening on port ${process.env.PORT}!`);
+        }
+
+        // listen for tenant changes
+        this.listenForConfigChange();
+      });
     } catch (error) {
-      console.error(error);
+      console.error(`Failed to start Cristata  server on port ${process.env.PORT}!`, error);
     }
   }
 
