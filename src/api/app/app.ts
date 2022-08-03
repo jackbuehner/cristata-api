@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import { authRouter } from './routes/auth.route';
-import Cristata from '../../Cristata';
+import Cristata from '../Cristata';
 import { corsConfig } from './middleware/cors';
 import { requireAuth } from './middleware/requireAuth';
 import { IUser } from '../mongodb/users';

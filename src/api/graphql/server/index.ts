@@ -7,7 +7,7 @@ import { makeGraphSchema } from './makeGraphSchema';
 import { GraphQLPlayground, LogErrorsToConsole } from '../plugins';
 import { collectionResolvers } from '../resolvers';
 import { collectionTypeDefs } from '../typeDefs';
-import Cristata from '../../../Cristata';
+import Cristata from '../../Cristata';
 import { corsConfig } from '../../app/middleware/cors';
 
 /**
