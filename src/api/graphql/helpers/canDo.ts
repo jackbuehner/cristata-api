@@ -7,7 +7,7 @@ import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
-} from '../../../mongodb/db';
+} from '../../mongodb/db';
 import { CollectionPermissionsActions } from '../../../types/config';
 import { isArray } from '../../utils/isArray';
 import { isObjectId } from '../../utils/isObjectId';

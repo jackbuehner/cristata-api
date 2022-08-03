@@ -10,7 +10,7 @@ import { authRouter } from './routes/auth.route';
 import Cristata from '../../Cristata';
 import { corsConfig } from './middleware/cors';
 import { requireAuth } from './middleware/requireAuth';
-import { IUser } from '../../mongodb/users';
+import { IUser } from '../mongodb/users';
 import '../../passport';
 import { IDeserializedUser } from '../../passport';
 import { proxyRouterFactory } from './routes/proxy.route';

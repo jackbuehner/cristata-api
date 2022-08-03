@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { Context } from '../server';
-import { IUser, IUserDoc } from '../../../mongodb/users';
+import { IUser, IUserDoc } from '../../mongodb/users';
 
 /**
  * Get the user or array of users from one or more unique user object IDs.

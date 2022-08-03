@@ -8,7 +8,7 @@ import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
-} from '../../../mongodb/db';
+} from '../../mongodb/db';
 import { merge } from 'merge-anything';
 import { convertNullPrototype } from '../../utils/convertNullPrototype';
 import { insertUserToArray } from '../../utils/insertUserToArray';

@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import passport from 'passport';
-import { IUserDoc } from './mongodb/users';
+import { IUserDoc } from './api/mongodb/users';
 import { getPasswordStatus } from './api/utils/getPasswordStatus';
 import { isArray } from './api/utils/isArray';
 

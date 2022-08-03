@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import { IDeserializedUser } from '../../../passport';
 import { requireAuth } from '../middleware/requireAuth';
 import { requireConstantContactAuth } from '../middleware/requireConstantContactAuth';
-import { IUser } from '../../../mongodb/users';
+import { IUser } from '../../mongodb/users';
 import Cristata from '../../../Cristata';
 
 const CLIENT_ID = process.env.CONSTANT_CONTACT_CLIENT_ID;

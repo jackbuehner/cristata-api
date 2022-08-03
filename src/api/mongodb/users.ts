@@ -2,13 +2,13 @@ import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
 import { merge } from 'merge-anything';
 import mongoose, { PassportLocalDocument } from 'mongoose';
-import helpers, { genCollection } from '../api/graphql/helpers';
-import { Context } from '../api/graphql/server';
-import { CollectionSchemaFields, GitHubTeamNodeID } from '../mongodb/db';
-import { Collection } from '../types/config';
-import { getPasswordStatus } from '../api/utils/getPasswordStatus';
-import { sendEmail } from '../api/utils/sendEmail';
-import { slugify } from '../api/utils/slugify';
+import helpers, { genCollection } from '../graphql/helpers';
+import { Context } from '../graphql/server';
+import { CollectionSchemaFields, GitHubTeamNodeID } from './db';
+import { Collection } from '../../types/config';
+import { getPasswordStatus } from '../utils/getPasswordStatus';
+import { sendEmail } from '../utils/sendEmail';
+import { slugify } from '../utils/slugify';
 
 const users = (tenant: string): Collection => {
   const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication } = helpers;

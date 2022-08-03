@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import passport from 'passport';
 import passportLocalMongoose from 'passport-local-mongoose';
-import { Configuration } from '../types/config';
-import { slugify } from '../api/utils/slugify';
+import { Configuration } from '../../types/config';
+import { slugify } from '../utils/slugify';
 import { createTextIndex } from './createTextIndex';
 
 mongoose.Schema.Types.String.checkRequired((v) => v !== null && v !== undefined);
