@@ -6,20 +6,21 @@ import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import passport from 'passport';
-import { apiRouter3 } from '../graphql/routes';
-import { authRouter } from '../../auth.route';
+import { authRouter } from './routes/auth.route';
 import Cristata from '../../Cristata';
 import { corsConfig } from './middleware/cors';
 import { requireAuth } from './middleware/requireAuth';
 import { IUser } from '../../mongodb/users';
 import '../../passport';
 import { IDeserializedUser } from '../../passport';
-import { proxyRouterFactory } from '../../proxy.route';
+import { proxyRouterFactory } from './routes/proxy.route';
 import { unless } from './middleware/unless';
-import { stripeRouterFactory } from '../../stripe.route';
+import { stripeRouterFactory } from './routes/stripe.route';
 import Stripe from 'stripe';
 import { NextFunction } from 'express-serve-static-core';
 import { calcS3Storage } from '../graphql/resolvers/billing';
+import { constantContactRouterFactory } from './routes/constant-contact.route';
+import { rootRouter } from './routes/root.route';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 
@@ -126,9 +127,10 @@ function createExpressApp(cristata: Cristata): Application {
 
   // connect routers to app
   app.use(`/auth`, authRouter); // authentication routes
-  app.use(`/v3`, apiRouter3(cristata)); // API v3 routes
   app.use(proxyRouterFactory()); // CORS proxy routes
   app.use(stripeRouterFactory(cristata)); // stripe routes
+  app.use(`/v3/constant-contact`, constantContactRouterFactory(cristata)); // constant contact routes
+  app.use(`/v3`, rootRouter); // root v3 routes
 
   app.get(``, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);

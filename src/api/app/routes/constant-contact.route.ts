@@ -3,8 +3,8 @@ import fetch from 'node-fetch';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 import { IDeserializedUser } from '../../../passport';
-import { requireAuth } from '../../app/middleware/requireAuth';
-import { requireConstantContactAuth } from '../../app/middleware/requireConstantContactAuth';
+import { requireAuth } from '../middleware/requireAuth';
+import { requireConstantContactAuth } from '../middleware/requireConstantContactAuth';
 import { IUser } from '../../../mongodb/users';
 import Cristata from '../../../Cristata';
 
@@ -372,4 +372,4 @@ async function getPhysicalAddress(Authorization: string) {
   return validator.parse(res);
 }
 
-export { factory as constantContactRouter, refreshTokens as refreshConstantContactTokens };
+export { factory as constantContactRouterFactory, refreshTokens as refreshConstantContactTokens };
