@@ -2,19 +2,12 @@ import { Application, Router } from 'express';
 import http from 'http';
 import mongoose, { ObjectId } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
-import helpers from './api/v3/helpers';
 import { GenCollectionInput } from './api/v3/helpers/generators/genCollection';
 import { apollo } from './apollo';
 import { createExpressApp } from './app';
 import { createMongooseModels, db } from './mongodb/db';
-import teams from './mongodb/teams.collection.json';
-import { users } from './mongodb/users';
 import { Collection, Configuration } from './types/config';
-import { hasKey } from './utils/hasKey';
-
-function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Collection {
-  return hasKey('typeDefs', toCheck) && hasKey('resolvers', toCheck);
-}
+import { constructCollections } from './utils/constructCollections';
 
 if (!process.env.COOKIE_SESSION_SECRET) throw new Error('COOKIE_SESSION_SECRET not defined in env');
 if (!process.env.MONGO_DB_USERNAME) throw new Error('MONGO_DB_USERNAME not defined in env');
@@ -299,34 +292,7 @@ class Cristata {
   }
 }
 
-function constructCollections(
-  config: Configuration<Collection | GenCollectionInput>,
-  tenant: string
-): Configuration {
-  if (tenant === 'admin') throw new Error('cannot create a database for tenant with name "admin"');
-  if (tenant === 'local') throw new Error('cannot create a database for tenant with name "local"');
-  if (tenant === 'users') throw new Error('cannot create a database for tenant with name "users"');
-
-  return {
-    ...config,
-    collections: [
-      users(tenant),
-      helpers.generators.genCollection(teams as unknown as GenCollectionInput, tenant),
-      ...config.collections
-        .filter((col): col is GenCollectionInput => !!col && !isCollection(col))
-        .filter((col) => col.name !== 'User')
-        .filter((col) => col.name !== 'Team')
-        .map((col) => helpers.generators.genCollection(col, tenant)),
-      ...config.collections
-        .filter((col): col is Collection => isCollection(col))
-        .filter((col) => col.name !== 'User')
-        .filter((col) => col.name !== 'Team'),
-    ],
-  };
-}
-
 // keep errors silent
 process.on('unhandledRejection', (error) => console.error(error));
 
-export { constructCollections };
 export default Cristata;

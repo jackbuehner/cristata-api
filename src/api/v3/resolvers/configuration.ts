@@ -2,7 +2,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import mongoose, { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
 import { Context } from '../../../apollo';
-import { constructCollections } from '../../../Cristata';
+import { constructCollections } from '../../../utils/constructCollections';
 import {
   Collection,
   Configuration,
