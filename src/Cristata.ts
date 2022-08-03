@@ -7,7 +7,7 @@ import { apollo } from './api/graphql/server';
 import { createExpressApp } from './api/app';
 import { createMongooseModels, db } from './mongodb/db';
 import { Collection, Configuration } from './types/config';
-import { constructCollections } from './utils/constructCollections';
+import { constructCollections } from './api/utils/constructCollections';
 
 if (!process.env.COOKIE_SESSION_SECRET) throw new Error('COOKIE_SESSION_SECRET not defined in env');
 if (!process.env.MONGO_DB_USERNAME) throw new Error('MONGO_DB_USERNAME not defined in env');

@@ -2,7 +2,7 @@
 import { Context } from '../server';
 import mongoose, { FilterQuery } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
-import { flattenObject } from '../../../utils/flattenObject';
+import { flattenObject } from '../../utils/flattenObject';
 
 interface FindDocs {
   model: string;

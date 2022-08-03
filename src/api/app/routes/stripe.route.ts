@@ -2,7 +2,7 @@ import express, { Router } from 'express';
 import Stripe from 'stripe';
 import Cristata from '../../../Cristata';
 import { IDeserializedUser } from '../../../passport';
-import { hasKey } from '../../../utils/hasKey';
+import { hasKey } from '../../utils/hasKey';
 
 /**
  * This router contains the routes for stripe.

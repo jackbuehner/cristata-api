@@ -3,7 +3,7 @@ import { Context } from '../server';
 import mongoose from 'mongoose';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
-import { insertUserToArray } from '../../../utils/insertUserToArray';
+import { insertUserToArray } from '../../utils/insertUserToArray';
 interface HideDoc {
   /**
    * The model name for the collection of the doc to be modified.

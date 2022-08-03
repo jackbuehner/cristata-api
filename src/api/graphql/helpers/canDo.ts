@@ -9,8 +9,8 @@ import {
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
 import { CollectionPermissionsActions } from '../../../types/config';
-import { isArray } from '../../../utils/isArray';
-import { isObjectId } from '../../../utils/isObjectId';
+import { isArray } from '../../utils/isArray';
+import { isObjectId } from '../../utils/isObjectId';
 
 interface CanDo {
   model: string;

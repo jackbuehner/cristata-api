@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Context } from '../server';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
-import { slugify } from '../../../utils/slugify';
+import { slugify } from '../../utils/slugify';
 import mongoose from 'mongoose';
 import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
 import {
@@ -10,8 +10,8 @@ import {
   WithPermissionsCollectionSchemaFields,
 } from '../../../mongodb/db';
 import { merge } from 'merge-anything';
-import { convertNullPrototype } from '../../../utils/convertNullPrototype';
-import { insertUserToArray } from '../../../utils/insertUserToArray';
+import { convertNullPrototype } from '../../utils/convertNullPrototype';
+import { insertUserToArray } from '../../utils/insertUserToArray';
 
 interface ModifyDoc<DocType, DataType> {
   model: string;

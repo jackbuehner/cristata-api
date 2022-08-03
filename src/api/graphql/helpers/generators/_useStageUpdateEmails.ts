@@ -2,9 +2,9 @@ import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { get as getProperty } from 'object-path';
 import { Context } from '../../server';
-import { hasKey } from '../../../../utils/hasKey';
-import { isObjectId } from '../../../../utils/isObjectId';
-import { sendEmail } from '../../../../utils/sendEmail';
+import { hasKey } from '../../../utils/hasKey';
+import { isObjectId } from '../../../utils/isObjectId';
+import { sendEmail } from '../../../utils/sendEmail';
 import { GenResolversInput } from './genResolvers';
 
 async function useStageUpdateEmails(

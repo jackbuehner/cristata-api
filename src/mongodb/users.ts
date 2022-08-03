@@ -6,9 +6,9 @@ import helpers, { genCollection } from '../api/graphql/helpers';
 import { Context } from '../api/graphql/server';
 import { CollectionSchemaFields, GitHubTeamNodeID } from '../mongodb/db';
 import { Collection } from '../types/config';
-import { getPasswordStatus } from '../utils/getPasswordStatus';
-import { sendEmail } from '../utils/sendEmail';
-import { slugify } from '../utils/slugify';
+import { getPasswordStatus } from '../api/utils/getPasswordStatus';
+import { sendEmail } from '../api/utils/sendEmail';
+import { slugify } from '../api/utils/slugify';
 
 const users = (tenant: string): Collection => {
   const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication } = helpers;

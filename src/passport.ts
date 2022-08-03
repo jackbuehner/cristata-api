@@ -2,8 +2,8 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import { IUserDoc } from './mongodb/users';
-import { getPasswordStatus } from './utils/getPasswordStatus';
-import { isArray } from './utils/isArray';
+import { getPasswordStatus } from './api/utils/getPasswordStatus';
+import { isArray } from './api/utils/isArray';
 
 // load environmental variables
 dotenv.config();

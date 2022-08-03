@@ -2,7 +2,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import mongoose, { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
 import { Context } from '../server';
-import { constructCollections } from '../../../utils/constructCollections';
+import { constructCollections } from '../../utils/constructCollections';
 import {
   Collection,
   Configuration,
@@ -10,10 +10,10 @@ import {
   ReturnedSubNavGroup,
   SubNavGroup,
 } from '../../../types/config';
-import { camelToDashCase } from '../../../utils/camelToDashCase';
-import { capitalize } from '../../../utils/capitalize';
-import { hasKey } from '../../../utils/hasKey';
-import { isObject } from '../../../utils/isObject';
+import { camelToDashCase } from '../../utils/camelToDashCase';
+import { capitalize } from '../../utils/capitalize';
+import { hasKey } from '../../utils/hasKey';
+import { isObject } from '../../utils/isObject';
 import helpers, { requireAuthentication } from '../helpers';
 import { GenCollectionInput } from '../helpers/generators/genCollection';
 

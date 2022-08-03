@@ -1,5 +1,5 @@
 import mongoose, { SchemaDefinition } from 'mongoose';
-import { hasKey } from '../../../../utils/hasKey';
+import { hasKey } from '../../../utils/hasKey';
 import { SetterCondition } from './conditionallyModifyDocField';
 import { genSchemaFields } from './genSchemaFields';
 import { genTypeDefs } from './genTypeDefs/genTypeDefs';
