@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { refreshConstantContactTokens } from '../api/graphql/routes/constant-contact.route';
-import { IDeserializedUser } from '../passport';
+import { refreshConstantContactTokens } from '../../graphql/routes/constant-contact.route';
+import { IDeserializedUser } from '../../../passport';
 
 async function requireConstantContactAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {

@@ -8,7 +8,7 @@ import { GraphQLPlayground, LogErrorsToConsole } from '../plugins';
 import { collectionResolvers } from '../resolvers';
 import { collectionTypeDefs } from '../typeDefs';
 import Cristata from '../../../Cristata';
-import { corsConfig } from '../../../middleware/cors';
+import { corsConfig } from '../../app/middleware/cors';
 
 /**
  * Starts the Apollo GraphQL server.
