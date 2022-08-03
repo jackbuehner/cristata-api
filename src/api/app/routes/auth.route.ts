@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
 import passport from 'passport';
 import { requireAuth } from '../middleware/requireAuth';
-import { deserializeUser, IDeserializedUser } from '../../../passport';
+import { deserializeUser, IDeserializedUser } from '../passport';
 
 // load environmental variables
 dotenv.config();

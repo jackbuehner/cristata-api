@@ -2,7 +2,7 @@ import { ContextFunction } from 'apollo-server-core';
 import { ExpressContext } from 'apollo-server-express';
 import mongoose from 'mongoose';
 import Cristata from '../../../Cristata';
-import { IDeserializedUser } from '../../../passport';
+import { IDeserializedUser } from '../../app/passport';
 import { Configuration } from '../../../types/config';
 
 interface Input extends ExpressContext {

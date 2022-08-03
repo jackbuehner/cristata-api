@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import Stripe from 'stripe';
 import Cristata from '../../../Cristata';
-import { IDeserializedUser } from '../../../passport';
+import { IDeserializedUser } from '../passport';
 import { hasKey } from '../../utils/hasKey';
 
 /**

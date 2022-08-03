@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { IDeserializedUser } from '../../../passport';
+import { IDeserializedUser } from '../passport';
 
 /**
  * Middleware to be use on specific routes to require authentication.

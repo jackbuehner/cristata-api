@@ -2,7 +2,7 @@ import { Router } from 'express';
 import fetch from 'node-fetch';
 import { z } from 'zod';
 import mongoose from 'mongoose';
-import { IDeserializedUser } from '../../../passport';
+import { IDeserializedUser } from '../passport';
 import { requireAuth } from '../middleware/requireAuth';
 import { requireConstantContactAuth } from '../middleware/requireConstantContactAuth';
 import { IUser } from '../../mongodb/users';

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import { IUser } from '../../mongodb/users';
-import { IDeserializedUser } from '../../../passport';
+import { IDeserializedUser } from '../passport';
 import https from 'https';
 
 /**
