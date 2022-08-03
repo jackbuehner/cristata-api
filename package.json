@@ -11,7 +11,7 @@
     "release": "standard-version",
     "start": "cross-env APP_URL=${APP_URL:=https://cristata.app} node dist/api/index.js",
     "dev:prepare": "tsc",
-    "dev": "npm run dev:prepare && tsc --watch & cross-env PORT=${PORT:=3000} APP_URL=${APP_URL:=https://cristata.app} NODE_ENV=development nodemon dist/start.js",
+    "dev": "npm run dev:prepare && tsc --watch & cross-env PORT=${PORT:=3000} APP_URL=${APP_URL:=https://cristata.app} NODE_ENV=development nodemon dist/api/index.js",
     "build": "tsc --build && tsc --declaration && cross-env NODE_ENV=production npm run lint",
     "check": "tsc && npm run lint",
     "test": "jest",
