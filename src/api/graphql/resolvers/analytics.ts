@@ -1,6 +1,6 @@
 import { ForbiddenError } from 'apollo-server-errors';
 import crypto from 'crypto';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import { requireAuthentication } from '../helpers';
 
 const analytics = {

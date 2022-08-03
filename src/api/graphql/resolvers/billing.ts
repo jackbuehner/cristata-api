@@ -2,7 +2,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import aws from 'aws-sdk';
 import mongoose from 'mongoose';
 import Stripe from 'stripe';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import { requireAuthentication } from '../helpers';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 

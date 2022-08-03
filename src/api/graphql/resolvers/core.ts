@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
 import mongoose from 'mongoose';
 import { getUsers } from '../helpers';

@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import mongoose from 'mongoose';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { insertUserToArray } from '../../../utils/insertUserToArray';
-
-interface ArchiveDoc {
+interface HideDoc {
   /**
    * The model name for the collection of the doc to be modified.
    */
@@ -24,28 +23,21 @@ interface ArchiveDoc {
   };
   /**
    * Whether the document with the matching accessor key and value
-   * should be archived.
+   * should be hidden.
    * @default true
    */
-  archive?: boolean;
+  hide?: boolean;
   /**
    * An Apollo context object.
    */
   context: Context;
 }
 
-/**
- * This helper archives a specified document by adding `archived: true` to the document.
- * This action can be undone.
- *
- * This helper will not work if there are not archive permissions listen in the
- * collection's configuration object (archive is optional).
- */
-async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
+async function hideDoc({ model, accessor, hide, context }: HideDoc) {
   requireAuthentication(context);
 
   // set defaults
-  if (archive === undefined) archive = true;
+  if (hide === undefined) hide = true;
   if (accessor.key === undefined) accessor.key = '_id';
 
   // get the document
@@ -54,7 +46,7 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   // throw error if user cannot view the doc
   if (!doc)
     throw new ApolloError(
-      'the document you are trying to archive does not exist or you do not have access',
+      'the document you are trying to hide does not exist or you do not have access',
       'DOCUMENT_NOT_FOUND'
     );
 
@@ -64,15 +56,15 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
     const isPublished = !!doc.timestamps.published_at;
 
     if (isPublished && !(await canDo({ action: 'publish', model, context, doc: doc as never })))
-      throw new ForbiddenError('you cannot archive this document when it is published');
+      throw new ForbiddenError('you cannot hide this document when it is published');
   }
 
-  // if the user cannot hide documents in the collection, return an error
-  if (!(await canDo({ action: 'archive', model, context, doc: doc as never })))
-    throw new ForbiddenError('you cannot archive this document');
+  // if the user cannot hide this document, return an error
+  if (!(await canDo({ action: 'hide', model, context, doc: doc as never })))
+    throw new ForbiddenError('you cannot hide this document');
 
   // set the hidden property in the document
-  doc.archived = archive;
+  doc.hidden = hide;
 
   // set relevant collection metadata
   doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
@@ -80,7 +72,7 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   doc.history = [
     ...doc.history,
     {
-      type: archive ? 'archive' : 'unarchive',
+      type: 'hidden',
       user: context.profile._id,
       at: new Date().toISOString(),
     },
@@ -90,4 +82,4 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   return await doc.save();
 }
 
-export { archiveDoc };
+export { hideDoc };

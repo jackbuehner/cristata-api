@@ -6,7 +6,7 @@ import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import passport from 'passport';
-import { apiRouter3 } from './api/v3/routes';
+import { apiRouter3 } from './api/graphql/routes';
 import { authRouter } from './auth.route';
 import Cristata from './Cristata';
 import { corsConfig } from './middleware/cors';
@@ -19,7 +19,7 @@ import { unless } from './middleware/unless';
 import { stripeRouterFactory } from './stripe.route';
 import Stripe from 'stripe';
 import { NextFunction } from 'express-serve-static-core';
-import { calcS3Storage } from './api/v3/resolvers/billing';
+import { calcS3Storage } from './api/graphql/resolvers/billing';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 

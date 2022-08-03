@@ -1,4 +1,4 @@
-import helpers from '../';
+import helpers from '..';
 import { Collection, CollectionPermissions } from '../../../../types/config';
 import { GenSchemaInput } from './genSchema';
 

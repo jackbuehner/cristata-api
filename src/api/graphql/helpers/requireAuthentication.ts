@@ -1,5 +1,5 @@
 import { AuthenticationError } from 'apollo-server-errors';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 
 function requireAuthentication(context: Context): void {
   if (!context.isAuthenticated) throw new AuthenticationError('you must be logged in');

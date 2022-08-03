@@ -1,5 +1,5 @@
-import helpers from '../api/v3/helpers';
-import { GenCollectionInput } from '../api/v3/helpers/generators/genCollection';
+import helpers from '../api/graphql/helpers';
+import { GenCollectionInput } from '../api/graphql/helpers/generators/genCollection';
 import teams from '../mongodb/teams.collection.json';
 import { users } from '../mongodb/users';
 import { Collection, Configuration } from '../types/config';

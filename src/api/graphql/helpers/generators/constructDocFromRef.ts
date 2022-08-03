@@ -1,5 +1,5 @@
 import { get as getProperty, set as setProperty } from 'object-path';
-import { Context } from '../../../../apollo';
+import { Context } from '../../server';
 import { CollectionDoc, findDoc } from '..';
 
 interface ConstructDocFromRef {

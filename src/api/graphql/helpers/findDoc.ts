@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import mongoose, { FilterQuery } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 

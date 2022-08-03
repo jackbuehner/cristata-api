@@ -2,7 +2,7 @@ import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { get as getProperty } from 'object-path';
 import { requireAuthentication } from '.';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,

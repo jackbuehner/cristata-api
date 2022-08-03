@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { canDo, findDoc } from '.';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 
 interface GetCollectionActionAccess {
   model: string;

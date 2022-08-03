@@ -1,6 +1,6 @@
 import { ApolloError } from 'apollo-server-errors';
 import aws from 'aws-sdk';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import { requireAuthentication } from '../helpers';
 
 const s3 = {

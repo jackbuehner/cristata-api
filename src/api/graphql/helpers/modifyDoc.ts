@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { slugify } from '../../../utils/slugify';
 import mongoose from 'mongoose';

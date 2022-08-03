@@ -2,13 +2,13 @@
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import { ApolloServer as Apollo } from 'apollo-server-express';
 import { Router } from 'express';
-import { context } from './api/v3/graphql/context';
-import { makeGraphSchema } from './api/v3/graphql/makeGraphSchema';
-import { GraphQLPlayground, LogErrorsToConsole } from './api/v3/graphql/plugins';
-import { collectionResolvers } from './api/v3/resolvers';
-import { collectionTypeDefs } from './api/v3/typeDefs';
-import Cristata from './Cristata';
-import { corsConfig } from './middleware/cors';
+import { context } from './context';
+import { makeGraphSchema } from './makeGraphSchema';
+import { GraphQLPlayground, LogErrorsToConsole } from '../plugins';
+import { collectionResolvers } from '../resolvers';
+import { collectionTypeDefs } from '../typeDefs';
+import Cristata from '../../../Cristata';
+import { corsConfig } from '../../../middleware/cors';
 
 /**
  * Starts the Apollo GraphQL server.
@@ -58,5 +58,5 @@ async function apollo(
 const collectionPeopleResolvers = collectionResolvers.CollectionPeople;
 const publishableCollectionPeopleResolvers = collectionResolvers.PublishableCollectionPeople;
 
-export type { Context } from './api/v3/graphql/context';
+export type { Context } from './context';
 export { apollo, collectionPeopleResolvers, collectionTypeDefs, publishableCollectionPeopleResolvers };

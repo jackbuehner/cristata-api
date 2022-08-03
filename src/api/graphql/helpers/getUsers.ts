@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import { IUser, IUserDoc } from '../../../mongodb/users';
 
 /**

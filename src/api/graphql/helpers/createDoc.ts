@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import mongoose from 'mongoose';
 import { requireAuthentication } from '.';
 

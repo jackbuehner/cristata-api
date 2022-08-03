@@ -2,7 +2,7 @@ import pluralize from 'pluralize';
 import { uncapitalize } from '../../../utils/uncapitalize';
 import { get as getProperty } from 'object-path';
 import { camelToDashCase } from '../../../utils/camelToDashCase';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 
 interface WriteEmailBody {
   model: string;

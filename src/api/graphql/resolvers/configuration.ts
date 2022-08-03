@@ -1,7 +1,7 @@
 import { ForbiddenError } from 'apollo-server-errors';
 import mongoose, { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
-import { Context } from '../../../apollo';
+import { Context } from '../server';
 import { constructCollections } from '../../../utils/constructCollections';
 import {
   Collection,

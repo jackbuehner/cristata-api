@@ -1,5 +1,5 @@
 import { CollectionDoc, Helpers } from '..';
-import { collectionPeopleResolvers, Context, publishableCollectionPeopleResolvers } from '../../../../apollo';
+import { collectionPeopleResolvers, Context, publishableCollectionPeopleResolvers } from '../../server';
 import mongoose from 'mongoose';
 import {
   GenSchemaInput,
