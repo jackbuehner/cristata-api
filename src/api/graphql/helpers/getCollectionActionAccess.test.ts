@@ -79,5 +79,8 @@ describe(`api >> v3 >> helpers >> getCollectionActionAccess`, () => {
       context,
     });
     expect(actionAccess).toHaveProperty('get');
+
+    await doc1.delete();
+    await doc2.delete();
   });
 });

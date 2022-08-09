@@ -285,7 +285,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
 
     // find the doc
     const found = await findDoc({ model: colName, _id: newDoc._id, context, fullAccess: true, lean: false });
-    expect(found).toBeInstanceOf(Document);
+    expect(found.constructor.name).toEqual(Document.name);
 
     // cleanup
     await newDoc.delete();

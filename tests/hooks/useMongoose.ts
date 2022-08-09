@@ -2,10 +2,10 @@ import mongoose, { Model } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import {
   collectionSchemaFields,
-  convertTopNestedObjectsToSubdocuments,
   publishableCollectionSchemaFields,
   withPermissionsCollectionSchemaFields,
-} from '../../src/api/mongodb/db';
+} from '../../src/api/mongodb/helpers/constructBasicSchemaFields';
+import { convertTopNestedObjectsToSubdocuments } from '../../src/api/mongodb/helpers/convertTopNestedObjectsToSubdocuments';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { SchemaDefinitionProperty } from 'mongoose';
 import { merge } from 'merge-anything';

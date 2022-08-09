@@ -151,11 +151,13 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     await newDoc.save();
 
     // archive the doc
-    const found = await archiveDoc({
-      model: colName,
-      accessor: { key: 'slug', value: 'new-document' },
-      context,
-    });
+    const found = (
+      await archiveDoc({
+        model: colName,
+        accessor: { key: 'slug', value: 'new-document' },
+        context,
+      })
+    ).toObject();
     expect(found).toHaveProperty('_id', newDoc._id);
     expect(found).toHaveProperty('slug', 'new-document');
     expect(found).toHaveProperty('archived', true);
@@ -186,7 +188,9 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     await newDoc.save();
 
     // archive the doc
-    const found = await archiveDoc({ model: colName, accessor: { key: 'num', value: 2 }, context });
+    const found = (
+      await archiveDoc({ model: colName, accessor: { key: 'num', value: 2 }, context })
+    ).toObject();
     expect(found).toHaveProperty('_id', newDoc._id);
     expect(found).toHaveProperty('num', 2);
     expect(found).toHaveProperty('archived', true);
@@ -220,7 +224,9 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     await newDoc.save();
 
     // archive the doc
-    const found = await archiveDoc({ model: colName, accessor: { key: 'date', value: date }, context });
+    const found = (
+      await archiveDoc({ model: colName, accessor: { key: 'date', value: date }, context })
+    ).toObject();
     expect(found).toHaveProperty('_id', newDoc._id);
     expect(found).toHaveProperty('date', date);
     expect(found).toHaveProperty('archived', true);
