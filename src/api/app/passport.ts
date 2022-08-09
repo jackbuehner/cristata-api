@@ -1,7 +1,8 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import passport from 'passport';
-import { IUserDoc } from '../mongodb/users';
+import { TenantDB } from '../mongodb/TenantDB';
+import { IUser } from '../mongodb/users';
 import { getPasswordStatus } from '../utils/getPasswordStatus';
 import { isArray } from '../utils/isArray';
 
@@ -56,9 +57,14 @@ async function deserializeUser(
       return message;
     }
 
+    // connect to the database
+    const tenantDB = new TenantDB(user.tenant);
+    await tenantDB.connect();
+    const Users = await tenantDB.model<IUser>('User');
+    const Teams = await tenantDB.model('Team');
+
     // get the user document
-    const tenantDB = mongoose.connection.useDb(user.tenant, { useCache: true });
-    const doc = (await tenantDB.model('User').findById(user._id)) as IUserDoc;
+    const doc = await Users.findById(user._id);
 
     // handle if doc is undefined
     if (!doc) {
@@ -86,7 +92,7 @@ async function deserializeUser(
     }
 
     // find the user's teams
-    let teams = await tenantDB.model('Team').find({ $or: [{ organizers: user._id }, { members: user._id }] });
+    let teams = await Teams.find({ $or: [{ organizers: user._id }, { members: user._id }] });
 
     // if teams is undefined or null, log error and set to empty array
     if (!teams) {

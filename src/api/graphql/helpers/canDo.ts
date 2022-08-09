@@ -7,10 +7,11 @@ import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
-} from '../../mongodb/db';
+} from '../../mongodb/helpers/constructBasicSchemaFields';
 import { CollectionPermissionsActions } from '../../types/config';
 import { isArray } from '../../utils/isArray';
 import { isObjectId } from '../../utils/isObjectId';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 interface CanDo {
   model: string;
@@ -21,7 +22,8 @@ interface CanDo {
 
 async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
   requireAuthentication(context);
-  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+  const tenantDB = new TenantDB(context.tenant, context.config.collections);
+  await tenantDB.connect();
 
   // get the permsissions for the collection
   const permissions = context.config.collections.find((collection) => collection.name === model).actionAccess;
@@ -79,7 +81,7 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
           tp
             .filter((team) => typeof team === 'string' && !isObjectId(team))
             .map(async (slug) => {
-              const foundTeam = await tenantDB.model('Team').findOne({ slug });
+              const foundTeam = await (await tenantDB.model('Team')).findOne({ slug });
               const teamId: mongoose.Types.ObjectId | null = foundTeam?._id || null;
               return teamId;
             })

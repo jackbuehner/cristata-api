@@ -3,6 +3,7 @@ import { Context } from '../server';
 import mongoose, { FilterQuery } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { flattenObject } from '../../utils/flattenObject';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 interface FindDocs {
   model: string;
@@ -22,8 +23,9 @@ interface FindDocs {
 
 async function findDocs({ model, args, context, fullAccess, accessRule }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
-  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-  const Model = tenantDB.model<CollectionDoc>(model);
+  const tenantDB = new TenantDB(context.tenant, context.config.collections);
+  await tenantDB.connect();
+  const Model = await tenantDB.model<CollectionDoc>(model);
 
   const { _ids, filter, offset } = args;
   let { limit, sort, page } = args;

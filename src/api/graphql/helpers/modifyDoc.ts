@@ -8,10 +8,11 @@ import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
-} from '../../mongodb/db';
+} from '../../mongodb/helpers/constructBasicSchemaFields';
 import { merge } from 'merge-anything';
 import { convertNullPrototype } from '../../utils/convertNullPrototype';
 import { insertUserToArray } from '../../utils/insertUserToArray';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 interface ModifyDoc<DocType, DataType> {
   model: string;
@@ -35,8 +36,9 @@ async function modifyDoc<DocType, DataType>({
   by,
 }: ModifyDoc<DocType, DataType>) {
   requireAuthentication(context);
-  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-  const Model = tenantDB.model<typeof data>(model);
+  const tenantDB = new TenantDB(context.tenant, context.config.collections);
+  await tenantDB.connect();
+  const Model = await tenantDB.model<typeof data>(model);
 
   // set defaults
   if (publishable === undefined) publishable = false;

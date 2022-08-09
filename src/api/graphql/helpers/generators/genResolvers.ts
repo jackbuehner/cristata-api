@@ -27,6 +27,7 @@ import { flattenObject } from '../../../utils/flattenObject';
 import { isObjectId } from '../../../utils/isObjectId';
 import pluralize from 'pluralize';
 import { useStageUpdateEmails } from './_useStageUpdateEmails';
+import { TenantDB } from '../../../mongodb/TenantDB';
 
 async function construct(
   doc: CollectionDoc | null,
@@ -77,8 +78,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
   const schemaRefs = Object.entries(config.schemaDef).filter(([, fieldDef]) => isSchemaRef(fieldDef)) as Array<
     [string, SchemaRef]
   >;
-
-  const tenantDB = mongoose.connection.useDb(tenant, { useCache: true });
 
   const Query: ResolverType = {};
 
@@ -215,7 +214,10 @@ function genResolvers(config: GenResolversInput, tenant: string) {
           helpers.requireAuthentication(context);
         }
 
-        const Model = tenantDB.model<CollectionDoc>(name);
+        const tenantDB = new TenantDB(tenant, context.config.collections);
+        await tenantDB.connect();
+        const Model = await tenantDB.model<CollectionDoc>(name);
+
         const argNames = query.accepts?.split(',').map((field) => field.split(':')[0]) || [];
 
         let populatedPipline = query.pipeline;
@@ -378,7 +380,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 
 type ResolverType = Record<string, (parent, args, context: Context, info) => Promise<unknown | unknown[]>>;
 function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverType {
-  const tenantDB = mongoose.connection.useDb(tenant, { useCache: true });
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
 
   /**
@@ -412,11 +413,14 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
                *
                * The collection is considered to be the name of the type.
                */
-              [fieldName]: async (parent) => {
+              [fieldName]: async (parent, args, context: Context) => {
+                const tenantDB = new TenantDB(tenant, context.config.collections);
+                await tenantDB.connect();
+
                 // get the model from the type
                 // * the provided type MUST be the name of a model (sans square brackets)
                 const modelName = def.type[0].replace('[', '').replace(']', '');
-                const Model = tenantDB.model(modelName);
+                const Model = await tenantDB.model(modelName);
 
                 // if the model does not exist, return a schema error
                 if (!Model)
@@ -463,11 +467,14 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
              *
              * The collection is considered to be the name of the type.
              */
-            [fieldName]: async (parent) => {
+            [fieldName]: async (parent, args, context: Context) => {
+              const tenantDB = new TenantDB(tenant, context.config.collections);
+              await tenantDB.connect();
+
               // get the model from the type
               // * the provided type MUST be the name of a model (sans square brackets)
               const modelName = def.type[0].replace('[', '').replace(']', '');
-              const Model = tenantDB.model(modelName);
+              const Model = await tenantDB.model(modelName);
 
               // if the model does not exist, return a schema error
               if (!Model)

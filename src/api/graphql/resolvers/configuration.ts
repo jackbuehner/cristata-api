@@ -1,5 +1,5 @@
 import { ForbiddenError } from 'apollo-server-errors';
-import mongoose, { ObjectId } from 'mongoose';
+import { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
 import { Context } from '../server';
 import { constructCollections } from '../../utils/constructCollections';
@@ -16,6 +16,7 @@ import { hasKey } from '../../utils/hasKey';
 import { isObject } from '../../utils/isObject';
 import helpers, { requireAuthentication } from '../helpers';
 import { GenCollectionInput } from '../helpers/generators/genCollection';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 const configuration = {
   Query: {
@@ -67,7 +68,10 @@ const configuration = {
       const isAdmin = context.profile.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
-      const tenantsCollection = mongoose.connection.db.collection<{
+      const appDb = new TenantDB('app');
+      const appConn = await appDb.connect();
+
+      const tenantsCollection = appConn.db.collection<{
         _id: ObjectId;
         name: string;
         config: Configuration;
@@ -152,7 +156,10 @@ const configuration = {
       const isAdmin = context.profile.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
-      const tenantsCollection = mongoose.connection.db.collection<{
+      const appDb = new TenantDB('app');
+      const appConn = await appDb.connect();
+
+      const tenantsCollection = appConn.db.collection<{
         _id: ObjectId;
         name: string;
         config: Configuration;
@@ -190,8 +197,9 @@ const configuration = {
       );
 
       // drop the collection from the database
-      const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-      tenantDB.dropCollection(name);
+      const tenantDB = new TenantDB(context.tenant, context.config.collections);
+      const conn = await tenantDB.connect();
+      conn.dropCollection(name);
     },
     setSecret: async (_: unknown, { key, value }: { key: string; value: Collection }, context: Context) => {
       requireAuthentication(context);

@@ -3,6 +3,7 @@ import { Context } from '../server';
 import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
 import mongoose from 'mongoose';
 import { getUsers } from '../helpers';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 const core = {
   Date: DateScalar,
@@ -17,8 +18,9 @@ const core = {
 
       const collectionNamesPluralized = collectionNames.map((name) => mongoose.pluralize()(name));
 
-      const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-      const Model = tenantDB.model(collectionNames[0]);
+      const tenantDB = new TenantDB(context.tenant, context.config.collections);
+      await tenantDB.connect();
+      const Model = await tenantDB.model(collectionNames[0]);
 
       const pipeline: mongoose.PipelineStage[] = [
         { $addFields: { in: collectionNamesPluralized[0] } },

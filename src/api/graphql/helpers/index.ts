@@ -2,7 +2,7 @@ import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
-} from '../../mongodb/db';
+} from '../../mongodb/helpers/constructBasicSchemaFields';
 
 import { archiveDoc } from './archiveDoc';
 import { createDoc } from './createDoc';

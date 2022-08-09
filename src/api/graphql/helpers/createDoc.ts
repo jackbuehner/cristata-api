@@ -3,6 +3,7 @@
 import { Context } from '../server';
 import mongoose from 'mongoose';
 import { requireAuthentication } from '.';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 interface CreateDoc<DataType> {
   model: string;
@@ -18,8 +19,9 @@ interface CreateDoc<DataType> {
 
 async function createDoc<DataType>({ model, args, context, withPermissions, modify }: CreateDoc<DataType>) {
   requireAuthentication(context);
-  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-  const Model = tenantDB.model(model);
+  const tenantDB = new TenantDB(context.tenant, context.config.collections);
+  await tenantDB.connect();
+  const Model = await tenantDB.model(model);
 
   // refuse to create additional document for singleDocument collections
   if (

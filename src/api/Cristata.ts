@@ -1,11 +1,11 @@
 import { Application, Router } from 'express';
 import http from 'http';
-import mongoose, { ObjectId } from 'mongoose';
+import { ObjectId } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
+import { createExpressApp } from './app';
 import { GenCollectionInput } from './graphql/helpers/generators/genCollection';
 import { apollo } from './graphql/server';
-import { createExpressApp } from './app';
-import { createMongooseModels, db } from './mongodb/db';
+import { connectDb } from './mongodb/connectDB';
 import { Collection, Configuration } from './types/config';
 import { constructCollections } from './utils/constructCollections';
 
@@ -166,9 +166,9 @@ class Cristata {
    * Connect to the database and initialize mongoose.
    */
   async #connectDb(): Promise<void> {
-    if (process.env.TENANT) await db(process.env.TENANT);
+    if (process.env.TENANT) await connectDb(process.env.TENANT);
     else {
-      await db();
+      const appConn = await connectDb('app');
 
       if (process.env.NODE_ENV === 'development') {
         console.clear();
@@ -176,7 +176,7 @@ class Cristata {
       }
 
       // get the tenants
-      this.tenantsCollection = mongoose.connection.db.collection('tenants');
+      this.tenantsCollection = appConn.db.collection('tenants');
       const tenants = await this.tenantsCollection
         .find<{ _id: ObjectId; name: string; config: Configuration }>({})
         .toArray();
@@ -196,10 +196,6 @@ class Cristata {
     if (process.env.NODE_ENV === 'development') {
       console.clear();
     }
-
-    // for each tenant with a config, create mongoose models
-    const configs = Object.entries(this.config);
-    await Promise.all(configs.map(async ([tenant, config]) => await createMongooseModels(config, tenant)));
   }
 
   /**
@@ -289,9 +285,6 @@ class Cristata {
 
           // restart apollo so it uses the newest config
           await this.restartApollo(newTentantDoc.name);
-
-          // recreate mongoose schema and models with newest collection schema
-          await createMongooseModels(newTentantDoc.config, newTentantDoc.name);
         }
       }
     });

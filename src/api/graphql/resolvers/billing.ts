@@ -1,9 +1,9 @@
 import { ForbiddenError } from 'apollo-server-errors';
 import aws from 'aws-sdk';
-import mongoose from 'mongoose';
 import Stripe from 'stripe';
-import { Context } from '../server';
+import { TenantDB } from '../../mongodb/TenantDB';
 import { requireAuthentication } from '../helpers';
+import { Context } from '../server';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 
 const billing = {
@@ -108,13 +108,15 @@ const billing = {
       __: unknown,
       context: Context
     ): Promise<{ database: number; files: number }> => {
-      const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
+      const tenantDB = new TenantDB(context.tenant, context.config.collections);
+      const conn = await tenantDB.connect();
+
       const bucket =
         context.tenant === 'paladin-news' ? 'paladin-photo-library' : `app.cristata.${context.tenant}.photos`;
       const s3Size = await calcS3Storage(bucket, context.config.secrets.aws);
 
       return {
-        database: (await tenantDB.db.stats()).dataSize,
+        database: (await conn.db.stats()).dataSize,
         files: s3Size,
       };
     },

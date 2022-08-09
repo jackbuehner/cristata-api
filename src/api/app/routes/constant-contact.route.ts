@@ -7,6 +7,8 @@ import { requireAuth } from '../middleware/requireAuth';
 import { requireConstantContactAuth } from '../middleware/requireConstantContactAuth';
 import { IUser } from '../../mongodb/users';
 import Cristata from '../../Cristata';
+import { Configuration } from '../../types/config';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 const CLIENT_ID = process.env.CONSTANT_CONTACT_CLIENT_ID;
 const CLIENT_SECRET = process.env.CONSTANT_CONTACT_CLIENT_SECRET;
@@ -57,7 +59,14 @@ function factory(cristata: Cristata): Router {
       if (tokens) {
         // store the tokens in the user
         const user = req.user as IDeserializedUser;
-        storeTokens(user.tenant, user._id, tokens.access_token, tokens.refresh_token, tokens.expires_in);
+        storeTokens(
+          user.tenant,
+          user._id,
+          tokens.access_token,
+          tokens.refresh_token,
+          tokens.expires_in,
+          cristata.config[user.tenant]
+        );
 
         res.send('<script>window.close();</script > ');
         return;
@@ -67,7 +76,9 @@ function factory(cristata: Cristata): Router {
     res.status(500).end();
   });
 
-  router.get('/contact_lists', requireConstantContactAuth, async (req, res) => {
+  router.get('/contact_lists', async (req, res, next) => {
+    requireConstantContactAuth(req, res, next, cristata);
+
     const validator = z.object({
       lists: z
         .object({
@@ -111,7 +122,9 @@ function factory(cristata: Cristata): Router {
     }
   });
 
-  router.get('/account_emails', requireConstantContactAuth, async (req, res) => {
+  router.get('/account_emails', async (req, res, next) => {
+    requireConstantContactAuth(req, res, next, cristata);
+
     const validator = z
       .object({
         email_id: z.number().int().positive(),
@@ -164,7 +177,9 @@ function factory(cristata: Cristata): Router {
     }
   });
 
-  router.post('/emails', requireConstantContactAuth, async (req, res) => {
+  router.post('/emails', async (req, res, next) => {
+    requireConstantContactAuth(req, res, next, cristata);
+
     const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact.access_token}`;
 
     const bodyValidator = z.object({
@@ -324,9 +339,14 @@ async function getRefreshedTokens(refresh_token: string) {
   return validator.parse(res);
 }
 
-async function refreshTokens(tenant: string, user_id: mongoose.Types.ObjectId, refresh_token: string) {
+async function refreshTokens(
+  tenant: string,
+  user_id: mongoose.Types.ObjectId,
+  refresh_token: string,
+  config: Configuration
+) {
   const tokens = await getRefreshedTokens(refresh_token);
-  storeTokens(tenant, user_id, tokens.access_token, tokens.refresh_token, tokens.expires_in);
+  storeTokens(tenant, user_id, tokens.access_token, tokens.refresh_token, tokens.expires_in, config);
 }
 
 async function storeTokens(
@@ -334,12 +354,15 @@ async function storeTokens(
   user_id: mongoose.Types.ObjectId,
   access_token: string,
   refresh_token: string,
-  expires_in: number
+  expires_in: number,
+  config: Configuration
 ) {
   try {
+    const tenantDB = new TenantDB(tenant, config.collections);
+    await tenantDB.connect();
+
     // store the tokens in the user
-    const tenantDB = mongoose.connection.useDb(tenant, { useCache: true });
-    const user = await tenantDB.model<IUser>('User').findById(user_id);
+    const user = await (await tenantDB.model<IUser>('User')).findById(user_id);
     user.constantcontact = {
       access_token: access_token,
       refresh_token: refresh_token,

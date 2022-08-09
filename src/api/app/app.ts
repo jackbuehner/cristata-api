@@ -4,7 +4,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
-import mongoose from 'mongoose';
 import passport from 'passport';
 import { authRouter } from './routes/auth.route';
 import Cristata from '../Cristata';
@@ -21,6 +20,8 @@ import { NextFunction } from 'express-serve-static-core';
 import { calcS3Storage } from '../graphql/resolvers/billing';
 import { constantContactRouterFactory } from './routes/constant-contact.route';
 import { rootRouter } from './routes/root.route';
+import { connectDb } from '../mongodb/connectDB';
+import { TenantDB } from '../mongodb/TenantDB';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
 
@@ -110,11 +111,11 @@ function createExpressApp(cristata: Cristata): Application {
   // store session in the client cookie
   app.use(
     cookieSession({
-      name: '__Host-cristata-session',
+      name: process.env.NODE_ENV === 'production' ? '__Host-cristata-session' : 'cristata-session',
       secret: process.env.COOKIE_SESSION_SECRET,
       path: '/',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
-      secure: true,
+      sameSite: process.env.NODE_ENV === 'production' || !process.env.GITPOD_WORKSPACE_URL ? 'strict' : 'none',
+      secure: process.env.NODE_ENV === 'production' || !!process.env.GITPOD_WORKSPACE_URL,
     })
   );
 
@@ -143,8 +144,8 @@ function createExpressApp(cristata: Cristata): Application {
       tenants
         .filter((tenant) => !!tenant)
         .forEach(async (tenant) => {
-          const tenantDb = mongoose.connection.useDb(tenant, { useCache: true });
-          const tenantDbStats = await tenantDb.db.stats();
+          const conn = await connectDb(tenant);
+          const tenantDbStats = await conn.db.stats();
           const tenantDbSizeGb = tenantDbStats.dataSize / 1000000000;
 
           // get the tenant document
@@ -253,10 +254,11 @@ function createExpressApp(cristata: Cristata): Application {
     req.on('end', async () => {
       try {
         if (req.isAuthenticated()) {
-          const tenantDB = mongoose.connection.useDb((req.user as IDeserializedUser).tenant, {
-            useCache: true,
-          });
-          const user = await tenantDB.model<IUser>('User').findById((req.user as IDeserializedUser)._id, null);
+          const tenantDB = new TenantDB((req.user as IDeserializedUser).tenant);
+          await tenantDB.connect();
+          const Users = await tenantDB.model<IUser>('User');
+
+          const user = await Users.findById((req.user as IDeserializedUser)._id, null);
           const now = new Date();
           if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
             // only update if time is more than 15 seconds away

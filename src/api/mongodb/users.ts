@@ -4,11 +4,12 @@ import { merge } from 'merge-anything';
 import mongoose, { PassportLocalDocument } from 'mongoose';
 import helpers, { genCollection } from '../graphql/helpers';
 import { Context } from '../graphql/server';
-import { CollectionSchemaFields, GitHubTeamNodeID } from './db';
+import { CollectionSchemaFields, GitHubTeamNodeID } from './helpers/constructBasicSchemaFields';
 import { Collection } from '../types/config';
 import { getPasswordStatus } from '../utils/getPasswordStatus';
 import { sendEmail } from '../utils/sendEmail';
 import { slugify } from '../utils/slugify';
+import { TenantDB } from './TenantDB';
 
 const users = (tenant: string): Collection => {
   const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication } = helpers;
@@ -186,8 +187,9 @@ const users = (tenant: string): Collection => {
         });
       },
       userPasswordChange: async (_, { oldPassword, newPassword }, context: Context) => {
-        const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-        const Model = tenantDB.model<IUser & PassportLocalDocument>('User');
+        const tenantDB = new TenantDB(context.tenant, context.config.collections);
+        await tenantDB.connect();
+        const Model = await tenantDB.model<IUser & PassportLocalDocument>('User');
         const user = await Model.findById(context.profile._id);
         const changedUser = (await user.changePassword(oldPassword, newPassword)) as IUser &
           PassportLocalDocument;

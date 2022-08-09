@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import mongoose from 'mongoose';
 import { IUser } from '../../mongodb/users';
 import { IDeserializedUser } from '../passport';
 import https from 'https';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 /**
  * Router for root endpoints for the v3 API.
@@ -12,9 +12,10 @@ const router = Router();
 
 router.get('/user-photo/:user_id', async (req, res) => {
   try {
-    // define model
-    const tenantDB = mongoose.connection.useDb((req.user as IDeserializedUser).tenant, { useCache: true });
-    const User = tenantDB.model<IUser>('User');
+    // connect to database
+    const tenantDB = new TenantDB((req.user as IDeserializedUser).tenant);
+    await tenantDB.connect();
+    const User = await tenantDB.model<IUser>('User');
 
     // make authenticated user available
     const authUser = req.user as IDeserializedUser;

@@ -2,6 +2,7 @@
 import { Context } from '../server';
 import mongoose, { FilterQuery } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
+import { TenantDB } from '../../mongodb/TenantDB';
 
 interface FindDoc {
   model: string;
@@ -27,8 +28,9 @@ async function findDoc({
   lean,
 }: FindDoc): Promise<LeanCollectionDoc | HydratedCollectionDoc> {
   if (!fullAccess) requireAuthentication(context);
-  const tenantDB = mongoose.connection.useDb(context.tenant, { useCache: true });
-  const Model = tenantDB.model<CollectionDoc>(model);
+  const tenantDB = new TenantDB(context.tenant, context.config.collections);
+  await tenantDB.connect();
+  const Model = await tenantDB.model<CollectionDoc>(model);
 
   // whether the collection docs contain the standard teams and user permissions object
   const withStandardPermissions = context.config.collections.find((col) => col.name === model).withPermissions;
