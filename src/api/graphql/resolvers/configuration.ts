@@ -110,13 +110,19 @@ const configuration = {
       else copy.collections[colIndex] = raw;
 
       // update the config in the cristata instance
-      context.cristata.config[context.tenant] = constructCollections(copy, context.tenant);
+      context.cristata.config[context.tenant] = {
+        ...copy,
+        collections: constructCollections(copy.collections, context.tenant),
+      };
       const ret = await context.restartApollo();
 
       // something went wrong
       if (ret instanceof Error) {
         // restore the old config
-        context.cristata.config[context.tenant] = constructCollections(backup, context.tenant);
+        context.cristata.config[context.tenant] = {
+          ...copy,
+          collections: constructCollections(copy.collections, context.tenant),
+        };
 
         // throw the error
         throw ret;
@@ -158,16 +164,19 @@ const configuration = {
       const removed = copy.collections.filter((col) => col.name !== name);
 
       // update the config in the cristata instance
-      context.cristata.config[context.tenant] = constructCollections(
-        { ...copy, collections: removed },
-        context.tenant
-      );
+      context.cristata.config[context.tenant] = {
+        ...copy,
+        collections: constructCollections(removed, context.tenant),
+      };
       const ret = await context.restartApollo();
 
       // something went wrong
       if (ret instanceof Error) {
         // restore the old config
-        context.cristata.config[context.tenant] = constructCollections(backup, context.tenant);
+        context.cristata.config[context.tenant] = {
+          ...copy,
+          collections: constructCollections(backup.collections, context.tenant),
+        };
 
         // throw the error
         throw ret;
@@ -199,7 +208,10 @@ const configuration = {
       );
 
       // update the config in the cristata instance
-      context.cristata.config[context.tenant] = constructCollections(res.value.config, context.tenant);
+      context.cristata.config[context.tenant] = {
+        ...res.value.config,
+        collections: constructCollections(res.value.config.collections, context.tenant),
+      };
       await context.restartApollo();
 
       // return the value that is now available in the cristata instance

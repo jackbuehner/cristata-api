@@ -52,7 +52,10 @@ class Cristata {
       // only require tenant to be in env if a config is provided
       if (!process.env.TENANT) throw new Error('TENANT not defined in env');
 
-      this.config[process.env.TENANT] = constructCollections(config, process.env.TENANT);
+      this.config[process.env.TENANT] = {
+        ...config,
+        collections: constructCollections(config.collections, process.env.TENANT),
+      };
       this.tenants.push(process.env.TENANT);
     }
     // NOTE: tenants will be fetch from the app db if a tenant is not provided to the constructor
@@ -182,7 +185,7 @@ class Cristata {
         .filter((tenant) => !!tenant)
         .forEach(({ name, config }) => {
           // add each tenant to the config
-          this.config[name] = constructCollections(config, name);
+          this.config[name] = { ...config, collections: constructCollections(config.collections, name) };
           this.tenants.push(name);
         });
 
@@ -279,7 +282,10 @@ class Cristata {
           const newTentantDoc = await this.tenantsCollection.findOne({ _id: data.documentKey._id });
 
           // update the config in the cristata instance
-          this.config[newTentantDoc.name] = constructCollections(newTentantDoc.config, newTentantDoc.name);
+          this.config[newTentantDoc.name] = {
+            ...newTentantDoc.config,
+            collections: constructCollections(newTentantDoc.config.collections, newTentantDoc.name),
+          };
 
           // restart apollo so it uses the newest config
           await this.restartApollo(newTentantDoc.name);
