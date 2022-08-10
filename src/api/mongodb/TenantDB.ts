@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import passport from 'passport';
 import { Collection } from '../types/config';
 import { constructCollections } from '../utils/constructCollections';
 import { connectDb } from './connectDB';
@@ -76,6 +77,13 @@ class TenantDB {
 
     // create the model based on the schema
     const Model = connection.model(collection.name, Schema);
+
+    // activate the passport strategy for mongoose users
+    if (collection.name === 'User') {
+      passport.use(
+        (Model as mongoose.PassportLocalModel<mongoose.Document>).createStrategy({ tenant: this.tenant })
+      );
+    }
 
     // create text search index
     createTextIndex(collection, Schema, connection);
