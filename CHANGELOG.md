@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.1.0](https://github.com/jackbuehner/cristata-api/compare/v6.0.0...v6.1.0) (2022-08-17)
+
+
+### Features
+
+* create models as needed instead of on server start ([eff9b32](https://github.com/jackbuehner/cristata-api/commit/eff9b3220c35896d98791ce78045223366289fa8))
+
+
+### Bug Fixes
+
+* only create text index when text fields change ([cfcc693](https://github.com/jackbuehner/cristata-api/commit/cfcc6936a67b20b1d642e051ac8f3190dbf9a1a4))
+* recreate collections after config change ([b738f8e](https://github.com/jackbuehner/cristata-api/commit/b738f8e3decb7884a7b9eb48e49725641537a36d))
+* restore local tenant auth strategy ([4035325](https://github.com/jackbuehner/cristata-api/commit/403532581264c798c2a29f1503b7cb4f13fc87e1))
+
 ## [6.0.0](https://github.com/jackbuehner/cristata-api/compare/v5.13.0...v6.0.0) (2022-08-03)
 
 
