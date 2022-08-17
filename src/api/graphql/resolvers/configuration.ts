@@ -2,7 +2,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
 import { Context } from '../server';
-import { constructCollections } from '../../utils/constructCollections';
+import { constructCollections, convertCollectionToCollectionInput } from '../../utils/constructCollections';
 import {
   Collection,
   Configuration,
@@ -114,6 +114,7 @@ const configuration = {
       else copy.collections[colIndex] = raw;
 
       // update the config in the cristata instance
+      copy.collections.forEach((col) => convertCollectionToCollectionInput(col));
       context.cristata.config[context.tenant] = {
         ...copy,
         collections: constructCollections(copy.collections, context.tenant),
@@ -123,13 +124,21 @@ const configuration = {
       // something went wrong
       if (ret instanceof Error) {
         // restore the old config
+        backup.collections.forEach((col) => convertCollectionToCollectionInput(col));
         context.cristata.config[context.tenant] = {
-          ...copy,
-          collections: constructCollections(copy.collections, context.tenant),
+          ...backup,
+          collections: constructCollections(backup.collections, context.tenant),
         };
 
         // throw the error
         throw ret;
+      }
+
+      // clear the models so that models based on an old version of the config
+      // are not used with the new collection configs
+      const tenantDB = new TenantDB(context.tenant, context.config.collections);
+      for (const modelName in tenantDB.models.keys()) {
+        tenantDB.models.delete(modelName);
       }
 
       if (colIndex === -1) {
