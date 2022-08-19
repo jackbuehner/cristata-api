@@ -13,6 +13,7 @@ import { merge } from 'merge-anything';
 import { convertNullPrototype } from '../../utils/convertNullPrototype';
 import { insertUserToArray } from '../../utils/insertUserToArray';
 import { TenantDB } from '../../mongodb/TenantDB';
+import * as Y from 'yjs';
 
 interface ModifyDoc<DocType, DataType> {
   model: string;
@@ -77,6 +78,19 @@ async function modifyDoc<DocType, DataType>({
         },
       });
     }
+  }
+
+  // merge yjs update into doc
+  try {
+    const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
+    const base64ToUint8 = (str: string): Uint8Array => Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+
+    const ydoc = new Y.Doc(); // create empty doc
+    if (currentDoc.yState) Y.applyUpdate(ydoc, base64ToUint8(currentDoc.yState)); // insert current state into doc
+    Y.applyUpdate(ydoc, base64ToUint8(data.yState)); // apply update to doc
+    data.yState = uint8ToBase64(Y.encodeStateVector(ydoc)); // save state vector into data object
+  } catch (error) {
+    console.error(error);
   }
 
   // set modification metadata

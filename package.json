@@ -95,6 +95,7 @@
     "pluralize": "^8.0.0",
     "stripe": "^9.6.0",
     "typescript-json-schema": "0.53.0",
+    "yjs": "^13.5.41",
     "zod": "^3.17.10"
   },
   "peerDependencies": {

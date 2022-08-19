@@ -29,6 +29,7 @@ const collectionSchemaFields = {
   hidden: { type: Boolean, required: true, default: false },
   locked: { type: Boolean, required: true, default: false },
   archived: { type: Boolean, required: true, default: false },
+  yState: { type: String },
   history: [
     {
       type: { type: String, required: true },
@@ -75,6 +76,7 @@ interface CollectionSchemaFields {
   };
   hidden: boolean;
   locked: boolean;
+  yState?: string;
   history: Array<{
     type: string;
     user: mongoose.Types.ObjectId;

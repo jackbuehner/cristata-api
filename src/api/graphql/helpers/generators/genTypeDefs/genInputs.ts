@@ -42,6 +42,7 @@ function genInputs({ typeName, typeInheritance, forceModify, ...args }: GenInput
     typeInheritance ? `inherits ${typeInheritance}` : ``
   }
     {
+      yState: String
       ${
         // list the field and type for each schema definition
         schemaDefs

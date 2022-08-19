@@ -8,6 +8,7 @@ const collection = gql`
     hidden: Boolean!
     locked: Boolean!
     archived: Boolean!
+    yState: String
     history: [CollectionHistory]
   }
 
