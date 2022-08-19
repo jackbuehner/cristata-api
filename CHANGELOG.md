@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.2.0](https://github.com/jackbuehner/cristata-api/compare/v6.1.0...v6.2.0) (2022-08-19)
+
+
+### Features
+
+* support getting yjs state from api ([7f52565](https://github.com/jackbuehner/cristata-api/commit/7f525659776bad2af17505e25eaa1bb44a88e4f5))
+
 ## [6.1.0](https://github.com/jackbuehner/cristata-api/compare/v6.0.0...v6.1.0) (2022-08-17)
 
 
