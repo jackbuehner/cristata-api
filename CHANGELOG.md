@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.2.1](https://github.com/jackbuehner/cristata-api/compare/v6.2.0...v6.2.1) (2022-08-22)
+
+
+### Bug Fixes
+
+* store entire ydoc state instead of state vector ([6e5eaeb](https://github.com/jackbuehner/cristata-api/commit/6e5eaeb31dd33a393284e5717537661e9cd4deba))
+
 ## [6.2.0](https://github.com/jackbuehner/cristata-api/compare/v6.1.0...v6.2.0) (2022-08-19)
 
 
