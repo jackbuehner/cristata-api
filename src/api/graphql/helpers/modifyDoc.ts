@@ -88,7 +88,7 @@ async function modifyDoc<DocType, DataType>({
     const ydoc = new Y.Doc(); // create empty doc
     if (currentDoc.yState) Y.applyUpdate(ydoc, base64ToUint8(currentDoc.yState)); // insert current state into doc
     Y.applyUpdate(ydoc, base64ToUint8(data.yState)); // apply update to doc
-    data.yState = uint8ToBase64(Y.encodeStateVector(ydoc)); // save state vector into data object
+    data.yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc)); // save state vector into data object
   } catch (error) {
     console.error(error);
   }
