@@ -85,7 +85,7 @@ async function findDoc({
       const collection = context.config.collections.find((col) => col.name === model);
       if (collection?.schemaDef) {
         // add doc data to ydoc shared types
-        addToY({ ydoc, schemaDef: deconstructSchema(collection.schemaDef), inputData: doc });
+        await addToY({ ydoc, schemaDef: deconstructSchema(collection.schemaDef), inputData: doc, context });
 
         // make ydoc available to client
         const encodedBase64State = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
