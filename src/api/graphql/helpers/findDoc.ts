@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Context } from '../server';
+import { ApolloError } from 'apollo-server-core';
 import mongoose, { FilterQuery } from 'mongoose';
+import * as Y from 'yjs';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
-import { ApolloError } from 'apollo-server-core';
+import { deconstructSchema } from '../../utils/deconstructSchema';
+import { addToY } from '../../yjs/addToY';
+import { Context } from '../server';
 
 interface FindDoc {
   model: string;
@@ -72,6 +75,34 @@ async function findDoc({
 
   // get the document as a plain javascript object
   const doc = (await Model.aggregate(pipeline))[0];
+
+  // create yjs doc if it does not exist
+  try {
+    const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
+
+    if (!doc.yState) {
+      const ydoc = new Y.Doc(); // create empty doc
+      const collection = context.config.collections.find((col) => col.name === model);
+      if (collection?.schemaDef) {
+        // add doc data to ydoc shared types
+        addToY({ ydoc, schemaDef: deconstructSchema(collection.schemaDef), inputData: doc });
+
+        // make ydoc available to client
+        const encodedBase64State = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
+        doc.yState = encodedBase64State;
+
+        // also save the ydoc to the database so it can be used next time
+        // instead of needing to be re-created
+        const saveableDoc = await Model.findById(doc._id);
+        if (saveableDoc) {
+          saveableDoc.yState = encodedBase64State;
+          saveableDoc.save();
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
 
   // return the document
   if (lean !== false || doc === undefined) return doc; // also return lean doc if the doc is undefined
