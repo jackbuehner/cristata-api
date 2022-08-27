@@ -24,9 +24,9 @@ class YString<K extends string, V extends string | undefined | null> {
   }
 
   set(key: K, value: V, opt1?: 'code'): string;
-  set(key: K, value: V, opt1?: 'tiptap'): Node;
+  set(key: K, value: V, opt1?: 'tiptap'): string;
   set(key: K, value: V[], opt1?: Option[]): Option[];
-  set(key: K, value: V | V[], opt1?: Option[] | 'code' | 'tiptap'): string | Node | Option[] {
+  set(key: K, value: V | V[], opt1?: Option[] | 'code' | 'tiptap'): string | Option[] {
     const options = Array.isArray(opt1) ? opt1 : undefined;
     const isRichText = opt1 === 'tiptap';
     const isCode = opt1 === 'code';
@@ -82,7 +82,7 @@ class YString<K extends string, V extends string | undefined | null> {
   async get(key: K, isArray: true, isRichText: false, isCode: false): Promise<Option[]>;
   async get(key: K, isArray: boolean, isRichText: boolean, isCode: boolean): Promise<string | Option[]> {
     if (isArray) return this.#ydoc.getArray<Option>(key).toArray();
-    if (isRichText) return await getTipTapEditorJson(key, this.#ydoc, [RichKit.configure({ history: false })]);
+    if (isRichText) return await getTipTapEditorJson(key, this.#ydoc);
     if (isCode) return this.#ydoc.getText(key).toJSON();
     return this.#ydoc.getXmlFragment(key).toDOM().textContent || '';
   }
