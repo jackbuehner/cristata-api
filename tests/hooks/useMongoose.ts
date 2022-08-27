@@ -19,10 +19,10 @@ import { merge } from 'merge-anything';
  */
 function useMongoose(): {
   mongoose: typeof mongoose;
-  mongoServer: MongoMemoryServer;
+  mongoServer: MongoMemoryServer | undefined;
   createModel: CreateModel;
 } {
-  let mongoServer: MongoMemoryServer;
+  let mongoServer: MongoMemoryServer | undefined = undefined;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create({ binary: { downloadDir: './cache/mongodb-binaries' } });
