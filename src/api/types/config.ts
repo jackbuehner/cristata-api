@@ -19,11 +19,11 @@ interface Configuration<CT = Collection> {
     aws?: {
       accessKeyId: string;
       secretAccessKey: string;
-    };
+    } | null;
     fathom?: {
       siteId: string;
       dashboardPassword: string;
-    };
+    } | null;
   };
   tokens?: Array<{
     name: string;

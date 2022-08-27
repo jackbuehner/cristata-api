@@ -70,16 +70,18 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
   doc.locked = lock;
 
   // set relevant collection metadata
-  doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
-  doc.people.last_modified_by = context.profile._id;
-  doc.history = [
-    ...doc.history,
-    {
-      type: 'locked',
-      user: context.profile._id,
-      at: new Date().toISOString(),
-    },
-  ];
+  if (context.profile) {
+    doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
+    doc.people.last_modified_by = context.profile._id;
+    doc.history = [
+      ...(doc.history || []),
+      {
+        type: 'locked',
+        user: context.profile._id,
+        at: new Date().toISOString(),
+      },
+    ];
+  }
 
   // save the document
   return await doc.save();

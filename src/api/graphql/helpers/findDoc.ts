@@ -3,6 +3,7 @@ import { Context } from '../server';
 import mongoose, { FilterQuery } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
+import { ApolloError } from 'apollo-server-core';
 
 interface FindDoc {
   model: string;
@@ -15,8 +16,8 @@ interface FindDoc {
   lean?: boolean;
 }
 
-async function findDoc(params: { lean: false } & FindDoc): Promise<HydratedCollectionDoc>;
-async function findDoc(params: { lean?: true } & FindDoc): Promise<LeanCollectionDoc>;
+async function findDoc(params: { lean: false } & FindDoc): Promise<HydratedCollectionDoc | null | undefined>;
+async function findDoc(params: { lean?: true } & FindDoc): Promise<LeanCollectionDoc | null | undefined>;
 async function findDoc({
   model,
   by,
@@ -26,19 +27,22 @@ async function findDoc({
   fullAccess,
   accessRule,
   lean,
-}: FindDoc): Promise<LeanCollectionDoc | HydratedCollectionDoc> {
+}: FindDoc): Promise<LeanCollectionDoc | HydratedCollectionDoc | null | undefined> {
   if (!fullAccess) requireAuthentication(context);
+
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();
+
   const Model = await tenantDB.model<CollectionDoc>(model);
+  if (!Model) throw new ApolloError('model not found');
 
   // whether the collection docs contain the standard teams and user permissions object
-  const withStandardPermissions = context.config.collections.find((col) => col.name === model).withPermissions;
+  const withStandardPermissions = context.config.collections.find((col) => col.name === model)?.withPermissions;
 
   // whether the current user can bypass the access filter
   const canBypassAccessFilter =
     fullAccess ||
-    context.profile.teams.includes('000000000000000000000001') ||
+    context.profile?.teams.includes('000000000000000000000001') ||
     !withStandardPermissions ||
     (await canDo({ action: 'bypassDocPermissions', model, context }));
 
@@ -49,8 +53,12 @@ async function findDoc({
     ? accessRule
     : {
         $or: [
-          { 'permissions.teams': { $in: [...context.profile.teams, 0, '0'] } },
-          { 'permissions.users': context.profile._id },
+          ...(context.profile
+            ? [
+                { 'permissions.teams': { $in: [...context.profile.teams, 0, '0'] } },
+                { 'permissions.users': context.profile._id },
+              ]
+            : []),
           { 'permissions.users': new mongoose.Types.ObjectId('000000000000000000000000') },
         ],
       };

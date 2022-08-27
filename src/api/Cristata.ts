@@ -13,10 +13,11 @@ if (!process.env.COOKIE_SESSION_SECRET) throw new Error('COOKIE_SESSION_SECRET n
 if (!process.env.MONGO_DB_USERNAME) throw new Error('MONGO_DB_USERNAME not defined in env');
 if (!process.env.MONGO_DB_PASSWORD) throw new Error('MONGO_DB_PASSWORD not defined in env');
 if (!process.env.MONGO_DB_HOST) throw new Error('MONGO_DB_HOST not defined in env');
+if (!process.env.PORT) throw new Error('PORT not defined in env');
 
 class Cristata {
   config: Record<string, Configuration> = {};
-  #express: Application = undefined;
+  #express: Application | undefined = undefined;
   #apolloMiddleware: Record<string, Router> = {};
   #stopApollo: Record<string, () => Promise<void>> = {};
   tenants: string[] = [];
@@ -39,9 +40,15 @@ class Cristata {
         integrations: { id: string; usage_reported_at: string };
       };
       metrics: {
-        [key: number | undefined]: {
-          [key: number | undefined]: { [key: number | undefined]: { billable?: number; total: number } };
-        };
+        [key: number]:
+          | {
+              [key: number]:
+                | {
+                    [key: number]: { billable?: number; total: number } | undefined;
+                  }
+                | undefined;
+            }
+          | undefined;
       };
     };
   }> | null = null;
@@ -112,7 +119,7 @@ class Cristata {
 
     // start the server
     try {
-      this.server.listen(parseInt(process.env.PORT), async () => {
+      this.server.listen(parseInt(process.env.PORT || ''), async () => {
         if (process.env.NODE_ENV === 'development') {
           try {
             console.clear();
@@ -224,9 +231,11 @@ class Cristata {
       await Promise.all(
         this.tenants.map(async (tenant) => {
           try {
-            const tenantDoc = await this.tenantsCollection.findOne({ name: tenant });
-            const hasPaid = tenantDoc.billing.subscription_active;
-            this.hasTenantPaid[tenant] = hasPaid;
+            const tenantDoc = await this.tenantsCollection?.findOne({ name: tenant });
+            if (tenantDoc) {
+              const hasPaid = tenantDoc.billing.subscription_active;
+              this.hasTenantPaid[tenant] = hasPaid;
+            }
           } catch (error) {
             console.error(error);
           }
@@ -267,24 +276,26 @@ class Cristata {
    * when needed.
    */
   async listenForConfigChange(): Promise<void> {
-    this.tenantsCollection.watch().on('change', async (data) => {
+    this.tenantsCollection?.watch().on('change', async (data) => {
       if (data.ns.db === 'app' && data.ns.coll === 'tenants') {
-        const updatedFields = data.updateDescription.updatedFields;
+        const updatedFields = data.updateDescription?.updatedFields;
 
         // handle when a collection config changes
-        if (updatedFields.config?.collections) {
+        if (updatedFields?.config?.collections) {
           // get the updated doc
           // @ts-expect-error the type is wrong
-          const newTentantDoc = await this.tenantsCollection.findOne({ _id: data.documentKey._id });
+          const newTenantDoc = await this.tenantsCollection.findOne({ _id: data.documentKey._id });
 
-          // update the config in the cristata instance
-          this.config[newTentantDoc.name] = {
-            ...newTentantDoc.config,
-            collections: constructCollections(newTentantDoc.config.collections, newTentantDoc.name),
-          };
+          if (newTenantDoc) {
+            // update the config in the cristata instance
+            this.config[newTenantDoc.name] = {
+              ...newTenantDoc.config,
+              collections: constructCollections(newTenantDoc.config.collections, newTenantDoc.name),
+            };
 
-          // restart apollo so it uses the newest config
-          await this.restartApollo(newTentantDoc.name);
+            // restart apollo so it uses the newest config
+            await this.restartApollo(newTenantDoc.name);
+          }
         }
       }
     });

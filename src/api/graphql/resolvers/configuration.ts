@@ -65,7 +65,7 @@ const configuration = {
       context: Context
     ): Promise<GenCollectionInput> => {
       helpers.requireAuthentication(context);
-      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
       const appDb = new TenantDB('app');
@@ -162,7 +162,7 @@ const configuration = {
     },
     deleteCollection: async (_: unknown, { name }: { name: string }, context: Context): Promise<void> => {
       helpers.requireAuthentication(context);
-      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
       const appDb = new TenantDB('app');
@@ -212,24 +212,26 @@ const configuration = {
     },
     setSecret: async (_: unknown, { key, value }: { key: string; value: Collection }, context: Context) => {
       requireAuthentication(context);
-      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
       const tenantsCollection = context.cristata.tenantsCollection;
 
       // update the config in the database
-      const res = await tenantsCollection.findOneAndUpdate(
+      const res = await tenantsCollection?.findOneAndUpdate(
         { name: context.tenant },
         { $set: { [`config.secrets.${key}`]: value } },
         { returnDocument: 'after' }
       );
 
       // update the config in the cristata instance
-      context.cristata.config[context.tenant] = {
-        ...res.value.config,
-        collections: constructCollections(res.value.config.collections, context.tenant),
-      };
-      await context.restartApollo();
+      if (res?.value?.config) {
+        context.cristata.config[context.tenant] = {
+          ...res.value.config,
+          collections: constructCollections(res.value.config.collections, context.tenant),
+        };
+        await context.restartApollo();
+      }
 
       // return the value that is now available in the cristata instance
       return value;
@@ -254,9 +256,9 @@ const configuration = {
         .filter((item) => {
           if (isObject(item.isHidden)) {
             if (typeof item.isHidden.notInTeam === 'string') {
-              return context.profile.teams.includes(item.isHidden.notInTeam);
+              return context.profile?.teams.includes(item.isHidden.notInTeam);
             }
-            return item.isHidden.notInTeam.some((team) => context.profile.teams.includes(team));
+            return item.isHidden.notInTeam.some((team) => context.profile?.teams.includes(team));
           }
           return item.isHidden !== true;
         })
@@ -331,7 +333,7 @@ const configuration = {
   ConfigurationSecurity: {
     introspection: (_: unknown, __: unknown, context: Context): boolean => {
       requireAuthentication(context);
-      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
       try {
@@ -342,7 +344,7 @@ const configuration = {
     },
     secrets: (_: unknown, __: unknown, context: Context): Configuration['secrets'] => {
       requireAuthentication(context);
-      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
       try {
@@ -356,7 +358,7 @@ const configuration = {
     },
     tokens: (_: unknown, __: unknown, context: Context): Configuration['tokens'] => {
       requireAuthentication(context);
-      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
       try {
@@ -376,9 +378,9 @@ const filterHidden = (groups: SubNavGroup[] | undefined, context: Context): SubN
       const enabledGroupItems = group.items.filter((item) => {
         if (isObject(item.isHidden)) {
           if (typeof item.isHidden.notInTeam === 'string') {
-            return context.profile.teams.includes(item.isHidden.notInTeam);
+            return context.profile?.teams.includes(item.isHidden.notInTeam);
           }
-          return item.isHidden.notInTeam.some((team) => context.profile.teams.includes(team));
+          return item.isHidden.notInTeam.some((team) => context.profile?.teams.includes(team));
         }
         return item.isHidden !== true;
       });

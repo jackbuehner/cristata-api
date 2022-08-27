@@ -22,10 +22,10 @@ function writeEmailBody({ model, identifier, fields, isMandatory, data, context 
 
   const view = `
     This view the document, go to
-    <a href="${process.env.APP_URL}/${context.profile.tenant}/cms/collection/${camelToDashCase(
+    <a href="${process.env.APP_URL}/${context.profile?.tenant || '[[TENANT]]'}/cms/collection/${camelToDashCase(
     pluralize(uncapitalize(model))
   )}/${identifier}">
-    ${process.env.APP_URL}/${context.profile.tenant}/cms/collection/${camelToDashCase(
+    ${process.env.APP_URL}/${context.profile?.tenant || '[[TENANT]]'}/cms/collection/${camelToDashCase(
     pluralize(uncapitalize(model))
   )}/${identifier}</a>.
   `;

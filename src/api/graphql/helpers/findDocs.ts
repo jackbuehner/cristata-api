@@ -4,6 +4,7 @@ import mongoose, { FilterQuery } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { flattenObject } from '../../utils/flattenObject';
 import { TenantDB } from '../../mongodb/TenantDB';
+import { ApolloError } from 'apollo-server-core';
 
 interface FindDocs {
   model: string;
@@ -23,9 +24,12 @@ interface FindDocs {
 
 async function findDocs({ model, args, context, fullAccess, accessRule }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
+
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();
+
   const Model = await tenantDB.model<CollectionDoc>(model);
+  if (!Model) throw new ApolloError('model not found');
 
   const { _ids, filter, offset } = args;
   let { limit, sort, page } = args;
@@ -36,12 +40,12 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
   if (!offset && !page) page = 1; // default to page 1
 
   // whether the collection docs contain the standard teams and user permissions object
-  const withStandardPermissions = context.config.collections.find((col) => col.name === model).withPermissions;
+  const withStandardPermissions = context.config.collections.find((col) => col.name === model)?.withPermissions;
 
   // whether the current user can bypass the access filter
   const canBypassAccessFilter =
     fullAccess ||
-    context.profile.teams.includes('000000000000000000000001') ||
+    context.profile?.teams.includes('000000000000000000000001') ||
     !withStandardPermissions ||
     (await canDo({ action: 'bypassDocPermissions', model, context }));
 
@@ -52,8 +56,12 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
     ? accessRule
     : {
         $or: [
-          { 'permissions.teams': { $in: [...context.profile.teams, 0, '0'] } },
-          { 'permissions.users': context.profile._id },
+          ...(context.profile
+            ? [
+                { 'permissions.teams': { $in: [...context.profile.teams, 0, '0'] } },
+                { 'permissions.users': context.profile._id },
+              ]
+            : []),
           { 'permissions.users': new mongoose.Types.ObjectId('000000000000000000000000') },
         ],
       };

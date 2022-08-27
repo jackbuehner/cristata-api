@@ -71,9 +71,15 @@ function genTypeDefs(input: GenSchemaInput): string {
       options: input.options,
       schema: input.schemaDef,
       typeName: input.name,
-      modifyMutationInputTypeName: onlyOneModifiable
-        ? calcGraphFieldType(schemaDefs.find(([, def]) => def.modifiable)[1], { useMongooseType: true })
-        : undefined,
+      modifyMutationInputTypeName: (() => {
+        if (onlyOneModifiable) {
+          const modifiableDef = schemaDefs.find(([, def]) => def.modifiable)?.[1];
+          if (modifiableDef) {
+            return calcGraphFieldType(modifiableDef, { useMongooseType: true });
+          }
+        }
+        return undefined;
+      })(),
     })}
   `;
 }

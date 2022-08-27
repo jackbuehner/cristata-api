@@ -65,14 +65,15 @@ router.post('/local', (req: Request, res: Response, next: NextFunction) => {
     // handle authentication error
     else if (authErr) {
       // map error names to status codes
-      const code = {
-        IncorrectPasswordError: 401,
-        IncorrectUsernameError: 401,
-        NoSaltValueStored: 500,
-        AttemptTooSoonError: 429,
-        TooManyAttemptsError: 429,
+      const code = (name: string) => {
+        if (name === 'IncorrectPasswordError') return 401;
+        if (name === 'IncorrectUsernameError') return 401;
+        if (name === 'NoSaltValueStored') return 500;
+        if (name === 'AttemptTooSoonError') return 429;
+        if (name === 'TooManyAttemptsError') return 429;
+        return 500;
       };
-      handleError(authErr, req, res, true, code[authErr.name]);
+      handleError(authErr, req, res, true, code(authErr.name));
     }
     // don't sign in if user is missing after authentication
     else if (!user) {

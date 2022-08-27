@@ -35,11 +35,14 @@ async function modifyDoc<DocType, DataType>({
   modify,
   _id,
   by,
-}: ModifyDoc<DocType, DataType>) {
+}: ModifyDoc<DocType, DataType>): Promise<HydratedCollectionDoc<DocType> | null> {
   requireAuthentication(context);
+
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();
-  const Model = await tenantDB.model<typeof data>(model);
+
+  const Model = await tenantDB.model<DocType>(model);
+  if (!Model) throw new ApolloError('model not found');
 
   // set defaults
   if (publishable === undefined) publishable = false;
@@ -68,11 +71,15 @@ async function modifyDoc<DocType, DataType>({
       throw new ForbiddenError('you cannot modify published documents in this collection');
     else if (isPublished) {
       // set updated published document metadata
+      if (context.profile) {
+        data = merge(data, {
+          people: {
+            published_by: insertUserToArray(currentDoc.people.published_by, context.profile._id),
+            last_published_by: context.profile._id,
+          },
+        });
+      }
       data = merge(data, {
-        people: {
-          published_by: insertUserToArray(currentDoc.people.published_by, context.profile._id),
-          last_published_by: context.profile._id,
-        },
         timestamps: {
           updated_at: new Date().toISOString(),
         },
@@ -82,30 +89,34 @@ async function modifyDoc<DocType, DataType>({
 
   // merge yjs update into doc
   try {
-    const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
-    const base64ToUint8 = (str: string): Uint8Array => Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+    if (data.yState) {
+      const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
+      const base64ToUint8 = (str: string): Uint8Array => Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
 
-    const ydoc = new Y.Doc(); // create empty doc
-    if (currentDoc.yState) Y.applyUpdate(ydoc, base64ToUint8(currentDoc.yState)); // insert current state into doc
-    Y.applyUpdate(ydoc, base64ToUint8(data.yState)); // apply update to doc
-    data.yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc)); // save state vector into data object
+      const ydoc = new Y.Doc(); // create empty doc
+      if (currentDoc.yState) Y.applyUpdate(ydoc, base64ToUint8(currentDoc.yState)); // insert current state into doc
+      Y.applyUpdate(ydoc, base64ToUint8(data.yState)); // apply update to doc
+      data.yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc)); // save state vector into data object
+    }
   } catch (error) {
     console.error(error);
   }
 
   // set modification metadata
-  data = merge(data, {
-    people: {
-      modified_by: insertUserToArray(currentDoc.people.modified_by, context.profile._id), // adds the user to the array, and then removes duplicates
-      last_modified_by: context.profile._id,
-    },
-    timestamps: {
-      modified_at: new Date().toISOString(),
-    },
-    history: currentDoc.history
-      ? [...currentDoc.history, { type: 'patched', user: context.profile._id, at: new Date().toISOString() }]
-      : [{ type: 'patched', user: context.profile._id, at: new Date().toISOString() }],
-  });
+  if (context.profile) {
+    data = merge(data, {
+      people: {
+        modified_by: insertUserToArray(currentDoc.people.modified_by, context.profile._id), // adds the user to the array, and then removes duplicates
+        last_modified_by: context.profile._id,
+      },
+      timestamps: {
+        modified_at: new Date().toISOString(),
+      },
+      history: currentDoc.history
+        ? [...currentDoc.history, { type: 'patched', user: context.profile._id, at: new Date().toISOString() }]
+        : [{ type: 'patched', user: context.profile._id, at: new Date().toISOString() }],
+    });
+  }
 
   // set the slug if the document is becoming published and it does not already have one
   // (only if the document has a slug property and a name property)
@@ -119,8 +130,15 @@ async function modifyDoc<DocType, DataType>({
   await modify?.(currentDoc as DocType, data as unknown as DataType);
 
   // attempt to patch the article
-  return await Model.findOneAndUpdate({ [by || '_id']: _id }, { $set: data }, { returnOriginal: false });
+  return await Model.findOneAndUpdate(
+    // @ts-expect-error It's difficuly to tell mongoose to use an accessor that might not exist, but it handles it fine
+    { [by || '_id']: _id },
+    { $set: data },
+    { returnOriginal: false }
+  );
 }
+
+type HydratedCollectionDoc<DocType> = mongoose.Document<unknown, unknown, DocType> & DocType;
 
 type CurrentDocType = CollectionSchemaFields &
   PublishableCollectionSchemaFields &

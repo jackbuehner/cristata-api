@@ -24,25 +24,27 @@ const context: ContextFunction<Input, Context> = ({ req, __cristata }) => {
     const [type, token] = req.headers.authorization.split(' ');
     if (type === 'app-token') {
       const matchedToken = config.tokens?.find(({ token: appToken }) => appToken === token);
-      const isAuthenticated = !!matchedToken;
-      const profile: IDeserializedUser = {
-        _id: new mongoose.Types.ObjectId('000000000000000000000000'),
-        email: 'token@cristata.app',
-        methods: ['local'],
-        name: 'TOKEN_' + matchedToken.name,
-        next_step: '',
-        provider: 'local',
-        teams: matchedToken.scope.admin === true ? ['000000000000000000000001'] : [],
-        tenant: tenant,
-        two_factor_authentication: false,
-        username: 'TOKEN_' + matchedToken.name,
-      };
-      return { config, isAuthenticated, profile, tenant, cristata, restartApollo };
+      if (matchedToken) {
+        const isAuthenticated = !!matchedToken;
+        const profile: IDeserializedUser = {
+          _id: new mongoose.Types.ObjectId('000000000000000000000000'),
+          email: 'token@cristata.app',
+          methods: ['local'],
+          name: 'TOKEN_' + matchedToken.name,
+          next_step: '',
+          provider: 'local',
+          teams: matchedToken.scope.admin === true ? ['000000000000000000000001'] : [],
+          tenant: tenant,
+          two_factor_authentication: false,
+          username: 'TOKEN_' + matchedToken.name,
+        };
+        return { config, isAuthenticated, profile, tenant, cristata, restartApollo };
+      }
     }
   }
 
   const isAuthenticated = req.isAuthenticated() && (req.user as IDeserializedUser).tenant === tenant;
-  const profile = req.user as IDeserializedUser;
+  const profile = req.user as IDeserializedUser | undefined;
   return { config, isAuthenticated, profile, tenant, cristata, restartApollo };
 };
 

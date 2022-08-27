@@ -57,7 +57,7 @@ type SetterCondition = LogicalOperator<Field>;
  * TODO: document this function
  */
 function conditionallyModifyDocField(
-  doc: mongoose.Document,
+  doc: mongoose.Document | null,
   data: mongoose.LeanDocument<mongoose.Document>,
   gc: GenSchemaInput
 ): void {
@@ -91,6 +91,9 @@ function process(doc: mongoose.LeanDocument<mongoose.Document>, condition: Sette
     if (logiOpName === '$and') return responses.every((result) => result === true);
     // if $or, only one field needs to pass
     if (logiOpName === '$or') return responses.some((result) => result === true);
+
+    // use false for any other operator name
+    return false;
   });
 
   // return true if the field operators only produced true responses
@@ -175,7 +178,7 @@ function processOperator(
 /**
  * Calculate the default value for a new document.
  */
-function calcSetterValue(val: SetterValueType, data: Record<string, unknown>) {
+function calcSetterValue(val: SetterValueType, data: Record<string, unknown>): unknown {
   // if a string, use the string
   if (typeof val === 'string') return val;
   // if a number, use the number
