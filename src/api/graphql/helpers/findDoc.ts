@@ -80,7 +80,7 @@ async function findDoc({
   try {
     const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
 
-    if (!doc.yState) {
+    if (!doc?.yState) {
       const ydoc = new Y.Doc(); // create empty doc
       const collection = context.config.collections.find((col) => col.name === model);
       if (collection?.schemaDef) {
