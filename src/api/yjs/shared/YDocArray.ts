@@ -1,3 +1,4 @@
+import { set as setProperty } from 'object-path';
 import { v4 as uuidv4 } from 'uuid';
 import * as Y from 'yjs';
 
@@ -17,7 +18,7 @@ import * as Y from 'yjs';
  * identified, we also inject a uuid into each object
  * in the shared array.
  */
-class YDocArray<K extends string, V extends Record<string, unknown>[]> {
+class YDocArray<K extends string, V extends Record<string, 'any'>[]> {
   #ydoc: Y.Doc;
 
   constructor(ydoc: Y.Doc) {
@@ -56,8 +57,24 @@ class YDocArray<K extends string, V extends Record<string, unknown>[]> {
   }
 
   get(key: K): Record<string, unknown>[] {
-    const type = this.#ydoc.getArray<Record<string, unknown>>(key);
-    return type.toArray();
+    const docJson = this.#ydoc.toJSON();
+
+    const type = this.#ydoc.getArray<Record<string, unknown> & { uuid: string }>(key);
+    const arr = type.toArray();
+
+    arr.forEach(({ __uuid, ...rest }, index) => {
+      const keys = Object.keys(rest);
+
+      keys.forEach((k) => {
+        if (k.indexOf('__') !== 0) {
+          const extendedKey = `__docArray.‾‾${key}‾‾.${__uuid}.${k}`;
+          const value = docJson[extendedKey];
+          setProperty(arr, `${index}.${k}`, value);
+        }
+      });
+    });
+
+    return arr;
   }
 
   delete(key: K): void {
