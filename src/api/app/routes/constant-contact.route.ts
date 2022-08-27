@@ -10,8 +10,8 @@ import Cristata from '../../Cristata';
 import { Configuration } from '../../types/config';
 import { TenantDB } from '../../mongodb/TenantDB';
 
-const CLIENT_ID = process.env.CONSTANT_CONTACT_CLIENT_ID;
-const CLIENT_SECRET = process.env.CONSTANT_CONTACT_CLIENT_SECRET;
+const CLIENT_ID = process.env.CONSTANT_CONTACT_CLIENT_ID || '';
+const CLIENT_SECRET = process.env.CONSTANT_CONTACT_CLIENT_SECRET || '';
 const BASIC_AUTH = `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')}`;
 const BASE_URL = `https://api.cc.email/v3`;
 const REDIRECT_URL = (() => {
@@ -100,7 +100,7 @@ function factory(cristata: Cristata): Router {
     });
 
     try {
-      const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact.access_token}`;
+      const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact?.access_token}`;
 
       const contact_lists = await (
         await fetch(BASE_URL + '/contact_lists?limit=50&include_count=true', {
@@ -162,7 +162,7 @@ function factory(cristata: Cristata): Router {
       .array();
 
     try {
-      const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact.access_token}`;
+      const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact?.access_token}`;
 
       const account_emails = await (
         await fetch(BASE_URL + '/account/emails?' + req.query.toString(), {
@@ -180,7 +180,7 @@ function factory(cristata: Cristata): Router {
   router.post('/emails', async (req, res, next) => {
     requireConstantContactAuth(req, res, next, cristata);
 
-    const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact.access_token}`;
+    const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact?.access_token}`;
 
     const bodyValidator = z.object({
       name: z.string().max(80),
@@ -238,8 +238,8 @@ function factory(cristata: Cristata): Router {
           address_line3: physicalAddress.address_line3,
           city: physicalAddress.city,
           country_code: physicalAddress.country_code,
-          postal_code: physicalAddress.postal_code,
-          state_code: physicalAddress.state_code,
+          postal_code: physicalAddress.postal_code || '29613',
+          state_code: physicalAddress.state_code || 'SC',
           state_non_us_name: physicalAddress.state_name,
           organization_name: cristata.config[user.tenant].tenantDisplayName,
         };
@@ -362,13 +362,15 @@ async function storeTokens(
     await tenantDB.connect();
 
     // store the tokens in the user
-    const user = await (await tenantDB.model<IUser>('User')).findById(user_id);
-    user.constantcontact = {
-      access_token: access_token,
-      refresh_token: refresh_token,
-      expires_at: new Date().getTime() + expires_in,
-    };
-    await user.save();
+    const user = await (await tenantDB.model<IUser>('User'))?.findById(user_id);
+    if (user) {
+      user.constantcontact = {
+        access_token: access_token,
+        refresh_token: refresh_token,
+        expires_at: new Date().getTime() + expires_in,
+      };
+      await user.save();
+    }
   } catch (error) {
     console.error(`Failed to to save Constant Contact tokens to user ${user_id}`, error);
   }

@@ -12,6 +12,7 @@ import { CollectionPermissionsActions } from '../../types/config';
 import { isArray } from '../../utils/isArray';
 import { isObjectId } from '../../utils/isObjectId';
 import { TenantDB } from '../../mongodb/TenantDB';
+import { AuthenticationError } from 'apollo-server-core';
 
 interface CanDo {
   model: string;
@@ -21,14 +22,14 @@ interface CanDo {
 }
 
 async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
-  requireAuthentication(context);
+  if (!requireAuthentication(context)) throw new AuthenticationError('unknown');
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();
 
   // get the permsissions for the collection
-  const permissions = context.config.collections.find((collection) => collection.name === model).actionAccess;
-  const tp = permissions[action]?.teams;
-  const up = permissions[action]?.users;
+  const permissions = context.config.collections.find((collection) => collection.name === model)?.actionAccess;
+  const tp = permissions?.[action]?.teams;
+  const up = permissions?.[action]?.users;
 
   // if the user has any `next_step` (aka the account is not fully set up), deny permission
   if (context.profile.next_step) return false;
@@ -81,12 +82,15 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
           tp
             .filter((team) => typeof team === 'string' && !isObjectId(team))
             .map(async (slug) => {
-              const foundTeam = await (await tenantDB.model('Team')).findOne({ slug });
-              const teamId: mongoose.Types.ObjectId | null = foundTeam?._id || null;
-              return teamId;
+              const Team = await tenantDB.model('Team');
+              if (Team) {
+                const foundTeam = await Team.findOne({ slug });
+                const teamId: mongoose.Types.ObjectId | null = foundTeam?._id || null;
+                return teamId;
+              }
             })
         )
-      ).filter((teamId) => !!teamId),
+      ).filter((teamId): teamId is mongoose.Types.ObjectId => !!teamId),
     ];
 
     // return true if the collection permissions includes one of the current user's teams

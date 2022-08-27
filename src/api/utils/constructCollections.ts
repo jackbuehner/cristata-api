@@ -43,9 +43,13 @@ function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Coll
  */
 function convertCollectionToCollectionInput(col: Collection | GenCollectionInput): void {
   if (isCollection(col)) {
+    //@ts-expect-error deleting thse coverts the type from Collection to GenCollectionInput
     delete col.resolvers;
+    //@ts-expect-error deleting thse coverts the type from Collection to GenCollectionInput
     delete col.typeDefs;
+    //@ts-expect-error deleting thse coverts the type from Collection to GenCollectionInput
     delete col.schemaFields;
+    //@ts-expect-error deleting thse coverts the type from Collection to GenCollectionInput
     delete col.textIndexFieldNames;
   }
 }

@@ -14,9 +14,9 @@ function checkSessionCookie(headers: IncomingHttpHeaders): Error | void {
   }
 
   // verify cookie integrity
-  const keygrip = new Keygrip([process.env.COOKIE_SESSION_SECRET]);
+  const keygrip = new Keygrip([process.env.COOKIE_SESSION_SECRET || '']);
   const { name, value, signature } = authCookie;
-  const isUntampered = keygrip.verify(`${name}=${value}`, signature);
+  const isUntampered = keygrip.verify(`${name}=${value}`, signature || '');
   if (!isUntampered) {
     // the cookie has been modified by the client
     return new Error(`SESSION_COOKIE_TAMPERED`);

@@ -19,7 +19,7 @@ interface GenTypesParams {
 /**
  * Generates the types for the collection type definitions.
  */
-function genTypes({ typeName, typeInheritance, customQueries, ...args }: GenTypesParams) {
+function genTypes({ typeName, typeInheritance, customQueries, ...args }: GenTypesParams): string {
   const { schemaDefs, schemaRefs, nestedSchemas, arraySchemas } = parseSchemaComponents(args.schema);
 
   return `
@@ -61,7 +61,7 @@ function genTypes({ typeName, typeInheritance, customQueries, ...args }: GenType
         const isTimestampsField = fieldName === 'timestamps';
         const isPermissionsField = fieldName === 'permissions';
 
-        let nextTypeInheritance: string;
+        let nextTypeInheritance = '';
         if (isPeopleField) {
           if (isPublishableCollection) nextTypeInheritance = `PublishableCollectionPeople`;
           else if (isPlainCollection) nextTypeInheritance = `CollectionPeople`;

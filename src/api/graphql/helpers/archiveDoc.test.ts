@@ -276,7 +276,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
 
     // create and save a doc to find
     const newDoc = new Document();
-    newDoc.set('permissions.users', [context.profile._id]); // give current user access to the doc
+    if (context.profile) newDoc.set('permissions.users', [context.profile._id]); // give current user access to the doc
     expect(newDoc).toHaveProperty('archived', false);
     await newDoc.save();
 
@@ -291,6 +291,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
 
   it('should throw ForbiddenError when no archive permissions are set', async () => {
     // do not use standard permissions
+    //@ts-expect-error disable archive permissions
     c.collection.actionAccess.archive = undefined;
 
     // create the model and context
@@ -299,7 +300,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
 
     // create and save a doc to find
     const newDoc = new Document();
-    newDoc.set('permissions.users', [context.profile._id]); // give current user access to the doc
+    if (context.profile) newDoc.set('permissions.users', [context.profile._id]); // give current user access to the doc
     expect(newDoc).toHaveProperty('archived', false);
     await newDoc.save();
 

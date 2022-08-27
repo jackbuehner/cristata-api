@@ -4,6 +4,7 @@ import { Context } from '../server';
 import mongoose from 'mongoose';
 import { requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
+import { ApolloError } from 'apollo-server-core';
 
 interface CreateDoc<DataType> {
   model: string;
@@ -21,33 +22,39 @@ async function createDoc<DataType>({ model, args, context, withPermissions, modi
   requireAuthentication(context);
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();
+
   const Model = await tenantDB.model(model);
+  if (!Model) throw new ApolloError('model not found');
 
   // refuse to create additional document for singleDocument collections
   if (
-    context.config.collections.find((c) => c.name === model).singleDocument === true &&
+    context.config.collections.find((c) => c.name === model)?.singleDocument === true &&
     (await Model.countDocuments()) > 0
   ) {
     throw new Error('cannot create additional document in singleDocument collection');
   }
 
   // add relevant collection metadata
-  args.people = {
-    created_by: context.profile._id,
-    modified_by: [context.profile._id],
-    last_modified_by: context.profile._id,
-    watching: [context.profile._id],
-  };
-  args.history = [
-    {
-      type: 'created',
-      user: context.profile._id,
-      at: new Date().toISOString(),
-    },
-  ];
+  if (context.profile) {
+    args.people = {
+      created_by: context.profile._id,
+      modified_by: [context.profile._id],
+      last_modified_by: context.profile._id,
+      watching: [context.profile._id],
+    };
+    args.history = [
+      {
+        type: 'created',
+        user: context.profile._id,
+        at: new Date().toISOString(),
+      },
+    ];
+  }
 
   // ensure the current user has permission to view the document
-  if (withPermissions && !args.permissions) args.permissions = { users: [context.profile._id] };
+  if (withPermissions && !args.permissions && context.profile) {
+    args.permissions = { users: [context.profile._id] };
+  }
 
   // create the new doc with the provided data and the schema defaults
   const newDoc = new Model(args);

@@ -4,6 +4,9 @@ import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
 import mongoose from 'mongoose';
 import { getUsers } from '../helpers';
 import { TenantDB } from '../../mongodb/TenantDB';
+import { notEmpty } from '../../utils/notEmpty';
+
+type ActivityArgs = { limit?: number; collections?: string[]; exclude?: string[]; page?: number };
 
 const core = {
   Date: DateScalar,
@@ -11,12 +14,18 @@ const core = {
   JSON: JsonScalar,
   Void: VoidScalar,
   Query: {
-    collectionActivity: async (_, { limit, collections, exclude, page }, context: Context) => {
+    collectionActivity: async (
+      _: never,
+      { limit, collections, exclude, page }: ActivityArgs,
+      context: Context
+    ) => {
       let collectionNames = context.config.collections.map((col) => col.name);
       if (collections) collectionNames = collectionNames.filter((name) => collections.includes(name));
       else if (exclude) collectionNames = collectionNames.filter((name) => !exclude.includes(name));
 
-      const collectionNamesPluralized = collectionNames.map((name) => mongoose.pluralize()(name));
+      const collectionNamesPluralized = collectionNames
+        .map((name) => mongoose.pluralize()?.(name))
+        .filter(notEmpty);
 
       const tenantDB = new TenantDB(context.tenant, context.config.collections);
       await tenantDB.connect();
@@ -45,19 +54,19 @@ const core = {
         },
         { $sort: { at: -1 } },
         {
-          $match: context.profile.teams.includes('000000000000000000000001')
+          $match: context.profile?.teams.includes('000000000000000000000001')
             ? {}
             : {
                 $or: [
-                  { 'permissions.teams': { $in: context.profile.teams } },
-                  { 'permissions.users': context.profile._id },
+                  { 'permissions.teams': { $in: context.profile?.teams || [] } },
+                  { 'permissions.users': context.profile?._id || '000000000000000000000001' },
                 ],
               },
         },
-        { $limit: limit },
+        { $limit: limit || 10 },
       ];
 
-      const aggregate = Model.aggregate(pipeline);
+      const aggregate = Model?.aggregate(pipeline);
 
       // @ts-expect-error aggregatePaginate DOES exist.
       // The types for the plugin have not been updated for newer versions of mongoose.
@@ -65,10 +74,11 @@ const core = {
     },
   },
   CollectionActivity: {
-    user: ({ user }, __, context: Context) => getUsers(user, context),
+    user: ({ user }: { user: mongoose.Types.ObjectId }, __: never, context: Context) => getUsers(user, context),
   },
   CollectionPermissions: {
-    users: ({ users }, __, context: Context) => getUsers(users, context),
+    users: ({ users }: { users: mongoose.Types.ObjectId[] }, __: never, context: Context) =>
+      getUsers(users, context),
   },
 };
 

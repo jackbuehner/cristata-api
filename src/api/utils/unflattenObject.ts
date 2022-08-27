@@ -9,13 +9,10 @@
  */
 function unflattenObject(obj: { [key: string]: unknown }, sep = '.'): { [key: string]: unknown } {
   return Object.keys(obj).reduce((res: { [key: string]: unknown }, key: string) => {
-    key
-      .split(sep)
-      .reduce(
-        (acc: { [key: string]: unknown }, e: string, i: number, keys: string[]) =>
-          acc[e] || (acc[e] = isNaN(Number(keys[i + 1])) ? (keys.length - 1 === i ? obj[key] : {}) : []),
-        res
-      );
+    key.split(sep).reduce((acc: unknown, e: string, i: number, keys: string[]) => {
+      //@ts-expect-error this works fine
+      return acc[e] || (acc[e] = isNaN(Number(keys[i + 1])) ? (keys.length - 1 === i ? obj[key] : {}) : []);
+    }, res);
     return res;
   }, {});
 }

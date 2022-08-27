@@ -18,7 +18,7 @@ interface GenPrunedTypesParams {
 /**
  * Generates the pruned types for the collection type definitions.
  */
-function genPrunedTypes({ typeName, isPublishable, ...args }: GenPrunedTypesParams) {
+function genPrunedTypes({ typeName, isPublishable, ...args }: GenPrunedTypesParams): string {
   const { schemaDefs, schemaRefs, nestedSchemas, arraySchemas } = parseSchemaComponents(args.schema);
   const schemaDefsPublic = schemaDefs.filter(([, fieldDef]) => !!fieldDef.public);
   const schemaRefsPublic = schemaRefs.filter(([, fieldDef]) => !!fieldDef.public);

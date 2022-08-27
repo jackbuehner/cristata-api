@@ -24,7 +24,7 @@ async function createTextIndex(
   const currentDbCollection = tenantDB.collection(pluralize(collection.name).toLowerCase());
   // @ts-expect-error full: true is valid and has an effect
   const existingIndexes = (await currentDbCollection.getIndexes({ full: true })) || [];
-  const existingTextIndex = existingIndexes.find((i) => i.name === 'textIndex');
+  const existingTextIndex = existingIndexes.find((i: { name: string }) => i.name === 'textIndex');
   if (existingTextIndex?.weights) {
     const existingTextIndexFields = Object.keys(existingTextIndex.weights);
     const indexesMatch =

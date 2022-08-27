@@ -32,13 +32,13 @@ function parseCookies(cookies: string): ParsedCookie[] {
         if (mainExists) {
           parsed[mainIndex] = {
             ...parsed[mainIndex],
-            signature: value,
+            signature: value || '',
           };
         } else {
           parsed.push({
             name,
             value: null,
-            signature: value,
+            signature: value || '',
           });
         }
       }

@@ -75,16 +75,18 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   doc.archived = archive;
 
   // set relevant collection metadata
-  doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
-  doc.people.last_modified_by = context.profile._id;
-  doc.history = [
-    ...doc.history,
-    {
-      type: archive ? 'archive' : 'unarchive',
-      user: context.profile._id,
-      at: new Date().toISOString(),
-    },
-  ];
+  if (context.profile) {
+    doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
+    doc.people.last_modified_by = context.profile._id;
+    doc.history = [
+      ...(doc.history || []),
+      {
+        type: archive ? 'archive' : 'unarchive',
+        user: context.profile._id,
+        at: new Date().toISOString(),
+      },
+    ];
+  }
 
   // save the document
   return await doc.save();

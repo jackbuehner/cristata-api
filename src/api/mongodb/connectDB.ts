@@ -1,13 +1,14 @@
 import mongoose from 'mongoose';
 
-async function connectDb(database = `app`, uri = null) {
+async function connectDb(database = `app`, uri: string | null = null) {
   // check if the connection or promise has been stored in
   // node's global variable
   let cached = global.mongoose?.[database];
 
   // create a placeholder object if it does not exist
   if (!cached) {
-    cached = global.mongoose = { conn: null, promise: null };
+    global.mongoose = { ...(global.mongoose || {}), [database]: { conn: null, promise: null } };
+    cached = global.mongoose[database];
   }
 
   // return the connection if it already exists

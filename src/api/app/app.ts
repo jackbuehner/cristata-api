@@ -23,7 +23,7 @@ import { rootRouter } from './routes/root.route';
 import { connectDb } from '../mongodb/connectDB';
 import { TenantDB } from '../mongodb/TenantDB';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
 
 // load environmental variables
 dotenv.config();
@@ -149,10 +149,10 @@ function createExpressApp(cristata: Cristata): Application {
           const tenantDbSizeGb = tenantDbStats.dataSize / 1000000000;
 
           // get the tenant document
-          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+          const tenantDoc = await cristata.tenantsCollection?.findOne({ name: tenant });
 
           // update usage in stripe
-          if (tenantDoc.billing.stripe_subscription_items?.database_usage.id) {
+          if (tenantDoc?.billing.stripe_subscription_items?.database_usage.id) {
             await stripe.subscriptionItems.createUsageRecord(
               tenantDoc.billing.stripe_subscription_items.database_usage.id,
               {
@@ -164,7 +164,7 @@ function createExpressApp(cristata: Cristata): Application {
           }
 
           // update timestamp in the database
-          await cristata.tenantsCollection.updateOne(
+          await cristata.tenantsCollection?.updateOne(
             { name: tenant },
             {
               $set: {
@@ -186,20 +186,20 @@ function createExpressApp(cristata: Cristata): Application {
         .filter((tenant) => !!tenant)
         .forEach(async (tenant) => {
           // get the tenant document
-          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+          const tenantDoc = await cristata.tenantsCollection?.findOne({ name: tenant });
 
           // calculate the current s3 size
           const bucket = tenant === 'paladin-news' ? 'paladin-photo-library' : `app.cristata.${tenant}.photos`;
           const s3Size = await calcS3Storage(bucket, {
-            accessKeyId: process.env.AWS_SECRET_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
           });
           const s3SizeGb = s3Size / 1000000000;
 
           // update usage in stripe
-          if (tenantDoc.billing.stripe_subscription_items?.file_storage?.id) {
+          if (tenantDoc?.billing.stripe_subscription_items?.file_storage?.id) {
             await stripe.subscriptionItems.createUsageRecord(
-              tenantDoc.billing.stripe_subscription_items.file_storage.id,
+              tenantDoc?.billing.stripe_subscription_items.file_storage.id,
               {
                 quantity: Math.ceil(s3SizeGb),
                 action: 'set',
@@ -209,7 +209,7 @@ function createExpressApp(cristata: Cristata): Application {
           }
 
           // update timestamp in the database
-          await cristata.tenantsCollection.updateOne(
+          await cristata.tenantsCollection?.updateOne(
             { name: tenant },
             {
               $set: {
@@ -258,13 +258,15 @@ function createExpressApp(cristata: Cristata): Application {
           await tenantDB.connect();
           const Users = await tenantDB.model<IUser>('User');
 
-          const user = await Users.findById((req.user as IDeserializedUser)._id, null);
-          const now = new Date();
-          if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
-            // only update if time is more than 15 seconds away
-            user.timestamps.last_active_at = now.toISOString();
+          const user = await Users?.findById((req.user as IDeserializedUser)._id, null);
+          if (user) {
+            const now = new Date();
+            if (new Date(user.timestamps.last_active_at).valueOf() < now.valueOf() - 15000) {
+              // only update if time is more than 15 seconds away
+              user.timestamps.last_active_at = now.toISOString();
+            }
+            user.save();
           }
-          user.save();
         }
       } catch (error) {
         console.error(error);
@@ -283,7 +285,8 @@ function createExpressApp(cristata: Cristata): Application {
   function isInternalUse(req: Request) {
     const originHostname = (() => {
       try {
-        return new URL(req.headers.origin).hostname;
+        if (req.headers.origin) return new URL(req.headers.origin).hostname;
+        return 'SERVER_SIDE_REQUEST';
       } catch {
         return 'SERVER_SIDE_REQUEST';
       }
@@ -305,10 +308,10 @@ function createExpressApp(cristata: Cristata): Application {
           const day = new Date().getUTCDate();
 
           // get the tenant document
-          const tenantDoc = await cristata.tenantsCollection.findOne({ name: tenant });
+          const tenantDoc = await cristata.tenantsCollection?.findOne({ name: tenant });
 
           // update usage in stripe
-          if (tenantDoc.billing.stripe_subscription_items?.app_usage?.id) {
+          if (tenantDoc?.billing.stripe_subscription_items?.app_usage?.id) {
             await stripe.subscriptionItems.createUsageRecord(
               tenantDoc.billing.stripe_subscription_items.app_usage.id,
               {
@@ -320,7 +323,7 @@ function createExpressApp(cristata: Cristata): Application {
           }
 
           // update usage in the database
-          await cristata.tenantsCollection.findOneAndUpdate(
+          await cristata.tenantsCollection?.findOneAndUpdate(
             { name: tenant },
             {
               $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 },
@@ -334,7 +337,7 @@ function createExpressApp(cristata: Cristata): Application {
           if (!isInternalUse(req) && process.env.NODE_ENV !== 'development') {
             {
               // update usage in stripe
-              if (tenantDoc.billing.stripe_subscription_items?.api_usage?.id) {
+              if (tenantDoc?.billing.stripe_subscription_items?.api_usage?.id) {
                 await stripe.subscriptionItems.createUsageRecord(
                   tenantDoc.billing.stripe_subscription_items.api_usage.id,
                   {
@@ -346,7 +349,7 @@ function createExpressApp(cristata: Cristata): Application {
               }
 
               // update usage in the database
-              await cristata.tenantsCollection.updateOne(
+              await cristata.tenantsCollection?.updateOne(
                 { name: tenant },
                 {
                   $inc: {

@@ -26,7 +26,9 @@ function genSchemaFields(input: GenSchemaInput): {
 
   const textIndexFieldNames: string[] = [];
 
-  const genSchema = (schema: [string, SchemaDefType | SchemaDef | [SchemaDefType]][]) => {
+  const genSchema = (
+    schema: [string, SchemaDefType | SchemaDef | [SchemaDefType]][]
+  ): Record<string, mongoose.SchemaDefinitionProperty<undefined>> => {
     // merge the array of schema objects into a single object
     return merge(
       {},
@@ -120,7 +122,7 @@ function genSchemaFields(input: GenSchemaInput): {
 /**
  * Calculate the default value for a new document.
  */
-function calcDefaultValue(val: SchemaDefaultValueType) {
+function calcDefaultValue(val: SchemaDefaultValueType | undefined): unknown {
   // if a string, use the string
   if (typeof val === 'string') return val;
   // if a number, use the number
@@ -130,7 +132,7 @@ function calcDefaultValue(val: SchemaDefaultValueType) {
   // if an array, use process the values of the array
   else if (isArray(val)) return val.map((v: SchemaDefaultValueType) => calcDefaultValue(v)).filter((v) => !!v);
   // if a specification for a code, generate the code
-  else if (hasKey('code', val) && hasKey('length', val)) {
+  else if (val && hasKey('code', val) && hasKey('length', val)) {
     const { code: codeType, length: codeLength } = val;
 
     // alphanumeric code

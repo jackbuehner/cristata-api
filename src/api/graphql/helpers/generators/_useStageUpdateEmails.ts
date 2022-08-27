@@ -7,6 +7,7 @@ import { isObjectId } from '../../../utils/isObjectId';
 import { sendEmail } from '../../../utils/sendEmail';
 import { GenResolversInput } from './genResolvers';
 import { TenantDB } from '../../../mongodb/TenantDB';
+import { notEmpty } from '../../../utils/notEmpty';
 
 async function useStageUpdateEmails(
   context: Context,
@@ -17,12 +18,15 @@ async function useStageUpdateEmails(
   if (gc.options?.watcherNotices && gc.options.mandatoryWatchers) {
     const tenantDB = new TenantDB(context.tenant, context.config.collections);
     await tenantDB.connect();
-    const User = await mongoose.model('User');
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const User = (await tenantDB.model('User'))!;
+
     const doc = merge(currentDoc, data);
 
-    const flatten = (arr) => {
+    const flatten = (arr: mongoose.Types.ObjectId[][]): mongoose.Types.ObjectId[] => {
       return arr.reduce((flat, toFlatten) => {
-        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+        return flat.concat(Array.isArray(toFlatten) ? flatten([toFlatten]) : toFlatten);
       }, []);
     };
 
@@ -30,16 +34,16 @@ async function useStageUpdateEmails(
       await Promise.all(
         flatten(
           gc.options.mandatoryWatchers
-            .map((key): mongoose.Types.ObjectId[] => {
+            .map((key) => {
               const users = getProperty(doc, key);
               if (Array.isArray(users)) {
                 return users
                   .filter((user) => isObjectId(user))
                   .map((user): mongoose.Types.ObjectId => new mongoose.Types.ObjectId(user));
               } else if (isObjectId(users)) return [new mongoose.Types.ObjectId(users)];
-              return null;
+              return [];
             })
-            .filter((x): x is mongoose.Types.ObjectId[] => !!x)
+            .filter(notEmpty)
         ).map(async (_id) => {
           const profile = await User.findById(_id); // get the profile, which may contain an email
           if (profile && hasKey('email', profile)) return profile.email;
@@ -53,7 +57,7 @@ async function useStageUpdateEmails(
         //@ts-expect-error people exists on doc
         doc?.people?.watching?.map(async (_id) => {
           const profile = await User.findById(_id); // get the profile, which may contain an email
-          if (hasKey('email', profile)) return profile.email;
+          if (profile && hasKey('email', profile)) return profile.email;
           return null;
         })
       )
@@ -62,9 +66,15 @@ async function useStageUpdateEmails(
       // exclude mandatory watchers so they are not double-emailed
       .filter((x) => !mandatoryWatchersEmails.includes(x));
 
-    const subject = `[Stage: ${
-      gc.options.watcherNotices.stageMap[doc[gc.options.watcherNotices.stageField]]
-    }] ${getProperty(doc, gc.options.watcherNotices.subjectField)}`;
+    const stage =
+      hasKey(gc.options.watcherNotices.stageField, doc) &&
+      //@ts-expect-error this error is nonsense
+      typeof doc[gc.options.watcherNotices.stageField] === 'number'
+        ? //@ts-expect-error this error is nonsense
+          (doc[gc.options.watcherNotices.stageField] as number)
+        : undefined;
+
+    const subject = `[Stage: ${stage}] ${getProperty(doc, gc.options.watcherNotices.subjectField)}`;
 
     const bodySettings = {
       model: gc.name,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
 import { merge } from 'merge-anything';
@@ -10,6 +11,7 @@ import { getPasswordStatus } from '../utils/getPasswordStatus';
 import { sendEmail } from '../utils/sendEmail';
 import { slugify } from '../utils/slugify';
 import { TenantDB } from './TenantDB';
+import { ApolloError } from 'apollo-server-core';
 
 const users = (tenant: string): Collection => {
   const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication } = helpers;
@@ -127,14 +129,14 @@ const users = (tenant: string): Collection => {
 
   collection.resolvers = merge(collection.resolvers, {
     Query: {
-      user: (_, args, context: Context) =>
+      user: (_: never, args: { _id: any }, context: Context) =>
         findDoc({
           model: 'User',
-          _id: args._id || new mongoose.Types.ObjectId(context.profile._id),
+          _id: args._id || new mongoose.Types.ObjectId(context.profile?._id),
           context,
         }),
 
-      userExists: async (_, args, context: Context) => {
+      userExists: async (_: never, args: any, context: Context) => {
         const findArgs = {
           model: 'User',
           _id: args.username,
@@ -148,7 +150,7 @@ const users = (tenant: string): Collection => {
         return { exists: !!user, doc: user || null, methods: user?.methods };
       },
 
-      userMethods: async (_, args, context: Context) => {
+      userMethods: async (_: never, args: any, context: Context) => {
         const findArgs = { model: 'User', _id: args.username, context, fullAccess: true };
         const user =
           ((await findDoc({ ...findArgs, by: 'username' })) as unknown as IUser | undefined) ||
@@ -157,7 +159,7 @@ const users = (tenant: string): Collection => {
       },
     },
     Mutation: {
-      userCreate: async (_, args, context: Context) => {
+      userCreate: async (_: never, args: any, context: Context) => {
         // check that slug is unique, and replace slug and username if it is not unique
         let exists = !!(await findDoc({ model: 'User', by: 'slug', _id: args.slug, context }));
         let number = 0;
@@ -176,8 +178,8 @@ const users = (tenant: string): Collection => {
         // return the user
         return setTemporaryPassword(user, 'reinvite', context);
       },
-      userModify: (_, { _id, input }, context: Context) => {
-        const isSelf = _id.toHexString() === context.profile._id.toHexString();
+      userModify: (_: never, { _id, input }: any, context: Context) => {
+        const isSelf = _id.toHexString() === context.profile?._id.toHexString();
         return modifyDoc({
           model: 'User',
           data: { ...input, _id },
@@ -186,17 +188,20 @@ const users = (tenant: string): Collection => {
           fullAccess: isSelf,
         });
       },
-      userPasswordChange: async (_, { oldPassword, newPassword }, context: Context) => {
+      userPasswordChange: async (_: never, { oldPassword, newPassword }: any, context: Context) => {
         const tenantDB = new TenantDB(context.tenant, context.config.collections);
         await tenantDB.connect();
         const Model = await tenantDB.model<IUser & PassportLocalDocument>('User');
-        const user = await Model.findById(context.profile._id);
-        const changedUser = (await user.changePassword(oldPassword, newPassword)) as IUser &
-          PassportLocalDocument;
-        changedUser.flags = changedUser.flags.filter((flag) => !flag.includes('TEMPORARY_PASSWORD'));
-        return changedUser.save();
+        const user = await Model?.findById(context.profile?._id);
+        const changedUser = (await user?.changePassword(oldPassword, newPassword)) as
+          | (IUser & PassportLocalDocument)
+          | undefined;
+        if (changedUser) {
+          changedUser.flags = changedUser.flags.filter((flag) => !flag.includes('TEMPORARY_PASSWORD'));
+          return changedUser.save();
+        }
       },
-      userDeactivate: async (_, args, context: Context) => {
+      userDeactivate: async (_: never, args: { deactivate: unknown; _id: any }, context: Context) => {
         requireAuthentication(context);
 
         // set defaults
@@ -204,28 +209,36 @@ const users = (tenant: string): Collection => {
 
         // get the document
         const doc = await findDoc({ model: 'User', _id: args._id, context, lean: false });
+        if (!doc) {
+          throw new ApolloError(
+            'the user you are trying to deactivate does not exist or you do not have access',
+            'DOCUMENT_NOT_FOUND'
+          );
+        }
 
         // if the user cannot retire other users in the collection, return an error
         if (!(await canDo({ action: 'deactivate', model: 'User', context })))
           throw new ForbiddenError('you cannot deactivate users');
 
         // set relevant collection metadata
-        doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
-        doc.people.last_modified_by = context.profile._id;
-        doc.retired = args.deactivate;
-        doc.history = [
-          ...doc.history,
-          {
-            type: args.deactivate ? 'deactivated' : 'activated',
-            user: context.profile._id,
-            at: new Date().toISOString(),
-          },
-        ];
+        if (context.profile) {
+          doc.people.modified_by = [...new Set([...doc.people.modified_by, context.profile._id])];
+          doc.people.last_modified_by = context.profile._id;
+          doc.retired = args.deactivate;
+          doc.history = [
+            ...doc.history,
+            {
+              type: args.deactivate ? 'deactivated' : 'activated',
+              user: context.profile._id,
+              at: new Date().toISOString(),
+            },
+          ];
+        }
 
         // save the document
         return await doc.save();
       },
-      userResendInvite: async (_, args, context: Context) => {
+      userResendInvite: async (_: never, args: any, context: Context) => {
         const user = (await findDoc({
           model: 'User',
           _id: args._id,
@@ -238,7 +251,7 @@ const users = (tenant: string): Collection => {
 
         return await setTemporaryPassword(user, 'reinvite', context);
       },
-      userMigrateToPassword: async (_, args, context: Context) => {
+      userMigrateToPassword: async (_: never, args: any, context: Context) => {
         const user = (await findDoc({
           model: 'User',
           _id: args._id,
@@ -246,16 +259,17 @@ const users = (tenant: string): Collection => {
           lean: false,
         })) as unknown as IUserDoc & PassportLocalDocument;
         const { temporary } = getPasswordStatus(user.flags);
-        const isLocal = user.methods.includes('local');
+        const isLocal = user.methods?.includes('local');
         if (temporary || isLocal)
           throw new ForbiddenError('you cannot migrate a user who already has a local account');
 
         // create a temp password, alert the user via email, and return the user
+
         return await setTemporaryPassword(user, 'migrate', context);
       },
     },
     User: {
-      teams: async (_, args, context: Context) => {
+      teams: async (_: never, args: any, context: Context) => {
         const _id = new mongoose.Types.ObjectId(args._id);
         const docs = await findDocs({
           model: 'Team',
@@ -279,7 +293,7 @@ async function setTemporaryPassword<
     name?: string;
   }
 >(user: T, reason: 'reinvite' | 'reset the password of' | 'invite' | 'migrate', context: Context): Promise<T> {
-  if (!user.email) throw new ForbiddenError('you cannot ${reason} a user without an email address');
+  if (!user.email) throw new ForbiddenError(`you cannot ${reason} a user without an email address`);
 
   // step 0: create a username
   if (!user.username) {
@@ -308,8 +322,8 @@ async function setTemporaryPassword<
   user = await user.save();
 
   // step 4: send an email alert
-  const appSignInPage = process.env.APP_URL + '/' + context.profile.tenant + '/sign-in';
-  const encodedUsername = encodeURIComponent(Buffer.from(user.username).toString('base64'));
+  const appSignInPage = process.env.APP_URL + '/' + context.profile?.tenant + '/sign-in';
+  const encodedUsername = encodeURIComponent(Buffer.from(user.username || '').toString('base64'));
   const encodedPassword = encodeURIComponent(Buffer.from(password).toString('base64'));
   const action =
     reason === 'invite'
@@ -329,11 +343,11 @@ async function setTemporaryPassword<
     <p>
       ${
         reason === 'invite'
-          ? `<a href="${context.profile.email}">${context.profile.name}</a> has added you to ${context.config.tenantDisplayName}'s instance of Cristata.`
+          ? `<a href="${context.profile?.email}">${context.profile?.name}</a> has added you to ${context.config.tenantDisplayName}'s instance of Cristata.`
           : reason === 'reinvite'
-          ? `<a href="${context.profile.email}">${context.profile.name}</a> has reinvited you to ${context.config.tenantDisplayName}'s instance of Cristata.`
+          ? `<a href="${context.profile?.email}">${context.profile?.name}</a> has reinvited you to ${context.config.tenantDisplayName}'s instance of Cristata.`
           : reason === 'reset the password of'
-          ? `<a href="${context.profile.email}">${context.profile.name}</a> has reset your password for ${context.config.tenantDisplayName}'s instance of Cristata.`
+          ? `<a href="${context.profile?.email}">${context.profile?.name}</a> has reset your password for ${context.config.tenantDisplayName}'s instance of Cristata.`
           : ``
       }
       <span style="font-size: 18px;">
@@ -374,13 +388,15 @@ async function setTemporaryPassword<
       ? `Finish migrating your Cristata account`
       : ``;
 
-  sendEmail(
-    context.config,
-    user.email,
-    subject,
-    email,
-    `${context.config.tenantDisplayName} <noreply@thepaladin.news>`
-  );
+  if (user.email) {
+    sendEmail(
+      context.config,
+      user.email,
+      subject,
+      email,
+      `${context.config.tenantDisplayName} <noreply@thepaladin.news>`
+    );
+  }
 
   return user;
 }
@@ -389,7 +405,7 @@ type GitHubUserID = number;
 
 interface IUser extends CollectionSchemaFields {
   name: string;
-  username?: string; // from passpsort-local-mongoose
+  username: string; // from passpsort-local-mongoose
   slug: string;
   phone?: number;
   email?: string;

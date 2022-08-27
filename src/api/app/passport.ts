@@ -10,10 +10,12 @@ import { isArray } from '../utils/isArray';
 dotenv.config();
 
 // passport stuff:
+//@ts-expect-error: we have our own user object
 passport.serializeUser((user: Record<string, unknown>, done) => {
-  if (user.errors && isArray(user.errors) && user.errors.length > 0)
-    done(new Error(`${user.errors[0][0]}: ${user.errors[0][1]}`));
-  else if (!user._id) done(new Error('User missing _id'));
+  if (user.errors && isArray(user.errors) && user.errors.length > 0) {
+    const errors = user.errors as [string, string][];
+    done(new Error(`${errors[0]?.[0]}: ${errors[0][1]}`));
+  } else if (!user._id) done(new Error('User missing _id'));
   else if (!user.provider) done(new Error('User missing provider'));
   else done(null, { _id: user._id, provider: user.provider, next_step: user.next_step, tenant: user.tenant });
 });
@@ -64,7 +66,7 @@ async function deserializeUser(
     const Teams = await tenantDB.model('Team');
 
     // get the user document
-    const doc = await Users.findById(user._id);
+    const doc = await Users?.findById(user._id);
 
     // handle if doc is undefined
     if (!doc) {
@@ -92,7 +94,7 @@ async function deserializeUser(
     }
 
     // find the user's teams
-    let teams = await Teams.find({ $or: [{ organizers: user._id }, { members: user._id }] });
+    let teams = await Teams?.find({ $or: [{ organizers: user._id }, { members: user._id }] });
 
     // if teams is undefined or null, log error and set to empty array
     if (!teams) {
@@ -107,19 +109,25 @@ async function deserializeUser(
       _id: new mongoose.Types.ObjectId(user._id),
       name: doc.name,
       username: doc.username,
-      email: doc.email,
+      email: doc.email || 'no-reply@cristata.app',
       teams: teams.map((team) => team._id.toHexString()),
       two_factor_authentication: false,
       next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
-      methods: doc.methods,
+      methods: doc.methods || [],
       constantcontact: doc.constantcontact,
     };
     done?.(null, du);
     return du;
   } catch (error) {
     console.error(error);
-    done?.(error);
-    return error.message;
+
+    if (error instanceof Error) {
+      done?.(error);
+      return error.message;
+    }
+
+    done?.(new Error('unknown error'));
+    return 'unknown error';
   }
 }
 passport.deserializeUser(deserializeUser);

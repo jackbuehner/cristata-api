@@ -45,7 +45,8 @@ async function watchDoc({ model, accessor, watch, watcher, context }: WatchDoc) 
 
   // set defaults
   if (watch === undefined) watch = true;
-  if (watcher === undefined || !mongoose.isValidObjectId(watcher)) watcher = context.profile._id;
+  if ((watcher === undefined || !mongoose.isValidObjectId(watcher)) && context.profile)
+    watcher = context.profile._id;
   else watcher = new mongoose.Types.ObjectId(watcher);
   if (accessor.key === undefined) accessor.key = '_id';
 
@@ -68,7 +69,7 @@ async function watchDoc({ model, accessor, watch, watcher, context }: WatchDoc) 
   if (watch) {
     doc.people.watching = insertUserToArray(doc.people.watching, watcher); // adds the user to the array, and then removes duplicates
   } else {
-    doc.people.watching = doc.people.watching.filter((_id) => _id.toHexString() !== watcher.toHexString());
+    doc.people.watching = doc.people.watching.filter((_id) => _id.toHexString() !== watcher?.toHexString());
   }
 
   // save the document

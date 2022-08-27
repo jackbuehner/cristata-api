@@ -45,6 +45,8 @@ const Type = {
       if (isArray) return '[JSON]';
       else return 'JSON';
     }
+
+    return 'Void';
   },
   isArray: (type: unknown): type is [unknown] => {
     if (typeof type === 'string') return type.includes('[') && type.includes(']');

@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { requireAuthentication } from '../helpers';
 import { Context } from '../server';
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-08-27' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
 
 const billing = {
   Query: {
@@ -20,10 +20,10 @@ const billing = {
       subscription_active: boolean;
     }> => {
       requireAuthentication(context);
-      const isAdmin = context.profile.teams.includes('000000000000000000000001');
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
-      const tenantDoc = await context.cristata.tenantsCollection.findOne({
+      const tenantDoc = await context.cristata.tenantsCollection?.findOne({
         name: context.tenant,
       });
 
@@ -41,13 +41,13 @@ const billing = {
     api: async (_: unknown, { year, month }: { year?: number; month?: number }, context: Context) => {
       try {
         if (year === undefined && month === undefined) {
-          const tenantDoc = await context.cristata.tenantsCollection.findOne({ name: context.tenant });
-          const subscriptionId = tenantDoc.billing.stripe_subscription_id;
+          const tenantDoc = await context.cristata.tenantsCollection?.findOne({ name: context.tenant });
+          const subscriptionId = tenantDoc?.billing.stripe_subscription_id;
 
           if (subscriptionId) {
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-            if (subscription.status !== 'canceled' && tenantDoc.billing.stripe_subscription_items.api_usage) {
+            if (subscription.status !== 'canceled' && tenantDoc.billing.stripe_subscription_items?.api_usage) {
               const billableApiUsage = tenantDoc.billing.stripe_subscription_items.api_usage
                 ? await stripe.subscriptionItems
                     .listUsageRecordSummaries(tenantDoc.billing.stripe_subscription_items.api_usage.id, {
@@ -77,7 +77,7 @@ const billing = {
         month = new Date().getUTCMonth() + 1;
 
         const foundMonthMetrics = (
-          await context.cristata.tenantsCollection.findOne({
+          await context.cristata.tenantsCollection?.findOne({
             [`billing.metrics.${year}.${month}`]: { $exists: true },
           })
         )?.billing?.metrics?.[year]?.[month];
@@ -87,16 +87,16 @@ const billing = {
         const calculatedMonthMetrics = Object.values(foundMonthMetrics).reduce(
           (sum, day) => {
             return {
-              billable: sum.billable + (day.billable || 0),
-              total: sum.total + (day.total || 0),
+              billable: (sum?.billable || 0) + (day?.billable || 0),
+              total: (sum?.total || 0) + (day?.total || 0),
             };
           },
           { billable: 0, total: 0 }
         );
 
         return {
-          billable: calculatedMonthMetrics.billable || 0,
-          total: calculatedMonthMetrics.total || 0,
+          billable: calculatedMonthMetrics?.billable || 0,
+          total: calculatedMonthMetrics?.total || 0,
           since: new Date(year, month, 1).toISOString(),
         };
       } catch (error) {

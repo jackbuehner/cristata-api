@@ -48,8 +48,8 @@ async function apollo(
   } catch (error) {
     console.error(error);
 
-    if (error.message) {
-      return new Error(error.message);
+    if (error instanceof Error && error.message) {
+      return error;
     }
     return new Error('unknown error');
   }

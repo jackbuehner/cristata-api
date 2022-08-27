@@ -30,12 +30,12 @@ import { useStageUpdateEmails } from './_useStageUpdateEmails';
 import { TenantDB } from '../../../mongodb/TenantDB';
 
 async function construct(
-  doc: CollectionDoc | null,
+  doc: CollectionDoc | null | undefined,
   schemaRefs: [string, SchemaRef][],
   context: Context,
   helpers: Helpers
 ) {
-  if (doc === null) return null;
+  if (doc === null || doc === undefined) return null;
 
   // construct a document that includes
   // all referenced fields
@@ -61,7 +61,7 @@ async function construct(
   // reference user objects instead of user ids
   if (constructedDoc && constructedDoc.permissions) {
     return merge(constructedDoc, {
-      permissions: { users: await helpers.getUsers(doc.permissions.users || [], context) },
+      permissions: { users: await helpers.getUsers(constructedDoc.permissions.users || [], context) },
     });
   }
 
@@ -225,9 +225,9 @@ function genResolvers(config: GenResolversInput, tenant: string) {
           populatedPipline = findAndReplace(populatedPipline, `%${name}%`, args[name]);
         });
 
-        const aggregate = await Model.aggregate(populatedPipline);
+        const aggregate = await Model?.aggregate(populatedPipline);
 
-        if (query.path) return getProperty(aggregate, query.path);
+        if (query.path) return getProperty(aggregate || [], query.path);
         return aggregate;
       };
     });
@@ -364,8 +364,11 @@ function genResolvers(config: GenResolversInput, tenant: string) {
             fullAccess: true,
             lean: false,
           });
-          doc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
-          return doc.save();
+          if (doc) {
+            doc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
+            return doc.save();
+          }
+          return doc;
         }
       };
     });
@@ -373,12 +376,16 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 
   const baselineResolvers = { Query, Mutation };
 
-  const customResolvers = genCustomResolvers({ name, helpers, ...config }, tenant);
+  const customResolvers = genCustomResolvers(config, tenant);
 
   return { ...baselineResolvers, ...customResolvers };
 }
 
-type ResolverType = Record<string, (parent, args, context: Context, info) => Promise<unknown | unknown[]>>;
+type ResolverType = Record<
+  string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (parent: unknown, args: any, context: Context, info: any) => Promise<unknown | unknown[]>
+>;
 function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverType {
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
 
@@ -413,7 +420,7 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
                *
                * The collection is considered to be the name of the type.
                */
-              [fieldName]: async (parent, args, context: Context) => {
+              [fieldName]: async (parent: { [x: string]: unknown[] }, args: never, context: Context) => {
                 const tenantDB = new TenantDB(tenant, context.config.collections);
                 await tenantDB.connect();
 
@@ -467,7 +474,7 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
              *
              * The collection is considered to be the name of the type.
              */
-            [fieldName]: async (parent, args, context: Context) => {
+            [fieldName]: async (parent: { [x: string]: unknown }, args: never, context: Context) => {
               const tenantDB = new TenantDB(tenant, context.config.collections);
               await tenantDB.connect();
 
