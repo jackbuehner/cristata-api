@@ -46,7 +46,7 @@ const ManageChanges = Extension.create({
             from: number;
             to: number;
             marks: ProsemirrorNode['marks'];
-            pilcrowPosition: number;
+            pilcrowPosition?: number;
           }[] = [];
           while (evaluatedPosition < range.to) {
             const node = tr.doc.resolve(evaluatedPosition).nodeAfter; // resolve the position and store `nodeAfter`
@@ -100,11 +100,9 @@ const ManageChanges = Extension.create({
           return false;
         },
       rejectChange:
-        (range?: Range) =>
+        (_range?: Range) =>
         ({ tr, state, dispatch }) => {
-          if (!range) {
-            range = { from: state.selection.from, to: state.selection.to };
-          }
+          const range = _range || { from: state.selection.from, to: state.selection.to };
 
           // remove plain additions and deletions (excludes additions and deletions with pilcrows)
           const textNodes = getTextNodes(range, tr).reverse(); // start at end of selection so that ranges for each node remain correct

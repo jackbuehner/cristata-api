@@ -237,12 +237,15 @@ const PowerComment = Mark.create<CommentOptions, CommentStorage>({
                 const $anchor = tr.selection.$anchor;
 
                 // determine if the selection is contained to a single comment
-                const anchorMarks = $anchor.marks().map((mark) => mark.type);
-                if (anchorMarks.includes(this.type)) {
+                const anchorMarkTypes = $anchor.marks().map((mark) => mark.type);
+                if (anchorMarkTypes.includes(this.type)) {
                   // ensure the selection only contains the comment
                   const commentRange = markExtend(
                     $anchor,
-                    $anchor.marks().find((mark) => mark.type === this.type)
+                    // this mark should exist because we checked for the presence of
+                    // a mark with the same type in the `if` condition
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    $anchor.marks().find((mark) => mark.type === this.type)!
                   );
                   if (commentRange.from <= tr.selection.from && commentRange.to >= tr.selection.to) {
                     // expand the selection to entire comment
@@ -294,9 +297,9 @@ function getAllComments(editor: Editor, type: MarkType) {
   editor.state.doc.content.descendants((node: ProseMirrorNode, pos: number) => {
     const containsComment = node.marks.some((mark) => mark.type.name === 'powerComment');
     if (containsComment) {
-      const commentAttrs = node.marks.find((mark) => mark.type.name === 'powerComment').attrs;
+      const commentAttrs = node.marks.find((mark) => mark.type.name === 'powerComment')?.attrs;
 
-      const linkedCommentIndex = commentMarks.findIndex(({ attrs }) => attrs.uuid === commentAttrs.uuid); // they share same uuid
+      const linkedCommentIndex = commentMarks.findIndex(({ attrs }) => attrs.uuid === commentAttrs?.uuid); // they share same uuid
       if (linkedCommentIndex !== -1) {
         commentMarks[linkedCommentIndex] = {
           attrs: commentAttrs as CommentAttrs,

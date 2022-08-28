@@ -21,9 +21,9 @@ class YInteger<K extends string, V extends number | undefined | null> {
     this.#ydoc = ydoc;
   }
 
-  set(key: K, value: V): Node;
+  set(key: K, value: V): string;
   set(key: K, value: V[], opt1?: Option[]): Option[];
-  set(key: K, value: V | V[], opt1?: Option[] | boolean): Node | Option[] {
+  set(key: K, value: V | V[], opt1?: Option[] | boolean): string | Option[] {
     const options = Array.isArray(opt1) ? opt1 : undefined;
 
     if (Array.isArray(value)) {

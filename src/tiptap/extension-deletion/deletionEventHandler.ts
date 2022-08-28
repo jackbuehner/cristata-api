@@ -42,7 +42,8 @@ const DeletionEventHandler = Extension.create({
 
               return false;
             },
-            keydown: ({ state, dispatch }, event) => {
+            keydown: ({ state, dispatch }, evt: Event) => {
+              const event = evt as KeyboardEvent;
               const tr = state.tr;
               const doc = state.doc;
 

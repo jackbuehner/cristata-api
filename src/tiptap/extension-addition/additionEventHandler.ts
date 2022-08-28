@@ -78,7 +78,8 @@ const AdditionEventHandler = Extension.create({
             return false;
           },
           handleDOMEvents: {
-            keydown: ({ state, dispatch }, event) => {
+            keydown: ({ state, dispatch }, evt: Event) => {
+              const event = evt as KeyboardEvent;
               const tr = state.tr;
 
               const range = {

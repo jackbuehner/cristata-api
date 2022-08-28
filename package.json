@@ -34,6 +34,7 @@
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
     "@tsconfig/node14": "^1.0.0",
+    "@types/color": "^3.0.3",
     "@types/compression": "^1.7.2",
     "@types/cookie-session": "^2.0.42",
     "@types/cors": "^2.8.10",
