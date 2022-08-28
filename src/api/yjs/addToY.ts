@@ -15,7 +15,7 @@ interface AddToYParams {
 }
 
 async function addToY(params: AddToYParams) {
-  const data = JSON.parse(JSON.stringify(params.inputData));
+  const data = JSON.parse(JSON.stringify(params.inputData || {}));
 
   const JSONFields = params.schemaDef.filter(([, def]) => def.type === 'JSON');
 
