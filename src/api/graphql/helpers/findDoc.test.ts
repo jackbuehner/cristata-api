@@ -39,7 +39,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     await newDoc.save();
 
     // find the doc
@@ -55,7 +55,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     await newDoc.save();
 
     // find the doc
@@ -71,7 +71,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     await newDoc.save();
 
     // find the doc
@@ -90,7 +90,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     await newDoc.save();
 
     // find the doc
@@ -109,7 +109,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     await newDoc.save();
 
     // find the doc
@@ -125,7 +125,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     await newDoc.save();
 
     // find the doc
@@ -141,7 +141,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     newDoc.set('permissions.teams', ['000000000000000000000099']); // test user is in team '000000000000000000000099'
     await newDoc.save();
 
@@ -158,7 +158,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     newDoc.set('permissions.users', [new mongoose.Types.ObjectId('000000000000000000000001')]); // test user's _id is '000000000000000000000001'
     await newDoc.save();
 
@@ -175,7 +175,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     newDoc.set('permissions.teams', [0]);
     await newDoc.save();
 
@@ -192,7 +192,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     newDoc.set('permissions.teams', ['0']);
     await newDoc.save();
 
@@ -209,7 +209,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     newDoc.set('permissions.users', [new mongoose.Types.ObjectId('000000000000000000000000')]);
     await newDoc.save();
 
@@ -232,7 +232,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     newDoc.set('slug', 'new-document');
     await newDoc.save();
 
@@ -255,13 +255,21 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     }>;
     const context = useApolloContext(c);
 
-    const newDocA = new Document({ letter: 'a', 'timestamps.created_at': new Date(Date.now() - 1000) }); // subtract time to make it older than b
+    const newDocA = new Document({
+      letter: 'a',
+      yState: '',
+      'timestamps.created_at': new Date(Date.now() - 1000),
+    }); // subtract time to make it older than b
     await newDocA.save();
 
-    const newDocB = new Document({ letter: 'b', 'timestamps.created_at': new Date() });
+    const newDocB = new Document({ letter: 'b', yState: '', 'timestamps.created_at': new Date() });
     await newDocB.save();
 
-    const newDocC = new Document({ letter: 'c', 'timestamps.created_at': new Date(Date.now() - 2000) }); // subtract time to make it older than b
+    const newDocC = new Document({
+      letter: 'c',
+      yState: '',
+      'timestamps.created_at': new Date(Date.now() - 2000),
+    }); // subtract time to make it older than b
     await newDocC.save();
 
     // find the doc
@@ -279,7 +287,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const context = useApolloContext(c);
 
     // create and save a doc to find
-    const newDoc = new Document();
+    const newDoc = new Document({ yState: '' });
     newDoc.set('slug', 'new-document');
     await newDoc.save();
 
