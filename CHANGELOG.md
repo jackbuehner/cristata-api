@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.3.0](https://github.com/jackbuehner/cristata-api/compare/v6.2.1...v6.3.0) (2022-08-29)
+
+
+### Features
+
+* create ydoc and populate shared types on document request ([#8](https://github.com/jackbuehner/cristata-api/issues/8)) ([85b4e2f](https://github.com/jackbuehner/cristata-api/commit/85b4e2fdadfd1eca1f9db086159c55cb0ef5dbd6))
+* enable strict mode ([#7](https://github.com/jackbuehner/cristata-api/issues/7)) ([6d7ff88](https://github.com/jackbuehner/cristata-api/commit/6d7ff883976dbf2ffa6d04c8854149b1b21bc052))
+
 ### [6.2.1](https://github.com/jackbuehner/cristata-api/compare/v6.2.0...v6.2.1) (2022-08-22)
 
 
