@@ -76,6 +76,11 @@ async function findDoc({
   // get the document as a plain javascript object
   const doc = (await Model.aggregate(pipeline))[0];
 
+  // always cast team to string
+  if (doc?.permissions?.teams) {
+    doc.permissions.teams = doc.permissions.teams.map((team: unknown) => `${team}`);
+  }
+
   // create yjs doc if it does not exist
   try {
     const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
