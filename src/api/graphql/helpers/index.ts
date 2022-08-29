@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import {
   CollectionSchemaFields,
   PublishableCollectionSchemaFields,
@@ -51,7 +52,7 @@ type CollectionDoc = CollectionSchemaFields &
   Partial<WithPermissionsCollectionSchemaFields> &
   Partial<Record<string, unknown>> &
   Partial<{ people: Partial<{ editors: Record<string, unknown>; [key: string]: unknown }> }> &
-  Partial<{ timestamps: Record<string, unknown> }>;
+  Partial<{ timestamps: Record<string, unknown> }> & { _id: mongoose.Types.ObjectId };
 
 export type { CollectionDoc, Helpers };
 export { archiveDoc };

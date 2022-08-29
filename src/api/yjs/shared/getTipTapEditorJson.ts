@@ -1,0 +1,15 @@
+import { yXmlFragmentToProsemirrorJSON } from 'y-prosemirror';
+import * as Y from 'yjs';
+
+function getTipTapEditorJson(field: string, document: Y.Doc): string {
+  // get current value
+  const current = document.getXmlFragment(field);
+
+  // convert the fragment to json
+  const json = yXmlFragmentToProsemirrorJSON(current);
+
+  // return the content in the document
+  return json.content;
+}
+
+export { getTipTapEditorJson };

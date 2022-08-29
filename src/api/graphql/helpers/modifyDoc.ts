@@ -143,6 +143,6 @@ type HydratedCollectionDoc<DocType> = mongoose.Document<unknown, unknown, DocTyp
 type CurrentDocType = CollectionSchemaFields &
   PublishableCollectionSchemaFields &
   WithPermissionsCollectionSchemaFields &
-  Record<string, unknown>;
+  Record<string, unknown> & { _id: mongoose.Types.ObjectId };
 
 export { modifyDoc };

@@ -76,9 +76,7 @@ function factory(cristata: Cristata): Router {
     res.status(500).end();
   });
 
-  router.get('/contact_lists', async (req, res, next) => {
-    requireConstantContactAuth(req, res, next, cristata);
-
+  router.get('/contact_lists', requireConstantContactAuth(cristata), async (req, res) => {
     const validator = z.object({
       lists: z
         .object({
@@ -122,9 +120,7 @@ function factory(cristata: Cristata): Router {
     }
   });
 
-  router.get('/account_emails', async (req, res, next) => {
-    requireConstantContactAuth(req, res, next, cristata);
-
+  router.get('/account_emails', requireConstantContactAuth(cristata), async (req, res) => {
     const validator = z
       .object({
         email_id: z.number().int().positive(),
@@ -177,9 +173,7 @@ function factory(cristata: Cristata): Router {
     }
   });
 
-  router.post('/emails', async (req, res, next) => {
-    requireConstantContactAuth(req, res, next, cristata);
-
+  router.post('/emails', requireConstantContactAuth(cristata), async (req, res) => {
     const Authorization = `Bearer ${(req.user as IDeserializedUser).constantcontact?.access_token}`;
 
     const bodyValidator = z.object({
