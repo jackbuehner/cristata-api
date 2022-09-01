@@ -232,6 +232,7 @@ function createExpressApp(cristata: Cristata): Application {
   setInterval(updateStorageUsageMetric, 1000 * 60 * 15);
 
   // end external requests if the tenant does not have an active subscription
+  // or the tenant does not exist
   // ! this must be the last middleware
   app.use((req: Request, res: Response, next: NextFunction) => {
     try {
@@ -241,6 +242,8 @@ function createExpressApp(cristata: Cristata): Application {
         if (isInternalUse(req)) next();
         else if (hasPaid) next();
         else res.status(402).end();
+      } else {
+        res.status(404).end(); // tenant does not exist; send 404 error
       }
     } catch (error) {
       console.error(error);
