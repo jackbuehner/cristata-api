@@ -2,7 +2,7 @@ import * as Y from 'yjs';
 import { FloatKit } from '../../../tiptap/float-kit';
 import { setTipTapXMLFragment } from './setTipTapXMLFragment';
 
-type Option = { value: string | number; label: string; disabled?: boolean };
+type Option<T> = { value: T; label: string; disabled?: boolean };
 
 /**
  * Floats are stored in a shared XML Fragment.
@@ -22,13 +22,13 @@ class YFloat<K extends string, V extends number | undefined | null> {
   }
 
   set(key: K, value: V): string;
-  set(key: K, value: V[], opt1?: Option[]): Option[];
-  set(key: K, value: V | V[], opt1?: Option[] | boolean): string | Option[] {
+  set(key: K, value: V[], opt1?: Option<string | number>[]): Option<string | number>[];
+  set(key: K, value: V | V[], opt1?: Option<string | number>[] | boolean): string | Option<string | number>[] {
     const options = Array.isArray(opt1) ? opt1 : undefined;
 
     if (Array.isArray(value)) {
       // get/create the shared type
-      const type = this.#ydoc.getArray<Option>(key);
+      const type = this.#ydoc.getArray<Option<string | number>>(key);
 
       // clear existing values
       type.delete(0, type.toArray()?.length);
@@ -55,9 +55,14 @@ class YFloat<K extends string, V extends number | undefined | null> {
   }
 
   get(key: K, isArray: false): number;
-  get(key: K, isArray: true): Option[];
-  get(key: K, isArray: boolean): number | Option[] {
-    if (isArray) return this.#ydoc.getArray<Option>(key).toArray();
+  get(key: K, isArray: true): Option<number>[];
+  get(key: K, isArray: boolean): number | Option<number>[] {
+    if (isArray) {
+      return this.#ydoc
+        .getArray<Option<string | number>>(key)
+        .toArray()
+        .map(({ value, ...rest }) => ({ value: parseInt(`${value}`), ...rest }));
+    }
     return parseFloat(this.#ydoc.getXmlFragment(key).toDOM().textContent || '');
   }
 
