@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import passport from 'passport';
-import { authRouter } from './routes/auth.route';
+import { authRouterFactory } from './routes/auth.route';
 import Cristata from '../Cristata';
 import { corsConfig } from './middleware/cors';
 import { requireAuth } from './middleware/requireAuth';
@@ -127,7 +127,7 @@ function createExpressApp(cristata: Cristata): Application {
   app.use(passport.session()); // replace `req.user` with passport user
 
   // connect routers to app
-  app.use(`/auth`, authRouter); // authentication routes
+  app.use(`/auth`, authRouterFactory(cristata)); // authentication routes
   app.use(proxyRouterFactory()); // CORS proxy routes
   app.use(stripeRouterFactory(cristata)); // stripe routes
   app.use(`/v3/constant-contact`, constantContactRouterFactory(cristata)); // constant contact routes

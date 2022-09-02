@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
 import passport from 'passport';
+import Cristata from '../../Cristata';
+import { TenantDB } from '../../mongodb/TenantDB';
 import { requireAuth } from '../middleware/requireAuth';
 import { deserializeUser, IDeserializedUser } from '../passport';
 
@@ -26,84 +28,98 @@ const handleError = (error: Error, req: Request, res: Response, descriptive = fa
 /**
  * Router for app authentication.
  */
-const router = Router();
+function factory(cristata: Cristata): Router {
+  const router = Router();
 
-// provide the authenticated user
-router.get('/', requireAuth, (req: Request, res: Response) => {
-  res.json(req.user);
-});
+  // provide the authenticated user
+  router.get('/', requireAuth, (req: Request, res: Response) => {
+    res.json(req.user);
+  });
 
-// send an error message
-router.get('/error', (req: Request, res: Response) => res.send('Unknown Error'));
+  // send an error message
+  router.get('/error', (req: Request, res: Response) => res.send('Unknown Error'));
 
-// clear credentials from the client (sign out)
-router.get('/clear', (req: Request, res: Response) => {
-  req.session = null;
-  req.logout();
-  res.redirect('./');
-});
-router.post('/clear', (req: Request, res: Response) => {
-  if (req.isAuthenticated()) {
+  // clear credentials from the client (sign out)
+  router.get('/clear', (req: Request, res: Response) => {
     req.session = null;
     req.logout();
-    res.status(200).send();
-  } else {
-    res.status(404).send();
-  }
-});
-
-// authenticate using the local strategy
-router.post('/local', (req: Request, res: Response, next: NextFunction) => {
-  // get then tenant so we know which local strategy to use
-  const searchParams = req.query as unknown as URLSearchParams;
-  const tenant = searchParams.get('tenant');
-
-  // use the local strategy for the provided tenant
-  passport.authenticate(`local-${tenant}`, (err: Error | null, user, authErr: Error) => {
-    // handle error
-    if (err) handleError(err, req, res, true);
-    // handle authentication error
-    else if (authErr) {
-      // map error names to status codes
-      const code = (name: string) => {
-        if (name === 'IncorrectPasswordError') return 401;
-        if (name === 'IncorrectUsernameError') return 401;
-        if (name === 'NoSaltValueStored') return 500;
-        if (name === 'AttemptTooSoonError') return 429;
-        if (name === 'TooManyAttemptsError') return 429;
-        return 500;
-      };
-      handleError(authErr, req, res, true, code(authErr.name));
-    }
-    // don't sign in if user is missing after authentication
-    else if (!user) {
-      if (req.body.redirect === false) res.json({ error: 'user is missing' });
-      else
-        res.redirect(
-          req.body.server
-            ? req.baseUrl + '/local'
-            : process.env.APP_URL + '/' + (req.user as IDeserializedUser).tenant + '/sign-in'
-        );
+    res.redirect('./');
+  });
+  router.post('/clear', (req: Request, res: Response) => {
+    if (req.isAuthenticated()) {
+      req.session = null;
+      req.logout();
+      res.status(200).send();
     } else {
-      // sign in
-      req.logIn(user, (err) => {
-        if (err) handleError(err, req, res);
-        else if (req.body.redirect === false) {
-          deserializeUser({
-            _id: user._id,
-            provider: user.provider,
-            next_step: user.next_step,
-            tenant: user.tenant,
-          }).then((result) => {
-            // error message
-            if (typeof result === 'string') res.status(401).json({ error: result });
-            // user object
-            else res.json({ data: result });
-          });
-        } else res.redirect(process.env.APP_URL + '/' + (req.user as IDeserializedUser).tenant + '/sign-in');
-      });
+      res.status(404).send();
     }
-  })(req, res, next);
-});
+  });
 
-export { router as authRouter };
+  // authenticate using the local strategy
+  router.post('/local', async (req: Request, res: Response, next: NextFunction) => {
+    // get then tenant so we know which local strategy to use
+    const searchParams = req.query as unknown as URLSearchParams;
+    const tenant = searchParams.get('tenant');
+    if (!tenant) {
+      res.status(404).end();
+      return;
+    }
+
+    // create the user model in case it does not exist,
+    // which also will cause the auth strategy to be created
+    const tenantDB = new TenantDB(tenant, cristata.config[tenant].collections);
+    await tenantDB.connect();
+    await tenantDB.model('User');
+
+    // use the local strategy for the provided tenant
+    passport.authenticate(`local-${tenant}`, (err: Error | null, user, authErr: Error) => {
+      // handle error
+      if (err) handleError(err, req, res, true);
+      // handle authentication error
+      else if (authErr) {
+        // map error names to status codes
+        const code = (name: string) => {
+          if (name === 'IncorrectPasswordError') return 401;
+          if (name === 'IncorrectUsernameError') return 401;
+          if (name === 'NoSaltValueStored') return 500;
+          if (name === 'AttemptTooSoonError') return 429;
+          if (name === 'TooManyAttemptsError') return 429;
+          return 500;
+        };
+        handleError(authErr, req, res, true, code(authErr.name));
+      }
+      // don't sign in if user is missing after authentication
+      else if (!user) {
+        if (req.body.redirect === false) res.json({ error: 'user is missing' });
+        else
+          res.redirect(
+            req.body.server
+              ? req.baseUrl + '/local'
+              : process.env.APP_URL + '/' + (req.user as IDeserializedUser).tenant + '/sign-in'
+          );
+      } else {
+        // sign in
+        req.logIn(user, (err) => {
+          if (err) handleError(err, req, res);
+          else if (req.body.redirect === false) {
+            deserializeUser({
+              _id: user._id,
+              provider: user.provider,
+              next_step: user.next_step,
+              tenant: user.tenant,
+            }).then((result) => {
+              // error message
+              if (typeof result === 'string') res.status(401).json({ error: result });
+              // user object
+              else res.json({ data: result });
+            });
+          } else res.redirect(process.env.APP_URL + '/' + (req.user as IDeserializedUser).tenant + '/sign-in');
+        });
+      }
+    })(req, res, next);
+  });
+
+  return router;
+}
+
+export { factory as authRouterFactory };
