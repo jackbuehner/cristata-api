@@ -95,7 +95,7 @@ function factory(cristata: Cristata): Router {
           res.redirect(
             req.body.server
               ? req.baseUrl + '/local'
-              : process.env.APP_URL + '/' + (req.user as IDeserializedUser).tenant + '/sign-in'
+              : process.env.AUTH_APP_URL + '/' + (req.user as IDeserializedUser).tenant
           );
       } else {
         // sign in
@@ -113,7 +113,7 @@ function factory(cristata: Cristata): Router {
               // user object
               else res.json({ data: result });
             });
-          } else res.redirect(process.env.APP_URL + '/' + (req.user as IDeserializedUser).tenant + '/sign-in');
+          } else res.redirect(process.env.AUTH_APP_URL + '/' + (req.user as IDeserializedUser).tenant);
         });
       }
     })(req, res, next);

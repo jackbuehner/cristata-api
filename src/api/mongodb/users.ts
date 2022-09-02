@@ -322,7 +322,7 @@ async function setTemporaryPassword<
   user = await user.save();
 
   // step 4: send an email alert
-  const appSignInPage = process.env.APP_URL + '/' + context.profile?.tenant + '/sign-in';
+  const appSignInPage = process.env.AUTH_APP_URL + '/' + context.profile?.tenant;
   const encodedUsername = encodeURIComponent(Buffer.from(user.username || '').toString('base64'));
   const encodedPassword = encodeURIComponent(Buffer.from(password).toString('base64'));
   const action =
