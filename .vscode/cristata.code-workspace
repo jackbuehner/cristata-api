@@ -7,6 +7,10 @@
     {
       "name": "app",
       "path": "../../cristata-app"
+    },
+    {
+      "name": "login",
+      "path": "../../cristata-login"
     }
   ],
   "settings": {
