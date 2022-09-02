@@ -72,6 +72,18 @@ const core = {
       // The types for the plugin have not been updated for newer versions of mongoose.
       return Model.aggregatePaginate(aggregate, { page, limit });
     },
+    async tenant(_: never, __: never, context: Context) {
+      const tenant = await context.cristata.tenantsCollection?.findOne({ name: context.tenant });
+
+      if (tenant) {
+        return {
+          name: tenant.name,
+          displayName: tenant.config.tenantDisplayName,
+        };
+      }
+
+      return null;
+    },
   },
   CollectionActivity: {
     user: ({ user }: { user: mongoose.Types.ObjectId }, __: never, context: Context) => getUsers(user, context),

@@ -19,6 +19,19 @@ const core = gql`
     prevPage: Int
     nextPage: Int
   }
+
+  type TenantDetails {
+    name: String!
+    displayName: String
+  }
+
+  type Query {
+    """
+    Get some details about the tenant.
+    """
+    tenant: TenantDetails
+  }
+
 `;
 
 export { core };
