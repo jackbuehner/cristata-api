@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.4.0](https://github.com/jackbuehner/cristata-api/compare/v6.3.0...v6.4.0) (2022-09-02)
+
+
+### Features
+
+* add query to get tenant details (for sign in page) ([926e9b1](https://github.com/jackbuehner/cristata-api/commit/926e9b1a643df8b25dcb3d01fa8335828239034e))
+* pass cristata instance to auth router ([2159087](https://github.com/jackbuehner/cristata-api/commit/2159087cb7e7ea13c06392b8324e763ce9071de2))
+* use new auth app url in emails and auth ([af1452e](https://github.com/jackbuehner/cristata-api/commit/af1452ef9bc3dfbaa74a29023c1b85d5bc067c06))
+
+
+### Bug Fixes
+
+* always ensure numbers are number type ([8e0c469](https://github.com/jackbuehner/cristata-api/commit/8e0c4693e3da8ca9268199481aaafc63562838f3))
+* end request if tenant does not exist ([338e590](https://github.com/jackbuehner/cristata-api/commit/338e59066032e4a5746a77e3a606f910d315d931))
+
 ## [6.3.0](https://github.com/jackbuehner/cristata-api/compare/v6.2.1...v6.3.0) (2022-08-29)
 
 
