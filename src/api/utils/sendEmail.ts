@@ -10,9 +10,6 @@ aws.config.update({
   region: 'us-east-1',
 });
 
-// make ses available
-const ses = new aws.SES({ apiVersion: '2010-12-01' });
-
 /**
  * Send an HTML email using Amazon SES.
  * @param to email address of destination person
@@ -27,6 +24,8 @@ function sendEmail(
   message: string,
   from = config.defaultSender
 ): void {
+  const ses = new aws.SES({ apiVersion: '2010-12-01', credentials: config?.secrets.aws });
+
   const Data = `
     <h1 style="font-size: 20px;">
       ${config.tenantDisplayName}
