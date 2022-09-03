@@ -21,7 +21,7 @@ dotenv.config();
 const handleError = (error: Error, req: Request, res: Response, descriptive = false, code = 500) => {
   console.error(error);
   if (descriptive) res.status(code).json({ error: error.message });
-  if (req.body.redirect === false) res.status(500).json({ error: 'error authenticating' });
+  else if (req.body.redirect === false) res.status(500).json({ error: 'error authenticating' });
   else res.redirect(req.baseUrl + '/error');
 };
 
