@@ -37,6 +37,12 @@ function createExpressApp(cristata: Cristata): Application {
     return new URLSearchParams(queryString);
   });
 
+  // inject cristata instance into request object
+  app.use((req, res, next) => {
+    req.cristata = cristata;
+    next();
+  });
+
   // secure app with helmet
   app.use(
     helmet({
