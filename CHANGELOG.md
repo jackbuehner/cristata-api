@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.5.2](https://github.com/jackbuehner/cristata-api/compare/v6.5.1...v6.5.2) (2022-09-04)
+
+
+### Bug Fixes
+
+* include arrays/subdocs in mongoose schemas ([72da6ac](https://github.com/jackbuehner/cristata-api/commit/72da6aced4478714a2db680a19286004a7c1aba0))
+
 ### [6.5.1](https://github.com/jackbuehner/cristata-api/compare/v6.5.0...v6.5.1) (2022-09-04)
 
 
