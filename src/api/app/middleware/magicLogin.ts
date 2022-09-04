@@ -2,7 +2,9 @@ import { MagicLoginStrategy } from 'passport-magic-login';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';
 import { sendEmail } from '../../utils/sendEmail';
+//@ts-expect-error the declarations for this refuse to work
 import TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';
+//@ts-expect-error the declarations for this refuse to work
 import NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';
 
 const magicLogin = new MagicLoginStrategy({

@@ -36,5 +36,15 @@ declare module 'graphql-s2s' {
     isTypeGeneric,
   };
 
+  declare module 'jsonwebtoken/lib/TokenExpiredError' {
+    const TokenExpiredError: any;
+    export default TokenExpiredError;
+  }
+
+  declare module 'jsonwebtoken/lib/NotBeforeError' {
+    const NotBeforeError: any;
+    export default NotBeforeError;
+  }
+
   export { graphqls2s };
 }
