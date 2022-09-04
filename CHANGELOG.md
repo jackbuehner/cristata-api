@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.5.1](https://github.com/jackbuehner/cristata-api/compare/v6.5.0...v6.5.1) (2022-09-04)
+
+
+### Bug Fixes
+
+* type declaration issue for jsonwebtoken errors ([57a1408](https://github.com/jackbuehner/cristata-api/commit/57a1408a6ad530ff67f08af3601f453dc4dafeee))
+
 ## [6.5.0](https://github.com/jackbuehner/cristata-api/compare/v6.4.0...v6.5.0) (2022-09-04)
 
 
