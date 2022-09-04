@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.5.0](https://github.com/jackbuehner/cristata-api/compare/v6.4.0...v6.5.0) (2022-09-04)
+
+
+### Features
+
+* add login repo to workspace ([c10a778](https://github.com/jackbuehner/cristata-api/commit/c10a7780ddd5fb3081a8e1c3fd42f5d3a872cacc))
+* add magic email login ([73b2258](https://github.com/jackbuehner/cristata-api/commit/73b225832756d690a3a1189029207209fba45846))
+* inject cristata instance into request object ([414e86e](https://github.com/jackbuehner/cristata-api/commit/414e86ebd2d53cf14b6d3fef0f511ff8fea286ca))
+
+
+### Bug Fixes
+
+* authenticate amazon ses ([e410f9a](https://github.com/jackbuehner/cristata-api/commit/e410f9ae9094d240bddeb311a37c609de855d97b))
+* do not send two errors on handleError ([b1df753](https://github.com/jackbuehner/cristata-api/commit/b1df75394bdb7720314107b669cdb3e1dfdd5a31))
+
 ## [6.4.0](https://github.com/jackbuehner/cristata-api/compare/v6.3.0...v6.4.0) (2022-09-02)
 
 
