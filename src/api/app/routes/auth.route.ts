@@ -3,6 +3,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import passport from 'passport';
 import Cristata from '../../Cristata';
 import { TenantDB } from '../../mongodb/TenantDB';
+import { magicLogin } from '../middleware/magicLogin';
 import { requireAuth } from '../middleware/requireAuth';
 import { deserializeUser, IDeserializedUser } from '../passport';
 
@@ -117,6 +118,57 @@ function factory(cristata: Cristata): Router {
         });
       }
     })(req, res, next);
+  });
+
+  // add the passport-magic-login strategy to Passport
+  passport.use(magicLogin);
+
+  // authenticate using a magic link
+  router.post('/magiclogin', magicLogin.send);
+  router.get('/magiclogin/callback', (req, res, next) => {
+    passport.authenticate(
+      'magiclogin',
+      (
+        err: Error | null,
+        user:
+          | {
+              _id: string;
+              provider: string;
+              next_step?: string | undefined;
+              tenant: string;
+            }
+          | undefined
+      ) => {
+        if (err) {
+          handleError(err, req, res, true);
+          return;
+        }
+
+        if (!user) {
+          if ((req.query as unknown as URLSearchParams).get('redirect') === 'false')
+            res.json({ error: 'user is missing' });
+          else res.redirect(req.body.server ? req.baseUrl + '/magiclogin' : process.env.AUTH_APP_URL || '');
+          return;
+        }
+
+        // sign in
+        req.logIn(user, (err) => {
+          if (err) {
+            handleError(err, req, res);
+            return;
+          }
+
+          if ((req.query as unknown as URLSearchParams).get('redirect') === 'false') {
+            deserializeUser(user).then((result) => {
+              // error message
+              if (typeof result === 'string') res.status(401).json({ error: result });
+              // user object
+              else res.json({ data: result });
+            });
+          } else res.redirect(process.env.AUTH_APP_URL + '/' + user.tenant);
+        });
+      }
+    )(req, res, next);
   });
 
   return router;

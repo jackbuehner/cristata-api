@@ -1,0 +1,355 @@
+diff --git a/node_modules/passport-magic-login/dist/index.d.ts b/node_modules/passport-magic-login/dist/index.d.ts
+index 41c0c69..c41c2d7 100644
+--- a/node_modules/passport-magic-login/dist/index.d.ts
++++ b/node_modules/passport-magic-login/dist/index.d.ts
+@@ -1,6 +1,10 @@
+ import { Request, Response } from 'express';
++import JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';
++import NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';
++import TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';
+ import { StrategyCreatedStatic } from 'passport';
+-declare type VerifyCallback = (payload: any, verifyCallback: (err?: Error, user?: Object, info?: any) => void, req: Request) => void;
++import { JwtPayload } from './token';
++declare type VerifyCallback = (error: Error | JsonWebTokenError | NotBeforeError | TokenExpiredError | null, payload: false | JwtPayload, verifyCallback: (err?: Error, user?: Object, info?: any) => void, req: Request) => void;
+ interface Options {
+     secret: string;
+     callbackUrl: string;
+@@ -18,4 +22,4 @@ declare class MagicLoginStrategy {
+     /** @deprecated */
+     confirm: (req: Request, res: Response) => void;
+ }
+-export default MagicLoginStrategy;
++export { MagicLoginStrategy };
+diff --git a/node_modules/passport-magic-login/dist/passport-magic-login.cjs.development.js b/node_modules/passport-magic-login/dist/passport-magic-login.cjs.development.js
+index 1b233db..53d75bb 100644
+--- a/node_modules/passport-magic-login/dist/passport-magic-login.cjs.development.js
++++ b/node_modules/passport-magic-login/dist/passport-magic-login.cjs.development.js
+@@ -1,13 +1,9 @@
+ 'use strict';
+ 
+-Object.defineProperty(exports, '__esModule', { value: true });
+-
+-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+-
+-var jwt = _interopDefault(require('jsonwebtoken'));
++var jsonwebtoken = require('jsonwebtoken');
+ 
+ function _extends() {
+-  _extends = Object.assign || function (target) {
++  _extends = Object.assign ? Object.assign.bind() : function (target) {
+     for (var i = 1; i < arguments.length; i++) {
+       var source = arguments[i];
+ 
+@@ -20,7 +16,6 @@ function _extends() {
+ 
+     return target;
+   };
+-
+   return _extends.apply(this, arguments);
+ }
+ 
+@@ -30,13 +25,14 @@ var decodeToken = function decodeToken(secret, token) {
+   }
+ 
+   try {
+-    return jwt.verify(token, secret);
++    return jsonwebtoken.verify(token, secret);
+   } catch (err) {
++    if (err.message) return err;
+     return false;
+   }
+ };
+ var generateToken = function generateToken(secret, payload) {
+-  return jwt.sign(payload, secret, {
++  return jsonwebtoken.sign(payload, secret, {
+     expiresIn: '60min'
+   });
+ };
+@@ -79,7 +75,7 @@ var MagicLoginStrategy = /*#__PURE__*/function () {
+ 
+     this.confirm = function (req, res) {
+       console.warn("magicLink.confirm was removed in v1.0.7, it is no longer necessary.");
+-      res.redirect(_this._options.callbackUrl + "?token=" + req.query.token);
++      res.redirect(_this._options.callbackUrl + "?token=" + req.query.get('token'));
+     };
+   }
+ 
+@@ -87,7 +83,7 @@ var MagicLoginStrategy = /*#__PURE__*/function () {
+ 
+   _proto.authenticate = function authenticate(req) {
+     var self = this;
+-    var payload = decodeToken(self._options.secret, req.query.token);
++    var payload = decodeToken(self._options.secret, req.query.get('token'));
+ 
+     var verifyCallback = function verifyCallback(err, user, info) {
+       if (err) {
+@@ -99,11 +95,20 @@ var MagicLoginStrategy = /*#__PURE__*/function () {
+       }
+     };
+ 
+-    self._options.verify(payload, verifyCallback, req);
++    var isErrorPayload = function isErrorPayload(payload) {
++      if (!payload) return true;
++      return !!payload.name;
++    };
++
++    if (isErrorPayload(payload)) {
++      self._options.verify(payload, false, verifyCallback, req);
++    } else {
++      self._options.verify(null, payload, verifyCallback, req);
++    }
+   };
+ 
+   return MagicLoginStrategy;
+ }();
+ 
+-exports.default = MagicLoginStrategy;
++exports.MagicLoginStrategy = MagicLoginStrategy;
+ //# sourceMappingURL=passport-magic-login.cjs.development.js.map
+diff --git a/node_modules/passport-magic-login/dist/passport-magic-login.cjs.development.js.map b/node_modules/passport-magic-login/dist/passport-magic-login.cjs.development.js.map
+index 59ffe37..0823bb4 100644
+--- a/node_modules/passport-magic-login/dist/passport-magic-login.cjs.development.js.map
++++ b/node_modules/passport-magic-login/dist/passport-magic-login.cjs.development.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"passport-magic-login.cjs.development.js","sources":["../src/token.ts","../src/index.ts"],"sourcesContent":["import jwt from 'jsonwebtoken';\n\ntype JwtPayload = {\n  destination: string;\n  code: string;\n  [key: string]: any;\n};\n\nexport const decodeToken = (secret: string, token?: string) => {\n  if (typeof token !== 'string') {\n    return false;\n  }\n  try {\n    return jwt.verify(token, secret) as JwtPayload;\n  } catch (err) {\n    return false;\n  }\n};\n\nexport const generateToken = (secret: string, payload: JwtPayload) =>\n  jwt.sign(payload, secret, {\n    expiresIn: '60min',\n  });\n","import { Request, Response } from 'express';\nimport { StrategyCreatedStatic } from 'passport';\nimport { generateToken, decodeToken } from './token';\n\ntype VerifyCallback = (\n  payload: any,\n  verifyCallback: (err?: Error, user?: Object, info?: any) => void,\n  req: Request\n) => void;\n\ninterface Options {\n  secret: string;\n  callbackUrl: string;\n  sendMagicLink: (\n    destination: string,\n    href: string,\n    verificationCode: string,\n    req: Request\n  ) => Promise<void>;\n  verify: VerifyCallback;\n\n  /** @deprecated */\n  confirmUrl?: string;\n}\n\nclass MagicLoginStrategy {\n  name: string = 'magiclogin';\n\n  constructor(private _options: Options) {}\n\n  authenticate(\n    this: StrategyCreatedStatic & MagicLoginStrategy,\n    req: Request\n  ): void {\n    const self = this;\n    const payload = decodeToken(\n      self._options.secret,\n      req.query.token as string\n    );\n\n    const verifyCallback = function(err?: Error, user?: Object, info?: any) {\n      if (err) {\n        return self.error(err);\n      } else if (!user) {\n        return self.fail(info);\n      } else {\n        return self.success(user, info);\n      }\n    };\n\n    self._options.verify(payload, verifyCallback, req);\n  }\n\n  send = (req: Request, res: Response): void => {\n    const payload = req.method === 'GET' ? req.query : req.body;\n    if (!payload.destination) {\n      res.status(400).send('Please specify the destination.');\n      return;\n    }\n\n    const code = Math.floor(Math.random() * 90000) + 10000 + '';\n    const jwt = generateToken(this._options.secret, {\n      ...payload,\n      code,\n    });\n\n    this._options\n      .sendMagicLink(\n        payload.destination,\n        `${this._options.callbackUrl}?token=${jwt}`,\n        code,\n        req\n      )\n      .then(() => {\n        res.json({ success: true, code });\n      })\n      .catch((error: any) => {\n        console.error(error);\n        res.json({ success: false, error });\n      });\n  };\n\n  /** @deprecated */\n  confirm = (req: Request, res: Response): void => {\n    console.warn(\n      `magicLink.confirm was removed in v1.0.7, it is no longer necessary.`\n    );\n    res.redirect(`${this._options.callbackUrl}?token=${req.query.token}`);\n  };\n}\n\nexport default MagicLoginStrategy;\n"],"names":["decodeToken","secret","token","jwt","verify","err","generateToken","payload","sign","expiresIn","MagicLoginStrategy","_options","req","res","method","query","body","destination","status","send","code","Math","floor","random","sendMagicLink","callbackUrl","then","json","success","error","console","warn","redirect","authenticate","self","verifyCallback","user","info","fail"],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"passport-magic-login.cjs.development.js","sources":["../src/token.ts","../src/index.ts"],"sourcesContent":["import { verify, sign } from 'jsonwebtoken';\nimport JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';\nimport NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';\nimport TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';\n\nexport type JwtPayload = {\n  destination: string;\n  code: string;\n  [key: string]: any;\n};\n\nexport const decodeToken = (\n  secret: string,\n  token?: string\n):\n  | false\n  | JwtPayload\n  | JsonWebTokenError\n  | NotBeforeError\n  | TokenExpiredError\n  | Error => {\n  if (typeof token !== 'string') {\n    return false;\n  }\n  try {\n    return verify(token, secret) as JwtPayload;\n  } catch (err) {\n    if (err.message) return err;\n    return false;\n  }\n};\n\nexport const generateToken = (secret: string, payload: JwtPayload) =>\n  sign(payload, secret, {\n    expiresIn: '60min',\n  });\n","import { Request, Response } from 'express';\nimport JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';\nimport NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';\nimport TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';\nimport { StrategyCreatedStatic } from 'passport';\nimport { decodeToken, generateToken, JwtPayload } from './token';\n\ntype VerifyCallback = (\n  error: Error | JsonWebTokenError | NotBeforeError | TokenExpiredError | null,\n  payload: false | JwtPayload,\n  verifyCallback: (err?: Error, user?: Object, info?: any) => void,\n  req: Request\n) => void;\n\ninterface Options {\n  secret: string;\n  callbackUrl: string;\n  sendMagicLink: (\n    destination: string,\n    href: string,\n    verificationCode: string,\n    req: Request\n  ) => Promise<void>;\n  verify: VerifyCallback;\n\n  /** @deprecated */\n  confirmUrl?: string;\n}\n\nclass MagicLoginStrategy {\n  name: string = 'magiclogin';\n\n  constructor(private _options: Options) {}\n\n  authenticate(\n    this: StrategyCreatedStatic & MagicLoginStrategy,\n    req: Request\n  ): void {\n    const self = this;\n    const payload = decodeToken(\n      self._options.secret,\n      ((req.query as unknown) as URLSearchParams).get('token') as string\n    );\n\n    const verifyCallback = function(err?: Error, user?: Object, info?: any) {\n      if (err) {\n        return self.error(err);\n      } else if (!user) {\n        return self.fail(info);\n      } else {\n        return self.success(user, info);\n      }\n    };\n\n    const isErrorPayload = (\n      payload: ReturnType<typeof decodeToken>\n    ): payload is\n      | JsonWebTokenError\n      | NotBeforeError\n      | TokenExpiredError\n      | Error => {\n      if (!payload) return true;\n      return !!payload.name;\n    };\n\n    if (isErrorPayload(payload)) {\n      self._options.verify(payload, false, verifyCallback, req);\n    } else {\n      self._options.verify(null, payload, verifyCallback, req);\n    }\n  }\n\n  send = (req: Request, res: Response): void => {\n    const payload = req.method === 'GET' ? req.query : req.body;\n    if (!payload.destination) {\n      res.status(400).send('Please specify the destination.');\n      return;\n    }\n\n    const code = Math.floor(Math.random() * 90000) + 10000 + '';\n    const jwt = generateToken(this._options.secret, {\n      ...payload,\n      code,\n    });\n\n    this._options\n      .sendMagicLink(\n        payload.destination,\n        `${this._options.callbackUrl}?token=${jwt}`,\n        code,\n        req\n      )\n      .then(() => {\n        res.json({ success: true, code });\n      })\n      .catch((error: any) => {\n        console.error(error);\n        res.json({ success: false, error });\n      });\n  };\n\n  /** @deprecated */\n  confirm = (req: Request, res: Response): void => {\n    console.warn(\n      `magicLink.confirm was removed in v1.0.7, it is no longer necessary.`\n    );\n    res.redirect(\n      `${\n        this._options.callbackUrl\n      }?token=${((req.query as unknown) as URLSearchParams).get('token')}`\n    );\n  };\n}\n\nexport { MagicLoginStrategy };\n"],"names":["decodeToken","secret","token","verify","err","message","generateToken","payload","sign","expiresIn","MagicLoginStrategy","_options","req","res","method","query","body","destination","status","send","code","Math","floor","random","jwt","sendMagicLink","callbackUrl","then","json","success","error","console","warn","redirect","get","authenticate","self","verifyCallback","user","info","fail","isErrorPayload","name"],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/passport-magic-login/dist/passport-magic-login.cjs.production.min.js b/node_modules/passport-magic-login/dist/passport-magic-login.cjs.production.min.js
+index ce9dc42..7ca8c8c 100644
+--- a/node_modules/passport-magic-login/dist/passport-magic-login.cjs.production.min.js
++++ b/node_modules/passport-magic-login/dist/passport-magic-login.cjs.production.min.js
+@@ -1,2 +1,2 @@
+-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});var e,t=(e=require("jsonwebtoken"))&&"object"==typeof e&&"default"in e?e.default:e;function n(){return(n=Object.assign||function(e){for(var t=1;t<arguments.length;t++){var n=arguments[t];for(var o in n)Object.prototype.hasOwnProperty.call(n,o)&&(e[o]=n[o])}return e}).apply(this,arguments)}var o=function(e,n){return t.sign(n,e,{expiresIn:"60min"})};exports.default=function(){function e(e){var t=this;this._options=e,this.name="magiclogin",this.send=function(e,r){var i="GET"===e.method?e.query:e.body;if(i.destination){var s=Math.floor(9e4*Math.random())+1e4+"",c=o(t._options.secret,n({},i,{code:s}));t._options.sendMagicLink(i.destination,t._options.callbackUrl+"?token="+c,s,e).then((function(){r.json({success:!0,code:s})})).catch((function(e){console.error(e),r.json({success:!1,error:e})}))}else r.status(400).send("Please specify the destination.")},this.confirm=function(e,n){console.warn("magicLink.confirm was removed in v1.0.7, it is no longer necessary."),n.redirect(t._options.callbackUrl+"?token="+e.query.token)}}return e.prototype.authenticate=function(e){var n=this,o=function(e,n){if("string"!=typeof n)return!1;try{return t.verify(n,e)}catch(e){return!1}}(n._options.secret,e.query.token);n._options.verify(o,(function(e,t,o){return e?n.error(e):t?n.success(t,o):n.fail(o)}),e)},e}();
++"use strict";var n=require("jsonwebtoken");function t(){return(t=Object.assign?Object.assign.bind():function(n){for(var t=1;t<arguments.length;t++){var e=arguments[t];for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(n[o]=e[o])}return n}).apply(this,arguments)}exports.MagicLoginStrategy=function(){function e(e){var o=this;this._options=e,this.name="magiclogin",this.send=function(e,r){var i="GET"===e.method?e.query:e.body;if(i.destination){var s=Math.floor(9e4*Math.random())+1e4+"",c=function(t,e){return n.sign(e,t,{expiresIn:"60min"})}(o._options.secret,t({},i,{code:s}));o._options.sendMagicLink(i.destination,o._options.callbackUrl+"?token="+c,s,e).then((function(){r.json({success:!0,code:s})})).catch((function(n){console.error(n),r.json({success:!1,error:n})}))}else r.status(400).send("Please specify the destination.")},this.confirm=function(n,t){console.warn("magicLink.confirm was removed in v1.0.7, it is no longer necessary."),t.redirect(o._options.callbackUrl+"?token="+n.query.get("token"))}}return e.prototype.authenticate=function(t){var e=this,o=function(t,e){if("string"!=typeof e)return!1;try{return n.verify(e,t)}catch(n){return!!n.message&&n}}(e._options.secret,t.query.get("token")),r=function(n,t,o){return n?e.error(n):t?e.success(t,o):e.fail(o)};!function(n){return!n||!!n.name}(o)?e._options.verify(null,o,r,t):e._options.verify(o,!1,r,t)},e}();
+ //# sourceMappingURL=passport-magic-login.cjs.production.min.js.map
+diff --git a/node_modules/passport-magic-login/dist/passport-magic-login.cjs.production.min.js.map b/node_modules/passport-magic-login/dist/passport-magic-login.cjs.production.min.js.map
+index bd907c6..d9da8c9 100644
+--- a/node_modules/passport-magic-login/dist/passport-magic-login.cjs.production.min.js.map
++++ b/node_modules/passport-magic-login/dist/passport-magic-login.cjs.production.min.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"passport-magic-login.cjs.production.min.js","sources":["../src/token.ts","../src/index.ts"],"sourcesContent":["import jwt from 'jsonwebtoken';\n\ntype JwtPayload = {\n  destination: string;\n  code: string;\n  [key: string]: any;\n};\n\nexport const decodeToken = (secret: string, token?: string) => {\n  if (typeof token !== 'string') {\n    return false;\n  }\n  try {\n    return jwt.verify(token, secret) as JwtPayload;\n  } catch (err) {\n    return false;\n  }\n};\n\nexport const generateToken = (secret: string, payload: JwtPayload) =>\n  jwt.sign(payload, secret, {\n    expiresIn: '60min',\n  });\n","import { Request, Response } from 'express';\nimport { StrategyCreatedStatic } from 'passport';\nimport { generateToken, decodeToken } from './token';\n\ntype VerifyCallback = (\n  payload: any,\n  verifyCallback: (err?: Error, user?: Object, info?: any) => void,\n  req: Request\n) => void;\n\ninterface Options {\n  secret: string;\n  callbackUrl: string;\n  sendMagicLink: (\n    destination: string,\n    href: string,\n    verificationCode: string,\n    req: Request\n  ) => Promise<void>;\n  verify: VerifyCallback;\n\n  /** @deprecated */\n  confirmUrl?: string;\n}\n\nclass MagicLoginStrategy {\n  name: string = 'magiclogin';\n\n  constructor(private _options: Options) {}\n\n  authenticate(\n    this: StrategyCreatedStatic & MagicLoginStrategy,\n    req: Request\n  ): void {\n    const self = this;\n    const payload = decodeToken(\n      self._options.secret,\n      req.query.token as string\n    );\n\n    const verifyCallback = function(err?: Error, user?: Object, info?: any) {\n      if (err) {\n        return self.error(err);\n      } else if (!user) {\n        return self.fail(info);\n      } else {\n        return self.success(user, info);\n      }\n    };\n\n    self._options.verify(payload, verifyCallback, req);\n  }\n\n  send = (req: Request, res: Response): void => {\n    const payload = req.method === 'GET' ? req.query : req.body;\n    if (!payload.destination) {\n      res.status(400).send('Please specify the destination.');\n      return;\n    }\n\n    const code = Math.floor(Math.random() * 90000) + 10000 + '';\n    const jwt = generateToken(this._options.secret, {\n      ...payload,\n      code,\n    });\n\n    this._options\n      .sendMagicLink(\n        payload.destination,\n        `${this._options.callbackUrl}?token=${jwt}`,\n        code,\n        req\n      )\n      .then(() => {\n        res.json({ success: true, code });\n      })\n      .catch((error: any) => {\n        console.error(error);\n        res.json({ success: false, error });\n      });\n  };\n\n  /** @deprecated */\n  confirm = (req: Request, res: Response): void => {\n    console.warn(\n      `magicLink.confirm was removed in v1.0.7, it is no longer necessary.`\n    );\n    res.redirect(`${this._options.callbackUrl}?token=${req.query.token}`);\n  };\n}\n\nexport default MagicLoginStrategy;\n"],"names":["generateToken","secret","payload","jwt","sign","expiresIn","_options","req","res","method","query","body","destination","code","Math","floor","random","_this","sendMagicLink","callbackUrl","then","json","success","error","console","status","send","warn","redirect","token","authenticate","self","this","verify","err","decodeToken","user","info","fail"],"mappings":"sWAQO,IAWMA,EAAgB,SAACC,EAAgBC,UAC5CC,EAAIC,KAAKF,EAASD,EAAQ,CACxBI,UAAW,iDCOOC,4BAAAA,YAFL,uBA2BR,SAACC,EAAcC,OACdN,EAAyB,QAAfK,EAAIE,OAAmBF,EAAIG,MAAQH,EAAII,QAClDT,EAAQU,iBAKPC,EAAOC,KAAKC,MAAsB,IAAhBD,KAAKE,UAAoB,IAAQ,GACnDb,EAAMH,EAAciB,EAAKX,SAASL,YACnCC,GACHW,KAAAA,KAGFI,EAAKX,SACFY,cACChB,EAAQU,YACLK,EAAKX,SAASa,sBAAqBhB,EACtCU,EACAN,GAEDa,MAAK,WACJZ,EAAIa,KAAK,CAAEC,SAAS,EAAMT,KAAAA,cAErB,SAACU,GACNC,QAAQD,MAAMA,GACdf,EAAIa,KAAK,CAAEC,SAAS,EAAOC,MAAAA,YAtB7Bf,EAAIiB,OAAO,KAAKC,KAAK,iDA2Bf,SAACnB,EAAcC,GACvBgB,QAAQG,4EAGRnB,EAAIoB,SAAYX,EAAKX,SAASa,sBAAqBZ,EAAIG,MAAMmB,2BAzD/DC,aAAA,SAEEvB,OAEMwB,EAAOC,KACP9B,ED3BiB,SAACD,EAAgB4B,MACrB,iBAAVA,SACF,aAGA1B,EAAI8B,OAAOJ,EAAO5B,GACzB,MAAOiC,UACA,GCoBSC,CACdJ,EAAKzB,SAASL,OACdM,EAAIG,MAAMmB,OAaZE,EAAKzB,SAAS2B,OAAO/B,GAVE,SAASgC,EAAaE,EAAeC,UACtDH,EACKH,EAAKR,MAAMW,GACRE,EAGHL,EAAKT,QAAQc,EAAMC,GAFnBN,EAAKO,KAAKD,KAMyB9B"}
+\ No newline at end of file
++{"version":3,"file":"passport-magic-login.cjs.production.min.js","sources":["../src/index.ts","../src/token.ts"],"sourcesContent":["import { Request, Response } from 'express';\nimport JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';\nimport NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';\nimport TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';\nimport { StrategyCreatedStatic } from 'passport';\nimport { decodeToken, generateToken, JwtPayload } from './token';\n\ntype VerifyCallback = (\n  error: Error | JsonWebTokenError | NotBeforeError | TokenExpiredError | null,\n  payload: false | JwtPayload,\n  verifyCallback: (err?: Error, user?: Object, info?: any) => void,\n  req: Request\n) => void;\n\ninterface Options {\n  secret: string;\n  callbackUrl: string;\n  sendMagicLink: (\n    destination: string,\n    href: string,\n    verificationCode: string,\n    req: Request\n  ) => Promise<void>;\n  verify: VerifyCallback;\n\n  /** @deprecated */\n  confirmUrl?: string;\n}\n\nclass MagicLoginStrategy {\n  name: string = 'magiclogin';\n\n  constructor(private _options: Options) {}\n\n  authenticate(\n    this: StrategyCreatedStatic & MagicLoginStrategy,\n    req: Request\n  ): void {\n    const self = this;\n    const payload = decodeToken(\n      self._options.secret,\n      ((req.query as unknown) as URLSearchParams).get('token') as string\n    );\n\n    const verifyCallback = function(err?: Error, user?: Object, info?: any) {\n      if (err) {\n        return self.error(err);\n      } else if (!user) {\n        return self.fail(info);\n      } else {\n        return self.success(user, info);\n      }\n    };\n\n    const isErrorPayload = (\n      payload: ReturnType<typeof decodeToken>\n    ): payload is\n      | JsonWebTokenError\n      | NotBeforeError\n      | TokenExpiredError\n      | Error => {\n      if (!payload) return true;\n      return !!payload.name;\n    };\n\n    if (isErrorPayload(payload)) {\n      self._options.verify(payload, false, verifyCallback, req);\n    } else {\n      self._options.verify(null, payload, verifyCallback, req);\n    }\n  }\n\n  send = (req: Request, res: Response): void => {\n    const payload = req.method === 'GET' ? req.query : req.body;\n    if (!payload.destination) {\n      res.status(400).send('Please specify the destination.');\n      return;\n    }\n\n    const code = Math.floor(Math.random() * 90000) + 10000 + '';\n    const jwt = generateToken(this._options.secret, {\n      ...payload,\n      code,\n    });\n\n    this._options\n      .sendMagicLink(\n        payload.destination,\n        `${this._options.callbackUrl}?token=${jwt}`,\n        code,\n        req\n      )\n      .then(() => {\n        res.json({ success: true, code });\n      })\n      .catch((error: any) => {\n        console.error(error);\n        res.json({ success: false, error });\n      });\n  };\n\n  /** @deprecated */\n  confirm = (req: Request, res: Response): void => {\n    console.warn(\n      `magicLink.confirm was removed in v1.0.7, it is no longer necessary.`\n    );\n    res.redirect(\n      `${\n        this._options.callbackUrl\n      }?token=${((req.query as unknown) as URLSearchParams).get('token')}`\n    );\n  };\n}\n\nexport { MagicLoginStrategy };\n","import { verify, sign } from 'jsonwebtoken';\nimport JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';\nimport NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';\nimport TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';\n\nexport type JwtPayload = {\n  destination: string;\n  code: string;\n  [key: string]: any;\n};\n\nexport const decodeToken = (\n  secret: string,\n  token?: string\n):\n  | false\n  | JwtPayload\n  | JsonWebTokenError\n  | NotBeforeError\n  | TokenExpiredError\n  | Error => {\n  if (typeof token !== 'string') {\n    return false;\n  }\n  try {\n    return verify(token, secret) as JwtPayload;\n  } catch (err) {\n    if (err.message) return err;\n    return false;\n  }\n};\n\nexport const generateToken = (secret: string, payload: JwtPayload) =>\n  sign(payload, secret, {\n    expiresIn: '60min',\n  });\n"],"names":["_options","this","req","res","payload","method","query","body","destination","code","Math","floor","random","jwt","secret","sign","expiresIn","generateToken","_this","sendMagicLink","callbackUrl","then","json","success","error","console","status","send","warn","redirect","get","authenticate","self","token","verify","err","message","decodeToken","verifyCallback","user","info","fail","name","isErrorPayload"],"mappings":"oTAgCE,WAAoBA,cAAAC,cAAAD,EAFpBC,UAAe,aA0CfA,UAAO,SAACC,EAAcC,GACpB,IAAMC,EAAyB,QAAfF,EAAIG,OAAmBH,EAAII,MAAQJ,EAAIK,KACvD,GAAKH,EAAQI,YAAb,CAKA,IAAMC,EAAOC,KAAKC,MAAsB,IAAhBD,KAAKE,UAAoB,IAAQ,GACnDC,EChDmB,SAACC,EAAgBV,GAAjB,OAC3BW,OAAKX,EAASU,EAAQ,CACpBE,UAAW,UD8CCC,CAAcC,EAAKlB,SAASc,YACnCV,GACHK,KAAAA,KAGFS,EAAKlB,SACFmB,cACCf,EAAQI,YACLU,EAAKlB,SAASoB,sBAAqBP,EACtCJ,EACAP,GAEDmB,MAAK,WACJlB,EAAImB,KAAK,CAAEC,SAAS,EAAMd,KAAAA,cAErB,SAACe,GACNC,QAAQD,MAAMA,GACdrB,EAAImB,KAAK,CAAEC,SAAS,EAAOC,MAAAA,YAtB7BrB,EAAIuB,OAAO,KAAKC,KAAK,oCA2BzB1B,aAAU,SAACC,EAAcC,GACvBsB,QAAQG,4EAGRzB,EAAI0B,SAEAX,EAAKlB,SAASoB,sBACJlB,EAAII,MAAsCwB,IAAI,8BA3E9DC,aAAA,SAEE7B,GAEA,IAAM8B,EAAO/B,KACPG,EC5BiB,SACzBU,EACAmB,GAQA,GAAqB,iBAAVA,EACT,OAAO,EAET,IACE,OAAOC,SAAOD,EAAOnB,GACrB,MAAOqB,GACP,QAAIA,EAAIC,SAAgBD,GDYRE,CACdL,EAAKhC,SAASc,OACZZ,EAAII,MAAsCwB,IAAI,UAG5CQ,EAAiB,SAASH,EAAaI,EAAeC,GAC1D,OAAIL,EACKH,EAAKR,MAAMW,GACRI,EAGHP,EAAKT,QAAQgB,EAAMC,GAFnBR,EAAKS,KAAKD,KAME,SACrBpC,GAMA,OAAKA,KACIA,EAAQsC,KAGfC,CAAevC,GAGjB4B,EAAKhC,SAASkC,OAAO,KAAM9B,EAASkC,EAAgBpC,GAFpD8B,EAAKhC,SAASkC,OAAO9B,GAAS,EAAOkC,EAAgBpC"}
+\ No newline at end of file
+diff --git a/node_modules/passport-magic-login/dist/passport-magic-login.esm.js b/node_modules/passport-magic-login/dist/passport-magic-login.esm.js
+index ce20b39..00289a1 100644
+--- a/node_modules/passport-magic-login/dist/passport-magic-login.esm.js
++++ b/node_modules/passport-magic-login/dist/passport-magic-login.esm.js
+@@ -1,7 +1,7 @@
+-import jwt from 'jsonwebtoken';
++import { verify, sign } from 'jsonwebtoken';
+ 
+ function _extends() {
+-  _extends = Object.assign || function (target) {
++  _extends = Object.assign ? Object.assign.bind() : function (target) {
+     for (var i = 1; i < arguments.length; i++) {
+       var source = arguments[i];
+ 
+@@ -14,7 +14,6 @@ function _extends() {
+ 
+     return target;
+   };
+-
+   return _extends.apply(this, arguments);
+ }
+ 
+@@ -24,13 +23,14 @@ var decodeToken = function decodeToken(secret, token) {
+   }
+ 
+   try {
+-    return jwt.verify(token, secret);
++    return verify(token, secret);
+   } catch (err) {
++    if (err.message) return err;
+     return false;
+   }
+ };
+ var generateToken = function generateToken(secret, payload) {
+-  return jwt.sign(payload, secret, {
++  return sign(payload, secret, {
+     expiresIn: '60min'
+   });
+ };
+@@ -73,7 +73,7 @@ var MagicLoginStrategy = /*#__PURE__*/function () {
+ 
+     this.confirm = function (req, res) {
+       console.warn("magicLink.confirm was removed in v1.0.7, it is no longer necessary.");
+-      res.redirect(_this._options.callbackUrl + "?token=" + req.query.token);
++      res.redirect(_this._options.callbackUrl + "?token=" + req.query.get('token'));
+     };
+   }
+ 
+@@ -81,7 +81,7 @@ var MagicLoginStrategy = /*#__PURE__*/function () {
+ 
+   _proto.authenticate = function authenticate(req) {
+     var self = this;
+-    var payload = decodeToken(self._options.secret, req.query.token);
++    var payload = decodeToken(self._options.secret, req.query.get('token'));
+ 
+     var verifyCallback = function verifyCallback(err, user, info) {
+       if (err) {
+@@ -93,11 +93,20 @@ var MagicLoginStrategy = /*#__PURE__*/function () {
+       }
+     };
+ 
+-    self._options.verify(payload, verifyCallback, req);
++    var isErrorPayload = function isErrorPayload(payload) {
++      if (!payload) return true;
++      return !!payload.name;
++    };
++
++    if (isErrorPayload(payload)) {
++      self._options.verify(payload, false, verifyCallback, req);
++    } else {
++      self._options.verify(null, payload, verifyCallback, req);
++    }
+   };
+ 
+   return MagicLoginStrategy;
+ }();
+ 
+-export default MagicLoginStrategy;
++export { MagicLoginStrategy };
+ //# sourceMappingURL=passport-magic-login.esm.js.map
+diff --git a/node_modules/passport-magic-login/dist/passport-magic-login.esm.js.map b/node_modules/passport-magic-login/dist/passport-magic-login.esm.js.map
+index f4e4387..75d1c58 100644
+--- a/node_modules/passport-magic-login/dist/passport-magic-login.esm.js.map
++++ b/node_modules/passport-magic-login/dist/passport-magic-login.esm.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"passport-magic-login.esm.js","sources":["../src/token.ts","../src/index.ts"],"sourcesContent":["import jwt from 'jsonwebtoken';\n\ntype JwtPayload = {\n  destination: string;\n  code: string;\n  [key: string]: any;\n};\n\nexport const decodeToken = (secret: string, token?: string) => {\n  if (typeof token !== 'string') {\n    return false;\n  }\n  try {\n    return jwt.verify(token, secret) as JwtPayload;\n  } catch (err) {\n    return false;\n  }\n};\n\nexport const generateToken = (secret: string, payload: JwtPayload) =>\n  jwt.sign(payload, secret, {\n    expiresIn: '60min',\n  });\n","import { Request, Response } from 'express';\nimport { StrategyCreatedStatic } from 'passport';\nimport { generateToken, decodeToken } from './token';\n\ntype VerifyCallback = (\n  payload: any,\n  verifyCallback: (err?: Error, user?: Object, info?: any) => void,\n  req: Request\n) => void;\n\ninterface Options {\n  secret: string;\n  callbackUrl: string;\n  sendMagicLink: (\n    destination: string,\n    href: string,\n    verificationCode: string,\n    req: Request\n  ) => Promise<void>;\n  verify: VerifyCallback;\n\n  /** @deprecated */\n  confirmUrl?: string;\n}\n\nclass MagicLoginStrategy {\n  name: string = 'magiclogin';\n\n  constructor(private _options: Options) {}\n\n  authenticate(\n    this: StrategyCreatedStatic & MagicLoginStrategy,\n    req: Request\n  ): void {\n    const self = this;\n    const payload = decodeToken(\n      self._options.secret,\n      req.query.token as string\n    );\n\n    const verifyCallback = function(err?: Error, user?: Object, info?: any) {\n      if (err) {\n        return self.error(err);\n      } else if (!user) {\n        return self.fail(info);\n      } else {\n        return self.success(user, info);\n      }\n    };\n\n    self._options.verify(payload, verifyCallback, req);\n  }\n\n  send = (req: Request, res: Response): void => {\n    const payload = req.method === 'GET' ? req.query : req.body;\n    if (!payload.destination) {\n      res.status(400).send('Please specify the destination.');\n      return;\n    }\n\n    const code = Math.floor(Math.random() * 90000) + 10000 + '';\n    const jwt = generateToken(this._options.secret, {\n      ...payload,\n      code,\n    });\n\n    this._options\n      .sendMagicLink(\n        payload.destination,\n        `${this._options.callbackUrl}?token=${jwt}`,\n        code,\n        req\n      )\n      .then(() => {\n        res.json({ success: true, code });\n      })\n      .catch((error: any) => {\n        console.error(error);\n        res.json({ success: false, error });\n      });\n  };\n\n  /** @deprecated */\n  confirm = (req: Request, res: Response): void => {\n    console.warn(\n      `magicLink.confirm was removed in v1.0.7, it is no longer necessary.`\n    );\n    res.redirect(`${this._options.callbackUrl}?token=${req.query.token}`);\n  };\n}\n\nexport default MagicLoginStrategy;\n"],"names":["decodeToken","secret","token","jwt","verify","err","generateToken","payload","sign","expiresIn","MagicLoginStrategy","_options","req","res","method","query","body","destination","status","send","code","Math","floor","random","sendMagicLink","callbackUrl","then","json","success","error","console","warn","redirect","authenticate","self","verifyCallback","user","info","fail"],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"passport-magic-login.esm.js","sources":["../src/token.ts","../src/index.ts"],"sourcesContent":["import { verify, sign } from 'jsonwebtoken';\nimport JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';\nimport NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';\nimport TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';\n\nexport type JwtPayload = {\n  destination: string;\n  code: string;\n  [key: string]: any;\n};\n\nexport const decodeToken = (\n  secret: string,\n  token?: string\n):\n  | false\n  | JwtPayload\n  | JsonWebTokenError\n  | NotBeforeError\n  | TokenExpiredError\n  | Error => {\n  if (typeof token !== 'string') {\n    return false;\n  }\n  try {\n    return verify(token, secret) as JwtPayload;\n  } catch (err) {\n    if (err.message) return err;\n    return false;\n  }\n};\n\nexport const generateToken = (secret: string, payload: JwtPayload) =>\n  sign(payload, secret, {\n    expiresIn: '60min',\n  });\n","import { Request, Response } from 'express';\nimport JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';\nimport NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';\nimport TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';\nimport { StrategyCreatedStatic } from 'passport';\nimport { decodeToken, generateToken, JwtPayload } from './token';\n\ntype VerifyCallback = (\n  error: Error | JsonWebTokenError | NotBeforeError | TokenExpiredError | null,\n  payload: false | JwtPayload,\n  verifyCallback: (err?: Error, user?: Object, info?: any) => void,\n  req: Request\n) => void;\n\ninterface Options {\n  secret: string;\n  callbackUrl: string;\n  sendMagicLink: (\n    destination: string,\n    href: string,\n    verificationCode: string,\n    req: Request\n  ) => Promise<void>;\n  verify: VerifyCallback;\n\n  /** @deprecated */\n  confirmUrl?: string;\n}\n\nclass MagicLoginStrategy {\n  name: string = 'magiclogin';\n\n  constructor(private _options: Options) {}\n\n  authenticate(\n    this: StrategyCreatedStatic & MagicLoginStrategy,\n    req: Request\n  ): void {\n    const self = this;\n    const payload = decodeToken(\n      self._options.secret,\n      ((req.query as unknown) as URLSearchParams).get('token') as string\n    );\n\n    const verifyCallback = function(err?: Error, user?: Object, info?: any) {\n      if (err) {\n        return self.error(err);\n      } else if (!user) {\n        return self.fail(info);\n      } else {\n        return self.success(user, info);\n      }\n    };\n\n    const isErrorPayload = (\n      payload: ReturnType<typeof decodeToken>\n    ): payload is\n      | JsonWebTokenError\n      | NotBeforeError\n      | TokenExpiredError\n      | Error => {\n      if (!payload) return true;\n      return !!payload.name;\n    };\n\n    if (isErrorPayload(payload)) {\n      self._options.verify(payload, false, verifyCallback, req);\n    } else {\n      self._options.verify(null, payload, verifyCallback, req);\n    }\n  }\n\n  send = (req: Request, res: Response): void => {\n    const payload = req.method === 'GET' ? req.query : req.body;\n    if (!payload.destination) {\n      res.status(400).send('Please specify the destination.');\n      return;\n    }\n\n    const code = Math.floor(Math.random() * 90000) + 10000 + '';\n    const jwt = generateToken(this._options.secret, {\n      ...payload,\n      code,\n    });\n\n    this._options\n      .sendMagicLink(\n        payload.destination,\n        `${this._options.callbackUrl}?token=${jwt}`,\n        code,\n        req\n      )\n      .then(() => {\n        res.json({ success: true, code });\n      })\n      .catch((error: any) => {\n        console.error(error);\n        res.json({ success: false, error });\n      });\n  };\n\n  /** @deprecated */\n  confirm = (req: Request, res: Response): void => {\n    console.warn(\n      `magicLink.confirm was removed in v1.0.7, it is no longer necessary.`\n    );\n    res.redirect(\n      `${\n        this._options.callbackUrl\n      }?token=${((req.query as unknown) as URLSearchParams).get('token')}`\n    );\n  };\n}\n\nexport { MagicLoginStrategy };\n"],"names":["decodeToken","secret","token","verify","err","message","generateToken","payload","sign","expiresIn","MagicLoginStrategy","_options","req","res","method","query","body","destination","status","send","code","Math","floor","random","jwt","sendMagicLink","callbackUrl","then","json","success","error","console","warn","redirect","get","authenticate","self","verifyCallback","user","info","fail","isErrorPayload","name"],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/passport-magic-login/dist/token.d.ts b/node_modules/passport-magic-login/dist/token.d.ts
+index 0e5d606..59f6eb8 100644
+--- a/node_modules/passport-magic-login/dist/token.d.ts
++++ b/node_modules/passport-magic-login/dist/token.d.ts
+@@ -1,8 +1,10 @@
+-declare type JwtPayload = {
++import JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';
++import NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';
++import TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';
++export declare type JwtPayload = {
+     destination: string;
+     code: string;
+     [key: string]: any;
+ };
+-export declare const decodeToken: (secret: string, token?: string | undefined) => false | JwtPayload;
++export declare const decodeToken: (secret: string, token?: string) => false | JwtPayload | JsonWebTokenError | NotBeforeError | TokenExpiredError | Error;
+ export declare const generateToken: (secret: string, payload: JwtPayload) => string;
+-export {};
+diff --git a/node_modules/passport-magic-login/src/index.ts b/node_modules/passport-magic-login/src/index.ts
+index 581e549..739d34a 100644
+--- a/node_modules/passport-magic-login/src/index.ts
++++ b/node_modules/passport-magic-login/src/index.ts
+@@ -1,9 +1,13 @@
+ import { Request, Response } from 'express';
++import JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';
++import NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';
++import TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';
+ import { StrategyCreatedStatic } from 'passport';
+-import { generateToken, decodeToken } from './token';
++import { decodeToken, generateToken, JwtPayload } from './token';
+ 
+ type VerifyCallback = (
+-  payload: any,
++  error: Error | JsonWebTokenError | NotBeforeError | TokenExpiredError | null,
++  payload: false | JwtPayload,
+   verifyCallback: (err?: Error, user?: Object, info?: any) => void,
+   req: Request
+ ) => void;
+@@ -35,7 +39,7 @@ class MagicLoginStrategy {
+     const self = this;
+     const payload = decodeToken(
+       self._options.secret,
+-      req.query.token as string
++      ((req.query as unknown) as URLSearchParams).get('token') as string
+     );
+ 
+     const verifyCallback = function(err?: Error, user?: Object, info?: any) {
+@@ -48,7 +52,22 @@ class MagicLoginStrategy {
+       }
+     };
+ 
+-    self._options.verify(payload, verifyCallback, req);
++    const isErrorPayload = (
++      payload: ReturnType<typeof decodeToken>
++    ): payload is
++      | JsonWebTokenError
++      | NotBeforeError
++      | TokenExpiredError
++      | Error => {
++      if (!payload) return true;
++      return !!payload.name;
++    };
++
++    if (isErrorPayload(payload)) {
++      self._options.verify(payload, false, verifyCallback, req);
++    } else {
++      self._options.verify(null, payload, verifyCallback, req);
++    }
+   }
+ 
+   send = (req: Request, res: Response): void => {
+@@ -85,8 +104,12 @@ class MagicLoginStrategy {
+     console.warn(
+       `magicLink.confirm was removed in v1.0.7, it is no longer necessary.`
+     );
+-    res.redirect(`${this._options.callbackUrl}?token=${req.query.token}`);
++    res.redirect(
++      `${
++        this._options.callbackUrl
++      }?token=${((req.query as unknown) as URLSearchParams).get('token')}`
++    );
+   };
+ }
+ 
+-export default MagicLoginStrategy;
++export { MagicLoginStrategy };
+diff --git a/node_modules/passport-magic-login/src/token.ts b/node_modules/passport-magic-login/src/token.ts
+index c2e3f76..1dad14a 100644
+--- a/node_modules/passport-magic-login/src/token.ts
++++ b/node_modules/passport-magic-login/src/token.ts
+@@ -1,23 +1,36 @@
+-import jwt from 'jsonwebtoken';
++import { verify, sign } from 'jsonwebtoken';
++import JsonWebTokenError from 'jsonwebtoken/lib/JsonWebTokenError';
++import NotBeforeError from 'jsonwebtoken/lib/NotBeforeError';
++import TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';
+ 
+-type JwtPayload = {
++export type JwtPayload = {
+   destination: string;
+   code: string;
+   [key: string]: any;
+ };
+ 
+-export const decodeToken = (secret: string, token?: string) => {
++export const decodeToken = (
++  secret: string,
++  token?: string
++):
++  | false
++  | JwtPayload
++  | JsonWebTokenError
++  | NotBeforeError
++  | TokenExpiredError
++  | Error => {
+   if (typeof token !== 'string') {
+     return false;
+   }
+   try {
+-    return jwt.verify(token, secret) as JwtPayload;
++    return verify(token, secret) as JwtPayload;
+   } catch (err) {
++    if (err.message) return err;
+     return false;
+   }
+ };
+ 
+ export const generateToken = (secret: string, payload: JwtPayload) =>
+-  jwt.sign(payload, secret, {
++  sign(payload, secret, {
+     expiresIn: '60min',
+   });

@@ -37,6 +37,7 @@ const users = (tenant: string): Collection => {
           last_active_at: { type: 'Date', required: true, default: new Date().toISOString() },
         },
         photo: { type: 'String', modifiable: true, public: true },
+        last_magic_code: { type: 'String', modifiable: false },
         github_id: { type: 'Number', public: true },
         group: { type: 'Float', modifiable: true, public: true, default: '5.10' },
         methods: { type: ['String'], default: [] },
@@ -415,6 +416,7 @@ interface IUser extends CollectionSchemaFields {
   timestamps: IUserTimestamps & CollectionSchemaFields['timestamps'];
   photo?: string; // url to photo
   versions: IUser[]; // store previous versions of the user profile (only via v2 api)
+  last_magic_code?: string;
   github_id: GitHubUserID;
   teams: GitHubTeamNodeID[];
   group?: number;
