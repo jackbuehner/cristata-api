@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.5.3](https://github.com/jackbuehner/cristata-api/compare/v6.5.2...v6.5.3) (2022-09-05)
+
+
+### Bug Fixes
+
+* do not parse custom/branching json ([0d98637](https://github.com/jackbuehner/cristata-api/commit/0d98637c88eb19c002d62a29315afebb24cf5e69))
+
 ### [6.5.2](https://github.com/jackbuehner/cristata-api/compare/v6.5.1...v6.5.2) (2022-09-04)
 
 
