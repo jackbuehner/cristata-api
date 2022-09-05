@@ -34,7 +34,13 @@ async function addToY(params: AddToYParams) {
     }
 
     // push the data to the key so it available when creating the shared type
-    data[key] = JSON.parse(getProperty(data, key));
+    if (!def.field?.custom) {
+      // JSON fields store their data as strignified JSON
+      data[key] = JSON.parse(getProperty(data, key));
+    } else {
+      // if this is a custom/branching set of fields, it is not stringified
+      data[key] = getProperty(data, key);
+    }
   });
 
   await Promise.all(
@@ -205,6 +211,8 @@ async function addToY(params: AddToYParams) {
 
   const unsaved = params.ydoc?.getArray('__unsavedFields');
   unsaved?.delete(0, unsaved.length);
+
+  console.log(params.ydoc.toJSON());
 }
 
 export { addToY };
