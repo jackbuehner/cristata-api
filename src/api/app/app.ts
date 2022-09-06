@@ -105,7 +105,7 @@ function createExpressApp(cristata: Cristata): Application {
   app.use(trackRequests);
 
   // parse incoming request body
-  app.use(unless('/stripe/webhook', express.json()));
+  app.use(unless('/stripe/webhook', express.json({ limit: '500kb' })));
   app.use(express.urlencoded({ extended: true }));
 
   // pretty print sent json
