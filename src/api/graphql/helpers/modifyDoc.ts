@@ -14,6 +14,7 @@ import { convertNullPrototype } from '../../utils/convertNullPrototype';
 import { insertUserToArray } from '../../utils/insertUserToArray';
 import { TenantDB } from '../../mongodb/TenantDB';
 import * as Y from 'yjs';
+import { isDefinedDate } from '../../utils/isDefinedDate';
 
 interface ModifyDoc<DocType, DataType> {
   model: string;
@@ -65,7 +66,7 @@ async function modifyDoc<DocType, DataType>({
 
   // if the document is currently published, do not modify unless user can publish
   if (publishable) {
-    const isPublished = !!currentDoc.timestamps.published_at;
+    const isPublished = isDefinedDate(currentDoc.timestamps.published_at);
 
     if (isPublished && !fullAccess && !(await canDo({ action: 'publish', model, context, doc: currentDoc })))
       throw new ForbiddenError('you cannot modify published documents in this collection');

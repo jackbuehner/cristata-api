@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { insertUserToArray } from '../../utils/insertUserToArray';
+import { isDefinedDate } from '../../utils/isDefinedDate';
 interface HideDoc {
   /**
    * The model name for the collection of the doc to be modified.
@@ -53,7 +54,7 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
   // if the document is currently published, do not modify unless user can publish
   const canPublish = context.config.collections.find(({ name }) => name === model)?.canPublish;
   if (canPublish) {
-    const isPublished = !!doc.timestamps.published_at;
+    const isPublished = isDefinedDate(doc.timestamps.published_at);
 
     if (isPublished && !(await canDo({ action: 'publish', model, context, doc: doc as never })))
       throw new ForbiddenError('you cannot hide this document when it is published');

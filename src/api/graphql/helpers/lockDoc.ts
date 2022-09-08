@@ -5,6 +5,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { insertUserToArray } from '../../utils/insertUserToArray';
 import { ApolloError } from 'apollo-server-core';
+import { isDefinedDate } from '../../utils/isDefinedDate';
 
 interface LockDoc {
   /**
@@ -56,7 +57,7 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
   // if the document is currently published, do not modify unless user can publish
   const canPublish = context.config.collections.find(({ name }) => name === model)?.canPublish;
   if (canPublish) {
-    const isPublished = !!doc.timestamps.published_at;
+    const isPublished = isDefinedDate(doc.timestamps.published_at);
 
     if (isPublished && !(await canDo({ action: 'publish', model, context })))
       throw new ForbiddenError('you cannot lock this document when it is published');
