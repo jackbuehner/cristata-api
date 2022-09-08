@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.5.5](https://github.com/jackbuehner/cristata-api/compare/v6.5.4...v6.5.5) (2022-09-08)
+
+
+### Bug Fixes
+
+* do not considered docs published when date is 0. ([dd81e07](https://github.com/jackbuehner/cristata-api/commit/dd81e075127fb47fa0bab097761e6aacb9563c1e))
+
 ### [6.5.4](https://github.com/jackbuehner/cristata-api/compare/v6.5.3...v6.5.4) (2022-09-06)
 
 
