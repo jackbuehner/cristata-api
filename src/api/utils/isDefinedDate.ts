@@ -5,7 +5,15 @@ import { isIsoDateString } from './isIsoDateString';
  * and is not `0001-01-01T01:00:00.000Z`.
  */
 function isDefinedDate(toCheck: unknown): toCheck is string {
-  return isIsoDateString(toCheck) && toCheck !== new Date('0001-01-01T01:00:00.000+00:00').toISOString();
+  if (toCheck instanceof Date) {
+    toCheck = toCheck.toISOString();
+  }
+  return (
+    !!toCheck &&
+    typeof toCheck === 'string' &&
+    isIsoDateString(new Date(toCheck).toISOString()) &&
+    toCheck !== new Date('0001-01-01T01:00:00.000+00:00').toISOString()
+  );
 }
 
 export { isDefinedDate };
