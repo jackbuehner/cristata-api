@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.5.6](https://github.com/jackbuehner/cristata-api/compare/v6.5.5...v6.5.6) (2022-09-08)
+
+
+### Bug Fixes
+
+* handle Date instances when checking for defined, non-zero date. ([bbfd449](https://github.com/jackbuehner/cristata-api/commit/bbfd4491db124830069bd29e1e2002bb466d2760))
+
 ### [6.5.5](https://github.com/jackbuehner/cristata-api/compare/v6.5.4...v6.5.5) (2022-09-08)
 
 
