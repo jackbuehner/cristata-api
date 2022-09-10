@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { useApolloContext, useMongoose } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../tests/hooks';
 import { getCollectionActionAccess } from './getCollectionActionAccess';
 
 describe(`api >> v3 >> helpers >> getCollectionActionAccess`, () => {

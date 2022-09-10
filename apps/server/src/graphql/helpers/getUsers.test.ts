@@ -1,4 +1,4 @@
-import { useApolloContext, useMongoose } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../tests/hooks';
 import { getUsers } from './getUsers';
 
 describe(`api >> v3 >> helpers >> getUsers`, () => {

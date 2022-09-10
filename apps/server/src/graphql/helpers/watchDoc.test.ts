@@ -1,6 +1,6 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-core';
 import { Model } from 'mongoose';
-import { useApolloContext, useMongoose } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../tests/hooks';
 import { watchDoc } from './watchDoc';
 
 describe(`api >> v3 >> helpers >> watchDoc`, () => {

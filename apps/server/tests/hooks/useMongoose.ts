@@ -4,8 +4,8 @@ import {
   collectionSchemaFields,
   publishableCollectionSchemaFields,
   withPermissionsCollectionSchemaFields,
-} from '../../src/api/mongodb/helpers/constructBasicSchemaFields';
-import { convertTopNestedObjectsToSubdocuments } from '../../src/api/mongodb/helpers/convertTopNestedObjectsToSubdocuments';
+} from '../../src/mongodb/helpers/constructBasicSchemaFields';
+import { convertTopNestedObjectsToSubdocuments } from '../../src/mongodb/helpers/convertTopNestedObjectsToSubdocuments';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { SchemaDefinitionProperty } from 'mongoose';
 import { merge } from 'merge-anything';

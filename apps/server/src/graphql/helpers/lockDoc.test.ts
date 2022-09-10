@@ -1,6 +1,6 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-core';
 import { Model } from 'mongoose';
-import { useApolloContext, useMongoose } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../tests/hooks';
 import { lockDoc } from './lockDoc';
 
 describe(`api >> v3 >> helpers >> lockDoc`, () => {

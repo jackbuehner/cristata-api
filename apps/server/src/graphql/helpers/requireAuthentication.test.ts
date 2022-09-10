@@ -1,5 +1,5 @@
 import { AuthenticationError } from 'apollo-server-errors';
-import { useApolloContext, useMongoose } from '../../../../tests/hooks';
+import { useApolloContext, useMongoose } from '../../../tests/hooks';
 import { requireAuthentication } from './requireAuthentication';
 
 describe(`api >> v3 >> helpers >> requireAuthentication`, () => {
