@@ -4,3 +4,4 @@ dist
 database
 cache.turbo
 .turbo
+tsconfig.tsbuildinfo

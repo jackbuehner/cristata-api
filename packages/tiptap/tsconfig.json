@@ -3,10 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "tsBuildInfoFile": "dist/.tsbuildinfo",
-    "rootDir": "src/api",
+    "rootDir": "src",
     "baseUrl": "src"
   },
-  "include": ["src/**/*", "src/**/*.json"],
-  "exclude": ["src/**/*.test.ts"],
-  "references": [{ "path": "../../packages/tiptap" }]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.test.ts"]
 }

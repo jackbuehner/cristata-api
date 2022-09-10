@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
-import { RichKit } from '../../../tiptap/rich-kit';
-import { StringKit } from '../../../tiptap/string-kit';
+import { RichKit } from '@cristata/tiptap';
+import { StringKit } from '@cristata/tiptap';
 import { getTipTapEditorJson } from './getTipTapEditorJson';
 import { setTipTapXMLFragment } from './setTipTapXMLFragment';
 
