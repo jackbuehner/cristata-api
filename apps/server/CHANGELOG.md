@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.6.1
+
+### Patch Changes
+
+- 2a8476f: add logtail error logging
+
 ## 6.6.0
 
 ### Minor Changes
