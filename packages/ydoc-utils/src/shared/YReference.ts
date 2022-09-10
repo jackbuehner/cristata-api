@@ -1,7 +1,6 @@
 import { FieldDef } from '@cristata/generator-schema';
+import { Model } from 'mongoose';
 import * as Y from 'yjs';
-import { Context } from '../../graphql/server';
-import { TenantDB } from '../../mongodb/TenantDB';
 
 type UnpopulatedValue = { _id: string; label?: string; [key: string]: unknown };
 type PopulatedValue = { value: string; label: string; [key: string]: unknown };
@@ -27,10 +26,18 @@ class YReference<
     this.#ydoc = ydoc;
   }
 
-  async set(
+  async set<T>(
     key: K,
     value: V,
-    context: Context,
+    /**
+     * A function that gets a model from it's name.
+     *
+     *
+     * You should use the `TenantDB.model` function.
+     * Connect the database before providing the model function
+     * with `await tenantDB.connect()`.
+     */
+    TenantModel: (name: string) => Promise<Model<T> | null>,
     reference?: FieldDef['reference']
   ): Promise<Record<string, unknown>[]> {
     // get/create the shared type
@@ -61,10 +68,7 @@ class YReference<
           if (v._id && v.label) {
             populated.push({ ...v, value: v._id, label: v.label });
           } else {
-            const tenantDB = new TenantDB(context.tenant, context.config.collections);
-            await tenantDB.connect();
-
-            const Model = await tenantDB.model(reference.collection);
+            const Model = await TenantModel(reference.collection);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const found = (await Model?.findById(v._id)) as any;

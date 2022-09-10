@@ -15,7 +15,9 @@
     "paths": {
       "@cristata/server": ["apps/server"],
       "@cristata/tiptap": ["packages/tiptap"],
-      "@cristata/utils": ["packages/utils"]
+      "@cristata/generator-schema": ["packages/generator-schema"],
+      "@cristata/utils": ["packages/utils"],
+      "@cristata/ydoc-utils": ["packages/ydoc-utils"]
     }
   },
   "lib": ["es2015"]

@@ -4,18 +4,26 @@ import {
   isTypeTuple,
   MongooseSchemaType,
 } from '@cristata/generator-schema';
+import { Model } from 'mongoose';
 import { get as getProperty, set as setProperty } from 'object-path';
 import * as Y from 'yjs';
 import { z, ZodError } from 'zod';
-import { Context } from '../graphql/server';
-import { shared } from '../yjs/shared';
+import { shared } from './shared';
 
 interface AddToYParams {
   ydoc: Y.Doc;
   schemaDef: DeconstructedSchemaDefType;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inputData: any;
-  context: Context;
+  /**
+   * A function that gets a model from it's name.
+   *
+   *
+   * You should use the `TenantDB.model` function.
+   * Connect the database before providing the model function
+   * with `await tenantDB.connect()`.
+   */
+  TenantModel: (name: string) => Promise<Model<unknown> | null>;
 }
 
 async function addToY(params: AddToYParams) {
@@ -117,7 +125,7 @@ async function addToY(params: AddToYParams) {
                   ydoc: params.ydoc,
                   schemaDef: namedSubdocSchemas,
                   inputData: data,
-                  context: params.context,
+                  TenantModel: params.TenantModel,
                 });
               }
             });
@@ -177,7 +185,7 @@ async function addToY(params: AddToYParams) {
 
           const reference = new shared.Reference(params.ydoc);
 
-          await reference.set(key, validValue, params.context, {
+          await reference.set(key, validValue, params.TenantModel, {
             ...def.field?.reference,
             collection: def.field?.reference?.collection || def.type[0].replace('[', '').replace(']', ''),
           });

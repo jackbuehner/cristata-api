@@ -11,6 +11,7 @@
   "references": [
     { "path": "../../packages/tiptap" },
     { "path": "../../packages/generator-schema" },
-    { "path": "../../packages/utils" }
+    { "path": "../../packages/utils" },
+    { "path": "../../packages/ydoc-utils" }
   ]
 }

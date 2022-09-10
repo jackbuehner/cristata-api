@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { deconstructSchema } from '@cristata/generator-schema';
+import { addToY } from '@cristata/ydoc-utils';
 import { ApolloError } from 'apollo-server-core';
 import mongoose, { FilterQuery } from 'mongoose';
 import * as Y from 'yjs';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
-import { addToY } from '../../yjs/addToY';
 import { Context } from '../server';
 
 interface FindDoc {
@@ -90,7 +90,12 @@ async function findDoc({
       const collection = context.config.collections.find((col) => col.name === model);
       if (collection?.schemaDef) {
         // add doc data to ydoc shared types
-        await addToY({ ydoc, schemaDef: deconstructSchema(collection.schemaDef), inputData: doc, context });
+        await addToY({
+          ydoc,
+          schemaDef: deconstructSchema(collection.schemaDef),
+          inputData: doc,
+          TenantModel: tenantDB.model,
+        });
 
         // make ydoc available to client
         const encodedBase64State = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
