@@ -20,6 +20,15 @@ const context: ContextFunction<Input, Context> = ({ req, __cristata }) => {
   const config = cristata.config[tenant];
   const restartApollo = () => cristata.restartApollo(tenant);
 
+  // inject tenant and profile into logs
+  cristata.logtail.use(async (log) => {
+    return {
+      ...log,
+      tenant,
+      user: JSON.parse(JSON.stringify(req.user || 'none')),
+    };
+  });
+
   if (req.headers.authorization) {
     const [type, token] = req.headers.authorization.split(' ');
     if (type === 'app-token') {

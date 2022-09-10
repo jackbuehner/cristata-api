@@ -98,6 +98,7 @@ async function modifyDoc<DocType, DataType>({
     }
   } catch (error) {
     console.error(error);
+    context.cristata.logtail.error(JSON.stringify(error));
   }
 
   // set modification metadata

@@ -27,6 +27,7 @@ const s3 = {
         s3.getSignedUrl('putObject', s3Params, (err, signedRequest) => {
           if (err) {
             console.error(err);
+            context.cristata.logtail.error(JSON.stringify(err));
             throw new ApolloError(err.message, 'AWS_S3_ERROR');
           }
           resolve({

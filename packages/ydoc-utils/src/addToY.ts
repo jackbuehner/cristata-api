@@ -4,11 +4,14 @@ import {
   isTypeTuple,
   MongooseSchemaType,
 } from '@jackbuehner/cristata-generator-schema';
+import { Logtail } from '@logtail/node';
 import { Model } from 'mongoose';
 import { get as getProperty, set as setProperty } from 'object-path';
 import * as Y from 'yjs';
 import { z, ZodError } from 'zod';
 import { shared } from './shared';
+
+const logtail = new Logtail(process.env.LOGTAIL_ID || 'MISSING');
 
 interface AddToYParams {
   ydoc: Y.Doc;
@@ -212,6 +215,7 @@ async function addToY(params: AddToYParams) {
         }
       } catch (error) {
         console.error(error);
+        logtail.error(JSON.stringify(error));
         if (error instanceof ZodError) {
           throw new Error(
             `Validation error on field "${key}" of type "${schemaType}${

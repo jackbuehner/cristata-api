@@ -23,6 +23,7 @@
     "turbo": "latest"
   },
   "dependencies": {
-    "@changesets/cli": "^2.24.4"
+    "@changesets/cli": "^2.24.4",
+    "@logtail/node": "^0.1.12"
   }
 }

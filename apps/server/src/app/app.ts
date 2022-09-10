@@ -181,6 +181,7 @@ function createExpressApp(cristata: Cristata): Application {
         });
     } catch (error) {
       console.error(error);
+      cristata.logtail.error(JSON.stringify(error));
     }
   }
 
@@ -226,6 +227,7 @@ function createExpressApp(cristata: Cristata): Application {
         });
     } catch (error) {
       console.error(error);
+      cristata.logtail.error(JSON.stringify(error));
     }
   }
 
@@ -253,6 +255,7 @@ function createExpressApp(cristata: Cristata): Application {
       }
     } catch (error) {
       console.error(error);
+      cristata.logtail.error(JSON.stringify(error));
     }
   });
 
@@ -279,6 +282,7 @@ function createExpressApp(cristata: Cristata): Application {
         }
       } catch (error) {
         console.error(error);
+        cristata.logtail.error(JSON.stringify(error));
       }
     });
     next();
@@ -374,6 +378,7 @@ function createExpressApp(cristata: Cristata): Application {
         }
       } catch (error) {
         console.error(error);
+        cristata.logtail.error(JSON.stringify(error));
       }
     });
     next();
