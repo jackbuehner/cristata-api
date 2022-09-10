@@ -54,7 +54,7 @@ class Cristata {
     };
   }> | null = null;
   server = http.createServer();
-  logtail = new Logtail('JyEzt2TymUhwt7RGAdbmLLNw');
+  logtail = new Logtail(process.env.LOGTAIL_ID || 'MISSING');
 
   constructor(config?: Configuration<Collection | GenCollectionInput>) {
     if (config) {

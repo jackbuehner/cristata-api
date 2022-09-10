@@ -11,7 +11,7 @@ import * as Y from 'yjs';
 import { z, ZodError } from 'zod';
 import { shared } from './shared';
 
-const logtail = new Logtail('JyEzt2TymUhwt7RGAdbmLLNw');
+const logtail = new Logtail(process.env.LOGTAIL_ID || 'MISSING');
 
 interface AddToYParams {
   ydoc: Y.Doc;
