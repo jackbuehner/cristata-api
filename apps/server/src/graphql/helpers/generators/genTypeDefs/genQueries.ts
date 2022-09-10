@@ -1,6 +1,5 @@
+import { capitalize, uncapitalize } from '@cristata/utils';
 import pluralize from 'pluralize';
-import { capitalize } from '../../../../utils/capitalize';
-import { uncapitalize } from '../../../../utils/uncapitalize';
 import { GenSchemaInput, SchemaDefType } from '../genSchema';
 
 interface GenQueriesParams {

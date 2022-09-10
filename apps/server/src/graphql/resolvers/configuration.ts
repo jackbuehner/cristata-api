@@ -1,8 +1,8 @@
+import { camelToDashCase, capitalize, hasKey, isObject } from '@cristata/utils';
 import { ForbiddenError } from 'apollo-server-errors';
 import { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
-import { Context } from '../server';
-import { constructCollections, convertCollectionToCollectionInput } from '../../utils/constructCollections';
+import { TenantDB } from '../../mongodb/TenantDB';
 import {
   Collection,
   Configuration,
@@ -10,13 +10,10 @@ import {
   ReturnedSubNavGroup,
   SubNavGroup,
 } from '../../types/config';
-import { camelToDashCase } from '../../utils/camelToDashCase';
-import { capitalize } from '../../utils/capitalize';
-import { hasKey } from '../../utils/hasKey';
-import { isObject } from '../../utils/isObject';
+import { constructCollections, convertCollectionToCollectionInput } from '../../utils/constructCollections';
 import helpers, { requireAuthentication } from '../helpers';
 import { GenCollectionInput } from '../helpers/generators/genCollection';
-import { TenantDB } from '../../mongodb/TenantDB';
+import { Context } from '../server';
 
 const configuration = {
   Query: {

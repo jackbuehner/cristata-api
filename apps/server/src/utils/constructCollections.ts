@@ -1,9 +1,9 @@
+import { hasKey } from '@cristata/utils';
 import helpers from '../graphql/helpers';
 import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
 import teams from '../mongodb/teams.collection.json';
 import { users } from '../mongodb/users';
 import { Collection } from '../types/config';
-import { hasKey } from './hasKey';
 
 function constructCollections(collections: (Collection | GenCollectionInput)[], tenant: string): Collection[] {
   if (tenant === 'admin') throw new Error('cannot create a database for tenant with name "admin"');

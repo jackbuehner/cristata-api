@@ -1,7 +1,6 @@
+import { isArray, isObject } from '@cristata/utils';
 import mongoose from 'mongoose';
 import { Collection } from '../../types/config';
-import { isArray } from '../../utils/isArray';
-import { isObject } from '../../utils/isObject';
 import { constructBasicSchemaFields } from './constructBasicSchemaFields';
 import { convertTopNestedObjectsToSubdocuments } from './convertTopNestedObjectsToSubdocuments';
 

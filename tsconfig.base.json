@@ -13,7 +13,9 @@
     "resolveJsonModule": true,
     "strict": true,
     "paths": {
-      "@cristata/tiptap": ["packages/tiptap"]
+      "@cristata/server": ["apps/server"],
+      "@cristata/tiptap": ["packages/tiptap"],
+      "@cristata/utils": ["packages/utils"]
     }
   },
   "lib": ["es2015"]

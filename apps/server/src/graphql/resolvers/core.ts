@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Context } from '../server';
-import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
+import { notEmpty } from '@cristata/utils';
 import mongoose from 'mongoose';
-import { getUsers } from '../helpers';
 import { TenantDB } from '../../mongodb/TenantDB';
-import { notEmpty } from '../../utils/notEmpty';
+import { getUsers } from '../helpers';
+import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
+import { Context } from '../server';
 
 type ActivityArgs = { limit?: number; collections?: string[]; exclude?: string[]; page?: number };
 

@@ -1,6 +1,5 @@
 import aws from 'aws-sdk';
 import dotenv from 'dotenv';
-import { Configuration } from '../types/config';
 
 // load environmental variables
 dotenv.config();
@@ -10,6 +9,15 @@ aws.config.update({
   region: 'us-east-1',
 });
 
+interface EmailConfig {
+  defaultSender: string;
+  tenantDisplayName: string;
+  secrets?: {
+    accessKeyId: string;
+    secretAccessKey: string;
+  } | null;
+}
+
 /**
  * Send an HTML email using Amazon SES.
  * @param to email address of destination person
@@ -18,13 +26,13 @@ aws.config.update({
  * @param from email address of the sender; defaults to `config.defaultSender`
  */
 function sendEmail(
-  config: Configuration,
+  config: EmailConfig,
   to: string | string[],
   subject: string,
   message: string,
   from = config.defaultSender
 ): void {
-  const ses = new aws.SES({ apiVersion: '2010-12-01', credentials: config?.secrets.aws });
+  const ses = new aws.SES({ apiVersion: '2010-12-01', credentials: config?.secrets });
 
   const Data = `
     <h1 style="font-size: 20px;">

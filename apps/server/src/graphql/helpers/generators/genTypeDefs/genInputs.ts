@@ -1,4 +1,4 @@
-import { capitalize } from '../../../../utils/capitalize';
+import { capitalize } from '@cristata/utils';
 import {
   isNestedSchemaDefType,
   isSchemaDef,

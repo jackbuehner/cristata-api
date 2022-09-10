@@ -1,7 +1,6 @@
-import pluralize from 'pluralize';
-import { uncapitalize } from '../../utils/uncapitalize';
+import { camelToDashCase, uncapitalize } from '@cristata/utils';
 import { get as getProperty } from 'object-path';
-import { camelToDashCase } from '../../utils/camelToDashCase';
+import pluralize from 'pluralize';
 import { Context } from '../server';
 
 interface WriteEmailBody {

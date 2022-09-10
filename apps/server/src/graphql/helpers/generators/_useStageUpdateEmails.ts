@@ -1,13 +1,10 @@
+import { hasKey, isObjectId, notEmpty, sendEmail } from '@cristata/utils';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { get as getProperty } from 'object-path';
-import { Context } from '../../server';
-import { hasKey } from '../../../utils/hasKey';
-import { isObjectId } from '../../../utils/isObjectId';
-import { sendEmail } from '../../../utils/sendEmail';
-import { GenResolversInput } from './genResolvers';
 import { TenantDB } from '../../../mongodb/TenantDB';
-import { notEmpty } from '../../../utils/notEmpty';
+import { Context } from '../../server';
+import { GenResolversInput } from './genResolvers';
 
 async function useStageUpdateEmails(
   context: Context,
@@ -94,10 +91,15 @@ async function useStageUpdateEmails(
 
     const emailBody = gc.helpers.writeEmailBody(bodySettings);
     const emailBodyMandatory = gc.helpers.writeEmailBody({ ...bodySettings, isMandatory: true });
+    const emailConfig = {
+      defaultSender: context.config.defaultSender,
+      tenantDisplayName: context.config.tenantDisplayName,
+      secrets: context.config.secrets.aws,
+    };
 
-    if (watchersEmails.length > 0) sendEmail(context.config, watchersEmails, subject, emailBody);
+    if (watchersEmails.length > 0) sendEmail(emailConfig, watchersEmails, subject, emailBody);
     if (mandatoryWatchersEmails.length > 0)
-      sendEmail(context.config, mandatoryWatchersEmails, subject, emailBodyMandatory);
+      sendEmail(emailConfig, mandatoryWatchersEmails, subject, emailBodyMandatory);
   }
 }
 

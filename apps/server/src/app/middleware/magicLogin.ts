@@ -1,7 +1,7 @@
+import { sendEmail } from '@cristata/utils';
 import { MagicLoginStrategy } from 'passport-magic-login';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';
-import { sendEmail } from '../../utils/sendEmail';
 //@ts-expect-error the declarations for this refuse to work
 import TokenExpiredError from 'jsonwebtoken/lib/TokenExpiredError';
 //@ts-expect-error the declarations for this refuse to work
@@ -42,9 +42,9 @@ const magicLogin = new MagicLoginStrategy({
 
     const token = new URL(`https://cristata.app/${href}`).searchParams.get('token') || '';
 
-    const config = req.cristata.config[tenant];
+    const { defaultSender, tenantDisplayName, secrets } = req.cristata.config[tenant];
     sendEmail(
-      config,
+      { defaultSender, tenantDisplayName, secrets: secrets.aws },
       doc.email,
       `Your magic sign-in link`,
       `Click here to sign in: ${

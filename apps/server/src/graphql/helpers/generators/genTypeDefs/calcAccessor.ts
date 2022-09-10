@@ -1,6 +1,6 @@
-import { calcGraphFieldType } from './calcGraphFieldType';
-import { isObject } from '../../../../utils/isObject';
+import { isObject } from '@cristata/utils';
 import { SchemaType } from '../genSchema';
+import { calcGraphFieldType } from './calcGraphFieldType';
 
 /**
  * Calculate the accessor name and type for the collection.

@@ -1,10 +1,8 @@
+import { hasKey, isArray, slugify } from '@cristata/utils';
 import mongoose from 'mongoose';
-import { GenSchemaInput, SchemaDef, SetterValueType } from './genSchema';
-import { get as getProperty, set as setProperty } from 'object-path';
-import { isArray } from '../../../utils/isArray';
-import { hasKey } from '../../../utils/hasKey';
 import { customAlphabet } from 'nanoid';
-import { slugify } from '../../../utils/slugify';
+import { get as getProperty, set as setProperty } from 'object-path';
+import { GenSchemaInput, SchemaDef, SetterValueType } from './genSchema';
 
 // comparison operators
 type gt = { $gt: number };

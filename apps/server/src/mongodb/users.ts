@@ -1,17 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { getPasswordStatus, sendEmail, slugify } from '@cristata/utils';
+import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
 import { merge } from 'merge-anything';
 import mongoose, { PassportLocalDocument } from 'mongoose';
 import helpers, { genCollection } from '../graphql/helpers';
 import { Context } from '../graphql/server';
-import { CollectionSchemaFields, GitHubTeamNodeID } from './helpers/constructBasicSchemaFields';
 import { Collection } from '../types/config';
-import { getPasswordStatus } from '../utils/getPasswordStatus';
-import { sendEmail } from '../utils/sendEmail';
-import { slugify } from '../utils/slugify';
+import { CollectionSchemaFields, GitHubTeamNodeID } from './helpers/constructBasicSchemaFields';
 import { TenantDB } from './TenantDB';
-import { ApolloError } from 'apollo-server-core';
 
 const users = (tenant: string): Collection => {
   const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication } = helpers;
@@ -389,9 +387,15 @@ async function setTemporaryPassword<
       ? `Finish migrating your Cristata account`
       : ``;
 
+  const emailConfig = {
+    defaultSender: context.config.defaultSender,
+    tenantDisplayName: context.config.tenantDisplayName,
+    secrets: context.config.secrets.aws,
+  };
+
   if (user.email) {
     sendEmail(
-      context.config,
+      emailConfig,
       user.email,
       subject,
       email,

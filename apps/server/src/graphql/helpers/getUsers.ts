@@ -1,8 +1,8 @@
+import { notEmpty } from '@cristata/utils';
 import mongoose from 'mongoose';
-import { Context } from '../server';
-import { IUser, IUserDoc } from '../../mongodb/users';
 import { TenantDB } from '../../mongodb/TenantDB';
-import { notEmpty } from '../../utils/notEmpty';
+import { IUser, IUserDoc } from '../../mongodb/users';
+import { Context } from '../server';
 
 /**
  * Get the user or array of users from one or more unique user object IDs.

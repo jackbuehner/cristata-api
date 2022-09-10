@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Context } from '../server';
-import mongoose from 'mongoose';
-import { ForbiddenError } from 'apollo-server-errors';
-import { canDo, findDoc, requireAuthentication } from '.';
-import { insertUserToArray } from '../../utils/insertUserToArray';
+import { insertUserToArray, isDefinedDate } from '@cristata/utils';
 import { ApolloError } from 'apollo-server-core';
-import { isDefinedDate } from '../../utils/isDefinedDate';
+import { ForbiddenError } from 'apollo-server-errors';
+import mongoose from 'mongoose';
+import { canDo, findDoc, requireAuthentication } from '.';
+import { Context } from '../server';
 
 interface LockDoc {
   /**

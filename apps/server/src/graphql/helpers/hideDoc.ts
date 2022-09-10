@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Context } from '../server';
-import mongoose from 'mongoose';
+import { insertUserToArray, isDefinedDate } from '@cristata/utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
+import mongoose from 'mongoose';
 import { canDo, findDoc, requireAuthentication } from '.';
-import { insertUserToArray } from '../../utils/insertUserToArray';
-import { isDefinedDate } from '../../utils/isDefinedDate';
+import { Context } from '../server';
 interface HideDoc {
   /**
    * The model name for the collection of the doc to be modified.

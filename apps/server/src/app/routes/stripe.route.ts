@@ -1,9 +1,8 @@
+import { hasKey, isObject } from '@cristata/utils';
 import express, { Router } from 'express';
 import Stripe from 'stripe';
 import Cristata from '../../Cristata';
 import { IDeserializedUser } from '../passport';
-import { hasKey } from '../../utils/hasKey';
-import { isObject } from '../../utils/isObject';
 
 /**
  * This router contains the routes for stripe.

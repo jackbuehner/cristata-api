@@ -1,4 +1,4 @@
-import { capitalize } from '../../../../utils/capitalize';
+import { capitalize } from '@cristata/utils';
 import { GenSchemaInput, SchemaDefType } from '../genSchema';
 import { calcGraphFieldType } from './calcGraphFieldType';
 import { parseSchemaComponents } from './parseSchemaComponents';
