@@ -9,7 +9,7 @@
   "main": "dist/index.js",
   "scripts": {
     "release": "standard-version",
-    "start": "cross-env APP_URL=${APP_URL:=https://cristata.app} AUTH_APP_URL=${AUTH_APP_URL:=https://auth.cristata.app} node dist/api/index.js",
+    "start": "cross-env APP_URL=${APP_URL:=https://cristata.app} AUTH_APP_URL=${AUTH_APP_URL:=https://auth.cristata.app} node dist/index.js",
     "dev:prepare": "tsc",
     "dev": "npm run dev:prepare && tsc --watch & cross-env PORT=${PORT:=3000} APP_URL=${APP_URL:=https://cristata.app} AUTH_APP_URL=${AUTH_APP_URL:=https://auth.cristata.app} NODE_ENV=development nodemon dist/api/index.js",
     "build": "tsc --build && tsc --declaration && cross-env NODE_ENV=production npm run lint",
