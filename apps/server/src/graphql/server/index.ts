@@ -2,14 +2,13 @@
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import { ApolloServer as Apollo } from 'apollo-server-express';
 import { Router } from 'express';
-import { context } from './context';
-import { makeGraphSchema } from './makeGraphSchema';
-import { GraphQLPlayground, LogErrorsToConsole } from '../plugins';
+import { corsConfig } from '../../app/middleware/cors';
+import Cristata from '../../Cristata';
+import { GraphQLPlayground, LogErrorsToConsole, LogErrorsToLogtail } from '../plugins';
 import { collectionResolvers } from '../resolvers';
 import { collectionTypeDefs } from '../typeDefs';
-import Cristata from '../../Cristata';
-import { corsConfig } from '../../app/middleware/cors';
-import { LogErrorsToLogtail } from 'graphql/plugins/LogErrorsToLogtail';
+import { context } from './context';
+import { makeGraphSchema } from './makeGraphSchema';
 
 /**
  * Starts the Apollo GraphQL server.
