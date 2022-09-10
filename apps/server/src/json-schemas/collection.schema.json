@@ -731,7 +731,7 @@
                         "filter": {
                             "additionalProperties": {},
                             "defaultProperties": [],
-                            "description": "Filter the query to the collection to exclude non-matching documents\nwith a MongoDB filter query",
+                            "description": "Filter the result using MongoDB queries:\nhttps://www.mongodb.com/docs/manual/tutorial/query-documents/",
                             "properties": {
                                 "$and": {
                                     "items": {
@@ -2175,7 +2175,7 @@
                     "description": "[`$setWindowFields` reference](https://docs.mongodb.com/manual/reference/operator/aggregation/setWindowFields/)",
                     "properties": {
                         "output": {
-                            "$ref": "#/definitions/Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\";};}>"
+                            "$ref": "#/definitions/Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number]|undefined;range?:[string|number,string|number]|undefined;unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\"|undefined;}|undefined;}>"
                         },
                         "partitionBy": {},
                         "sortBy": {
@@ -2450,7 +2450,7 @@
             "defaultProperties": [],
             "type": "object"
         },
-        "Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number];range?:[string|number,string|number];unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\";};}>": {
+        "Record<string,{$addToSet?:any;$avg?:any;$count?:any;$first?:any;$last?:any;$max?:any;$min?:any;$push?:any;$stdDevPop?:any;$stdDevSamp?:any;$sum?:any;$covariancePop?:any;$covarianceSamp?:any;$derivative?:any;$expMovingAvg?:any;$integral?:any;$shift?:any;$denseRank?:any;$documentNumber?:any;$rank?:any;}&{window?:{documents?:[string|number,string|number]|undefined;range?:[string|number,string|number]|undefined;unit?:\"day\"|\"hour\"|\"minute\"|\"month\"|\"second\"|\"year\"|\"quarter\"|\"week\"|\"millisecond\"|undefined;}|undefined;}>": {
             "additionalProperties": false,
             "defaultProperties": [],
             "type": "object"

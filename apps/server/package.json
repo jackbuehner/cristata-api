@@ -19,7 +19,7 @@
     "postinstall": "patch-package --error-on-fail false",
     "heroku-cleanup": "patch-package",
     "watch": "tsc --watch",
-    "build:json-schema": "typescript-json-schema ./tsconfig.json GenCollectionInput --out ./src/json-schemas/collection.schema.json --defaultProps --noExtraProps --required"
+    "build:json-schema": "typescript-json-schema ./tsconfig.json-schema.json GenCollectionInput --out ./src/json-schemas/collection.schema.json --defaultProps --noExtraProps --required"
   },
   "standard-version": {
     "scripts": {
