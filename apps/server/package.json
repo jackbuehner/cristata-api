@@ -16,6 +16,7 @@
     "check": "tsc && npm run lint",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "clean": "rm -rf dist",
     "postinstall": "patch-package --error-on-fail false",
     "heroku-cleanup": "patch-package",
     "watch": "tsc --watch",
