@@ -1,4 +1,4 @@
-import { isArray, isObjectId } from '@cristata/utils';
+import { isArray, isObjectId } from '@jackbuehner/cristata-utils';
 import { AuthenticationError } from 'apollo-server-core';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';

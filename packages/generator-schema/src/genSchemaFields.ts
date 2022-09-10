@@ -1,4 +1,4 @@
-import { hasKey, isArray } from '@cristata/utils';
+import { hasKey, isArray } from '@jackbuehner/cristata-utils';
 import { merge } from 'merge-anything';
 import mongoose, { SchemaDefinition } from 'mongoose';
 import { customAlphabet } from 'nanoid';

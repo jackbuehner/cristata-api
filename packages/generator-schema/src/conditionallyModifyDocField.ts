@@ -1,4 +1,4 @@
-import { hasKey, isArray, slugify } from '@cristata/utils';
+import { hasKey, isArray, slugify } from '@jackbuehner/cristata-utils';
 import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { get as getProperty, set as setProperty } from 'object-path';

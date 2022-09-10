@@ -1,4 +1,4 @@
-import { notEmpty } from '@cristata/utils';
+import { notEmpty } from '@jackbuehner/cristata-utils';
 import mongoose from 'mongoose';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser, IUserDoc } from '../../mongodb/users';

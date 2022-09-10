@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { deconstructSchema } from '@cristata/generator-schema';
-import { addToY } from '@cristata/ydoc-utils';
+import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError } from 'apollo-server-core';
 import mongoose, { FilterQuery } from 'mongoose';
 import * as Y from 'yjs';

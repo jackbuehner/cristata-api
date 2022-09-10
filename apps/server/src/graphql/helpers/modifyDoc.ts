@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { convertNullPrototype, insertUserToArray, isDefinedDate, slugify } from '@cristata/utils';
+import { convertNullPrototype, insertUserToArray, isDefinedDate, slugify } from '@jackbuehner/cristata-utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';

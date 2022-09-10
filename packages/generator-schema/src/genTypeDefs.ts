@@ -1,4 +1,4 @@
-import { hasKey } from '@cristata/utils';
+import { hasKey } from '@jackbuehner/cristata-utils';
 import { Type } from 'typescript';
 import { GenSchemaInput, SchemaDef } from './genSchema';
 import { calcAccessor } from './calcAccessor';

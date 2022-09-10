@@ -1,4 +1,4 @@
-import { GenSchemaInput } from '@cristata/generator-schema';
+import { GenSchemaInput } from '@jackbuehner/cristata-generator-schema';
 import helpers from '..';
 import { Collection, CollectionPermissions } from '../../../types/config';
 

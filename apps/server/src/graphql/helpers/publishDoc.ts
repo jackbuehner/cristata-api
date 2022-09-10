@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { insertUserToArray } from '@cristata/utils';
+import { insertUserToArray } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';

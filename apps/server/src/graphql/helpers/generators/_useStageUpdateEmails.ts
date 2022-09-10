@@ -1,4 +1,4 @@
-import { hasKey, isObjectId, notEmpty, sendEmail } from '@cristata/utils';
+import { hasKey, isObjectId, notEmpty, sendEmail } from '@jackbuehner/cristata-utils';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { get as getProperty } from 'object-path';

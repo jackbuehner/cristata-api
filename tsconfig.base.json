@@ -14,10 +14,10 @@
     "strict": true,
     "paths": {
       "@cristata/server": ["apps/server"],
-      "@cristata/tiptap": ["packages/tiptap"],
-      "@cristata/generator-schema": ["packages/generator-schema"],
-      "@cristata/utils": ["packages/utils"],
-      "@cristata/ydoc-utils": ["packages/ydoc-utils"]
+      "@jackbuehner/cristata-tiptap": ["packages/tiptap"],
+      "@jackbuehner/cristata-generator-schema": ["packages/generator-schema"],
+      "@jackbuehner/cristata-utils": ["packages/utils"],
+      "@jackbuehner/cristata-ydoc-utils": ["packages/ydoc-utils"]
     }
   },
   "lib": ["es2015"]

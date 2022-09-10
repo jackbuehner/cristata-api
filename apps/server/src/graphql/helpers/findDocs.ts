@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { flattenObject } from '@cristata/utils';
+import { flattenObject } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import mongoose, { FilterQuery } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';

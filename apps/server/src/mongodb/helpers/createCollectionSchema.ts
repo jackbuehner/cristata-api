@@ -1,4 +1,4 @@
-import { isArray, isObject } from '@cristata/utils';
+import { isArray, isObject } from '@jackbuehner/cristata-utils';
 import mongoose from 'mongoose';
 import { Collection } from '../../types/config';
 import { constructBasicSchemaFields } from './constructBasicSchemaFields';

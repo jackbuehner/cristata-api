@@ -3,7 +3,7 @@ import {
   deconstructSchema,
   isTypeTuple,
   MongooseSchemaType,
-} from '@cristata/generator-schema';
+} from '@jackbuehner/cristata-generator-schema';
 import { Model } from 'mongoose';
 import { get as getProperty, set as setProperty } from 'object-path';
 import * as Y from 'yjs';

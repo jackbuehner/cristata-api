@@ -1,4 +1,4 @@
-import { hasKey } from '@cristata/utils';
+import { hasKey } from '@jackbuehner/cristata-utils';
 import mongoose, { SchemaDefinition } from 'mongoose';
 import { SetterCondition } from './conditionallyModifyDocField';
 import { genSchemaFields } from './genSchemaFields';

@@ -1,4 +1,4 @@
-import { sendEmail } from '@cristata/utils';
+import { sendEmail } from '@jackbuehner/cristata-utils';
 import { MagicLoginStrategy } from 'passport-magic-login';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';

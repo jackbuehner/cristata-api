@@ -1,4 +1,4 @@
-import { camelToDashCase, uncapitalize } from '@cristata/utils';
+import { camelToDashCase, uncapitalize } from '@jackbuehner/cristata-utils';
 import { get as getProperty } from 'object-path';
 import pluralize from 'pluralize';
 import { Context } from '../server';

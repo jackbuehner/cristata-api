@@ -10,8 +10,15 @@ import {
   SchemaDef,
   SchemaDefType,
   SchemaRef,
-} from '@cristata/generator-schema';
-import { capitalize, dateAtTimeZero, flattenObject, hasKey, isObjectId, uncapitalize } from '@cristata/utils';
+} from '@jackbuehner/cristata-generator-schema';
+import {
+  capitalize,
+  dateAtTimeZero,
+  flattenObject,
+  hasKey,
+  isObjectId,
+  uncapitalize,
+} from '@jackbuehner/cristata-utils';
 import { ApolloError, UserInputError } from 'apollo-server-errors';
 import { findAndReplace } from 'find-and-replace-anything';
 import { merge } from 'merge-anything';

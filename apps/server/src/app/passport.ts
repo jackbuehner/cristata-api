@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import { TenantDB } from '../mongodb/TenantDB';
 import { IUser } from '../mongodb/users';
-import { getPasswordStatus } from '@cristata/utils';
-import { isArray } from '@cristata/utils';
+import { getPasswordStatus } from '@jackbuehner/cristata-utils';
+import { isArray } from '@jackbuehner/cristata-utils';
 
 // load environmental variables
 dotenv.config();

@@ -1,4 +1,4 @@
-import { hasKey } from '@cristata/utils';
+import { hasKey } from '@jackbuehner/cristata-utils';
 import helpers from '../graphql/helpers';
 import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
 import teams from '../mongodb/teams.collection.json';

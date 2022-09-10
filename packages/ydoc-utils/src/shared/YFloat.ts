@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import { FloatKit } from '@cristata/tiptap';
+import { FloatKit } from '@jackbuehner/cristata-tiptap';
 import { setTipTapXMLFragment } from './setTipTapXMLFragment';
 
 type Option<T> = { value: T; label: string; disabled?: boolean };

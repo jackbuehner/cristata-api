@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getPasswordStatus, sendEmail, slugify } from '@cristata/utils';
+import { getPasswordStatus, sendEmail, slugify } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';

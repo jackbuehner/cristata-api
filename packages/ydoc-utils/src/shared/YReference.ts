@@ -1,4 +1,4 @@
-import { FieldDef } from '@cristata/generator-schema';
+import { FieldDef } from '@jackbuehner/cristata-generator-schema';
 import { Model } from 'mongoose';
 import * as Y from 'yjs';
 

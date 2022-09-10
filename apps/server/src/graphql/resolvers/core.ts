@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { notEmpty } from '@cristata/utils';
+import { notEmpty } from '@jackbuehner/cristata-utils';
 import mongoose from 'mongoose';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { getUsers } from '../helpers';

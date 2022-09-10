@@ -1,4 +1,4 @@
-import { converObjIsoDatesToDates, convertStringsToObjIds } from '@cristata/utils';
+import { converObjIsoDatesToDates, convertStringsToObjIds } from '@jackbuehner/cristata-utils';
 import { GraphQLScalarType } from 'graphql';
 
 const json = new GraphQLScalarType({

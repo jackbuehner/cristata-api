@@ -1,4 +1,4 @@
-import { camelToDashCase, capitalize, hasKey, isObject } from '@cristata/utils';
+import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cristata-utils';
 import { ForbiddenError } from 'apollo-server-errors';
 import { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';

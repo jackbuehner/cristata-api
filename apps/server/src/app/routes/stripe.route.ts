@@ -1,4 +1,4 @@
-import { hasKey, isObject } from '@cristata/utils';
+import { hasKey, isObject } from '@jackbuehner/cristata-utils';
 import express, { Router } from 'express';
 import Stripe from 'stripe';
 import Cristata from '../../Cristata';

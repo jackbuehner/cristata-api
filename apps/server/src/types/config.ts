@@ -1,4 +1,4 @@
-import { GenSchemaInput, SchemaDefType } from '@cristata/generator-schema';
+import { GenSchemaInput, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
 import FluentIconsFontCodes from '@fluentui/react-icons/lib/utils/fonts/FluentSystemIcons-Regular.json';
 import { IResolvers } from '@graphql-tools/utils';
 import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
