@@ -1,6 +1,6 @@
+import { GenSchemaInput } from '@cristata/generator-schema';
 import helpers from '..';
 import { Collection, CollectionPermissions } from '../../../types/config';
-import { GenSchemaInput } from './genSchema';
 
 function genCollection(input: GenCollectionInput, tenant: string): Collection {
   if (input.singleDocument === true) {

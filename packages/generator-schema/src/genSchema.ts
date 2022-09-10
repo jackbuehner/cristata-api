@@ -2,7 +2,7 @@ import { hasKey } from '@cristata/utils';
 import mongoose, { SchemaDefinition } from 'mongoose';
 import { SetterCondition } from './conditionallyModifyDocField';
 import { genSchemaFields } from './genSchemaFields';
-import { genTypeDefs } from './genTypeDefs/genTypeDefs';
+import { genTypeDefs } from './genTypeDefs';
 
 function genSchema(input: GenSchemaInput): {
   typeDefs: string;

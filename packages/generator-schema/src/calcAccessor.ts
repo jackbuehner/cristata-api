@@ -1,5 +1,5 @@
 import { isObject } from '@cristata/utils';
-import { SchemaType } from '../genSchema';
+import { SchemaType } from './genSchema';
 import { calcGraphFieldType } from './calcGraphFieldType';
 
 /**

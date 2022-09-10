@@ -1,6 +1,6 @@
 import { hasKey } from '@cristata/utils';
 import { Type } from 'typescript';
-import { GenSchemaInput, SchemaDef } from '../genSchema';
+import { GenSchemaInput, SchemaDef } from './genSchema';
 import { calcAccessor } from './calcAccessor';
 import { calcGraphFieldType } from './calcGraphFieldType';
 import { genInputs } from './genInputs';

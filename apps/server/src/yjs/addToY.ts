@@ -1,10 +1,14 @@
-import { isTypeTuple, MongooseSchemaType } from '../graphql/helpers/generators/genSchema';
+import {
+  DeconstructedSchemaDefType,
+  deconstructSchema,
+  isTypeTuple,
+  MongooseSchemaType,
+} from '@cristata/generator-schema';
 import { get as getProperty, set as setProperty } from 'object-path';
-import { z, ZodError } from 'zod';
-import { shared } from '../yjs/shared';
 import * as Y from 'yjs';
-import { DeconstructedSchemaDefType, deconstructSchema } from '../utils/deconstructSchema';
+import { z, ZodError } from 'zod';
 import { Context } from '../graphql/server';
+import { shared } from '../yjs/shared';
 
 interface AddToYParams {
   ydoc: Y.Doc;
@@ -97,23 +101,25 @@ async function addToY(params: AddToYParams) {
           // data object with the correct key
           if (def.docs) {
             generatedUuids.forEach((uuid, index) => {
-              const namedSubdocSchemas = def.docs
-                .filter(([docKey]) => !docKey.includes('#'))
-                .map(([docKey, docDef]): typeof def.docs[0] => {
-                  const valueKey = docKey.replace(key, `${key}.${index}`);
-                  const docArrayKey = docKey.replace(key, `__docArray.‾‾${key}‾‾.${uuid}`);
+              if (def.docs) {
+                const namedSubdocSchemas = def.docs
+                  .filter(([docKey]) => !docKey.includes('#'))
+                  .map(([docKey, docDef]): typeof def.docs[0] => {
+                    const valueKey = docKey.replace(key, `${key}.${index}`);
+                    const docArrayKey = docKey.replace(key, `__docArray.‾‾${key}‾‾.${uuid}`);
 
-                  const value = getProperty(data, valueKey);
-                  setProperty(data, docArrayKey, value);
+                    const value = getProperty(data, valueKey);
+                    setProperty(data, docArrayKey, value);
 
-                  return [docArrayKey, docDef];
+                    return [docArrayKey, docDef];
+                  });
+                addToY({
+                  ydoc: params.ydoc,
+                  schemaDef: namedSubdocSchemas,
+                  inputData: data,
+                  context: params.context,
                 });
-              addToY({
-                ydoc: params.ydoc,
-                schemaDef: namedSubdocSchemas,
-                inputData: data,
-                context: params.context,
-              });
+              }
             });
           }
         }

@@ -1,5 +1,5 @@
+import { FieldDef } from '@cristata/generator-schema';
 import * as Y from 'yjs';
-import { FieldDef } from '../../graphql/helpers/generators/genSchema';
 import { Context } from '../../graphql/server';
 import { TenantDB } from '../../mongodb/TenantDB';
 

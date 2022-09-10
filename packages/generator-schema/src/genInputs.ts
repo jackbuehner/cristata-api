@@ -1,11 +1,5 @@
 import { capitalize } from '@cristata/utils';
-import {
-  isNestedSchemaDefType,
-  isSchemaDef,
-  NestedSchemaDefType,
-  SchemaDef,
-  SchemaDefType,
-} from '../genSchema';
+import { isNestedSchemaDefType, isSchemaDef, NestedSchemaDefType, SchemaDef, SchemaDefType } from './genSchema';
 import { calcGraphFieldType } from './calcGraphFieldType';
 import { parseSchemaComponents } from './parseSchemaComponents';
 

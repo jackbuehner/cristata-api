@@ -6,7 +6,7 @@ import {
   SchemaDef,
   SchemaDefType,
   SchemaRef,
-} from '../genSchema';
+} from './genSchema';
 
 function parseSchemaComponents(schema: SchemaDefType) {
   const schemaEntries = Object.entries(schema);

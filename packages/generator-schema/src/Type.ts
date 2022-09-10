@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { MongooseSchemaType } from '../genSchema';
+import { MongooseSchemaType } from './genSchema';
 
 /**
  * A set of functions for constructing the graphql type

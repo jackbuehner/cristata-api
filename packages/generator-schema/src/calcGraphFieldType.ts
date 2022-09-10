@@ -1,5 +1,5 @@
 import { Type } from './Type';
-import { GraphSchemaType, isTypeTuple, SchemaDef } from '../genSchema';
+import { GraphSchemaType, isTypeTuple, SchemaDef } from './genSchema';
 
 /**
  * Calculate the type for a given field.

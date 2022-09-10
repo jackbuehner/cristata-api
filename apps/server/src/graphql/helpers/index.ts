@@ -15,7 +15,7 @@ import { findDoc } from './findDoc';
 import { canDo } from './canDo';
 import { deleteDoc } from './deleteDoc';
 import { findDocs } from './findDocs';
-import { genSchema } from './generators/genSchema';
+import { genSchema } from '@cristata/generator-schema';
 import { requireAuthentication } from './requireAuthentication';
 import { getCollectionActionAccess } from './getCollectionActionAccess';
 import { publishDoc } from './publishDoc';

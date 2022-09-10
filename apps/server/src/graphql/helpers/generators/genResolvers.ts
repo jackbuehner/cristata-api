@@ -1,3 +1,16 @@
+import {
+  calcAccessor,
+  conditionallyModifyDocField,
+  GenSchemaInput,
+  isCustomGraphSchemaType,
+  isSchemaDef,
+  isSchemaDefOrType,
+  isSchemaRef,
+  isTypeTuple,
+  SchemaDef,
+  SchemaDefType,
+  SchemaRef,
+} from '@cristata/generator-schema';
 import { capitalize, dateAtTimeZero, flattenObject, hasKey, isObjectId, uncapitalize } from '@cristata/utils';
 import { ApolloError, UserInputError } from 'apollo-server-errors';
 import { findAndReplace } from 'find-and-replace-anything';
@@ -8,20 +21,7 @@ import pluralize from 'pluralize';
 import { CollectionDoc, Helpers } from '..';
 import { TenantDB } from '../../../mongodb/TenantDB';
 import { collectionPeopleResolvers, Context, publishableCollectionPeopleResolvers } from '../../server';
-import { conditionallyModifyDocField } from './conditionallyModifyDocField';
 import { constructDocFromRef } from './constructDocFromRef';
-import {
-  GenSchemaInput,
-  isCustomGraphSchemaType,
-  isSchemaDef,
-  isSchemaDefOrType,
-  isSchemaRef,
-  isTypeTuple,
-  SchemaDef,
-  SchemaDefType,
-  SchemaRef,
-} from './genSchema';
-import { calcAccessor } from './genTypeDefs/calcAccessor';
 import { useStageUpdateEmails } from './_useStageUpdateEmails';
 
 async function construct(

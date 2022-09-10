@@ -1,17 +1,15 @@
-import {
-  isSchemaDef,
-  isSchemaRef,
-  SchemaDef,
-  SchemaDefType,
-  SchemaType,
-} from '../graphql/helpers/generators/genSchema';
+import { isSchemaDef, isSchemaRef, SchemaDef as AppSchemaDef, SchemaDefType } from './genSchema';
 
-interface AppSchemaDef<T extends SchemaType | 'DocArray' = SchemaType> extends Omit<SchemaDef, 'type'> {
-  type: T;
-  docs: T extends 'DocArray' ? DeconstructedSchemaDefType : undefined;
+interface SchemaDef extends AppSchemaDef {
+  docs: undefined;
 }
 
-type DeconstructedSchemaDefType = [string, AppSchemaDef | AppSchemaDef<'DocArray'>][];
+interface DocArraySchemaDef extends Omit<AppSchemaDef, 'type'> {
+  type: 'DocArray';
+  docs: DeconstructedSchemaDefType;
+}
+
+type DeconstructedSchemaDefType = [string, SchemaDef | DocArraySchemaDef][];
 
 function deconstructSchema(schemaDefObject: SchemaDefType, parentKey?: string): DeconstructedSchemaDefType {
   const schemaDefs: DeconstructedSchemaDefType = [];
