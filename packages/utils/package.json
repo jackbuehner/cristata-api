@@ -1,0 +1,13 @@
+{
+  "name": "@cristata/utils",
+  "version": "1.0.0",
+  "author": "Jack Buehner",
+  "license": "ISC",
+  "main": "dist/index",
+  "scripts": {
+    "dev": "tsc && tsc --watch",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "clean": "rm -rf dist",
+    "build": "tsc --build && cross-env NODE_ENV=production npm run lint"
+  }
+}

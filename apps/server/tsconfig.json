@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "rootDir": "src",
+    "baseUrl": "src"
+  },
+  "include": ["src/**/*", "src/**/*.json"],
+  "exclude": ["src/**/*.test.ts"],
+  "references": [
+    { "path": "../../packages/tiptap" },
+    { "path": "../../packages/generator-schema" },
+    { "path": "../../packages/utils" },
+    { "path": "../../packages/ydoc-utils" }
+  ]
+}
