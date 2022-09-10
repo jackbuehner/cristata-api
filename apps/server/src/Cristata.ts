@@ -8,6 +8,7 @@ import { apollo } from './graphql/server';
 import { connectDb } from './mongodb/connectDB';
 import { Collection, Configuration } from './types/config';
 import { constructCollections } from './utils/constructCollections';
+import { Logtail } from '@logtail/node';
 
 if (!process.env.COOKIE_SESSION_SECRET) throw new Error('COOKIE_SESSION_SECRET not defined in env');
 if (!process.env.MONGO_DB_USERNAME) throw new Error('MONGO_DB_USERNAME not defined in env');
@@ -53,6 +54,7 @@ class Cristata {
     };
   }> | null = null;
   server = http.createServer();
+  logtail = new Logtail('JyEzt2TymUhwt7RGAdbmLLNw');
 
   constructor(config?: Configuration<Collection | GenCollectionInput>) {
     if (config) {
@@ -86,6 +88,7 @@ class Cristata {
       } catch (error) {
         response.destroy();
         console.error(error);
+        this.logtail.error(JSON.stringify(error));
       }
     });
 
@@ -114,6 +117,7 @@ class Cristata {
         });
       } catch (error) {
         console.error(error);
+        this.logtail.error(JSON.stringify(error));
       }
     });
 
@@ -170,6 +174,7 @@ class Cristata {
       });
     } catch (error) {
       console.error(`Failed to start Cristata  server on port ${process.env.PORT}!`, error);
+      this.logtail.error(JSON.stringify(error));
     }
   }
 
@@ -242,6 +247,7 @@ class Cristata {
             }
           } catch (error) {
             console.error(error);
+            this.logtail.error(JSON.stringify(error));
           }
         })
       );

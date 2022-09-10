@@ -19,8 +19,16 @@ dotenv.config();
  * @param descriptive whether the `error.message` should be sent to the client in JSON format; otherwise, redirect to error page
  * @param code error code to use when `descriptive === true` (defaults to 500)
  */
-const handleError = (error: Error, req: Request, res: Response, descriptive = false, code = 500) => {
+const handleError = (
+  error: Error,
+  req: Request,
+  res: Response,
+  cristata: Cristata,
+  descriptive = false,
+  code = 500
+) => {
   console.error(error);
+  cristata.logtail.error(JSON.stringify(error));
   if (descriptive) res.status(code).json({ error: error.message });
   else if (req.body.redirect === false) res.status(500).json({ error: 'error authenticating' });
   else res.redirect(req.baseUrl + '/error');
@@ -75,7 +83,7 @@ function factory(cristata: Cristata): Router {
     // use the local strategy for the provided tenant
     passport.authenticate(`local-${tenant}`, (err: Error | null, user, authErr: Error) => {
       // handle error
-      if (err) handleError(err, req, res, true);
+      if (err) handleError(err, req, res, cristata, true);
       // handle authentication error
       else if (authErr) {
         // map error names to status codes
@@ -87,7 +95,7 @@ function factory(cristata: Cristata): Router {
           if (name === 'TooManyAttemptsError') return 429;
           return 500;
         };
-        handleError(authErr, req, res, true, code(authErr.name));
+        handleError(authErr, req, res, cristata, true, code(authErr.name));
       }
       // don't sign in if user is missing after authentication
       else if (!user) {
@@ -101,7 +109,7 @@ function factory(cristata: Cristata): Router {
       } else {
         // sign in
         req.logIn(user, (err) => {
-          if (err) handleError(err, req, res);
+          if (err) handleError(err, req, res, cristata);
           else if (req.body.redirect === false) {
             deserializeUser({
               _id: user._id,
@@ -140,7 +148,7 @@ function factory(cristata: Cristata): Router {
           | undefined
       ) => {
         if (err) {
-          handleError(err, req, res, true);
+          handleError(err, req, res, cristata, true);
           return;
         }
 
@@ -154,7 +162,7 @@ function factory(cristata: Cristata): Router {
         // sign in
         req.logIn(user, (err) => {
           if (err) {
-            handleError(err, req, res);
+            handleError(err, req, res, cristata);
             return;
           }
 

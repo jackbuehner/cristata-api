@@ -112,6 +112,7 @@ async function findDoc({
     }
   } catch (error) {
     console.error(error);
+    context.cristata.logtail.error(JSON.stringify(error));
   }
 
   // return the document

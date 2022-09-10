@@ -9,6 +9,7 @@ import { collectionResolvers } from '../resolvers';
 import { collectionTypeDefs } from '../typeDefs';
 import Cristata from '../../Cristata';
 import { corsConfig } from '../../app/middleware/cors';
+import { LogErrorsToLogtail } from 'graphql/plugins/LogErrorsToLogtail';
 
 /**
  * Starts the Apollo GraphQL server.
@@ -34,6 +35,7 @@ async function apollo(
         ApolloServerPluginDrainHttpServer({ httpServer: server }),
         GraphQLPlayground(),
         LogErrorsToConsole(),
+        LogErrorsToLogtail(),
       ],
       context: (ec) => context({ ...ec, __cristata: { cristata, tenant } }),
     });

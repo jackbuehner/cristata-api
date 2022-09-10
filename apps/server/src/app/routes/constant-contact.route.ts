@@ -116,6 +116,7 @@ function factory(cristata: Cristata): Router {
       });
     } catch (error) {
       console.error('Failed to get Constant Contact contact lists:', error);
+      cristata.logtail.error(JSON.stringify(error));
       res.status(500).end();
     }
   });
@@ -169,6 +170,7 @@ function factory(cristata: Cristata): Router {
       res.json(validator.parse(account_emails).sort((a, b) => a.email_address.localeCompare(b.email_address)));
     } catch (error) {
       console.error('Failed to get Constant Contact account senders:', error);
+      cristata.logtail.error(JSON.stringify(error));
       res.status(500).end();
     }
   });
@@ -272,6 +274,7 @@ function factory(cristata: Cristata): Router {
       });
     } catch (error) {
       console.error('Failed to create and schedule new Constant Contact campaign:', error);
+      cristata.logtail.error(JSON.stringify(error));
       res.status(500).end();
     }
   });

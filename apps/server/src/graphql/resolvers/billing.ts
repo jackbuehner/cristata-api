@@ -101,6 +101,7 @@ const billing = {
         };
       } catch (error) {
         console.error(error);
+        context.cristata.logtail.error(JSON.stringify(error));
       }
     },
     storage: async (
