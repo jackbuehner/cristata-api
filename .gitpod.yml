@@ -46,11 +46,11 @@ github:
   # configure continuous prebuilds for GitHub repositories
   prebuilds:
     # whether Gitpod creates prebuilds for the default branch
-    master: true
+    master: false
     # whether Gitpod creates prebuilds for all branches
-    branches: true
+    branches: false
     # whether Gitpod creates prebuilds for pull requests from the original repository
-    pullRequests: true
+    pullRequests: false
     # whether Gitpod creates prebuilds for pull requests from forks
     pullRequestsFromForks: false
     # whether Gitpod registers itself as a status check to pull requests
