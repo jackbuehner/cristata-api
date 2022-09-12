@@ -1,8 +1,10 @@
+import { RichKit, StringKit } from '@jackbuehner/cristata-tiptap';
+import { JSDOM } from 'jsdom';
 import * as Y from 'yjs';
-import { RichKit } from '@jackbuehner/cristata-tiptap';
-import { StringKit } from '@jackbuehner/cristata-tiptap';
 import { getTipTapEditorJson } from './getTipTapEditorJson';
 import { setTipTapXMLFragment } from './setTipTapXMLFragment';
+
+const { document } = new JSDOM(``).window;
 
 type Option = { value: string | number; label: string; disabled?: boolean };
 
@@ -84,7 +86,7 @@ class YString<K extends string, V extends string | undefined | null> {
     if (isArray) return this.#ydoc.getArray<Option>(key).toArray();
     if (isRichText) return await getTipTapEditorJson(key, this.#ydoc);
     if (isCode) return this.#ydoc.getText(key).toJSON();
-    return this.#ydoc.getXmlFragment(key).toDOM().textContent || '';
+    return this.#ydoc.getXmlFragment(key).toDOM(document).textContent || '';
   }
 
   delete(key: K): void {

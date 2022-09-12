@@ -10,5 +10,11 @@
     "clean": "rm -rf dist",
     "build": "tsc --build && cross-env NODE_ENV=production npm run lint",
     "test": "jest"
+  },
+  "dependencies": {
+    "jsdom": "^20.0.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^20.0.0"
   }
 }
