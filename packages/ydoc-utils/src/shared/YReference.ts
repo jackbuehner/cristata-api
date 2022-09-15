@@ -60,28 +60,28 @@ class YReference<
     });
 
     // populate unpopulated values by querying the database for the name field
-    const populated: PopulatedValue[] = [];
-
-    await Promise.all(
-      partiallyPopulated.map(async (v) => {
-        if (reference?.collection) {
-          if (v._id && v.label) {
-            populated.push({ ...v, value: v._id, label: v.label });
-          } else {
-            const Model = await TenantModel(reference.collection);
+    const populated = (
+      await Promise.all(
+        partiallyPopulated.map(async (v): Promise<PopulatedValue | undefined> => {
+          if (reference?.collection) {
+            if (v._id && v.label) {
+              return { ...v, value: v._id, label: v.label };
+            } else {
+              const Model = await TenantModel(reference.collection);
 
               // @ts-expect-error allow custom accessor
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const found = (await Model?.findOne({ [reference.fields?._id || '_id']: v._id })) as any;
-            if (found) {
-              populated.push({ ...v, value: v._id, label: found[reference.fields?.name || 'name'] });
-            } else {
-              populated.push({ ...v, value: v._id, label: v._id });
+              if (found) {
+                return { ...v, value: v._id, label: found[reference.fields?.name || 'name'] };
+              } else {
+                return { ...v, value: v._id, label: v._id };
+              }
             }
           }
-        }
-      })
-    );
+        })
+      )
+    ).filter((x): x is PopulatedValue => !!x);
 
     this.#ydoc.transact(() => {
       // clear existing values
@@ -90,11 +90,11 @@ class YReference<
 
       // push the populated values
       if (populated.length > 0) {
-      type.push(
-        populated.map(({ value, label, ...rest }) => {
-          return { value, label, ...rest };
-        })
-      );
+        type.push(
+          populated.map(({ value, label, ...rest }) => {
+            return { value, label, ...rest };
+          })
+        );
       }
 
       // or fallback to partially populated values
