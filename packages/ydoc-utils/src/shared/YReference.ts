@@ -88,11 +88,22 @@ class YReference<
       this.#deleteDocFieldShares(key);
 
       // push the populated values
+      if (populated.length > 0) {
       type.push(
         populated.map(({ value, label, ...rest }) => {
           return { value, label, ...rest };
         })
       );
+      }
+
+      // or fallback to partially populated values
+      else {
+        type.push(
+          partiallyPopulated.map(({ _id, label, ...rest }) => {
+            return { value: _id, label: label || _id, ...rest };
+          })
+        );
+      }
     });
 
     // return the new value
