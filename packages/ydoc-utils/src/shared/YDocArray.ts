@@ -20,7 +20,7 @@ import * as Y from 'yjs';
  * identified, we also inject a uuid into each object
  * in the shared array.
  */
-class YDocArray<K extends string, V extends Record<string, 'any'>[]> {
+class YDocArray<K extends string, V extends Record<string, unknown>[]> {
   #ydoc: Y.Doc;
 
   constructor(ydoc: Y.Doc) {
@@ -87,7 +87,7 @@ class YDocArray<K extends string, V extends Record<string, 'any'>[]> {
           setProperty(arr, index, obj);
         })
       );
-        }
+    }
 
     return arr;
   }
