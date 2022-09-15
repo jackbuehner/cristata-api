@@ -1,6 +1,9 @@
-import * as Y from 'yjs';
 import { IntegerKit } from '@jackbuehner/cristata-tiptap';
+import { JSDOM } from 'jsdom';
+import * as Y from 'yjs';
 import { setTipTapXMLFragment } from './setTipTapXMLFragment';
+
+const { document } = new JSDOM(``).window;
 
 type Option<T> = { value: T; label: string; disabled?: boolean };
 
@@ -63,7 +66,7 @@ class YInteger<K extends string, V extends number | undefined | null> {
         .toArray()
         .map(({ value, ...rest }) => ({ value: parseInt(`${value}`), ...rest }));
     }
-    return parseFloat(this.#ydoc.getXmlFragment(key).toDOM().textContent || '');
+    return parseInt(this.#ydoc.getXmlFragment(key).toDOM(document).textContent || '');
   }
 
   delete(key: K): void {

@@ -1,4 +1,6 @@
-import { set as setProperty } from 'object-path';
+import { DeconstructedSchemaDefType } from '@jackbuehner/cristata-generator-schema';
+import { getFromY, GetYFieldsOptions } from '../getFromY';
+import { get as getProperty, set as setProperty } from 'object-path';
 import { v4 as uuidv4 } from 'uuid';
 import * as Y from 'yjs';
 
@@ -18,7 +20,7 @@ import * as Y from 'yjs';
  * identified, we also inject a uuid into each object
  * in the shared array.
  */
-class YDocArray<K extends string, V extends Record<string, 'any'>[]> {
+class YDocArray<K extends string, V extends Record<string, unknown>[]> {
   #ydoc: Y.Doc;
 
   constructor(ydoc: Y.Doc) {
@@ -56,29 +58,43 @@ class YDocArray<K extends string, V extends Record<string, 'any'>[]> {
     return this.#ydoc.share.has(key);
   }
 
-  get(key: K): Record<string, unknown>[] {
-    const docJson = this.#ydoc.toJSON();
-
+  async get(
+    key: K,
+    populate?: { schema: DeconstructedSchemaDefType; opts?: GetYFieldsOptions }
+  ): Promise<Record<string, unknown>[]> {
     const type = this.#ydoc.getArray<Record<string, unknown> & { uuid: string }>(key);
     const arr = type.toArray();
 
-    arr.forEach(({ __uuid, ...rest }, index) => {
-      const keys = Object.keys(rest);
+    if (populate) {
+      await Promise.all(
+        arr.map(async ({ __uuid }, index) => {
+          // create the schema for that will allow us to get the field
+          // values of the the properies inside the object at this index
+          const defs = populate.schema
+            .filter(([docKey]) => !docKey.includes('#'))
+            .map(([docKey, docDef]): typeof populate.schema[0] => {
+              const docArrayKey = docKey.replace(key, `__docArray.‾‾${key}‾‾.${__uuid}`);
+              return [docArrayKey, docDef];
+            });
 
-      keys.forEach((k) => {
-        if (k.indexOf('__') !== 0) {
-          const extendedKey = `__docArray.‾‾${key}‾‾.${__uuid}.${k}`;
-          const value = docJson[extendedKey];
-          setProperty(arr, `${index}.${k}`, value);
-        }
-      });
-    });
+          // get the field data for the object at this index
+          const data = await getFromY(this.#ydoc, defs, populate.opts);
+
+          // get the object with data to use for this index
+          const obj = getProperty(data, `__docArray.‾‾${key}‾‾.${__uuid}`);
+
+          // set the object at this index
+          setProperty(arr, index, obj);
+        })
+      );
+    }
 
     return arr;
   }
 
   delete(key: K): void {
     this.#ydoc.share.delete(key);
+    this.#deleteDocFieldShares(key);
   }
 
   /**

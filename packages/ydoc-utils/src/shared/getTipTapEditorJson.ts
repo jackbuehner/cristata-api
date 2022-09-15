@@ -9,7 +9,7 @@ function getTipTapEditorJson(field: string, document: Y.Doc): string {
   const json = yXmlFragmentToProsemirrorJSON(current);
 
   // return the content in the document
-  return json.content;
+  return JSON.stringify(json.content);
 }
 
 export { getTipTapEditorJson };
