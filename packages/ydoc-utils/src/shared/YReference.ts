@@ -119,7 +119,7 @@ class YReference<
       this.#deleteDocFieldShares(key);
 
       // push the populated values
-      if (populated.length > 0) {
+      if (populated.length > 0 || reference?.collection) {
         type.push(
           populated.map(({ value, label, ...rest }) => {
             return { value, label, ...rest };
