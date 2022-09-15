@@ -2,6 +2,7 @@ import { FieldDef } from '@jackbuehner/cristata-generator-schema';
 import { merge } from 'merge-anything';
 import { Model, RootQuerySelector } from 'mongoose';
 import * as Y from 'yjs';
+import { get as getProperty } from 'object-path';
 
 type UnpopulatedValue = { _id: string; label?: string; [key: string]: unknown };
 type PopulatedValue = { value: string; label: string; [key: string]: unknown };
@@ -56,8 +57,8 @@ class YReference<
       } else {
         partiallyPopulated.push({
           ...v,
-          _id: (v[reference?.fields?._id || '_id'] as string | undefined) || v._id,
-          label: (v[reference?.fields?.name || 'name'] as string | undefined) || v.label,
+          _id: (getProperty(v, reference?.fields?._id || '_id') as string | undefined) || v._id,
+          label: (getProperty(v, reference?.fields?.name || 'name') as string | undefined) || v.label,
         });
       }
     });
@@ -92,7 +93,7 @@ class YReference<
                   { ...requirementFilter },
                 ],
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              })) as any;
+              }).then((res) => res?.toObject())) as any;
 
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { value, label, _id, ...rest } = v;
@@ -101,11 +102,16 @@ class YReference<
                 const forced: Record<string, unknown> = merge(
                   {},
                   ...(reference.forceLoadFields || []).map((fieldName) => {
-                    return { [fieldName]: found[fieldName] || null };
+                    return { [fieldName]: getProperty(found, fieldName) || null };
                   })
                 );
 
-                return { value: _id, label: found[reference.fields?.name || 'name'], ...rest, ...forced };
+                return {
+                  value: _id,
+                  label: getProperty(found, reference.fields?.name || 'name'),
+                  ...rest,
+                  ...forced,
+                };
               }
             }
           }
