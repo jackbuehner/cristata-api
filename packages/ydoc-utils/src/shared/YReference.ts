@@ -1,10 +1,12 @@
 import { FieldDef } from '@jackbuehner/cristata-generator-schema';
-import { Model } from 'mongoose';
-import * as Y from 'yjs';
 import { merge } from 'merge-anything';
+import { Model, RootQuerySelector } from 'mongoose';
+import * as Y from 'yjs';
 
 type UnpopulatedValue = { _id: string; label?: string; [key: string]: unknown };
 type PopulatedValue = { value: string; label: string; [key: string]: unknown };
+
+type FilterQuery = RootQuerySelector<Record<string, unknown>>;
 
 /**
  * Reference fields are stored as an
@@ -70,12 +72,30 @@ class YReference<
             } else {
               const Model = await TenantModel(reference.collection);
 
-              // @ts-expect-error allow custom accessor
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const found = (await Model?.findOne({ [reference.fields?._id || '_id']: v._id })) as any;
+              const requirementFilter: FilterQuery = merge(
+                {},
+                ...(reference.require || []).map((fieldName): FilterQuery => {
+                  return {
+                    $and: [
+                      { [fieldName]: { $exists: true } },
+                      { [fieldName]: { $ne: '' } },
+                      { [fieldName]: { $ne: null } },
+                    ],
+                  };
+                })
+              );
+
+              const found = (await Model?.findOne({
+                $and: [
+                  { [reference.fields?._id || '_id']: v._id },
+                  { ...reference.filter },
+                  { ...requirementFilter },
+                ],
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              })) as any;
 
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { value, label, ...rest } = v;
+              const { value, label, _id, ...rest } = v;
               if (found) {
                 // get fields that are forced to be included
                 const forced: Record<string, unknown> = merge(
@@ -85,9 +105,7 @@ class YReference<
                   })
                 );
 
-                return { value: v._id, label: found[reference.fields?.name || 'name'], ...rest, ...forced };
-              } else {
-                return { value: v._id, label: v._id, ...rest };
+                return { value: _id, label: found[reference.fields?.name || 'name'], ...rest, ...forced };
               }
             }
           }
