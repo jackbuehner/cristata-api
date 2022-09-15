@@ -70,8 +70,9 @@ class YReference<
           } else {
             const Model = await TenantModel(reference.collection);
 
+              // @ts-expect-error allow custom accessor
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const found = (await Model?.findById(v._id)) as any;
+              const found = (await Model?.findOne({ [reference.fields?._id || '_id']: v._id })) as any;
             if (found) {
               populated.push({ ...v, value: v._id, label: found[reference.fields?.name || 'name'] });
             } else {
