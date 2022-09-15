@@ -1,6 +1,7 @@
 import { FieldDef } from '@jackbuehner/cristata-generator-schema';
 import { Model } from 'mongoose';
 import * as Y from 'yjs';
+import { merge } from 'merge-anything';
 
 type UnpopulatedValue = { _id: string; label?: string; [key: string]: unknown };
 type PopulatedValue = { value: string; label: string; [key: string]: unknown };
@@ -72,10 +73,21 @@ class YReference<
               // @ts-expect-error allow custom accessor
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const found = (await Model?.findOne({ [reference.fields?._id || '_id']: v._id })) as any;
+
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { value, label, ...rest } = v;
               if (found) {
-                return { ...v, value: v._id, label: found[reference.fields?.name || 'name'] };
+                // get fields that are forced to be included
+                const forced: Record<string, unknown> = merge(
+                  {},
+                  ...(reference.forceLoadFields || []).map((fieldName) => {
+                    return { [fieldName]: found[fieldName] || null };
+                  })
+                );
+
+                return { value: v._id, label: found[reference.fields?.name || 'name'], ...rest, ...forced };
               } else {
-                return { ...v, value: v._id, label: v._id };
+                return { value: v._id, label: v._id, ...rest };
               }
             }
           }
