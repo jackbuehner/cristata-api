@@ -94,6 +94,7 @@ class YDocArray<K extends string, V extends Record<string, 'any'>[]> {
 
   delete(key: K): void {
     this.#ydoc.share.delete(key);
+    this.#deleteDocFieldShares(key);
   }
 
   /**
