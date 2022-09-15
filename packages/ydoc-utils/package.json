@@ -12,7 +12,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "jsdom": "^20.0.0"
+    "jsdom": "^20.0.0",
+    "merge-anything": "^5.0.4"
   },
   "devDependencies": {
     "@types/jsdom": "^20.0.0"
