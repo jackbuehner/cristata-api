@@ -33,7 +33,7 @@ export function store(tenantDb: DB) {
 
     // get the values of the ydoc shared types
     // (to be used for setting database document values)
-    //const docData = await getFromY(ydoc, deconstructedSchema, { keepJsonParsed: true });
+    const docData = await getFromY(ydoc, deconstructedSchema, { keepJsonParsed: true });
 
     // get database document
     const dbDoc = await collection.findOne({
@@ -60,7 +60,7 @@ export function store(tenantDb: DB) {
     const yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
     collection.updateOne(
       { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-      { $set: { __yState: yState }, $push: { __yVersions: version } }
+      { $set: { ...docData, __yState: yState }, $push: { __yVersions: version } }
     );
   };
 }
