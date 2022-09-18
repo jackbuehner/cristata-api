@@ -4,6 +4,7 @@ import {
   isTypeTuple,
   MongooseSchemaType,
 } from '@jackbuehner/cristata-generator-schema';
+import { replaceCircular } from '@jackbuehner/cristata-utils';
 import { Logtail } from '@logtail/node';
 import { Model } from 'mongoose';
 import { get as getProperty, set as setProperty } from 'object-path';
@@ -215,7 +216,7 @@ async function addToY(params: AddToYParams) {
         }
       } catch (error) {
         console.error(error);
-        logtail.error(JSON.stringify(error));
+        logtail.error(JSON.stringify(replaceCircular(error)));
         if (error instanceof ZodError) {
           throw new Error(
             `Validation error on field "${key}" of type "${schemaType}${

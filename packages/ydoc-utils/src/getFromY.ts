@@ -49,7 +49,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
         if (isArray) return;
 
         const date = new shared.Date(ydoc);
-        setProperty(data, key, date.get(key));
+        setProperty(data, key, new Date(date.get(key) || '0001-01-01T01:00:00.000+00:00'));
       }
 
       if (schemaType === 'DocArray') {

@@ -1,5 +1,5 @@
+import { replaceCircular } from '@jackbuehner/cristata-utils';
 import { GraphQLRequestContext, GraphQLRequestListener } from 'apollo-server-plugin-base';
-import Cristata from 'Cristata';
 
 /**
  * Log errors to logtail with:
@@ -16,16 +16,25 @@ function LogErrorsToLogtail() {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { http, ...prunedRequest } = requestContext.request;
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { config, db, restartApollo, ...prunedContext } = requestContext.context;
-          const cristata = requestContext.context.cristata as Cristata;
+          const { config, db, cristata, restartApollo, ...prunedContext } = requestContext.context;
           cristata.logtail.error(
-            JSON.stringify({
-              APOLLO_ERROR: {
-                prunedRequest,
-                prunedContext,
-                errors: requestContext.errors,
-              },
-            })
+            JSON.stringify(
+              replaceCircular({
+                APOLLO_ERROR: {
+                  prunedRequest,
+                  prunedContext: {
+                    ...prunedContext,
+                    profile: prunedContext.profile
+                      ? {
+                          _id: prunedContext.profile._id,
+                          name: prunedContext.profile.name,
+                        }
+                      : undefined,
+                  },
+                  errors: requestContext.errors,
+                },
+              })
+            )
           );
         },
       };
