@@ -1,0 +1,7 @@
+{
+  "watch": "dist/**/*",
+  "events": {
+    "start": "clear && printf \"\\e[3J\" && printf \"\\e[36mStarting the development server...\\e[0m\n\""
+  },
+  "delay": "100ms"
+}
