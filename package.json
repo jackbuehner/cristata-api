@@ -26,6 +26,7 @@
     "@changesets/cli": "^2.24.4",
     "@hocuspocus/extension-database": "^1.0.0-alpha.20",
     "@hocuspocus/server": "^1.0.0-alpha.106",
-    "@logtail/node": "^0.1.12"
+    "@logtail/node": "^0.1.12",
+    "is-what": "^4.1.7"
   }
 }

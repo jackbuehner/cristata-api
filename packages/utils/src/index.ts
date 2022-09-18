@@ -16,6 +16,7 @@ export { isObject } from './isObject';
 export { isObjectId } from './isObjectId';
 export { notEmpty } from './notEmpty';
 export { parseCookies } from './parseCookies';
+export { replaceCircular } from './replaceCircular';
 export { sendEmail } from './sendEmail';
 export { slugify } from './slugify';
 export { splitOnce } from './splitOnce';
