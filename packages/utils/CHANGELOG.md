@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-utils
 
+## 1.2.0
+
+### Minor Changes
+
+- dd4416d: add util for replacing circular references in objects to replace circular references before stingifying errors for logtail
+
 ## 1.1.0
 
 ### Minor Changes

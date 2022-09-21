@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.6.2
+
+### Patch Changes
+
+- dd4416d: add util for replacing circular references in objects to replace circular references before stingifying errors for logtail
+
 ## 6.6.1
 
 ### Patch Changes
