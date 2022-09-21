@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@changesets/cli": "^2.24.4",
-    "@logtail/node": "^0.1.12"
+    "@logtail/node": "^0.1.12",
+    "is-what": "^4.1.7"
   }
 }

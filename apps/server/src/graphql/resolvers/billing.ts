@@ -1,3 +1,4 @@
+import { replaceCircular } from '@jackbuehner/cristata-utils';
 import { ForbiddenError } from 'apollo-server-errors';
 import aws from 'aws-sdk';
 import Stripe from 'stripe';
@@ -101,7 +102,7 @@ const billing = {
         };
       } catch (error) {
         console.error(error);
-        context.cristata.logtail.error(JSON.stringify(error));
+        context.cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       }
     },
     storage: async (
