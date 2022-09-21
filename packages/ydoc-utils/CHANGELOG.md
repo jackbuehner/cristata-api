@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-ydoc-utils
 
+## 2.0.1
+
+### Patch Changes
+
+- dd4416d: add util for replacing circular references in objects to replace circular references before stingifying errors for logtail
+
 ## 2.0.0
 
 ### Major Changes
