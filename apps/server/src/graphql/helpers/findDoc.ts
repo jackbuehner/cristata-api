@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import { replaceCircular } from '@jackbuehner/cristata-utils';
 import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError } from 'apollo-server-core';
 import mongoose, { FilterQuery } from 'mongoose';
@@ -112,7 +113,7 @@ async function findDoc({
     }
   } catch (error) {
     console.error(error);
-    context.cristata.logtail.error(JSON.stringify(error));
+    context.cristata.logtail.error(JSON.stringify(replaceCircular(error)));
   }
 
   // return the document

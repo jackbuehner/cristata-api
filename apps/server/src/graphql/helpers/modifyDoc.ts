@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { convertNullPrototype, insertUserToArray, isDefinedDate, slugify } from '@jackbuehner/cristata-utils';
+import {
+  convertNullPrototype,
+  insertUserToArray,
+  isDefinedDate,
+  replaceCircular,
+  slugify,
+} from '@jackbuehner/cristata-utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
@@ -98,7 +104,7 @@ async function modifyDoc<DocType, DataType>({
     }
   } catch (error) {
     console.error(error);
-    context.cristata.logtail.error(JSON.stringify(error));
+    context.cristata.logtail.error(JSON.stringify(replaceCircular(error)));
   }
 
   // set modification metadata

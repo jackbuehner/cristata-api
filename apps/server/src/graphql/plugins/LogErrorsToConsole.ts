@@ -17,7 +17,13 @@ function LogErrorsToConsole() {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { config, db, cristata, restartApollo, ...prunedContext } = requestContext.context;
           console.error('Apollo::didEncounterErrors::prunedRequest', prunedRequest);
-          console.error('Apollo::didEncounterErrors::prunedContext', prunedContext);
+          console.error('Apollo::didEncounterErrors::prunedContext', {
+            ...prunedContext,
+            profile: {
+              _id: prunedContext.profile._id,
+              name: prunedContext.profile.name,
+            },
+          });
           console.error('Apollo::didEncounterErrors::errors', requestContext.errors);
         },
       };

@@ -1,3 +1,4 @@
+import { replaceCircular } from '@jackbuehner/cristata-utils';
 import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
 import passport from 'passport';
@@ -28,7 +29,7 @@ const handleError = (
   code = 500
 ) => {
   console.error(error);
-  cristata.logtail.error(JSON.stringify(error));
+  cristata.logtail.error(JSON.stringify(replaceCircular(error)));
   if (descriptive) res.status(code).json({ error: error.message });
   else if (req.body.redirect === false) res.status(500).json({ error: 'error authenticating' });
   else res.redirect(req.baseUrl + '/error');

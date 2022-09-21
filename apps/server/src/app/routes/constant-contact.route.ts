@@ -9,6 +9,7 @@ import { IUser } from '../../mongodb/users';
 import Cristata from '../../Cristata';
 import { Configuration } from '../../types/config';
 import { TenantDB } from '../../mongodb/TenantDB';
+import { replaceCircular } from '@jackbuehner/cristata-utils';
 
 const CLIENT_ID = process.env.CONSTANT_CONTACT_CLIENT_ID || '';
 const CLIENT_SECRET = process.env.CONSTANT_CONTACT_CLIENT_SECRET || '';
@@ -116,7 +117,7 @@ function factory(cristata: Cristata): Router {
       });
     } catch (error) {
       console.error('Failed to get Constant Contact contact lists:', error);
-      cristata.logtail.error(JSON.stringify(error));
+      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       res.status(500).end();
     }
   });
@@ -170,7 +171,7 @@ function factory(cristata: Cristata): Router {
       res.json(validator.parse(account_emails).sort((a, b) => a.email_address.localeCompare(b.email_address)));
     } catch (error) {
       console.error('Failed to get Constant Contact account senders:', error);
-      cristata.logtail.error(JSON.stringify(error));
+      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       res.status(500).end();
     }
   });
@@ -274,7 +275,7 @@ function factory(cristata: Cristata): Router {
       });
     } catch (error) {
       console.error('Failed to create and schedule new Constant Contact campaign:', error);
-      cristata.logtail.error(JSON.stringify(error));
+      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       res.status(500).end();
     }
   });

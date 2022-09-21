@@ -22,6 +22,7 @@ import { constantContactRouterFactory } from './routes/constant-contact.route';
 import { rootRouter } from './routes/root.route';
 import { connectDb } from '../mongodb/connectDB';
 import { TenantDB } from '../mongodb/TenantDB';
+import { replaceCircular } from '@jackbuehner/cristata-utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
 
@@ -181,7 +182,7 @@ function createExpressApp(cristata: Cristata): Application {
         });
     } catch (error) {
       console.error(error);
-      cristata.logtail.error(JSON.stringify(error));
+      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   }
 
@@ -227,7 +228,7 @@ function createExpressApp(cristata: Cristata): Application {
         });
     } catch (error) {
       console.error(error);
-      cristata.logtail.error(JSON.stringify(error));
+      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   }
 
@@ -255,7 +256,7 @@ function createExpressApp(cristata: Cristata): Application {
       }
     } catch (error) {
       console.error(error);
-      cristata.logtail.error(JSON.stringify(error));
+      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   });
 
@@ -282,7 +283,7 @@ function createExpressApp(cristata: Cristata): Application {
         }
       } catch (error) {
         console.error(error);
-        cristata.logtail.error(JSON.stringify(error));
+        cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       }
     });
     next();
@@ -378,7 +379,7 @@ function createExpressApp(cristata: Cristata): Application {
         }
       } catch (error) {
         console.error(error);
-        cristata.logtail.error(JSON.stringify(error));
+        cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       }
     });
     next();
