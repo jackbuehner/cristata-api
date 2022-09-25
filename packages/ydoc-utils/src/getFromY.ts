@@ -5,12 +5,14 @@ import {
   MongooseSchemaType,
 } from '@jackbuehner/cristata-generator-schema';
 import { get as getProperty, set as setProperty } from 'object-path';
+import { transformHexToObjectId } from './utils';
 import * as Y from 'yjs';
 import { shared } from './shared';
 
 interface GetYFieldsOptions {
   retainReferenceObjects?: boolean;
   keepJsonParsed?: boolean;
+  hexIdsAsObjectIds?: boolean;
 }
 
 async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opts?: GetYFieldsOptions) {
@@ -105,10 +107,20 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
         const reference = new shared.Reference(ydoc);
         const values = reference.get(key);
         if (opts?.retainReferenceObjects) {
-          setProperty(data, key, isArray ? values : values[0]);
+          if (opts?.hexIdsAsObjectIds) {
+            const transformed = values.map(transformHexToObjectId);
+            setProperty(data, key, isArray ? transformed : transformed[0]);
+          } else {
+            setProperty(data, key, isArray ? values : values[0]);
+          }
         } else {
-          const ids = values.map(({ value }) => value);
-          setProperty(data, key, isArray ? ids : ids[0]);
+          if (opts?.hexIdsAsObjectIds) {
+            const ids = values.map(transformHexToObjectId).map(({ value }) => value);
+            setProperty(data, key, isArray ? ids : ids[0]);
+          } else {
+            const ids = values.map(({ value }) => value);
+            setProperty(data, key, isArray ? ids : ids[0]);
+          }
         }
       }
 
