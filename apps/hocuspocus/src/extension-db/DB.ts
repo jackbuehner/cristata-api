@@ -1,4 +1,5 @@
-import { SchemaDefType } from '@jackbuehner/cristata-generator-schema';
+import { defaultSchemaDefTypes, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
+import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { AwarenessUser } from 'utils';
@@ -19,6 +20,8 @@ interface TenantDoc {
   config: {
     collections: Array<{
       name: string;
+      canPublish?: boolean;
+      withPermissions?: boolean;
       schemaDef: SchemaDefType;
       by:
         | [string, string]
@@ -72,10 +75,19 @@ export class DB {
     return this.connections[tenant].db.collection<CollectionDoc>(pluralCollectionName);
   }
 
-  async collectionSchema(tenant: string, collectionName: string) {
+  async collectionSchema(tenant: string, collectionName: string): Promise<SchemaDefType> {
     const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
     const tenantConfig = await tenantsCollection.findOne({ name: tenant });
-    return tenantConfig?.config.collections?.find((col) => col.name === collectionName)?.schemaDef;
+    const collection = tenantConfig?.config.collections?.find((col) => col.name === collectionName);
+
+    const schema = merge<SchemaDefType, SchemaDefType[]>(
+      collection?.schemaDef || {},
+      defaultSchemaDefTypes.standard,
+      collection?.canPublish ? defaultSchemaDefTypes.publishable : {},
+      collection?.withPermissions ? defaultSchemaDefTypes.withPermissions : {}
+    );
+
+    return schema;
   }
 
   async collectionAccessor(tenant: string, collectionName: string) {
