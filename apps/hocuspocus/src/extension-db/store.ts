@@ -3,7 +3,7 @@ import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
 import * as Y from 'yjs';
-import { AwarenessUser, isAwarenessUser, uint8ToBase64 } from '../utils';
+import { AwarenessUser, isAwarenessUser, reduceDays, uint8ToBase64 } from '../utils';
 import { DB } from './DB';
 
 export function store(tenantDb: DB) {
@@ -55,16 +55,21 @@ export function store(tenantDb: DB) {
 
     // create a snapshot of this point
     const snapshot = Y.snapshot(ydoc);
-    const version = {
-      snapshot: uint8ToBase64(Y.encodeSnapshot(snapshot)),
-      users: awarenessValues.map((value) => value.user),
-    };
+    const versions = [
+      // reduce versions from previous days to single version
+      ...reduceDays(dbDoc.__yVersions, 1),
+      {
+        snapshot: uint8ToBase64(Y.encodeSnapshot(snapshot)),
+        timestamp: new Date(),
+        users: awarenessValues.map((value) => value.user),
+      },
+    ];
 
     // save document state
     const yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
     collection.updateOne(
       { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-      { $set: { ...docData, __yState: yState }, $push: { __yVersions: version } }
+      { $set: { ...docData, __yState: yState, __yVersions: versions } }
     );
   };
 }

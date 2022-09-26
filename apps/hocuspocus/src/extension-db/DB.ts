@@ -3,12 +3,15 @@ import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { AwarenessUser } from 'utils';
 
-interface CollectionDoc {
+export interface CollectionDoc {
   __yState?: string;
-  __yVersions?: Array<{
-    snapshot: string;
-    users: Array<AwarenessUser['user']>;
-  }>;
+  __yVersions?: CollectionDocVersion[];
+}
+
+export interface CollectionDocVersion {
+  snapshot: string;
+  timestamp: Date;
+  users: Array<AwarenessUser['user']>;
 }
 
 interface TenantDoc {
