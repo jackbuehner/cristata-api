@@ -20,7 +20,6 @@ const standard: SchemaDefType = {
     {
       snapshot: { type: 'String', required: true },
       timestamp: { type: 'Date', required: true },
-      users: { type: ['JSON'], strict: false },
     },
   ],
   history: [
