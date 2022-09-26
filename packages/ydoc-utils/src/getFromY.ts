@@ -4,15 +4,34 @@ import {
   isTypeTuple,
   MongooseSchemaType,
 } from '@jackbuehner/cristata-generator-schema';
+import { isJSON } from '@jackbuehner/cristata-utils';
+import mongoose from 'mongoose';
 import { get as getProperty, set as setProperty } from 'object-path';
-import { transformHexToObjectId } from './utils';
 import * as Y from 'yjs';
 import { shared } from './shared';
+import { transformHexToObjectId } from './utils';
 
 interface GetYFieldsOptions {
   retainReferenceObjects?: boolean;
   keepJsonParsed?: boolean;
   hexIdsAsObjectIds?: boolean;
+  /**
+   * Always replace undefined or null values with the default value.
+   * The default value is defined in the schema.
+   *
+   * Empty arrays are not replaced. Array types will always provide
+   * an empty array if there is no value.
+   *
+   * __Defaults:__ \
+   * Boolean: `false` \
+   * Date: `new Date('0001-01-01T01:00:00.000+00:00')` (always replaced) \
+   * DocArray: `[]` \
+   * Float: `0` \
+   * Number: `0` \
+   * ObjectId: `'000000000000000000000000' | ObjectId('000000000000000000000000')` \
+   * String: `''`
+   */
+  replaceUndefinedNull?: boolean;
 }
 
 async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opts?: GetYFieldsOptions) {
@@ -38,20 +57,49 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
 
       const reference = def.field?.reference;
 
+      const required = def.required;
+      const defaultValue = def.default;
+
       if (schemaType === 'Boolean') {
         // arrays of booleans are not supported in the app
         if (isArray) return;
 
+        // shared type helper
         const boolean = new shared.Boolean(ydoc);
-        setProperty(data, key, boolean.get(key));
+
+        // get the value
+        let toSet = boolean.get(key);
+        if (!toSet && (required || opts?.replaceUndefinedNull)) {
+          if (defaultValue === true || defaultValue === 'true' || defaultValue === 1) {
+            toSet = true;
+          } else {
+            toSet = false;
+          }
+        }
+
+        // set value in return data
+        setProperty(data, key, toSet);
       }
 
       if (schemaType === 'Date') {
         // arrays of dates are not supported in the app
         if (isArray) return;
 
+        // shared type helper
         const date = new shared.Date(ydoc);
-        setProperty(data, key, new Date(date.get(key) || '0001-01-01T01:00:00.000+00:00'));
+
+        // get the value
+        let toSet = date.get(key);
+        if (!toSet || isNaN(Date.parse(toSet))) {
+          if (typeof defaultValue === 'string' && !isNaN(Date.parse(defaultValue))) {
+            toSet = defaultValue;
+          } else {
+            toSet = '0001-01-01T01:00:00.000+00:00';
+          }
+        }
+
+        // set value in return data
+        setProperty(data, key, new Date(toSet));
       }
 
       if (schemaType === 'DocArray') {
@@ -76,12 +124,44 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
       }
 
       if (schemaType === 'Float') {
+        // shared type helper
         const float = new shared.Float(ydoc);
-        if (isArray || options || reference) {
-          const ids = float.get(key, true).map(({ value }) => value);
-          setProperty(data, key, isArray ? ids : ids[0]);
+
+        if (isArray || !!options || !!reference) {
+          // get the value
+          let toSet = float.get(key, true).map(({ value }) => value);
+
+          // set default value
+          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+            if (typeof defaultValue === 'number') {
+              toSet = [defaultValue];
+            } else if (
+              Array.isArray(defaultValue) &&
+              (defaultValue as unknown[]).every((val) => typeof val === 'number')
+            ) {
+              toSet = defaultValue as number[];
+            } else {
+              toSet = [];
+            }
+          }
+
+          // set value in return data
+          setProperty(data, key, isArray ? toSet : toSet[0]);
         } else {
-          setProperty(data, key, float.get(key, false));
+          // get the value
+          let toSet = float.get(key, false);
+
+          // set default value
+          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+            if (typeof defaultValue === 'number') {
+              toSet = defaultValue;
+            } else {
+              toSet = 0;
+            }
+          }
+
+          // set value in return data
+          setProperty(data, key, toSet);
         }
       }
 
@@ -94,45 +174,149 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
       }
 
       if (schemaType === 'Number') {
+        // shared type helper
         const integer = new shared.Integer(ydoc);
-        if (isArray || options || reference) {
-          const ids = integer.get(key, true).map(({ value }) => value);
-          setProperty(data, key, isArray ? ids : ids[0]);
+
+        if (isArray || !!options || !!reference) {
+          // get the value
+          let toSet = integer.get(key, true).map(({ value }) => value);
+
+          // set default value
+          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+            if (typeof defaultValue === 'number') {
+              toSet = [defaultValue];
+            } else if (
+              Array.isArray(defaultValue) &&
+              (defaultValue as unknown[]).every((val) => typeof val === 'number')
+            ) {
+              toSet = defaultValue as number[];
+            } else {
+              toSet = [];
+            }
+          }
+
+          // set value in return data
+          setProperty(data, key, isArray ? toSet : toSet[0]);
         } else {
-          setProperty(data, key, integer.get(key, false));
+          // get the value
+          let toSet = integer.get(key, false);
+
+          // set default value
+          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+            if (typeof defaultValue === 'number') {
+              toSet = defaultValue;
+            } else {
+              toSet = 0;
+            }
+          }
+
+          // set value in return data
+          setProperty(data, key, toSet);
         }
       }
 
       if (schemaType === 'ObjectId') {
+        // shared type helper
         const reference = new shared.Reference(ydoc);
-        const values = reference.get(key);
-        if (opts?.retainReferenceObjects) {
-          if (opts?.hexIdsAsObjectIds) {
-            const transformed = values.map(transformHexToObjectId);
-            setProperty(data, key, isArray ? transformed : transformed[0]);
-          } else {
-            setProperty(data, key, isArray ? values : values[0]);
-          }
-        } else {
-          if (opts?.hexIdsAsObjectIds) {
-            const ids = values.map(transformHexToObjectId).map(({ value }) => value);
-            setProperty(data, key, isArray ? ids : ids[0]);
-          } else {
-            const ids = values.map(({ value }) => value);
-            setProperty(data, key, isArray ? ids : ids[0]);
-          }
+
+        // get the value
+        type ToSetObj = { value: string | mongoose.Types.ObjectId; label: string };
+        type ToSet = ToSetObj[] | (string | mongoose.Types.ObjectId)[];
+        let toSet: ToSet = reference
+          .get(key)
+          .map((obj): ToSetObj => ({ value: `${obj.value}`, label: `${obj.label || obj.value}` }));
+
+        // transform hex ids to object ids
+        if (opts?.hexIdsAsObjectIds === true) {
+          toSet = toSet.map(transformHexToObjectId);
         }
+
+        // reduce reference objects to ids array
+        if (opts?.retainReferenceObjects !== true) {
+          toSet = toSet.map(({ value }) => value);
+        }
+
+        // set default value
+        if (!toSet && (required || opts?.replaceUndefinedNull)) {
+          if (isArray) toSet = [];
+          else if (opts?.hexIdsAsObjectIds === true)
+            toSet = [new mongoose.Types.ObjectId('000000000000000000000000')];
+          else toSet = ['000000000000000000000000'];
+        }
+
+        // set value in return data
+        setProperty(data, key, isArray ? toSet : toSet[0]);
       }
 
       if (schemaType === 'String') {
+        // shared type helper
         const string = new shared.String(ydoc);
+
+        // options/array
         if (isArray || options || reference) {
-          const ids = (await string.get(key, true, false, false)).map(({ value }) => value);
-          setProperty(data, key, isArray ? ids : ids[0]);
-        } else if (def.field?.markdown) {
-          setProperty(data, key, await string.get(key, false, false, true));
-        } else {
-          setProperty(data, key, await string.get(key, false, !!def.field?.tiptap, false));
+          // get the value
+          let toSet = (await string.get(key, true, false, false)).map(({ value }) => `${value}`);
+
+          // set default value
+          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+            if (isArray) {
+              if ((defaultValue as unknown[]).every((val) => typeof val === 'string'))
+                toSet = defaultValue as string[];
+              else toSet = [];
+            } else {
+              if (typeof defaultValue === 'string') toSet = [defaultValue];
+              else toSet = [''];
+            }
+          }
+
+          // set value in return data
+          setProperty(data, key, isArray ? toSet : toSet[0]);
+        }
+
+        // markdown
+        else if (def.field?.markdown) {
+          // get the value
+          let toSet = await string.get(key, false, false, true);
+
+          // set default value
+          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+            if (typeof defaultValue === 'string') toSet = defaultValue;
+            else toSet = '';
+          }
+
+          // set value in return data
+          setProperty(data, key, toSet);
+        }
+
+        // rich text
+        else if (def.field?.tiptap) {
+          // get the value
+          let toSet = await string.get(key, false, true, false);
+
+          // set default value
+          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+            if (typeof defaultValue === 'string' && isJSON(toSet) && Array.isArray(JSON.parse(toSet)))
+              toSet = defaultValue;
+            else toSet = '[]';
+          }
+
+          // set value in return data
+          setProperty(data, key, toSet);
+        }
+
+        // regular text
+        else {
+          // get the value
+          let toSet = await string.get(key, false, false, false);
+
+          // set default value
+          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+            if (typeof defaultValue === 'string') toSet = defaultValue;
+            else toSet = '';
+          }
+
+          // set value in return data
+          setProperty(data, key, toSet);
         }
       }
     })

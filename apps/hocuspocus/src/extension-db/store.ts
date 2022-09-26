@@ -33,7 +33,11 @@ export function store(tenantDb: DB) {
 
     // get the values of the ydoc shared types
     // (to be used for setting database document values)
-    const docData = await getFromY(ydoc, deconstructedSchema, { keepJsonParsed: true });
+    const docData = await getFromY(ydoc, deconstructedSchema, {
+      keepJsonParsed: true,
+      hexIdsAsObjectIds: true,
+      replaceUndefinedNull: true,
+    });
 
     // get database document
     const dbDoc = await collection.findOne({

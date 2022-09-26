@@ -12,6 +12,7 @@ export { insertUserToArray } from './insertUserToArray';
 export { isArray } from './isArray';
 export { isDefinedDate } from './isDefinedDate';
 export { isIsoDateString } from './isIsoDateString';
+export { isJSON } from './isJSON';
 export { isObject } from './isObject';
 export { isObjectId } from './isObjectId';
 export { notEmpty } from './notEmpty';
