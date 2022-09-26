@@ -1,4 +1,6 @@
 import { fetchPayload } from '@hocuspocus/server';
+import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
 import * as Y from 'yjs';
 import { base64ToUint8 } from '../utils';
@@ -37,6 +39,13 @@ export function fetch(tenantDb: DB) {
 
     // otherwise, we can create a new ydoc
     const ydoc = new Y.Doc();
+    await addToY({
+      ydoc,
+      schemaDef: deconstructSchema(await tenantDb.collectionSchema(tenant, collectionName)),
+      inputData: dbDoc,
+      TenantModel: async (collectionName: string) =>
+        tenantDb.connections[tenant].model(collectionName, new mongoose.Schema({}, { strict: false })),
+    });
     return Y.encodeStateAsUpdate(ydoc);
   };
 }
