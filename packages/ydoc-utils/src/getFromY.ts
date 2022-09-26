@@ -238,7 +238,6 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
 
         // set default value
         if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
-          console.log(key, toSet, isArray);
           if (isArray) toSet = [];
           else if (opts?.hexIdsAsObjectIds === true)
             toSet = [new mongoose.Types.ObjectId('000000000000000000000000')];
