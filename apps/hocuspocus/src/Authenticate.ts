@@ -12,25 +12,35 @@ class Authenticate implements Extension {
     this.configuration = configuration;
   }
 
-  async onConnect({ connection, requestHeaders }: onConnectPayload): Promise<void> {
+  async onConnect({ connection, requestHeaders, requestParameters }: onConnectPayload): Promise<void> {
     // always start off as unauthenticated
     connection.requiresAuthentication = true;
     connection.isAuthenticated = false;
 
-    // check authentication status
-    const authRes = await fetch(this.configuration.authHref, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        cookie: requestHeaders.cookie || '',
-      },
-    });
-
-    if (authRes.status === 200) {
+    // authenticate if AUTH_OVERRIDE_SECRET is provided
+    if (
+      process.env.AUTH_OVERRIDE_SECRET &&
+      requestParameters.get('authSecret') === process.env.AUTH_OVERRIDE_SECRET
+    ) {
       connection.isAuthenticated = true;
-    } else {
-      // prevent later hooks and default handler
-      throw new Error();
+    }
+
+    // check authentication status
+    if (!connection.isAuthenticated) {
+      const authRes = await fetch(this.configuration.authHref, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          cookie: requestHeaders.cookie || '',
+        },
+      });
+
+      if (authRes.status === 200) {
+        connection.isAuthenticated = true;
+      } else {
+        // prevent later hooks and default handler
+        throw new Error();
+      }
     }
   }
 }
