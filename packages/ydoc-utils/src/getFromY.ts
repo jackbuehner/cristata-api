@@ -132,7 +132,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           let toSet = float.get(key, true).map(({ value }) => value);
 
           // set default value
-          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+          if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
             if (typeof defaultValue === 'number') {
               toSet = [defaultValue];
             } else if (
@@ -182,7 +182,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           let toSet = integer.get(key, true).map(({ value }) => value);
 
           // set default value
-          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+          if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
             if (typeof defaultValue === 'number') {
               toSet = [defaultValue];
             } else if (
@@ -237,7 +237,8 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
         }
 
         // set default value
-        if (!toSet && (required || opts?.replaceUndefinedNull)) {
+        if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
+          console.log(key, toSet, isArray);
           if (isArray) toSet = [];
           else if (opts?.hexIdsAsObjectIds === true)
             toSet = [new mongoose.Types.ObjectId('000000000000000000000000')];
@@ -258,7 +259,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           let toSet = (await string.get(key, true, false, false)).map(({ value }) => `${value}`);
 
           // set default value
-          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+          if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
             if (isArray) {
               if ((defaultValue as unknown[]).every((val) => typeof val === 'string'))
                 toSet = defaultValue as string[];
@@ -279,7 +280,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           let toSet = await string.get(key, false, false, true);
 
           // set default value
-          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+          if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
             if (typeof defaultValue === 'string') toSet = defaultValue;
             else toSet = '';
           }
@@ -294,7 +295,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           let toSet = await string.get(key, false, true, false);
 
           // set default value
-          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+          if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
             if (typeof defaultValue === 'string' && isJSON(toSet) && Array.isArray(JSON.parse(toSet)))
               toSet = defaultValue;
             else toSet = '[]';
@@ -310,7 +311,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           let toSet = await string.get(key, false, false, false);
 
           // set default value
-          if (!toSet && (required || opts?.replaceUndefinedNull)) {
+          if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
             if (typeof defaultValue === 'string') toSet = defaultValue;
             else toSet = '';
           }
