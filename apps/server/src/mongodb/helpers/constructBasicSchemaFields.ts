@@ -1,3 +1,4 @@
+import { defaultSchemaDefTypes, genSchemaFields } from '@jackbuehner/cristata-generator-schema';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { Collection } from '../../types/config';
@@ -15,51 +16,11 @@ function constructBasicSchemaFields(collection: Collection) {
 }
 
 // schema fields to include in every collection
-const collectionSchemaFields = {
-  timestamps: {
-    created_at: { type: Date, required: true, default: new Date().toISOString() },
-    modified_at: { type: Date, required: true, default: new Date().toISOString() },
-  },
-  people: {
-    created_by: { type: mongoose.Schema.Types.ObjectId },
-    modified_by: { type: [mongoose.Schema.Types.ObjectId] },
-    last_modified_by: { type: mongoose.Schema.Types.ObjectId },
-    watching: { type: [mongoose.Schema.Types.ObjectId] },
-  },
-  hidden: { type: Boolean, required: true, default: false },
-  locked: { type: Boolean, required: true, default: false },
-  archived: { type: Boolean, required: true, default: false },
-  yState: { type: String },
-  history: [
-    {
-      type: { type: String, required: true },
-      user: { type: mongoose.Schema.Types.ObjectId, required: true },
-      at: {
-        type: Date,
-        required: true,
-        default: new Date().toISOString(),
-      },
-    },
-  ],
-};
-
-const publishableCollectionSchemaFields = {
-  timestamps: {
-    published_at: { type: Date, required: true, default: '0001-01-01T01:00:00.000+00:00' },
-    updated_at: { type: Date, required: true, default: '0001-01-01T01:00:00.000+00:00' },
-  },
-  people: {
-    published_by: { type: [mongoose.Schema.Types.ObjectId] },
-    last_published_by: { type: mongoose.Schema.Types.ObjectId },
-  },
-};
-
-const withPermissionsCollectionSchemaFields = {
-  permissions: {
-    teams: { type: [String] },
-    users: { type: [mongoose.Schema.Types.ObjectId] },
-  },
-};
+const { schemaFields: collectionSchemaFields } = genSchemaFields(defaultSchemaDefTypes.standard);
+const { schemaFields: publishableCollectionSchemaFields } = genSchemaFields(defaultSchemaDefTypes.publishable);
+const { schemaFields: withPermissionsCollectionSchemaFields } = genSchemaFields(
+  defaultSchemaDefTypes.withPermissions
+);
 
 type GitHubTeamNodeID = string;
 
@@ -76,12 +37,19 @@ interface CollectionSchemaFields {
   };
   hidden: boolean;
   locked: boolean;
-  yState?: string;
+  __yState?: string;
+  __yVersions?: CollectionDocVersion[];
   history: Array<{
     type: string;
     user: mongoose.Types.ObjectId;
     at: string; // ISO string
   }>;
+}
+
+interface CollectionDocVersion {
+  snapshot: string;
+  timestamp: Date;
+  users: Array<Record<string, unknown>>;
 }
 
 interface WithPermissionsCollectionSchemaFields {

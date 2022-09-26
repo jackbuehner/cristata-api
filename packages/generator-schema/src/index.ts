@@ -1,7 +1,8 @@
 export { calcAccessor } from './calcAccessor';
 export { calcGraphFieldType } from './calcGraphFieldType';
 export { conditionallyModifyDocField, SetterCondition } from './conditionallyModifyDocField';
-export { deconstructSchema, DeconstructedSchemaDefType } from './deconstructSchema';
+export { DeconstructedSchemaDefType, deconstructSchema } from './deconstructSchema';
+export { defaultSchemaDefTypes } from './defaultSchemaDefTypes';
 export { genInputs } from './genInputs';
 export { genMutations } from './genMutations';
 export { genPrunedTypes } from './genPrunedTypes';
