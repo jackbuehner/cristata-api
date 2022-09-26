@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
-import { replaceCircular } from '@jackbuehner/cristata-utils';
-import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError } from 'apollo-server-core';
 import mongoose, { FilterQuery } from 'mongoose';
-import * as Y from 'yjs';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
@@ -80,40 +76,6 @@ async function findDoc({
   // always cast team to string
   if (doc?.permissions?.teams) {
     doc.permissions.teams = doc.permissions.teams.map((team: unknown) => `${team}`);
-  }
-
-  // create yjs doc if it does not exist
-  try {
-    const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
-
-    if (doc?._id && (doc.yState === undefined || doc.yState === null)) {
-      const ydoc = new Y.Doc(); // create empty doc
-      const collection = context.config.collections.find((col) => col.name === model);
-      if (collection?.schemaDef) {
-        // add doc data to ydoc shared types
-        await addToY({
-          ydoc,
-          schemaDef: deconstructSchema(collection.schemaDef),
-          inputData: doc,
-          TenantModel: tenantDB.model,
-        });
-
-        // make ydoc available to client
-        const encodedBase64State = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
-        doc.yState = encodedBase64State;
-
-        // also save the ydoc to the database so it can be used next time
-        // instead of needing to be re-created
-        const saveableDoc = await Model.findById(doc._id);
-        if (saveableDoc) {
-          saveableDoc.yState = encodedBase64State;
-          saveableDoc.save();
-        }
-      }
-    }
-  } catch (error) {
-    console.error(error);
-    context.cristata.logtail.error(JSON.stringify(replaceCircular(error)));
   }
 
   // return the document
