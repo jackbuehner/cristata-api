@@ -4,6 +4,7 @@ import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
+import { setYDocType } from './setYDocType';
 
 interface ArchiveDoc {
   /**
@@ -89,7 +90,23 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   }
 
   // save the document
-  return await doc.save();
+  const res = await doc.save();
+
+  // sync the changes to the yjs doc
+  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
+    const reference = new sharedHelper.Reference(ydoc);
+    const boolean = new sharedHelper.Boolean(ydoc);
+    const rc = { collection: 'User' };
+    const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
+
+    boolean.set('archived', archive);
+    await reference.set('people.modified_by', res.people.modified_by.map(toHex), TM, rc);
+    await reference.set('people.last_modified_by', [res.people.last_modified_by].map(toHex), TM, rc);
+
+    return true;
+  });
+
+  return res;
 }
 
 export { archiveDoc };

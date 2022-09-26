@@ -5,6 +5,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
+import { setYDocType } from './setYDocType';
 
 interface PublishDoc {
   model: string;
@@ -61,7 +62,25 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
   }
 
   // save the document
-  return await doc.save();
+  const res = await doc.save();
+
+  // sync the changes to the yjs doc
+  setYDocType(context, model, `${_id}`, async (TM, ydoc, sharedHelper) => {
+    const reference = new sharedHelper.Reference(ydoc);
+    const date = new sharedHelper.Date(ydoc);
+    const rc = { collection: 'User' };
+    const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
+
+    date.set('timestamps.published_at', res.timestamps.published_at);
+    await reference.set('people.published_by', res.people.published_by.map(toHex), TM, rc);
+    await reference.set('people.last_published_by', [res.people.last_published_by].map(toHex), TM, rc);
+    await reference.set('people.modified_by', res.people.modified_by.map(toHex), TM, rc);
+    await reference.set('people.last_modified_by', [res.people.last_modified_by].map(toHex), TM, rc);
+
+    return true;
+  });
+
+  return res;
 }
 
 export { publishDoc };

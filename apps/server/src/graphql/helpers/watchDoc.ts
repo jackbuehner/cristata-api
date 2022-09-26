@@ -5,6 +5,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
+import { setYDocType } from './setYDocType';
 
 interface WatchDoc {
   /**
@@ -73,7 +74,25 @@ async function watchDoc({ model, accessor, watch, watcher, context }: WatchDoc) 
   }
 
   // save the document
-  return await doc.save();
+  const res = await doc.save();
+
+  // sync the changes to the yjs doc
+  setYDocType(context, model, accessor.value.toString(), async (TenantModel, ydoc, sharedHelper) => {
+    const type = new sharedHelper.Reference(ydoc);
+    const key = 'people.watching';
+    const referenceConfig = { collection: 'User' };
+
+    await type.set(
+      key,
+      res.people.watching.map((_id) => _id.toHexString()),
+      TenantModel,
+      referenceConfig
+    );
+
+    return true;
+  });
+
+  return res;
 }
 
 export { watchDoc };
