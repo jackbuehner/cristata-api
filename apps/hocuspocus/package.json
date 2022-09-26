@@ -6,7 +6,7 @@
     "dev:prepare": "tsc",
     "dev": "npm run dev:prepare && tsc --watch & cross-env PORT=${PORT:=1234} NODE_ENV=development nodemon dist/index.js",
     "build": "tsc --build && tsc --declaration && cross-env NODE_ENV=production npm run lint",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "clean": "rm -rf dist"
   }
