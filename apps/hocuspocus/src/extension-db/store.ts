@@ -65,6 +65,9 @@ export function store(tenantDb: DB) {
       },
     ];
 
+    // remove history array (we update this only on changes via the api)
+    delete docData.history;
+
     // save document state
     const yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
     collection.updateOne(
