@@ -1,5 +1,5 @@
 import { Forbidden, Unauthorized } from '@hocuspocus/common';
-import { Extension, onConnectPayload } from '@hocuspocus/server';
+import { Extension, onConnectPayload, onUpgradePayload } from '@hocuspocus/server';
 import { uncapitalize } from '@jackbuehner/cristata-utils';
 import fetch from 'node-fetch';
 
@@ -10,6 +10,7 @@ export interface AuthenticateConfiguration {
 
 class Authenticate implements Extension {
   configuration: AuthenticateConfiguration;
+  timeout: Record<string, NodeJS.Timeout> = {};
 
   constructor(configuration: AuthenticateConfiguration) {
     this.configuration = configuration;
@@ -81,6 +82,13 @@ class Authenticate implements Extension {
         throw Forbidden;
       }
     }
+  }
+
+  async onUpgrade(data: onUpgradePayload): Promise<void> {
+    setTimeout(() => {
+      // disconnect every 10 minutes
+      data.socket.destroy();
+    }, 10 * 60 * 1000);
   }
 }
 
