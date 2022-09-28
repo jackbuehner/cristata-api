@@ -17,11 +17,12 @@ interface CanDo {
   model: string;
   action: CollectionPermissionsActions;
   context: Context;
-  doc?: DocType;
+  doc?: DocType | null;
 }
 
 async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
   if (!requireAuthentication(context)) throw new AuthenticationError('unknown');
+  if (doc === null) return false;
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();
 

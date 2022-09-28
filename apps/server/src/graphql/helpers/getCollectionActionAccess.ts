@@ -31,7 +31,7 @@ async function getCollectionActionAccess({
 }: GetCollectionActionAccess): Promise<GetCollectionActionAccessReturn> {
   // get the document if a document id has been provided
   const doc = args?._id
-    ? ((await findDoc({ model, _id: args._id, by: args.by, context })) as never)
+    ? (((await findDoc({ model, _id: args._id, by: args.by, context })) || null) as never)
     : undefined;
 
   // return all permissions
