@@ -1,7 +1,8 @@
 import { Forbidden, Unauthorized } from '@hocuspocus/common';
-import { Extension, onConnectPayload, onUpgradePayload } from '@hocuspocus/server';
+import { Extension, onConnectPayload, onLoadDocumentPayload, onUpgradePayload } from '@hocuspocus/server';
 import { uncapitalize } from '@jackbuehner/cristata-utils';
 import fetch from 'node-fetch';
+import * as Y from 'yjs';
 
 export interface AuthenticateConfiguration {
   authHref: string;
@@ -84,11 +85,37 @@ class Authenticate implements Extension {
     }
   }
 
+  async afterLoadDocument(data: onLoadDocumentPayload): Promise<void> {
+    const ydoc = data.document;
+
+    // get the shared types for the permissions
+    const users = ydoc.getArray('permissions.users');
+    const teams = ydoc.getArray('permissions.teams');
+
+    // we should disconnect everyone whenever a user or team
+    // is removed from the permissions array
+    // (clients will reconnect within a few seconds if
+    // they still have access)
+    let deletedSize: number | undefined = undefined;
+    const disconnect = (evt: Y.YArrayEvent<unknown>) => {
+      deletedSize = (deletedSize || 0) + evt.changes.deleted.size;
+      data.instance.debounce('permissionDeleted', () => {
+        if ((deletedSize || 0) > 0) {
+          data.instance.closeConnections(data.documentName);
+          deletedSize = 0;
+        }
+      });
+    };
+
+    users.observe(disconnect);
+    teams.observe(disconnect);
+  }
+
   async onUpgrade(data: onUpgradePayload): Promise<void> {
     setTimeout(() => {
-      // disconnect every 10 minutes
+      // disconnect every 60 minutes
       data.socket.destroy();
-    }, 10 * 60 * 1000);
+    }, 60 * 60 * 1000);
   }
 }
 
