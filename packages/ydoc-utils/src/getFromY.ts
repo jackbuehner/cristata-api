@@ -60,6 +60,44 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
       const required = def.required;
       const defaultValue = def.default;
 
+      if (schemaType === 'ObjectId' || def.field?.reference?.collection) {
+        // shared type helper
+        const reference = new shared.Reference(ydoc);
+
+        // get the value
+        type ToSetObj = { value: string | mongoose.Types.ObjectId; label: string };
+        type ToSet = ToSetObj[] | (string | mongoose.Types.ObjectId)[];
+        let toSet: ToSet = reference
+          .get(key)
+          .map((obj): ToSetObj => ({ value: `${obj.value}`, label: `${obj.label || obj.value}` }));
+
+        // transform hex ids to object ids
+        if (
+          opts?.hexIdsAsObjectIds === true &&
+          (def.field?.reference?.fields?._id === '_id' || !def.field?.reference?.fields?._id)
+        ) {
+          toSet = toSet.map(transformHexToObjectId);
+        }
+
+        // reduce reference objects to ids array
+        if (opts?.retainReferenceObjects !== true) {
+          toSet = toSet.map(({ value }) => value);
+        }
+
+        // set default value
+        if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
+          if (isArray) toSet = [];
+          else if (opts?.hexIdsAsObjectIds === true)
+            toSet = [new mongoose.Types.ObjectId('000000000000000000000000')];
+          else toSet = ['000000000000000000000000'];
+        }
+
+        // set value in return data
+        setProperty(data, key, isArray ? toSet : toSet[0]);
+
+        return;
+      }
+
       if (schemaType === 'Boolean') {
         // arrays of booleans are not supported in the app
         if (isArray) return;
@@ -79,6 +117,8 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
 
         // set value in return data
         setProperty(data, key, toSet);
+
+        return;
       }
 
       if (schemaType === 'Date') {
@@ -100,6 +140,8 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
 
         // set value in return data
         setProperty(data, key, new Date(toSet));
+
+        return;
       }
 
       if (schemaType === 'DocArray') {
@@ -121,6 +163,8 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
         // insert the value of this field into the data object that
         // is returned by this function
         setProperty(data, key, arrayValue);
+
+        return;
       }
 
       if (schemaType === 'Float') {
@@ -163,6 +207,8 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           // set value in return data
           setProperty(data, key, toSet);
         }
+
+        return;
       }
 
       if (schemaType === 'JSON') {
@@ -171,6 +217,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
         // to the fields they actualy represent.
         // If a value reaches here, do nothing.
         // The UI will show it as uneditable JSON.
+        return;
       }
 
       if (schemaType === 'Number') {
@@ -213,39 +260,8 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           // set value in return data
           setProperty(data, key, toSet);
         }
-      }
 
-      if (schemaType === 'ObjectId') {
-        // shared type helper
-        const reference = new shared.Reference(ydoc);
-
-        // get the value
-        type ToSetObj = { value: string | mongoose.Types.ObjectId; label: string };
-        type ToSet = ToSetObj[] | (string | mongoose.Types.ObjectId)[];
-        let toSet: ToSet = reference
-          .get(key)
-          .map((obj): ToSetObj => ({ value: `${obj.value}`, label: `${obj.label || obj.value}` }));
-
-        // transform hex ids to object ids
-        if (opts?.hexIdsAsObjectIds === true) {
-          toSet = toSet.map(transformHexToObjectId);
-        }
-
-        // reduce reference objects to ids array
-        if (opts?.retainReferenceObjects !== true) {
-          toSet = toSet.map(({ value }) => value);
-        }
-
-        // set default value
-        if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
-          if (isArray) toSet = [];
-          else if (opts?.hexIdsAsObjectIds === true)
-            toSet = [new mongoose.Types.ObjectId('000000000000000000000000')];
-          else toSet = ['000000000000000000000000'];
-        }
-
-        // set value in return data
-        setProperty(data, key, isArray ? toSet : toSet[0]);
+        return;
       }
 
       if (schemaType === 'String') {
@@ -318,6 +334,8 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           // set value in return data
           setProperty(data, key, toSet);
         }
+
+        return;
       }
     })
   );

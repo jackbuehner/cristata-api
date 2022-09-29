@@ -75,9 +75,24 @@ async function addToY(params: AddToYParams) {
         | { value: string | number; label: string; disabled?: boolean }[]
         | undefined;
 
-      const reference = def.field?.reference;
-
       try {
+        if (schemaType === 'ObjectId' || def.field?.reference?.collection) {
+          const validator = z.union([
+            z.string().optional().nullable().array().optional().nullable(),
+            z.object({ _id: z.string(), name: z.string().optional() }).passthrough().array(),
+          ]);
+          const validValue = validator.parse(isArray ? getProperty(data, key) : [getProperty(data, key)]);
+
+          const reference = new shared.Reference(params.ydoc);
+
+          await reference.set(key, validValue, params.TenantModel, {
+            ...def.field?.reference,
+            collection: def.field?.reference?.collection || def.type[0].replace('[', '').replace(']', ''),
+          });
+
+          return;
+        }
+
         if (schemaType === 'Boolean') {
           // arrays of booleans are not supported in the app
           if (isArray) return;
@@ -87,6 +102,7 @@ async function addToY(params: AddToYParams) {
 
           const boolean = new shared.Boolean(params.ydoc);
           boolean.set(key, validValue);
+          return;
         }
 
         if (schemaType === 'Date') {
@@ -98,6 +114,7 @@ async function addToY(params: AddToYParams) {
 
           const date = new shared.Date(params.ydoc);
           date.set(key, validValue);
+          return;
         }
 
         if (schemaType === 'DocArray') {
@@ -134,6 +151,7 @@ async function addToY(params: AddToYParams) {
               }
             });
           }
+          return;
         }
 
         if (schemaType === 'Float') {
@@ -152,6 +170,8 @@ async function addToY(params: AddToYParams) {
           } else {
             float.set(key, validValue);
           }
+
+          return;
         }
 
         if (schemaType === 'JSON') {
@@ -160,6 +180,7 @@ async function addToY(params: AddToYParams) {
           // to the fields they actualy represent.
           // If a value reaches here, do nothing.
           // The UI will show it as uneditable JSON.
+          return;
         }
 
         if (schemaType === 'Number') {
@@ -178,21 +199,8 @@ async function addToY(params: AddToYParams) {
           } else {
             integer.set(key, validValue);
           }
-        }
 
-        if (schemaType === 'ObjectId') {
-          const validator = z.union([
-            z.string().optional().nullable().array().optional().nullable(),
-            z.object({ _id: z.string(), name: z.string().optional() }).passthrough().array(),
-          ]);
-          const validValue = validator.parse(isArray ? getProperty(data, key) : [getProperty(data, key)]);
-
-          const reference = new shared.Reference(params.ydoc);
-
-          await reference.set(key, validValue, params.TenantModel, {
-            ...def.field?.reference,
-            collection: def.field?.reference?.collection || def.type[0].replace('[', '').replace(']', ''),
-          });
+          return;
         }
 
         if (schemaType === 'String') {
@@ -203,7 +211,7 @@ async function addToY(params: AddToYParams) {
           ]);
           const validValue = validator.parse(getProperty(data, key));
 
-          if (Array.isArray(validValue) || options || reference) {
+          if (Array.isArray(validValue) || options || def.field?.reference?.collection) {
             // if it is not an array, but there are options (or a reference config), stick
             // the value in an array since the SelectOne and ReferenceOne fields
             // require the value to be in an array
@@ -213,6 +221,8 @@ async function addToY(params: AddToYParams) {
           } else {
             string.set(key, validValue, 'tiptap');
           }
+
+          return;
         }
       } catch (error) {
         console.error(error);
@@ -230,8 +240,6 @@ async function addToY(params: AddToYParams) {
 
   const unsaved = params.ydoc?.getArray('__unsavedFields');
   unsaved?.delete(0, unsaved.length);
-
-  console.log(params.ydoc.toJSON());
 }
 
 export { addToY };
