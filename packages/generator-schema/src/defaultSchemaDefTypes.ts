@@ -48,7 +48,7 @@ const publishable: SchemaDefType = {
 
 const withPermissions: SchemaDefType = {
   permissions: {
-    teams: { type: ['String'] },
+    teams: { type: ['String'], field: { reference: { collection: 'Team' } } },
     users: { type: ['[User]', ['ObjectId']] },
   },
 };
