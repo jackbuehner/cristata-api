@@ -32,7 +32,7 @@ export function reduceDays(
       // reduce each day to single version
       return (versions || []).reduce((previousValue, currentValue): CollectionDocVersion => {
         return {
-          snapshot: currentValue.snapshot,
+          state: currentValue.state,
           timestamp: currentValue.timestamp || new Date('2020-06-04'),
           users: [...previousValue.users, ...currentValue.users].filter((elem, index, self) => {
             return self.findIndex((t) => t.name === elem.name) === index;

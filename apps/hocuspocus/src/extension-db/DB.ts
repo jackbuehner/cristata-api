@@ -10,7 +10,7 @@ export interface CollectionDoc {
 }
 
 export interface CollectionDocVersion {
-  snapshot: string;
+  state: string;
   timestamp: Date;
   users: Array<AwarenessUser['user']>;
 }

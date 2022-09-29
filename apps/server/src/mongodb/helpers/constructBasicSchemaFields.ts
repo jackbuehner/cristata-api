@@ -47,7 +47,7 @@ interface CollectionSchemaFields {
 }
 
 interface CollectionDocVersion {
-  snapshot: string;
+  state: string;
   timestamp: Date;
   users: Array<Record<string, unknown>>;
 }

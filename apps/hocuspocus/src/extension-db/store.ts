@@ -54,12 +54,11 @@ export function store(tenantDb: DB) {
     }
 
     // create a snapshot of this point
-    const snapshot = Y.snapshot(ydoc);
     const versions = [
       // reduce versions from previous days to single version
-      ...reduceDays(dbDoc.__yVersions, 1),
+      ...reduceDays(dbDoc.__yVersions, 3), // must be at least 3 days old
       {
-        snapshot: uint8ToBase64(Y.encodeSnapshot(snapshot)),
+        state: uint8ToBase64(Y.encodeStateAsUpdate(ydoc)),
         timestamp: new Date(),
         users: awarenessValues.map((value) => value.user),
       },

@@ -18,7 +18,7 @@ const standard: SchemaDefType = {
   __yState: { type: 'String' },
   __versions: [
     {
-      snapshot: { type: 'String', required: true },
+      state: { type: 'String', required: true },
       timestamp: { type: 'Date', required: true },
     },
   ],
