@@ -48,3 +48,4 @@ jobs:
           MONGO_DB_PASSWORD: ${{ secrets.MONGO_DB_PASSWORD }}
           MONGO_DB_HOST: ${{ secrets.MONGO_DB_HOST }}
           COOKIE_SESSION_SECRET: ${{ secrets.COOKIE_SESSION_SECRET }}
+          HOCUSPOCUS_SERVER: ws://localhost:1234
