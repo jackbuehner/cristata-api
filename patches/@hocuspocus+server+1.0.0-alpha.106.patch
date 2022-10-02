@@ -1,0 +1,88 @@
+diff --git a/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs b/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
+index ebf5aa5..f5ea66a 100644
+--- a/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
++++ b/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
+@@ -1882,12 +1882,12 @@ class Hocuspocus {
+         var _a;
+         return (((_a = this.httpServer) === null || _a === void 0 ? void 0 : _a.address()) || {
+             port: this.configuration.port,
+-            address: '127.0.0.1',
++            address: this.configuration.address || '127.0.0.1',
+             family: 'IPv4',
+         });
+     }
+     get URL() {
+-        return `127.0.0.1:${this.address.port}`;
++        return `${this.address.address}:${this.address.port}`;
+     }
+     get webSocketURL() {
+         return `ws://${this.URL}`;
+diff --git a/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js b/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
+index 942afa2..5adf9cf 100644
+--- a/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
++++ b/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
+@@ -1855,12 +1855,12 @@ class Hocuspocus {
+         var _a;
+         return (((_a = this.httpServer) === null || _a === void 0 ? void 0 : _a.address()) || {
+             port: this.configuration.port,
+-            address: '127.0.0.1',
++            address: this.configuration.address || '127.0.0.1',
+             family: 'IPv4',
+         });
+     }
+     get URL() {
+-        return `127.0.0.1:${this.address.port}`;
++        return `${this.address.address}:${this.address.port}`;
+     }
+     get webSocketURL() {
+         return `ws://${this.URL}`;
+diff --git a/node_modules/@hocuspocus/server/dist/packages/server/src/types.d.ts b/node_modules/@hocuspocus/server/dist/packages/server/src/types.d.ts
+index b8decf2..4920170 100644
+--- a/node_modules/@hocuspocus/server/dist/packages/server/src/types.d.ts
++++ b/node_modules/@hocuspocus/server/dist/packages/server/src/types.d.ts
+@@ -63,6 +63,10 @@ export interface Configuration extends Extension {
+      * The port which the server listens on.
+      */
+     port: number | null;
++    /**
++     * The address/host which the server listens on.
++     */
++    address?: string | null,
+     /**
+      * Defines in which interval the server sends a ping, and closes the connection when no pong is sent back.
+      */
+diff --git a/node_modules/@hocuspocus/server/src/Hocuspocus.ts b/node_modules/@hocuspocus/server/src/Hocuspocus.ts
+index 8cc8b6d..f1858cf 100644
+--- a/node_modules/@hocuspocus/server/src/Hocuspocus.ts
++++ b/node_modules/@hocuspocus/server/src/Hocuspocus.ts
+@@ -247,13 +247,13 @@ export class Hocuspocus {
+   get address(): AddressInfo {
+     return (this.httpServer?.address() || {
+       port: this.configuration.port,
+-      address: '127.0.0.1',
++      address: this.configuration.address || '127.0.0.1',
+       family: 'IPv4',
+     }) as AddressInfo
+   }
+ 
+   get URL(): string {
+-    return `127.0.0.1:${this.address.port}`
++    return `${this.address.address}:${this.address.port}`
+   }
+ 
+   get webSocketURL(): string {
+diff --git a/node_modules/@hocuspocus/server/src/types.ts b/node_modules/@hocuspocus/server/src/types.ts
+index 2509dca..76f1221 100644
+--- a/node_modules/@hocuspocus/server/src/types.ts
++++ b/node_modules/@hocuspocus/server/src/types.ts
+@@ -101,6 +101,10 @@ export interface Configuration extends Extension {
+    * The port which the server listens on.
+    */
+   port: number | null,
++  /**
++   * The address/host which the server listens on.
++   */
++  address?: string | null,
+   /**
+    * Defines in which interval the server sends a ping, and closes the connection when no pong is sent back.
+    */

@@ -18,6 +18,7 @@ const authentication = new Authenticate({
 const hocuspocus = new Hocuspocus({
   extensions: [authentication, db],
   port: parseInt(process.env.PORT || '1234'),
+  address: process.env.HOST || '127.0.0.1',
 });
 
 hocuspocus.listen();
