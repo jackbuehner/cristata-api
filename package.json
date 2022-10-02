@@ -14,7 +14,8 @@
     "postinstall": "patch-package --error-on-fail false",
     "changeset": "changeset",
     "release": "turbo run build --filter=docs^... && changeset publish",
-    "start:server": "cd apps/server && npm run start"
+    "start:server": "cd apps/server && npm run start",
+    "start:hocuspocus": "cd apps/hocuspocus && npm run start"
   },
   "devDependencies": {
     "eslint": "^8.23.0",
