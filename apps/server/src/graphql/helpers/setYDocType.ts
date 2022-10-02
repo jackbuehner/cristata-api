@@ -17,8 +17,13 @@ async function setYDocType(
     TenantModel: (name: string) => Promise<mongoose.Model<unknown> | null>,
     ydoc: Y.Doc,
     sharedHelper: typeof shared
-  ) => Promise<boolean>
+  ) => Promise<true | string>
 ): Promise<void> {
+  // return without connecting if we are testing
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   return await new Promise<void>((resolve, reject) => {
     try {
       // create an empty ydoc to use with the websocket provider
@@ -45,7 +50,9 @@ async function setYDocType(
         await tenantDB.connect();
 
         // execute the callback
-        if (await cb(tenantDB.model.bind(tenantDB), ydoc, shared)) resolve();
+        const res = await cb(tenantDB.model.bind(tenantDB), ydoc, shared);
+        if (res === true) resolve();
+        else reject(res);
       });
     } catch (error) {
       reject(error);
