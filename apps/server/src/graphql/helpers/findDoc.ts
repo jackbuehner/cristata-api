@@ -77,7 +77,7 @@ async function findDoc({
   if (doc?.permissions?.teams) {
     doc.permissions.teams = doc.permissions.teams.map((team: unknown) => `${team}`);
   }
-
+  
   // return the document
   if (lean !== false || doc === undefined) return doc; // also return lean doc if the doc is undefined
   return Model.findById(doc._id); // as an instance of the mongoose Document class if lean === false
