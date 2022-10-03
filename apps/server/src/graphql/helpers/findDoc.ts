@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ApolloError } from 'apollo-server-core';
-import mongoose, { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery, PipelineStage } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
@@ -14,6 +14,7 @@ interface FindDoc {
   fullAccess?: boolean;
   accessRule?: FilterQuery<unknown>;
   lean?: boolean;
+  project?: PipelineStage.Project['$project'];
 }
 
 async function findDoc(params: { lean: false } & FindDoc): Promise<HydratedCollectionDoc | null | undefined>;
@@ -27,6 +28,7 @@ async function findDoc({
   fullAccess,
   accessRule,
   lean,
+  project,
 }: FindDoc): Promise<LeanCollectionDoc | HydratedCollectionDoc | null | undefined> {
   if (!fullAccess) requireAuthentication(context);
 
@@ -63,12 +65,15 @@ async function findDoc({
         ],
       };
 
-  const pipeline: mongoose.PipelineStage[] = [
+  const pipelineStages: (mongoose.PipelineStage | null)[] = [
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: { [by || '_id']: _id || null } },
     { $sort: { 'timestamps.created_at': -1 } },
+    project ? { $project: project } : null,
   ];
+
+  const pipeline = pipelineStages.filter((stage): stage is mongoose.PipelineStage => !!stage);
 
   // get the document as a plain javascript object
   const doc = (await Model.aggregate(pipeline))[0];
@@ -77,7 +82,7 @@ async function findDoc({
   if (doc?.permissions?.teams) {
     doc.permissions.teams = doc.permissions.teams.map((team: unknown) => `${team}`);
   }
-  
+
   // return the document
   if (lean !== false || doc === undefined) return doc; // also return lean doc if the doc is undefined
   return Model.findById(doc._id); // as an instance of the mongoose Document class if lean === false
