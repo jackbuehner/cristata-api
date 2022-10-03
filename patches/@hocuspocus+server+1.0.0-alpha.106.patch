@@ -1,5 +1,5 @@
 diff --git a/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs b/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
-index ebf5aa5..f5ea66a 100644
+index ebf5aa5..a753c1c 100644
 --- a/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
 +++ b/node_modules/@hocuspocus/server/dist/hocuspocus-server.cjs
 @@ -1882,12 +1882,12 @@ class Hocuspocus {
@@ -13,12 +13,12 @@ index ebf5aa5..f5ea66a 100644
      }
      get URL() {
 -        return `127.0.0.1:${this.address.port}`;
-+        return `${this.address.address}:${this.address.port}`;
++        return `${this.configuration.address || '127.0.0.1'}:${this.address.port}`;
      }
      get webSocketURL() {
          return `ws://${this.URL}`;
 diff --git a/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js b/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
-index 942afa2..5adf9cf 100644
+index 942afa2..373020c 100644
 --- a/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
 +++ b/node_modules/@hocuspocus/server/dist/hocuspocus-server.esm.js
 @@ -1855,12 +1855,12 @@ class Hocuspocus {
@@ -32,7 +32,7 @@ index 942afa2..5adf9cf 100644
      }
      get URL() {
 -        return `127.0.0.1:${this.address.port}`;
-+        return `${this.address.address}:${this.address.port}`;
++        return `${this.configuration.address || '127.0.0.1'}:${this.address.port}`;
      }
      get webSocketURL() {
          return `ws://${this.URL}`;
@@ -52,7 +52,7 @@ index b8decf2..4920170 100644
       * Defines in which interval the server sends a ping, and closes the connection when no pong is sent back.
       */
 diff --git a/node_modules/@hocuspocus/server/src/Hocuspocus.ts b/node_modules/@hocuspocus/server/src/Hocuspocus.ts
-index 8cc8b6d..f1858cf 100644
+index 8cc8b6d..053165c 100644
 --- a/node_modules/@hocuspocus/server/src/Hocuspocus.ts
 +++ b/node_modules/@hocuspocus/server/src/Hocuspocus.ts
 @@ -247,13 +247,13 @@ export class Hocuspocus {
@@ -67,7 +67,7 @@ index 8cc8b6d..f1858cf 100644
  
    get URL(): string {
 -    return `127.0.0.1:${this.address.port}`
-+    return `${this.address.address}:${this.address.port}`
++    return `${this.configuration.address || '127.0.0.1'}:${this.address.port}`
    }
  
    get webSocketURL(): string {
