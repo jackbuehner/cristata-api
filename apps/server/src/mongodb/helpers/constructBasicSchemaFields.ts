@@ -1,5 +1,5 @@
 import { defaultSchemaDefTypes, genSchemaFields } from '@jackbuehner/cristata-generator-schema';
-import { merge } from 'merge-anything';
+import { mergeAndConcat } from 'merge-anything';
 import mongoose from 'mongoose';
 import { Collection } from '../../types/config';
 
@@ -7,7 +7,7 @@ import { Collection } from '../../types/config';
  * Merges preset schema fields per the config with fields from the collection config.
  */
 function constructBasicSchemaFields(collection: Collection) {
-  return merge(
+  return mergeAndConcat(
     collectionSchemaFields,
     collection.schemaFields,
     collection.canPublish ? publishableCollectionSchemaFields : {},
