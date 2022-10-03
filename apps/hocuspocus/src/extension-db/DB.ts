@@ -81,7 +81,7 @@ export class DB {
       { name: tenant },
       {
         projection: {
-          name: 1,
+          'config.collections.name': 1,
           'config.collections.canPublish': 1,
           'config.collections.withPermissions': 1,
           'config.collections.schemaDef': 1,
@@ -104,7 +104,7 @@ export class DB {
     const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
     const tenantConfig = await tenantsCollection.findOne(
       { name: tenant },
-      { projection: { name: 1, 'config.collections.by': 1 } }
+      { projection: { 'config.collections.name': 1, 'config.collections.by': 1 } }
     );
 
     const by = tenantConfig?.config.collections?.find((col) => col.name === collectionName)?.by;
