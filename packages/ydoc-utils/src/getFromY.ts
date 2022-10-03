@@ -72,10 +72,11 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           .map((obj): ToSetObj => ({ value: `${obj.value}`, label: `${obj.label || obj.value}` }));
 
         // transform hex ids to object ids
-        if (
+        const shouldTransform =
           opts?.hexIdsAsObjectIds === true &&
-          (def.field?.reference?.fields?._id === '_id' || !def.field?.reference?.fields?._id)
-        ) {
+          (def.field?.reference?.fields?._id === '_id' || !def.field?.reference?.fields?._id) &&
+          schemaType === 'ObjectId';
+        if (shouldTransform) {
           toSet = toSet.map(transformHexToObjectId);
         }
 
@@ -87,9 +88,8 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
         // set default value
         if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
           if (isArray) toSet = [];
-          else if (opts?.hexIdsAsObjectIds === true)
-            toSet = [new mongoose.Types.ObjectId('000000000000000000000000')];
-          else toSet = ['000000000000000000000000'];
+          else if (shouldTransform) toSet = [new mongoose.Types.ObjectId('000000000000000000000000')];
+          else toSet = [''];
         }
 
         // set value in return data
@@ -130,7 +130,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
 
         // get the value
         let toSet = date.get(key);
-        if (!toSet || isNaN(Date.parse(toSet))) {
+        if (!toSet && (isNaN(Date.parse(toSet)) || required || opts?.replaceUndefinedNull)) {
           if (typeof defaultValue === 'string' && !isNaN(Date.parse(defaultValue))) {
             toSet = defaultValue;
           } else {
