@@ -70,7 +70,7 @@ async function findDoc({
     { $match: accessFilter },
     { $match: { [by || '_id']: _id || null } },
     { $sort: { 'timestamps.created_at': -1 } },
-    project ? { $project: project } : null,
+    project ? { $project: project } : { $project: { __yState: 0, __yVersions: 0, yState: 0 } },
   ];
 
   const pipeline = pipelineStages.filter((stage): stage is mongoose.PipelineStage => !!stage);
