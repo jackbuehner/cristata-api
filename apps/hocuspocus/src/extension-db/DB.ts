@@ -77,7 +77,17 @@ export class DB {
 
   async collectionSchema(tenant: string, collectionName: string): Promise<SchemaDefType> {
     const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
-    const tenantConfig = await tenantsCollection.findOne({ name: tenant });
+    const tenantConfig = await tenantsCollection.findOne(
+      { name: tenant },
+      {
+        projection: {
+          name: 1,
+          'config.collections.canPublish': 1,
+          'config.collections.withPermissions': 1,
+          'config.collections.schemaDef': 1,
+        },
+      }
+    );
     const collection = tenantConfig?.config.collections?.find((col) => col.name === collectionName);
 
     const schema = merge<SchemaDefType, SchemaDefType[]>(
@@ -92,7 +102,10 @@ export class DB {
 
   async collectionAccessor(tenant: string, collectionName: string) {
     const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
-    const tenantConfig = await tenantsCollection.findOne({ name: tenant });
+    const tenantConfig = await tenantsCollection.findOne(
+      { name: tenant },
+      { projection: { name: 1, 'config.collections.by': 1 } }
+    );
 
     const by = tenantConfig?.config.collections?.find((col) => col.name === collectionName)?.by;
     const defaultBy = ['_id', 'ObjectId'];

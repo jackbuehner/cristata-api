@@ -22,7 +22,10 @@ export function fetch(tenantDb: DB) {
     // get database document
     const dbDoc = await tenantDb
       .collection(tenant, collectionName)
-      ?.findOne({ [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId });
+      ?.findOne(
+        { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+        { projection: { _id: 1, __yState: 1 } }
+      );
 
     // throw an error if the document was not found
     if (!dbDoc) {
@@ -31,7 +34,7 @@ export function fetch(tenantDb: DB) {
 
     // if the database document was found and it contains an encoded ydoc state,
     // create a ydoc based on the version in the database
-    else if (dbDoc?.__yState) {
+    if (dbDoc?.__yState) {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, base64ToUint8(dbDoc.__yState)); // insert current encoded state into doc
       return Y.encodeStateAsUpdate(ydoc);
