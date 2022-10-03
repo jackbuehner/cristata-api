@@ -43,7 +43,9 @@ const Float = Text.extend({
               const text = json.content[0].content[0].text;
 
               // replace invalid characters and then insert the string
-              json.content[0].content[0].text = text.replace(/(?<=(.*\..*))\./g, '');
+              const firstIndex = text.search(/\./) + 1;
+              const stringFloat = text.substr(0, firstIndex) + text.slice(firstIndex).replace(/\./g, '');
+              json.content[0].content[0].text = stringFloat;
               view.dispatch(tr.replaceSelection(Slice.fromJSON(schema, json)));
               return true;
             }
