@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import * as Y from 'yjs';
 import { base64ToUint8 } from '../utils';
 import { DB } from './DB';
+import { TenantModel } from './TenantModel';
 
 export function fetch(tenantDb: DB) {
   return async ({ documentName }: fetchPayload): Promise<Uint8Array | null> => {
@@ -46,12 +47,7 @@ export function fetch(tenantDb: DB) {
       ydoc,
       schemaDef: deconstructSchema(await tenantDb.collectionSchema(tenant, collectionName)),
       inputData: dbDoc,
-      TenantModel: async (collectionName: string) => {
-        if (tenantDb.connections[tenant].modelNames().includes(collectionName)) {
-          return tenantDb.connections[tenant].model(collectionName);
-        }
-        return tenantDb.connections[tenant].model(collectionName, new mongoose.Schema({}, { strict: false }));
-      },
+      TenantModel: TenantModel(tenantDb, tenant),
     });
     return Y.encodeStateAsUpdate(ydoc);
   };
