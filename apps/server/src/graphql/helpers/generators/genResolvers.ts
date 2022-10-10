@@ -29,7 +29,6 @@ import { CollectionDoc, Helpers } from '..';
 import { TenantDB } from '../../../mongodb/TenantDB';
 import { collectionPeopleResolvers, Context, publishableCollectionPeopleResolvers } from '../../server';
 import { constructDocFromRef } from './constructDocFromRef';
-import { useStageUpdateEmails } from './_useStageUpdateEmails';
 
 async function construct(
   doc: CollectionDoc | null | undefined,
@@ -287,10 +286,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         context,
         modify: async (currentDoc, data) => {
           conditionallyModifyDocField(data, config.schemaDef);
-
-          if (hasKey('stage', data) && hasKey('stage', currentDoc) && data.stage !== currentDoc.stage) {
-            useStageUpdateEmails(context, currentDoc, data, config);
-          }
         },
       });
     };

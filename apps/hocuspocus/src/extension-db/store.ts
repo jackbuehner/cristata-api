@@ -1,11 +1,13 @@
 import { storePayload } from '@hocuspocus/server';
 import { conditionallyModifyDocField, deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import { hasKey } from '@jackbuehner/cristata-utils';
 import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import * as Y from 'yjs';
 import { AwarenessUser, isAwarenessUser, reduceDays, uint8ToBase64 } from '../utils';
 import { CollectionDoc, DB } from './DB';
+import { sendStageUpdateEmails } from './sendStageUpdateEmails';
 
 export function store(tenantDb: DB) {
   return async ({ document: ydoc, documentName }: storePayload): Promise<void> => {
@@ -37,10 +39,11 @@ export function store(tenantDb: DB) {
     conditionallyModifyDocField(docData, schema);
 
     // get database document
-    const dbDocExists = !!(await collection.findOne(
+    const partialDbDoc = await collection.findOne(
       { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-      { projection: { _id: 1 } }
-    ));
+      { projection: { _id: 1, stage: 1 } }
+    );
+    const dbDocExists = !!partialDbDoc;
 
     // throw an error if the document was not found
     if (!dbDocExists) {
@@ -61,8 +64,25 @@ export function store(tenantDb: DB) {
       { $set: { ...docData, __yState: yState } }
     );
 
+    // get the collection options
+    const options = await tenantDb.collectionOptions(tenant, collectionName);
+
     // save versions asynchronously
     saveSnapshot(documentName, ydoc, collection, by);
+
+    // send stage update emails
+    if (hasKey('stage', partialDbDoc) && typeof partialDbDoc.stage === 'number') {
+      sendStageUpdateEmails(
+        documentName,
+        docData,
+        partialDbDoc.stage,
+        collection,
+        by,
+        options,
+        tenantDb,
+        deconstructedSchema
+      );
+    }
   };
 }
 
