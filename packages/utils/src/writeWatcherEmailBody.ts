@@ -1,6 +1,7 @@
-import { camelToDashCase, uncapitalize } from '@jackbuehner/cristata-utils';
 import { get as getProperty } from 'object-path';
 import pluralize from 'pluralize';
+import { camelToDashCase } from './camelToDashCase';
+import { uncapitalize } from './uncapitalize';
 
 interface WriteWatcherEmailBody {
   model: string;
