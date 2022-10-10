@@ -11,6 +11,7 @@ import { get as getProperty, set as setProperty } from 'object-path';
 import * as Y from 'yjs';
 import { z, ZodError } from 'zod';
 import { shared } from './shared';
+import { has as hasProperty } from 'object-path';
 
 const logtail = new Logtail(process.env.LOGTAIL_ID || 'MISSING');
 
@@ -28,6 +29,11 @@ interface AddToYParams {
    * with `await tenantDB.connect()`.
    */
   TenantModel: (name: string) => Promise<Model<unknown> | null>;
+  /**
+   * Only set the values of keys that are explicitly provided
+   * to this function in `inputData`.
+   */
+  onlyProvided?: boolean;
 }
 
 async function addToY(params: AddToYParams) {
@@ -62,6 +68,7 @@ async function addToY(params: AddToYParams) {
   await Promise.all(
     params.schemaDef.map(async ([key, def]) => {
       if (!params.ydoc) return;
+      if (params.onlyProvided && !hasProperty(data, key)) return;
 
       const [schemaType, isArray] = (() => {
         const schemaType: MongooseSchemaType | 'DocArray' = isTypeTuple(def.type) ? def.type[1] : def.type;
