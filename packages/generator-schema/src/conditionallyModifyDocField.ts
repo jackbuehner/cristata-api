@@ -2,6 +2,7 @@ import { hasKey, isArray, slugify } from '@jackbuehner/cristata-utils';
 import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { get as getProperty, set as setProperty } from 'object-path';
+import { deconstructSchema } from './deconstructSchema';
 import { SchemaDef, SchemaDefType, SetterValueType } from './genSchema';
 
 // comparison operators
@@ -58,19 +59,18 @@ function conditionallyModifyDocField(
   doc: mongoose.LeanDocument<mongoose.Document>,
   schemaDef: SchemaDefType
 ): void {
-  // TODO: include nested schema defs
-  const flatSchemaKeys = Object.keys(schemaDef);
+  const deconstructedSchema = deconstructSchema(schemaDef);
 
   // for each key, attempt to find a setter
   // and apply it (if applicable)
-  flatSchemaKeys.forEach((arg) => {
+  deconstructedSchema.forEach(([key]) => {
     // find the setter in the schema definition (undefined if no setter)
-    const setter: SchemaDef['setter'] = getProperty(schemaDef, arg + '.setter');
+    const setter: SchemaDef['setter'] = getProperty(schemaDef, key + '.setter');
 
     if (setter) {
       // whether the setter's condition is met
       const shouldModify = process(doc, setter.condition);
-      if (shouldModify) setProperty(doc, arg, calcSetterValue(setter.value, doc));
+      if (shouldModify) setProperty(doc, key, calcSetterValue(setter.value, doc));
     }
   });
 }
