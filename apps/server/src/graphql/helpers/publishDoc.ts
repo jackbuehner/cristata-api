@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { isSchemaDef } from '@jackbuehner/cristata-generator-schema';
 import { insertUserToArray } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
@@ -68,9 +69,27 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
   setYDocType(context, model, `${_id}`, async (TM, ydoc, sharedHelper) => {
     const reference = new sharedHelper.Reference(ydoc);
     const date = new sharedHelper.Date(ydoc);
+    const float = new sharedHelper.Float(ydoc);
+
     const rc = { collection: 'User' };
     const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
 
+    // get the published stage info
+    const collection = context.config.collections.find((col) => col.name === model);
+    const stageSchemaDef =
+      collection && isSchemaDef(collection.schemaDef.stage) ? collection?.schemaDef.stage : undefined;
+    const stageFieldOptions = stageSchemaDef?.field?.options as { value: string | number; label: string }[];
+    const stageFieldOptionsAscendingOrder = stageFieldOptions?.sort((a, b) => {
+      if (a.value.toString() > b.value.toString()) return -1;
+      return 1;
+    });
+    const lastStage = parseFloat(stageFieldOptionsAscendingOrder?.[0]?.value?.toString() || '0') || undefined;
+    const publishedStageOption = stageFieldOptions.find(({ value }) => value === lastStage) || {
+      value: lastStage || 5.2,
+      label: 'Published',
+    };
+
+    float.set('stage', [lastStage || 5.2], [publishedStageOption]);
     date.set('timestamps.published_at', res.timestamps.published_at);
     await reference.set('people.published_by', res.people.published_by.map(toHex), TM, rc);
     await reference.set('people.last_published_by', [res.people.last_published_by].map(toHex), TM, rc);
