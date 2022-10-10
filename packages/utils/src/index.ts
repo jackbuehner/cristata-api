@@ -23,3 +23,4 @@ export { slugify } from './slugify';
 export { splitOnce } from './splitOnce';
 export { uncapitalize } from './uncapitalize';
 export { unflattenObject } from './unflattenObject';
+export { writeWatcherEmailBody } from './writeWatcherEmailBody';
