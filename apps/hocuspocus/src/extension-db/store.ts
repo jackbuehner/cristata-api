@@ -36,7 +36,7 @@ export function store(tenantDb: DB) {
     });
 
     // modify doc data based on setters in the schema
-    conditionallyModifyDocField(docData, schema);
+    conditionallyModifyDocField(docData, deconstructedSchema);
 
     // get database document
     const partialDbDoc = await collection.findOne(
