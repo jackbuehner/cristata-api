@@ -1,13 +1,14 @@
 import { storePayload } from '@hocuspocus/server';
 import { conditionallyModifyDocField, deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { hasKey } from '@jackbuehner/cristata-utils';
-import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
+import { addToY, getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import * as Y from 'yjs';
 import { AwarenessUser, isAwarenessUser, reduceDays, uint8ToBase64 } from '../utils';
 import { CollectionDoc, DB } from './DB';
 import { sendStageUpdateEmails } from './sendStageUpdateEmails';
+import { TenantModel } from './TenantModel';
 
 export function store(tenantDb: DB) {
   return async ({ document: ydoc, documentName }: storePayload): Promise<void> => {
@@ -36,7 +37,16 @@ export function store(tenantDb: DB) {
     });
 
     // modify doc data based on setters in the schema
-    conditionallyModifyDocField(docData, deconstructedSchema);
+    const changed = conditionallyModifyDocField(docData, deconstructedSchema);
+    if (Object.keys(changed).length > 0) {
+      await addToY({
+        ydoc,
+        schemaDef: deconstructedSchema,
+        inputData: changed,
+        TenantModel: TenantModel(tenantDb, tenant),
+        onlyProvided: true, // only update the properties in `changed`
+      });
+    }
 
     // get database document
     const partialDbDoc = await collection.findOne(
