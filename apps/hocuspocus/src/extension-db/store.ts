@@ -1,5 +1,5 @@
 import { storePayload } from '@hocuspocus/server';
-import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import { conditionallyModifyDocField, deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
@@ -32,6 +32,9 @@ export function store(tenantDb: DB) {
       hexIdsAsObjectIds: true,
       replaceUndefinedNull: true,
     });
+
+    // modify doc data based on setters in the schema
+    conditionallyModifyDocField(docData, schema);
 
     // get database document
     const dbDocExists = !!(await collection.findOne(
