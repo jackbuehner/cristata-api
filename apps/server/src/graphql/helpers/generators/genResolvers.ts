@@ -256,7 +256,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         context,
         withPermissions: config.withPermissions,
         modify: async (currentDoc, data) => {
-          conditionallyModifyDocField(currentDoc, data, config);
+          conditionallyModifyDocField(data, config.schemaDef);
         },
       });
     };
@@ -286,7 +286,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         by: oneAccessorName,
         context,
         modify: async (currentDoc, data) => {
-          conditionallyModifyDocField(currentDoc, data, config);
+          conditionallyModifyDocField(data, config.schemaDef);
 
           if (hasKey('stage', data) && hasKey('stage', currentDoc) && data.stage !== currentDoc.stage) {
             useStageUpdateEmails(context, currentDoc, data, config);
