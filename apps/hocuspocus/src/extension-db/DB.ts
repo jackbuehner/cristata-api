@@ -1,4 +1,4 @@
-import { defaultSchemaDefTypes, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
+import { defaultSchemaDefTypes, GenSchemaInput, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
@@ -29,6 +29,7 @@ interface TenantDoc {
             one: [string, string];
             many: [string, string];
           };
+      options: GenSchemaInput['options'];
     }>;
   };
 }
@@ -98,6 +99,24 @@ export class DB {
     );
 
     return schema;
+  }
+
+  async collectionOptions(tenant: string, collectionName: string): Promise<GenSchemaInput['options']> {
+    const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
+    const tenantConfig = await tenantsCollection.findOne(
+      { name: tenant },
+      {
+        projection: {
+          'config.collections.name': 1,
+          'config.collections.options': 1,
+        },
+      }
+    );
+    const collection = tenantConfig?.config.collections?.find((col) => col.name === collectionName);
+
+    const options = collection?.options || {};
+
+    return options;
   }
 
   async collectionAccessor(tenant: string, collectionName: string) {
