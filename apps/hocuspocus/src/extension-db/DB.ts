@@ -31,6 +31,8 @@ interface TenantDoc {
           };
       options: GenSchemaInput['options'];
     }>;
+    tenantDisplayName: string;
+    secrets: { aws: { accessKeyId: string; secretAccessKey: string } };
   };
 }
 
@@ -136,5 +138,26 @@ export class DB {
     } else {
       return by;
     }
+  }
+
+  async tenantEmailInfo(tenant: string): Promise<{
+    tenantDisplayName: string;
+    secrets?: { aws: { accessKeyId: string; secretAccessKey: string } };
+  }> {
+    const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
+    const tenantConfig = await tenantsCollection.findOne(
+      { name: tenant },
+      {
+        projection: {
+          'config.tenantDisplayName': 1,
+          'config.secrets.aws': 1,
+        },
+      }
+    );
+
+    return {
+      tenantDisplayName: tenantConfig?.config.tenantDisplayName || tenant,
+      secrets: tenantConfig?.config.secrets,
+    };
   }
 }
