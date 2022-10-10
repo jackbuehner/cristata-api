@@ -1,6 +1,5 @@
 import {
   calcAccessor,
-  conditionallyModifyDocField,
   GenSchemaInput,
   isCustomGraphSchemaType,
   isSchemaDef,
@@ -254,9 +253,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         args,
         context,
         withPermissions: config.withPermissions,
-        modify: async (currentDoc, data) => {
-          conditionallyModifyDocField(data, config.schemaDef);
-        },
       });
     };
   }
@@ -284,9 +280,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         _id: oneAccessorType.replace('!', '') === 'Date' ? new Date(_accessor) : _accessor,
         by: oneAccessorName,
         context,
-        modify: async (currentDoc, data) => {
-          conditionallyModifyDocField(data, config.schemaDef);
-        },
       });
     };
   }
