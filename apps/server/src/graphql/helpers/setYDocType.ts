@@ -53,6 +53,8 @@ async function setYDocType(
         const res = await cb(tenantDB.model.bind(tenantDB), ydoc, shared);
         if (res === true) resolve();
         else reject(res);
+
+        wsProvider.destroy();
       });
     } catch (error) {
       reject(error);
