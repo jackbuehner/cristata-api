@@ -43,12 +43,28 @@ export function fetch(tenantDb: DB) {
 
     // otherwise, we can create a new ydoc
     const ydoc = new Y.Doc();
+
+    // extract __migrationBackup if it somehow exists when __yState does not
+    const { __migrationBackup, ...inputData } = dbDoc;
+
+    // backup current data if there is not already a backup
+    if (!__migrationBackup) {
+      const __migrationBackup = dbDoc as unknown as never;
+      collection.updateOne(
+        { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+        { $set: { __migrationBackup } }
+      );
+    }
+
+    // add data to ydoc, which will be the collaborative source of truth for clients
     await addToY({
       ydoc,
       schemaDef: deconstructSchema(await tenantDb.collectionSchema(tenant, collectionName)),
-      inputData: dbDoc,
+      inputData: inputData,
       TenantModel: TenantModel(tenantDb, tenant),
     });
+
+    // hocuspocus requires the doc as a Uint8Array
     return Y.encodeStateAsUpdate(ydoc);
   };
 }
