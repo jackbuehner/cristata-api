@@ -9,6 +9,7 @@ import { AwarenessUser, isAwarenessUser, reduceDays, uint8ToBase64 } from '../ut
 import { CollectionDoc, DB } from './DB';
 import { sendStageUpdateEmails } from './sendStageUpdateEmails';
 import { TenantModel } from './TenantModel';
+import { merge } from 'merge-anything';
 
 export function store(tenantDb: DB) {
   return async ({ document: ydoc, documentName }: storePayload): Promise<void> => {
@@ -37,7 +38,10 @@ export function store(tenantDb: DB) {
     });
 
     // modify doc data based on setters in the schema
-    const changed = conditionallyModifyDocField(docData, deconstructedSchema);
+    const changed = merge(
+      { timestamps: { modified_at: new Date().toISOString() } },
+      conditionallyModifyDocField(docData, deconstructedSchema)
+    );
     if (Object.keys(changed).length > 0) {
       await addToY({
         ydoc,
