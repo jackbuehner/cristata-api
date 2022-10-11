@@ -65,12 +65,14 @@ async function findDoc({
         ],
       };
 
+  const projection = project ? project : { __yState: 0, __yVersions: 0, yState: 0 };
+
   const pipelineStages: (mongoose.PipelineStage | null)[] = [
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: { [by || '_id']: _id || null } },
     { $sort: { 'timestamps.created_at': -1 } },
-    project ? { $project: project } : { $project: { __yState: 0, __yVersions: 0, yState: 0 } },
+    { $project: projection },
   ];
 
   const pipeline = pipelineStages.filter((stage): stage is mongoose.PipelineStage => !!stage);
@@ -85,7 +87,7 @@ async function findDoc({
 
   // return the document
   if (lean !== false || doc === undefined) return doc; // also return lean doc if the doc is undefined
-  return Model.findById(doc._id); // as an instance of the mongoose Document class if lean === false
+  return Model.findById(doc._id, projection); // as an instance of the mongoose Document class if lean === false
 }
 
 type LeanCollectionDoc = CollectionDoc;
