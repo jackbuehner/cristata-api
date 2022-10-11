@@ -1,4 +1,6 @@
 import { Database } from '@hocuspocus/extension-database';
+import { Extension } from '@hocuspocus/server';
+import { afterLoadDocument } from './afterLoadDocument';
 import { DB } from './DB';
 import { fetch } from './fetch';
 import { store } from './store';
@@ -13,3 +15,7 @@ export const db = new Database({
   fetch: fetch(tenantDb),
   store: store(tenantDb),
 });
+
+export const dbHelper: Extension = {
+  afterLoadDocument: afterLoadDocument(tenantDb),
+};

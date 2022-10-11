@@ -1,6 +1,6 @@
 import { Hocuspocus } from '@hocuspocus/server';
 import { Authenticate } from './Authenticate';
-import { db } from './extension-db';
+import { db, dbHelper } from './extension-db';
 
 if (!process.env.SERVER_AUTH_URL) {
   throw new Error('SERVER_AUTH_URL is a required environment variable');
@@ -16,7 +16,7 @@ const authentication = new Authenticate({
 });
 
 const hocuspocus = new Hocuspocus({
-  extensions: [authentication, db],
+  extensions: [authentication, db, dbHelper],
   port: parseInt(process.env.PORT || '1234'),
   address: process.env.HOST || '127.0.0.1',
 });
