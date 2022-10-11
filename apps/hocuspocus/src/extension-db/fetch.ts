@@ -44,11 +44,13 @@ export function fetch(tenantDb: DB) {
     // otherwise, we can create a new ydoc
     const ydoc = new Y.Doc();
 
-    // extract __migrationBackup if it somehow exists when __yState does not
-    const { __migrationBackup, ...inputData } = dbDoc;
+    // extract __ignoreBackup if it exists
+    const { __ignoreBackup, ...inputData } = dbDoc;
 
-    // backup current data if there is not already a backup
-    if (!__migrationBackup) {
+    // backup current data if __ignoreBackup is not true
+    // (we may want this is we are resetting the __yState value
+    // but still want to keep the existing backup)
+    if (!__ignoreBackup) {
       const __migrationBackup = dbDoc as unknown as never;
       collection.updateOne(
         { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
