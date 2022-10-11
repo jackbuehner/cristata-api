@@ -34,6 +34,11 @@ interface AddToYParams {
    * to this function in `inputData`.
    */
   onlyProvided?: boolean;
+  /**
+   * Enable reference update mode, where only references are
+   * modified, and they are only modified if they are outdated.
+   */
+  updateReferencesMode?: boolean;
 }
 
 async function addToY(params: AddToYParams) {
@@ -92,35 +97,17 @@ async function addToY(params: AddToYParams) {
 
           const reference = new shared.Reference(params.ydoc);
 
-          await reference.set(key, validValue, params.TenantModel, {
-            ...def.field?.reference,
-            collection: def.field?.reference?.collection || def.type[0].replace('[', '').replace(']', ''),
-          });
+          await reference.set(
+            key,
+            validValue,
+            params.TenantModel,
+            {
+              ...def.field?.reference,
+              collection: def.field?.reference?.collection || def.type[0].replace('[', '').replace(']', ''),
+            },
+            params.updateReferencesMode
+          );
 
-          return;
-        }
-
-        if (schemaType === 'Boolean') {
-          // arrays of booleans are not supported in the app
-          if (isArray) return;
-
-          const validator = z.boolean().optional().nullable();
-          const validValue = validator.parse(getProperty(data, key));
-
-          const boolean = new shared.Boolean(params.ydoc);
-          boolean.set(key, validValue);
-          return;
-        }
-
-        if (schemaType === 'Date') {
-          // arrays of dates are not supported in the app
-          if (isArray) return;
-
-          const validator = z.string().optional().nullable();
-          const validValue = validator.parse(getProperty(data, key));
-
-          const date = new shared.Date(params.ydoc);
-          date.set(key, validValue);
           return;
         }
 
@@ -158,6 +145,32 @@ async function addToY(params: AddToYParams) {
               }
             });
           }
+          return;
+        }
+
+        if (params.updateReferencesMode) return;
+
+        if (schemaType === 'Boolean') {
+          // arrays of booleans are not supported in the app
+          if (isArray) return;
+
+          const validator = z.boolean().optional().nullable();
+          const validValue = validator.parse(getProperty(data, key));
+
+          const boolean = new shared.Boolean(params.ydoc);
+          boolean.set(key, validValue);
+          return;
+        }
+
+        if (schemaType === 'Date') {
+          // arrays of dates are not supported in the app
+          if (isArray) return;
+
+          const validator = z.string().optional().nullable();
+          const validValue = validator.parse(getProperty(data, key));
+
+          const date = new shared.Date(params.ydoc);
+          date.set(key, validValue);
           return;
         }
 

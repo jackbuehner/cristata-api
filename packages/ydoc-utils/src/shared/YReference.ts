@@ -2,7 +2,8 @@ import { FieldDef } from '@jackbuehner/cristata-generator-schema';
 import { merge } from 'merge-anything';
 import { Model, RootQuerySelector } from 'mongoose';
 import * as Y from 'yjs';
-import { get as getProperty } from 'object-path';
+import { get as getProperty, set as setProperty } from 'object-path';
+import { getFlatKeys } from '@jackbuehner/cristata-utils';
 
 type UnpopulatedValue = { _id: string; label?: string; [key: string]: unknown };
 type PopulatedValue = { value: string; label: string; [key: string]: unknown };
@@ -42,7 +43,8 @@ class YReference<
      * with `await tenantDB.connect()`.
      */
     TenantModel: (name: string) => Promise<Model<T> | null>,
-    reference?: FieldDef['reference']
+    reference?: FieldDef['reference'],
+    updateReferencesMode?: boolean
   ): Promise<Record<string, unknown>[]> {
     // get/create the shared type
     const type = this.#ydoc.getArray<Record<string, unknown>>(key);
@@ -99,12 +101,10 @@ class YReference<
               const { value, label, _id, ...rest } = v;
               if (found) {
                 // get fields that are forced to be included
-                const forced: Record<string, unknown> = merge(
-                  {},
-                  ...(reference.forceLoadFields || []).map((fieldName) => {
-                    return { [fieldName]: getProperty(found, fieldName) || null };
-                  })
-                );
+                const forced: Record<string, unknown> = {};
+                [...(reference.forceLoadFields || []), ...(reference.require || [])].map((fieldName) => {
+                  setProperty(forced, fieldName, getProperty(found, fieldName) || null);
+                });
 
                 return {
                   value: _id,
@@ -119,6 +119,44 @@ class YReference<
       )
     ).filter((x): x is PopulatedValue => !!x);
 
+    // if in update mode, look through each reference objects
+    // and only replace outdated reference objects (e.g. if a name changes)
+    if (updateReferencesMode) {
+      const current = this.get(key);
+
+      // build an object of objects to be replaced in the shared type
+      const toReplace: Record<number, PopulatedValue> = {};
+      populated.forEach((pv, index) => {
+        // get the flattened keys (e.g. `parent.child`)
+        const flatKeys = getFlatKeys(pv);
+
+        // for each key, compare the current and correct value
+        // and record if an object has and outdate property value
+        flatKeys.forEach((key) => {
+          const populatedValue = getProperty(pv, key);
+          const currentValue = getProperty(current[index], key);
+
+          if (populatedValue !== currentValue) {
+            toReplace[index] = pv;
+          }
+        });
+      });
+
+      // replace all objects that had stale properties
+      this.#ydoc.transact(() => {
+        this.#deleteDocFieldShares(key);
+        Object.entries(toReplace).forEach(([_index, value]) => {
+          const index = parseInt(_index);
+          type.delete(index);
+          type.insert(index, [value]);
+        });
+      });
+
+      return type.toArray();
+    }
+
+    // in normal mode, delete the entire array
+    // and create all-new values
     this.#ydoc.transact(() => {
       // clear existing values
       type.delete(0, type.toArray()?.length);
