@@ -132,11 +132,11 @@ class YReference<
 
         // for each key, compare the current and correct value
         // and record if an object has and outdate property value
-        flatKeys.forEach((key) => {
-          const populatedValue = getProperty(pv, key);
-          const currentValue = getProperty(current[index], key);
+        flatKeys.forEach((flatKey) => {
+          const populatedValue = getProperty(pv, flatKey);
+          const currentValue = getProperty(current[index], flatKey);
 
-          if (populatedValue !== currentValue) {
+          if (populatedValue !== currentValue && index < current.length) {
             toReplace[index] = pv;
           }
         });
