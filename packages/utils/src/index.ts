@@ -6,6 +6,7 @@ export { convertNullPrototype } from './convertNullPrototype';
 export { convertStringsToObjIds } from './convertStringsToObjIds';
 export { dateAtTimeZero } from './dateAtTimeZero';
 export { flattenObject } from './flattenObject';
+export { getFlatKeys } from './getFlatKeys';
 export { getPasswordStatus } from './getPasswordStatus';
 export { hasKey } from './hasKey';
 export { insertUserToArray } from './insertUserToArray';
