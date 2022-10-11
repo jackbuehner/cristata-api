@@ -94,9 +94,9 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: _ids ? { _id: { $in: _ids } } : {} },
-    { $sort: { 'timestamps.created_at': -1 } },
-    ...(args.pipeline2 || []),
     { $project: { __yState: 0, __yVersions: 0, yState: 0, __migrationBackup: 0 } },
+    ...(args.pipeline2 || []),
+    { $sort: { 'timestamps.created_at': -1 } },
   ];
 
   const aggregate = Model.aggregate(pipeline);
