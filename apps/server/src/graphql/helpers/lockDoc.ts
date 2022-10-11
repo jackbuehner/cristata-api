@@ -67,13 +67,32 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
   if (!(await canDo({ action: 'lock', model, context })))
     throw new ForbiddenError('you cannot lock this document');
 
-  // set the locked property in the document
-  doc.locked = lock;
+  // sync the changes to the yjs doc
+  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
+    const rc = { collection: 'User' };
+    const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
 
-  // set relevant collection metadata
+    // set the locked property in the document
+    const boolean = new sharedHelper.Boolean(ydoc);
+    boolean.set('locked', lock);
+
+    // set modification data
+    if (context.profile) {
+      const reference = new sharedHelper.Reference(ydoc);
+      await reference.set(
+        'people.modified_by',
+        insertUserToArray(doc.people.modified_by, context.profile._id).map(toHex),
+        TM,
+        rc
+      );
+      await reference.set('people.last_modified_by', [context.profile._id].map(toHex), TM, rc);
+    }
+
+    return true;
+  });
+
+  // set the history
   if (context.profile) {
-    doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
-    doc.people.last_modified_by = context.profile._id;
     doc.history = [
       ...(doc.history || []),
       {
@@ -85,23 +104,7 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
   }
 
   // save the document
-  const res = await doc.save();
-
-  // sync the changes to the yjs doc
-  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
-    const reference = new sharedHelper.Reference(ydoc);
-    const boolean = new sharedHelper.Boolean(ydoc);
-    const rc = { collection: 'User' };
-    const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
-
-    boolean.set('locked', lock);
-    await reference.set('people.modified_by', res.people.modified_by.map(toHex), TM, rc);
-    await reference.set('people.last_modified_by', [res.people.last_modified_by].map(toHex), TM, rc);
-
-    return true;
-  });
-
-  return res;
+  return await doc.save();
 }
 
 export { lockDoc };

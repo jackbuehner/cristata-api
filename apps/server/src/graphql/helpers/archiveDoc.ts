@@ -72,13 +72,32 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   if (!(await canDo({ action: 'archive', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot archive this document');
 
-  // set the hidden property in the document
-  doc.archived = archive;
+  // sync the changes to the yjs doc
+  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
+    const rc = { collection: 'User' };
+    const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
 
-  // set relevant collection metadata
+    // set the archived property in the document
+    const boolean = new sharedHelper.Boolean(ydoc);
+    boolean.set('archived', archive);
+
+    // set modification data
+    if (context.profile) {
+      const reference = new sharedHelper.Reference(ydoc);
+      await reference.set(
+        'people.modified_by',
+        insertUserToArray(doc.people.modified_by, context.profile._id).map(toHex),
+        TM,
+        rc
+      );
+      await reference.set('people.last_modified_by', [context.profile._id].map(toHex), TM, rc);
+    }
+
+    return true;
+  });
+
+  // set history
   if (context.profile) {
-    doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
-    doc.people.last_modified_by = context.profile._id;
     doc.history = [
       ...(doc.history || []),
       {
@@ -90,23 +109,7 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   }
 
   // save the document
-  const res = await doc.save();
-
-  // sync the changes to the yjs doc
-  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
-    const reference = new sharedHelper.Reference(ydoc);
-    const boolean = new sharedHelper.Boolean(ydoc);
-    const rc = { collection: 'User' };
-    const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
-
-    boolean.set('archived', archive);
-    await reference.set('people.modified_by', res.people.modified_by.map(toHex), TM, rc);
-    await reference.set('people.last_modified_by', [res.people.last_modified_by].map(toHex), TM, rc);
-
-    return true;
-  });
-
-  return res;
+  return await doc.save();
 }
 
 export { archiveDoc };
