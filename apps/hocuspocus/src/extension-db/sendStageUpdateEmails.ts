@@ -132,7 +132,7 @@ function flatten(arr: mongoose.Types.ObjectId[][]): mongoose.Types.ObjectId[] {
 async function getWatcherEmails(
   data: Record<string, unknown>,
   keys: string[],
-  usersCollection: mongodb.Collection
+  usersCollection: mongodb.Collection<CollectionDoc>
 ) {
   // get the ids of the watchers with duplicates removed
   const watchersIds = Array.from(
