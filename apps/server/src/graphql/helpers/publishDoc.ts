@@ -39,34 +39,8 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
   if (!(await canDo({ action: 'publish', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot publish this document');
 
-  // set the publish properties
-  if (args.publish) {
-    doc.timestamps.published_at = args.published_at;
-  }
-  if (args.publish && context.profile) {
-    doc.people.published_by = insertUserToArray(doc.people.published_by, context.profile._id);
-    doc.people.last_published_by = context.profile._id;
-  }
-
-  // set relevant collection metadata
-  if (context.profile) {
-    doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
-    doc.people.last_modified_by = context.profile._id;
-    doc.history = [
-      ...(doc.history || []),
-      {
-        type: 'published',
-        user: context.profile._id,
-        at: new Date().toISOString(),
-      },
-    ];
-  }
-
-  // save the document
-  const res = await doc.save();
-
   // sync the changes to the yjs doc
-  setYDocType(context, model, `${_id}`, async (TM, ydoc, sharedHelper) => {
+  await setYDocType(context, model, `${_id}`, async (TM, ydoc, sharedHelper) => {
     const reference = new sharedHelper.Reference(ydoc);
     const date = new sharedHelper.Date(ydoc);
     const float = new sharedHelper.Float(ydoc);
@@ -90,14 +64,47 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
     };
 
     float.set('stage', [lastStage || 5.2], [publishedStageOption]);
-    date.set('timestamps.published_at', res.timestamps.published_at);
-    await reference.set('people.published_by', res.people.published_by.map(toHex), TM, rc);
-    await reference.set('people.last_published_by', [res.people.last_published_by].map(toHex), TM, rc);
-    await reference.set('people.modified_by', res.people.modified_by.map(toHex), TM, rc);
-    await reference.set('people.last_modified_by', [res.people.last_modified_by].map(toHex), TM, rc);
+
+    // set the publish properties
+    if (args.publish) {
+      date.set('timestamps.published_at', args.published_at);
+    }
+    if (args.publish && context.profile) {
+      await reference.set(
+        'people.published_by',
+        insertUserToArray(doc.people.published_by, context.profile._id).map(toHex),
+        TM,
+        rc
+      );
+      await reference.set('people.last_published_by', [context.profile._id].map(toHex), TM, rc);
+    }
+
+    // set modifiication metadata
+    if (context.profile) {
+      await reference.set(
+        'people.modified_by',
+        insertUserToArray(doc.people.modified_by, context.profile._id).map(toHex),
+        TM,
+        rc
+      );
+      await reference.set('people.last_modified_by', [context.profile._id].map(toHex), TM, rc);
+    }
 
     return true;
   });
+
+  // save history
+  if (context.profile) {
+    doc.history = [
+      ...(doc.history || []),
+      {
+        type: 'published',
+        user: context.profile._id,
+        at: new Date().toISOString(),
+      },
+    ];
+  }
+  const res = await doc.save();
 
   return res;
 }
