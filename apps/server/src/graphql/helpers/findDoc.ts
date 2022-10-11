@@ -65,7 +65,7 @@ async function findDoc({
         ],
       };
 
-  const projection = project ? project : { __yState: 0, __yVersions: 0, yState: 0 };
+  const projection = project ? project : { __yState: 0, __yVersions: 0, yState: 0, __migrationBackup: 0 };
 
   const pipelineStages: (mongoose.PipelineStage | null)[] = [
     { $match: filter ? filter : {} },

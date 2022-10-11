@@ -25,7 +25,7 @@ export function fetch(tenantDb: DB) {
       .collection(tenant, collectionName)
       ?.findOne(
         { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-        { projection: { __yVersions: 0, yState: 0 } }
+        { projection: { __yVersions: 0, yState: 0, __migrationBackup: 0 } }
       );
 
     // throw an error if the document was not found
