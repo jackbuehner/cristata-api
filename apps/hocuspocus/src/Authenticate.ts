@@ -1,8 +1,16 @@
 import { Forbidden, Unauthorized } from '@hocuspocus/common';
 import { Extension, onConnectPayload, onLoadDocumentPayload, onUpgradePayload } from '@hocuspocus/server';
 import { uncapitalize } from '@jackbuehner/cristata-utils';
+import mongoose from 'mongoose';
 import fetch from 'node-fetch';
 import * as Y from 'yjs';
+import { DB } from './extension-db/DB';
+
+const tenantDb = new DB({
+  username: process.env.MONGO_DB_USERNAME,
+  password: process.env.MONGO_DB_PASSWORD,
+  host: process.env.MONGO_DB_HOST,
+});
 
 export interface AuthenticateConfiguration {
   authHref: string;
@@ -53,20 +61,36 @@ class Authenticate implements Extension {
         throw Unauthorized;
       }
 
+      // get the collection accessor
+      const by = await tenantDb.collectionAccessor(tenant, collectionName);
+
+      // get the object id of the doc
+      let _id = itemId;
+      if (by.one[1] !== 'ObjectId' || by.one[0] !== '_id') {
+        const dbDoc = await tenantDb
+          .collection(tenant, collectionName)
+          ?.findOne(
+            { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+            { projection: { _id: 1 } }
+          );
+        if (dbDoc) _id = dbDoc._id.toHexString();
+        else throw new Error('failed to get _id for read/write access');
+      }
+
       // check read/write access
       const accessRes = await fetch(`${this.configuration.apiEndpoint}/${tenant}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', cookie: requestHeaders.cookie || '' },
         body: JSON.stringify({
           query: `
-            query GetAccess($id: ObjectID) {
-              ${uncapitalize(collectionName)}ActionAccess(_id: $id) {
+            query GetAccess($_id: ObjectID) {
+              ${uncapitalize(collectionName)}ActionAccess(_id: $_id) {
                 get
                 modify
               }
             }
           `,
-          variables: { id: itemId },
+          variables: { _id: _id },
         }),
       });
 
