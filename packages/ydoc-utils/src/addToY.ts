@@ -111,6 +111,8 @@ async function addToY(params: AddToYParams) {
           return;
         }
 
+        if (params.updateReferencesMode) return;
+
         if (schemaType === 'DocArray') {
           const validator = z.record(z.any()).array();
           const validValue = validator.parse(getProperty(data, key) || []);
@@ -147,8 +149,6 @@ async function addToY(params: AddToYParams) {
           }
           return;
         }
-
-        if (params.updateReferencesMode) return;
 
         if (schemaType === 'Boolean') {
           // arrays of booleans are not supported in the app
