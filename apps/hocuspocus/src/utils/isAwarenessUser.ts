@@ -5,6 +5,7 @@ export interface AwarenessUser {
     name: string;
     color: string;
     sessionId: string;
+    _id: string;
     photo: string;
   };
 }
@@ -17,6 +18,7 @@ export function isAwarenessUser(toCheck: unknown): toCheck is AwarenessUser {
     hasKey('name', toCheck.user) &&
     hasKey('color', toCheck.user) &&
     hasKey('sessionId', toCheck.user) &&
+    hasKey('_id', toCheck.user) &&
     hasKey('photo', toCheck.user)
   );
 }
