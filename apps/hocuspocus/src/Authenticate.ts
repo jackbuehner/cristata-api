@@ -61,6 +61,10 @@ class Authenticate implements Extension {
         throw Unauthorized;
       }
 
+      if (requestParameters.get('_id') !== (await authRes.json())._id) {
+        throw new Error('_id does not match');
+      }
+
       // get the collection accessor
       const by = await tenantDb.collectionAccessor(tenant, collectionName);
 
