@@ -3,6 +3,7 @@ import { Extension } from '@hocuspocus/server';
 import { afterLoadDocument } from './afterLoadDocument';
 import { DB } from './DB';
 import { fetch } from './fetch';
+import { onDisconnect } from './onDisconnect';
 import { store } from './store';
 
 const tenantDb = new DB({
@@ -18,4 +19,5 @@ export const db = new Database({
 
 export const dbHelper: Extension = {
   afterLoadDocument: afterLoadDocument(tenantDb),
+  onDisconnect: onDisconnect(tenantDb),
 };

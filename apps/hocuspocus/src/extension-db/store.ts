@@ -12,8 +12,14 @@ import { TenantModel } from './TenantModel';
 import { merge } from 'merge-anything';
 
 export function store(tenantDb: DB) {
-  return async ({ document: ydoc, documentName }: storePayload): Promise<void> => {
+  return async ({ document: ydoc, documentName, context, requestParameters }: storePayload): Promise<void> => {
     const [tenant, collectionName, itemId] = documentName.split('.');
+
+    // store that this connected client has modified something
+    // (used to set history once the client disconnected)
+    context.hasModified = true;
+    context.lastModifiedAt = new Date().toISOString();
+    context._id = requestParameters.get('_id') || '000000000000000000000000';
 
     // get the collection
     const collection = tenantDb.collection(tenant, collectionName);
