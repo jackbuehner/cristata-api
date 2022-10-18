@@ -35,7 +35,7 @@ export async function setDocValues(
     .collection(tenant, collectionName)
     ?.findOne(
       { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-      { projection: { __yVersions: 0, yState: 0, __migrationBackup: 0, __yState: 0 } }
+      { projection: { __yVersions: 0, yState: 0, __migrationBackup: 0, __yState: 0, __stateExists: 0 } }
     );
 
   // extract __ignoreBackup if it exists

@@ -9,6 +9,7 @@ export interface CollectionDoc {
   __yVersions?: CollectionDocVersion[];
   __migrationBackup: never;
   __ignoreBackup?: boolean;
+  __stateExists?: boolean;
 }
 
 export interface CollectionDocVersion {
