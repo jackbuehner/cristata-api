@@ -48,20 +48,25 @@ class Authenticate implements Extension {
     // confirm the document can be read and edited by the client
     if (!connection.isAuthenticated) {
       // check authentication status
-      const authRes = await fetch(this.configuration.authHref, {
+      const authUser = await fetch(this.configuration.authHref, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           cookie: requestHeaders.cookie || '',
         },
-      });
+      })
+        .then(async (res) => {
+          if (res.status !== 200) {
+            // prevent later hooks and default handler
+            throw Unauthorized;
+          }
+          return (await res.json()) as Record<string, unknown>;
+        })
+        .catch(() => {
+          throw Unauthorized;
+        });
 
-      if (authRes.status !== 200) {
-        // prevent later hooks and default handler
-        throw Unauthorized;
-      }
-
-      if (requestParameters.get('_id') !== (await authRes.json())._id) {
+      if (requestParameters.get('_id') !== authUser._id) {
         throw new Error('_id does not match');
       }
 
@@ -82,7 +87,7 @@ class Authenticate implements Extension {
       }
 
       // check read/write access
-      const accessRes = await fetch(`${this.configuration.apiEndpoint}/${tenant}`, {
+      const access = await fetch(`${this.configuration.apiEndpoint}/${tenant}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', cookie: requestHeaders.cookie || '' },
         body: JSON.stringify({
@@ -96,14 +101,19 @@ class Authenticate implements Extension {
           `,
           variables: { _id: _id },
         }),
-      });
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            throw new Error('failed to query for read/write access');
+          }
+          return (await res.json())?.data?.[`${uncapitalize(collectionName)}ActionAccess`] as
+            | Record<string, boolean | undefined>
+            | undefined;
+        })
+        .catch(() => {
+          throw Unauthorized;
+        });
 
-      if (!accessRes.ok) {
-        throw new Error('failed to query for read/write access');
-      }
-
-      const json = await accessRes.json();
-      const access = json?.data?.[`${uncapitalize(collectionName)}ActionAccess`];
       if (access?.get && access?.modify) {
         connection.isAuthenticated = true;
       } else {

@@ -7,7 +7,7 @@ import { AwarenessUser } from 'utils';
 export interface CollectionDoc {
   __yState?: string;
   __yVersions?: CollectionDocVersion[];
-  __migrationBackup: never;
+  __migrationBackup: never[];
   __ignoreBackup?: boolean;
   __stateExists?: boolean;
 }
