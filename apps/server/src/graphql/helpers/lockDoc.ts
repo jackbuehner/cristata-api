@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { insertUserToArray, isDefinedDate } from '@jackbuehner/cristata-utils';
+import { insertUserToArray, isDefinedDate, notEmpty } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
@@ -67,10 +67,14 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
   if (!(await canDo({ action: 'lock', model, context })))
     throw new ForbiddenError('you cannot lock this document');
 
+  const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
+  const peopleModifiedBy = context.profile
+    ? insertUserToArray(doc.people.modified_by, context.profile._id)
+    : doc.people.modified_by;
+
   // sync the changes to the yjs doc
   setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
     const rc = { collection: 'User' };
-    const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
 
     // set the locked property in the document
     const boolean = new sharedHelper.Boolean(ydoc);
@@ -79,17 +83,18 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
     // set modification data
     if (context.profile) {
       const reference = new sharedHelper.Reference(ydoc);
-      await reference.set(
-        'people.modified_by',
-        insertUserToArray(doc.people.modified_by, context.profile._id).map(toHex),
-        TM,
-        rc
-      );
+      await reference.set('people.modified_by', peopleModifiedBy.map(toHex).filter(notEmpty), TM, rc);
       await reference.set('people.last_modified_by', [context.profile._id].map(toHex), TM, rc);
     }
 
     return true;
   });
+
+  if (process.env.NODE_ENV === 'test' && context.profile) {
+    doc.locked = lock;
+    doc.people.modified_by = peopleModifiedBy;
+    doc.people.last_modified_by = context.profile._id;
+  }
 
   // set the history
   if (context.profile) {
