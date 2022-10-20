@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-tiptap
 
+## 2.0.0
+
+### Major Changes
+
+- 0cca72a: add tiptap tables to rich text editor kit
+
 ## 1.1.0
 
 ### Minor Changes
