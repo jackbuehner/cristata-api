@@ -1,0 +1,13 @@
+{
+  "name": "@jackbuehner/cristata-hocuspocus",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "cross-env SERVER_AUTH_URL=${SERVER_AUTH_URL:=https://server.cristata.app/auth} node dist/index.js",
+    "dev:prepare": "tsc",
+    "dev": "npm run dev:prepare && tsc --watch & cross-env PORT=${PORT:=1234} NODE_ENV=development nodemon dist/index.js",
+    "build": "tsc --build && tsc --declaration && cross-env NODE_ENV=production npm run lint",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "clean": "rm -rf dist"
+  }
+}

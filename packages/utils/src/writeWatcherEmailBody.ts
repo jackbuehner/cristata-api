@@ -1,37 +1,44 @@
-import { camelToDashCase, uncapitalize } from '@jackbuehner/cristata-utils';
 import { get as getProperty } from 'object-path';
 import pluralize from 'pluralize';
-import { Context } from '../server';
+import { camelToDashCase } from './camelToDashCase';
+import { uncapitalize } from './uncapitalize';
 
-interface WriteEmailBody {
+interface WriteWatcherEmailBody {
   model: string;
   identifier: string;
   fields: Array<{
     name: string;
     label: string;
-    numMap?: Record<number, string>;
   }>;
   isMandatory?: boolean;
   data: Record<string, unknown>;
-  context: Context;
+  tenant: string;
+  appOrigin: string;
 }
 
-function writeEmailBody({ model, identifier, fields, isMandatory, data, context }: WriteEmailBody): string {
+function writeWatcherEmailBody({
+  model,
+  identifier,
+  fields,
+  isMandatory,
+  data,
+  tenant,
+  appOrigin,
+}: WriteWatcherEmailBody): string {
   const message = `The stage has been changed for a document you are watching on Cristata.`;
 
   const view = `
     This view the document, go to
-    <a href="${process.env.APP_URL}/${context.profile?.tenant || '[[TENANT]]'}/cms/collection/${camelToDashCase(
+    <a href="${appOrigin}/${tenant || '[[TENANT]]'}/cms/collection/${camelToDashCase(
     pluralize(uncapitalize(model))
   )}/${identifier}">
-    ${process.env.APP_URL}/${context.profile?.tenant || '[[TENANT]]'}/cms/collection/${camelToDashCase(
+    ${appOrigin}/${tenant || '[[TENANT]]'}/cms/collection/${camelToDashCase(
     pluralize(uncapitalize(model))
   )}/${identifier}</a>.
   `;
 
   const values = fields.map((field) => {
-    let fieldValue = getProperty(data, field.name);
-    if (field.numMap) fieldValue = field.numMap[fieldValue];
+    const fieldValue = getProperty(data, field.name);
     return `
       <span>
         <b>${field.label}: </b>
@@ -60,4 +67,4 @@ function writeEmailBody({ model, identifier, fields, isMandatory, data, context 
   `;
 }
 
-export { writeEmailBody };
+export { writeWatcherEmailBody };

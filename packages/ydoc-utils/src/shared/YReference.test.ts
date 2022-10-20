@@ -36,7 +36,7 @@ describe(`shared >> YReference`, () => {
     helena = await Model.create({ name: 'Helena Aarts', email: null });
     lauren = await Model.create({ name: 'Lauren Krotz', email: '' });
     scotty = await Model.create({ name: 'Scotty Bryan' });
-  });
+  }, 20000);
 
   afterAll(async () => {
     mongoose.disconnect();

@@ -118,11 +118,12 @@ function createExpressApp(cristata: Cristata): Application {
   // store session in the client cookie
   app.use(
     cookieSession({
-      name: process.env.NODE_ENV === 'production' ? '__Host-cristata-session' : 'cristata-session',
+      name: process.env.NODE_ENV === 'production' ? '__Secure-cristata-session' : 'cristata-session',
       secret: process.env.COOKIE_SESSION_SECRET,
       path: '/',
       sameSite: process.env.NODE_ENV === 'production' || !process.env.GITPOD_WORKSPACE_URL ? 'strict' : 'none',
       secure: process.env.NODE_ENV === 'production' || !!process.env.GITPOD_WORKSPACE_URL,
+      domain: '.cristata.app',
     })
   );
 

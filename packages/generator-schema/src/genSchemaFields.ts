@@ -3,7 +3,6 @@ import { merge } from 'merge-anything';
 import mongoose, { SchemaDefinition } from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import {
-  GenSchemaInput,
   isSchemaDef,
   isSchemaDefOrType,
   isTypeTuple,
@@ -14,11 +13,11 @@ import {
 } from './genSchema';
 import { Type } from './Type';
 
-function genSchemaFields(input: GenSchemaInput): {
+function genSchemaFields(schemaDef: SchemaDefType): {
   schemaFields: SchemaDefinition;
   textIndexFieldNames: string[];
 } {
-  const schema = Object.entries(input.schemaDef).filter(
+  const schema = Object.entries(schemaDef).filter(
     (schemaDefItem): schemaDefItem is [string, NestedSchemaDefType | SchemaDef | [SchemaDefType]] =>
       isSchemaDefOrType(schemaDefItem[1]) || Array.isArray(schemaDefItem[1])
   );

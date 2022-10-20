@@ -10,7 +10,7 @@ function genSchema(input: GenSchemaInput): {
   textIndexFieldNames: string[];
 } {
   const typeDefs = genTypeDefs(input);
-  const { schemaFields, textIndexFieldNames } = genSchemaFields(input);
+  const { schemaFields, textIndexFieldNames } = genSchemaFields(input.schemaDef);
 
   return { typeDefs, schemaFields, textIndexFieldNames };
 }

@@ -27,14 +27,12 @@ function useMongoose(): {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create({ binary: { downloadDir: './cache/mongodb-binaries' } });
     await mongoose.connect(mongoServer.getUri(), {});
-  });
+  }, 20000);
 
   afterAll(async () => {
     mongoose.disconnect();
     if (mongoServer) await mongoServer.stop();
   });
-
-  jest.setTimeout(10000);
 
   const createModel: CreateModel = (
     name,

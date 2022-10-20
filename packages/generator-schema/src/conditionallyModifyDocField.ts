@@ -2,7 +2,8 @@ import { hasKey, isArray, slugify } from '@jackbuehner/cristata-utils';
 import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { get as getProperty, set as setProperty } from 'object-path';
-import { GenSchemaInput, SchemaDef, SetterValueType } from './genSchema';
+import { DeconstructedSchemaDefType } from './deconstructSchema';
+import { SetterValueType } from './genSchema';
 
 // comparison operators
 type gt = { $gt: number };
@@ -55,25 +56,26 @@ type SetterCondition = LogicalOperator<Field>;
  * TODO: document this function
  */
 function conditionallyModifyDocField(
-  doc: mongoose.Document | null,
-  data: mongoose.LeanDocument<mongoose.Document>,
-  gc: GenSchemaInput
-): void {
-  // TODO: include nested schema defs
-  const flatSchemaKeys = Object.keys(gc.schemaDef);
+  doc: mongoose.LeanDocument<mongoose.Document>,
+  deconstructedSchema: DeconstructedSchemaDefType
+): Record<string, unknown> {
+  const changed = {};
 
   // for each key, attempt to find a setter
   // and apply it (if applicable)
-  flatSchemaKeys.forEach((arg) => {
-    // find the setter in the schema definition (undefined if no setter)
-    const setter: SchemaDef['setter'] = getProperty(gc.schemaDef, arg + '.setter');
-
-    if (setter) {
+  deconstructedSchema.forEach(([key, def]) => {
+    if (def.setter) {
       // whether the setter's condition is met
-      const shouldModify = process(data, setter.condition);
-      if (shouldModify) setProperty(data, arg, calcSetterValue(setter.value, data));
+      const shouldModify = process(doc, def.setter.condition);
+      if (shouldModify) {
+        const newValue = calcSetterValue(def.setter.value, doc);
+        setProperty(doc, key, newValue);
+        setProperty(changed, key, newValue);
+      }
     }
   });
+
+  return changed;
 }
 
 function process(doc: mongoose.LeanDocument<mongoose.Document>, condition: SetterCondition): boolean {
