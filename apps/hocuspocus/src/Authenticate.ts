@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import fetch from 'node-fetch';
 import * as Y from 'yjs';
 import { DB } from './extension-db/DB';
+import semver from 'semver';
 
 const tenantDb = new DB({
   username: process.env.MONGO_DB_USERNAME,
@@ -43,6 +44,13 @@ class Authenticate implements Extension {
       requestParameters.get('authSecret') === process.env.AUTH_OVERRIDE_SECRET
     ) {
       connection.isAuthenticated = true;
+    }
+
+    const appVersion = requestParameters.get('appVersion');
+    const appVersionRequirement = process.env.APP_VERSION_REQUIREMENT || '=0.0.0';
+    if (!appVersion) throw Forbidden;
+    if (!semver.satisfies(appVersion, appVersionRequirement)) {
+      throw Forbidden;
     }
 
     // confirm the document can be read and edited by the client
