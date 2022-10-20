@@ -42,7 +42,6 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     // create and save a doc to find
     const newDoc = new Document();
     await newDoc.save();
-    expect(newDoc).toHaveProperty('people.watching', []);
 
     // watch the doc
     const found = await watchDoc({ model: colName, accessor: { value: newDoc._id }, context });
@@ -87,7 +86,6 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     // create and save a doc to find
     const newDoc = new Document();
     await newDoc.save();
-    expect(newDoc).toHaveProperty('people.watching', []);
 
     // watch the doc
     const found = await watchDoc({
@@ -157,7 +155,6 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     const newDoc = new Document();
     newDoc.set('slug', 'new-document');
     expect(newDoc).toHaveProperty('slug', 'new-document');
-    expect(newDoc).toHaveProperty('people.watching', []);
     await newDoc.save();
 
     // watch the doc
@@ -194,7 +191,6 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     const newDoc = new Document();
     newDoc.set('num', 2);
     expect(newDoc).toHaveProperty('num', 2);
-    expect(newDoc).toHaveProperty('people.watching', []);
     await newDoc.save();
 
     // watch the doc
@@ -228,7 +224,6 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     const newDoc = new Document();
     newDoc.set('date', date);
     expect(newDoc).toHaveProperty('date', date);
-    expect(newDoc).toHaveProperty('people.watching', []);
     await newDoc.save();
 
     // watch the doc
@@ -254,7 +249,6 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     // create and save a doc to find
     const newDoc = new Document();
     newDoc.set('permissions.users', [context.profile?._id]); // give current user access to the doc
-    expect(newDoc).toHaveProperty('people.watching', []);
     await newDoc.save();
 
     // watch the doc
@@ -278,7 +272,6 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     const newDoc = new Document();
     newDoc.set('permissions.users', []);
     expect(newDoc).toHaveProperty('permissions.users', []);
-    expect(newDoc).toHaveProperty('people.watching', []);
     await newDoc.save();
 
     // watch the doc

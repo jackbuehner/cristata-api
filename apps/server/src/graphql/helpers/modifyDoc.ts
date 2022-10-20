@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
-  convertNullPrototype,
-  insertUserToArray,
-  isDefinedDate,
-  replaceCircular,
-  slugify,
-} from '@jackbuehner/cristata-utils';
+  deconstructSchema,
+  defaultSchemaDefTypes,
+  SchemaDefType,
+} from '@jackbuehner/cristata-generator-schema';
+import { convertNullPrototype, insertUserToArray, isDefinedDate, slugify } from '@jackbuehner/cristata-utils';
+import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
-import * as Y from 'yjs';
 import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
 import {
   CollectionSchemaFields,
@@ -18,6 +17,7 @@ import {
 } from '../../mongodb/helpers/constructBasicSchemaFields';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
+import { setYDocType } from './setYDocType';
 
 interface ModifyDoc<DocType, DataType> {
   model: string;
@@ -91,22 +91,6 @@ async function modifyDoc<DocType, DataType>({
     }
   }
 
-  // merge yjs update into doc
-  try {
-    if (data.yState) {
-      const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
-      const base64ToUint8 = (str: string): Uint8Array => Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
-
-      const ydoc = new Y.Doc(); // create empty doc
-      if (currentDoc.yState) Y.applyUpdate(ydoc, base64ToUint8(currentDoc.yState)); // insert current state into doc
-      Y.applyUpdate(ydoc, base64ToUint8(data.yState)); // apply update to doc
-      data.yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc)); // save state vector into data object
-    }
-  } catch (error) {
-    console.error(error);
-    context.cristata.logtail.error(JSON.stringify(replaceCircular(error)));
-  }
-
   // set modification metadata
   if (context.profile) {
     data = merge(data, {
@@ -135,12 +119,38 @@ async function modifyDoc<DocType, DataType>({
   await modify?.(currentDoc as DocType, data as unknown as DataType);
 
   // attempt to patch the article
-  return await Model.findOneAndUpdate(
-    // @ts-expect-error It's difficuly to tell mongoose to use an accessor that might not exist, but it handles it fine
+  const res = await Model.findOneAndUpdate(
+    // @ts-expect-error It's difficult to tell mongoose to use an accessor that might not exist, but it handles it fine
     { [by || '_id']: _id },
     { $set: data },
     { returnOriginal: false }
   );
+
+  // sync the changes to the yjs doc
+  setYDocType(context, model, `${_id}`, async (TenantModel, ydoc) => {
+    const collection = context.config.collections?.find((col) => col.name === model);
+
+    const schema = merge<SchemaDefType, SchemaDefType[]>(
+      collection?.schemaDef || {},
+      defaultSchemaDefTypes.standard,
+      collection?.canPublish ? defaultSchemaDefTypes.publishable : {},
+      collection?.withPermissions ? defaultSchemaDefTypes.withPermissions : {}
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { history, ...inputData } = data;
+    Object.keys(inputData).forEach((key) => {
+      if (key.indexOf('__') === 0) {
+        delete inputData[key];
+      }
+    });
+
+    addToY({ inputData, schemaDef: deconstructSchema(schema), TenantModel, ydoc });
+
+    return true;
+  });
+
+  return res;
 }
 
 type HydratedCollectionDoc<DocType> = mongoose.Document<unknown, unknown, DocType> & DocType;

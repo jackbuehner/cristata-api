@@ -1,6 +1,5 @@
 import {
   calcAccessor,
-  conditionallyModifyDocField,
   GenSchemaInput,
   isCustomGraphSchemaType,
   isSchemaDef,
@@ -29,7 +28,6 @@ import { CollectionDoc, Helpers } from '..';
 import { TenantDB } from '../../../mongodb/TenantDB';
 import { collectionPeopleResolvers, Context, publishableCollectionPeopleResolvers } from '../../server';
 import { constructDocFromRef } from './constructDocFromRef';
-import { useStageUpdateEmails } from './_useStageUpdateEmails';
 
 async function construct(
   doc: CollectionDoc | null | undefined,
@@ -255,9 +253,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         args,
         context,
         withPermissions: config.withPermissions,
-        modify: async (currentDoc, data) => {
-          conditionallyModifyDocField(currentDoc, data, config);
-        },
       });
     };
   }
@@ -285,13 +280,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         _id: oneAccessorType.replace('!', '') === 'Date' ? new Date(_accessor) : _accessor,
         by: oneAccessorName,
         context,
-        modify: async (currentDoc, data) => {
-          conditionallyModifyDocField(currentDoc, data, config);
-
-          if (hasKey('stage', data) && hasKey('stage', currentDoc) && data.stage !== currentDoc.stage) {
-            useStageUpdateEmails(context, currentDoc, data, config);
-          }
-        },
       });
     };
   }

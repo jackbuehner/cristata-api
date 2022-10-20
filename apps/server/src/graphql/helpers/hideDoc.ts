@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { insertUserToArray, isDefinedDate } from '@jackbuehner/cristata-utils';
+import { insertUserToArray, isDefinedDate, notEmpty } from '@jackbuehner/cristata-utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
 import { canDo, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
+import { setYDocType } from './setYDocType';
 interface HideDoc {
   /**
    * The model name for the collection of the doc to be modified.
@@ -63,13 +64,37 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
   if (!(await canDo({ action: 'hide', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot hide this document');
 
-  // set the hidden property in the document
-  doc.hidden = hide;
+  const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
+  const peopleModifiedBy = context.profile
+    ? insertUserToArray(doc.people.modified_by, context.profile._id)
+    : doc.people.modified_by;
 
-  // set relevant collection metadata
-  if (context.profile) {
-    doc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
+  // sync the changes to the yjs doc
+  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
+    const rc = { collection: 'User' };
+
+    // set the hidden property in the document
+    const boolean = new sharedHelper.Boolean(ydoc);
+    boolean.set('hidden', hide);
+
+    // set modification data
+    if (context.profile) {
+      const reference = new sharedHelper.Reference(ydoc);
+      await reference.set('people.modified_by', peopleModifiedBy.map(toHex).filter(notEmpty), TM, rc);
+      await reference.set('people.last_modified_by', [context.profile._id].map(toHex), TM, rc);
+    }
+
+    return true;
+  });
+
+  if (process.env.NODE_ENV === 'test' && context.profile) {
+    doc.hidden = hide;
+    doc.people.modified_by = peopleModifiedBy;
     doc.people.last_modified_by = context.profile._id;
+  }
+
+  // set the history
+  if (context.profile) {
     doc.history = [
       ...(doc.history || []),
       {

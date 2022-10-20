@@ -14,16 +14,20 @@
     "postinstall": "patch-package --error-on-fail false",
     "changeset": "changeset",
     "release": "turbo run build --filter=docs^... && changeset publish",
-    "start:server": "cd apps/server && npm run start"
+    "start:server": "cd apps/server && npm run start",
+    "start:hocuspocus": "cd apps/hocuspocus && npm run start"
   },
   "devDependencies": {
     "eslint": "^8.23.0",
     "eslint-plugin-turbo": "^0.0.3",
+    "nodemon": "^2.0.20",
     "prettier": "^2.5.1",
     "turbo": "latest"
   },
   "dependencies": {
     "@changesets/cli": "^2.24.4",
+    "@hocuspocus/extension-database": "^1.0.0-alpha.20",
+    "@hocuspocus/server": "^1.0.0-alpha.106",
     "@logtail/node": "^0.1.12",
     "@tiptap/core": "^2.0.0-beta.199",
     "@tiptap/extension-bold": "^2.0.0-beta.199",

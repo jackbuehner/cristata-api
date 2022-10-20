@@ -64,7 +64,7 @@ class YFloat<K extends string, V extends number | undefined | null> {
       return this.#ydoc
         .getArray<Option<string | number>>(key)
         .toArray()
-        .map(({ value, ...rest }) => ({ value: parseInt(`${value}`), ...rest }));
+        .map(({ value, ...rest }) => ({ value: parseFloat(`${value}`), ...rest }));
     }
     return parseFloat(this.#ydoc.getXmlFragment(key).toDOM(document).textContent || '');
   }

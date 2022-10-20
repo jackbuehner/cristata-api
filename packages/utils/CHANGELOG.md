@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-utils
 
+## 2.0.0
+
+### Major Changes
+
+- f7499e8: handle document saves through new server used for collaborative editing
+
 ## 1.2.0
 
 ### Minor Changes

@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
-import { replaceCircular } from '@jackbuehner/cristata-utils';
-import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError } from 'apollo-server-core';
-import mongoose, { FilterQuery } from 'mongoose';
-import * as Y from 'yjs';
+import mongoose, { FilterQuery, PipelineStage } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
@@ -18,6 +14,7 @@ interface FindDoc {
   fullAccess?: boolean;
   accessRule?: FilterQuery<unknown>;
   lean?: boolean;
+  project?: PipelineStage.Project['$project'];
 }
 
 async function findDoc(params: { lean: false } & FindDoc): Promise<HydratedCollectionDoc | null | undefined>;
@@ -31,6 +28,7 @@ async function findDoc({
   fullAccess,
   accessRule,
   lean,
+  project,
 }: FindDoc): Promise<LeanCollectionDoc | HydratedCollectionDoc | null | undefined> {
   if (!fullAccess) requireAuthentication(context);
 
@@ -67,12 +65,17 @@ async function findDoc({
         ],
       };
 
-  const pipeline: mongoose.PipelineStage[] = [
+  const projection = project ? project : { __yState: 0, __yVersions: 0, yState: 0, __migrationBackup: 0 };
+
+  const pipelineStages: (mongoose.PipelineStage | null)[] = [
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: { [by || '_id']: _id || null } },
     { $sort: { 'timestamps.created_at': -1 } },
+    { $project: projection },
   ];
+
+  const pipeline = pipelineStages.filter((stage): stage is mongoose.PipelineStage => !!stage);
 
   // get the document as a plain javascript object
   const doc = (await Model.aggregate(pipeline))[0];
@@ -82,43 +85,9 @@ async function findDoc({
     doc.permissions.teams = doc.permissions.teams.map((team: unknown) => `${team}`);
   }
 
-  // create yjs doc if it does not exist
-  try {
-    const uint8ToBase64 = (arr: Uint8Array): string => Buffer.from(arr).toString('base64');
-
-    if (doc?._id && (doc.yState === undefined || doc.yState === null)) {
-      const ydoc = new Y.Doc(); // create empty doc
-      const collection = context.config.collections.find((col) => col.name === model);
-      if (collection?.schemaDef) {
-        // add doc data to ydoc shared types
-        await addToY({
-          ydoc,
-          schemaDef: deconstructSchema(collection.schemaDef),
-          inputData: doc,
-          TenantModel: tenantDB.model,
-        });
-
-        // make ydoc available to client
-        const encodedBase64State = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
-        doc.yState = encodedBase64State;
-
-        // also save the ydoc to the database so it can be used next time
-        // instead of needing to be re-created
-        const saveableDoc = await Model.findById(doc._id);
-        if (saveableDoc) {
-          saveableDoc.yState = encodedBase64State;
-          saveableDoc.save();
-        }
-      }
-    }
-  } catch (error) {
-    console.error(error);
-    context.cristata.logtail.error(JSON.stringify(replaceCircular(error)));
-  }
-
   // return the document
   if (lean !== false || doc === undefined) return doc; // also return lean doc if the doc is undefined
-  return Model.findById(doc._id); // as an instance of the mongoose Document class if lean === false
+  return Model.findById(doc._id, projection); // as an instance of the mongoose Document class if lean === false
 }
 
 type LeanCollectionDoc = CollectionDoc;

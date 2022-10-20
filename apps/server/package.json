@@ -1,6 +1,6 @@
 {
   "name": "@jackbuehner/cristata-api",
-  "version": "6.6.2",
+  "version": "7.0.0",
   "engines": {
     "node": "16.15.0",
     "npm": "8.5.5"
@@ -61,7 +61,6 @@
     "eslint": "^8.14.0",
     "jest": "^28.0.0",
     "mongodb-memory-server": "^8.4.1",
-    "nodemon": "^2.0.7",
     "standard-version": "^9.3.2",
     "ts-jest": "^28.0.0",
     "typescript": "^4.3.0"

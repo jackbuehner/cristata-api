@@ -17,11 +17,12 @@ interface CanDo {
   model: string;
   action: CollectionPermissionsActions;
   context: Context;
-  doc?: DocType;
+  doc?: mongoose.Document<mongoose.Types.ObjectId, unknown, DocType> | DocType | null;
 }
 
 async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
   if (!requireAuthentication(context)) throw new AuthenticationError('unknown');
+  if (doc === null) return false;
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();
 
@@ -45,7 +46,8 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
 
   // treat certain strings in the users array as document values (e.g. 'people.authors' represents the authors for the defined doc)
   if (doc && up) {
-    const leanDoc = (doc as unknown as mongoose.Document).toObject?.() || doc;
+    // @ts-expect-error we know toObject may not exist, which is why we conditionally use to and then fall back to a different value
+    const leanDoc = doc.toObject?.() || doc;
 
     // get the ids from the provided values
     const _ids: mongoose.Types.ObjectId[] = merge(

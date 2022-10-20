@@ -11,6 +11,7 @@ import { get as getProperty, set as setProperty } from 'object-path';
 import * as Y from 'yjs';
 import { z, ZodError } from 'zod';
 import { shared } from './shared';
+import { has as hasProperty } from 'object-path';
 
 const logtail = new Logtail(process.env.LOGTAIL_ID || 'MISSING');
 
@@ -28,6 +29,16 @@ interface AddToYParams {
    * with `await tenantDB.connect()`.
    */
   TenantModel: (name: string) => Promise<Model<unknown> | null>;
+  /**
+   * Only set the values of keys that are explicitly provided
+   * to this function in `inputData`.
+   */
+  onlyProvided?: boolean;
+  /**
+   * Enable reference update mode, where only references are
+   * modified, and they are only modified if they are outdated.
+   */
+  updateReferencesMode?: boolean;
 }
 
 async function addToY(params: AddToYParams) {
@@ -62,6 +73,7 @@ async function addToY(params: AddToYParams) {
   await Promise.all(
     params.schemaDef.map(async ([key, def]) => {
       if (!params.ydoc) return;
+      if (params.onlyProvided && !hasProperty(data, key)) return;
 
       const [schemaType, isArray] = (() => {
         const schemaType: MongooseSchemaType | 'DocArray' = isTypeTuple(def.type) ? def.type[1] : def.type;
@@ -75,30 +87,31 @@ async function addToY(params: AddToYParams) {
         | { value: string | number; label: string; disabled?: boolean }[]
         | undefined;
 
-      const reference = def.field?.reference;
-
       try {
-        if (schemaType === 'Boolean') {
-          // arrays of booleans are not supported in the app
-          if (isArray) return;
+        if (schemaType === 'ObjectId' || def.field?.reference?.collection) {
+          const validator = z.union([
+            z.string().optional().nullable().array().optional().nullable(),
+            z.object({ _id: z.string(), name: z.string().optional() }).passthrough().array(),
+          ]);
+          const validValue = validator.parse(isArray ? getProperty(data, key) : [getProperty(data, key)]);
 
-          const validator = z.boolean().optional().nullable();
-          const validValue = validator.parse(getProperty(data, key));
+          const reference = new shared.Reference(params.ydoc);
 
-          const boolean = new shared.Boolean(params.ydoc);
-          boolean.set(key, validValue);
+          await reference.set(
+            key,
+            validValue,
+            params.TenantModel,
+            {
+              ...def.field?.reference,
+              collection: def.field?.reference?.collection || def.type[0].replace('[', '').replace(']', ''),
+            },
+            params.updateReferencesMode
+          );
+
+          return;
         }
 
-        if (schemaType === 'Date') {
-          // arrays of dates are not supported in the app
-          if (isArray) return;
-
-          const validator = z.string().optional().nullable();
-          const validValue = validator.parse(getProperty(data, key));
-
-          const date = new shared.Date(params.ydoc);
-          date.set(key, validValue);
-        }
+        if (params.updateReferencesMode) return;
 
         if (schemaType === 'DocArray') {
           const validator = z.record(z.any()).array();
@@ -134,6 +147,31 @@ async function addToY(params: AddToYParams) {
               }
             });
           }
+          return;
+        }
+
+        if (schemaType === 'Boolean') {
+          // arrays of booleans are not supported in the app
+          if (isArray) return;
+
+          const validator = z.boolean().optional().nullable();
+          const validValue = validator.parse(getProperty(data, key));
+
+          const boolean = new shared.Boolean(params.ydoc);
+          boolean.set(key, validValue);
+          return;
+        }
+
+        if (schemaType === 'Date') {
+          // arrays of dates are not supported in the app
+          if (isArray) return;
+
+          const validator = z.string().optional().nullable();
+          const validValue = validator.parse(getProperty(data, key));
+
+          const date = new shared.Date(params.ydoc);
+          date.set(key, validValue);
+          return;
         }
 
         if (schemaType === 'Float') {
@@ -152,6 +190,8 @@ async function addToY(params: AddToYParams) {
           } else {
             float.set(key, validValue);
           }
+
+          return;
         }
 
         if (schemaType === 'JSON') {
@@ -160,6 +200,7 @@ async function addToY(params: AddToYParams) {
           // to the fields they actualy represent.
           // If a value reaches here, do nothing.
           // The UI will show it as uneditable JSON.
+          return;
         }
 
         if (schemaType === 'Number') {
@@ -178,21 +219,8 @@ async function addToY(params: AddToYParams) {
           } else {
             integer.set(key, validValue);
           }
-        }
 
-        if (schemaType === 'ObjectId') {
-          const validator = z.union([
-            z.string().optional().nullable().array().optional().nullable(),
-            z.object({ _id: z.string(), name: z.string().optional() }).passthrough().array(),
-          ]);
-          const validValue = validator.parse(isArray ? getProperty(data, key) : [getProperty(data, key)]);
-
-          const reference = new shared.Reference(params.ydoc);
-
-          await reference.set(key, validValue, params.TenantModel, {
-            ...def.field?.reference,
-            collection: def.field?.reference?.collection || def.type[0].replace('[', '').replace(']', ''),
-          });
+          return;
         }
 
         if (schemaType === 'String') {
@@ -203,7 +231,7 @@ async function addToY(params: AddToYParams) {
           ]);
           const validValue = validator.parse(getProperty(data, key));
 
-          if (Array.isArray(validValue) || options || reference) {
+          if (Array.isArray(validValue) || options || def.field?.reference?.collection) {
             // if it is not an array, but there are options (or a reference config), stick
             // the value in an array since the SelectOne and ReferenceOne fields
             // require the value to be in an array
@@ -213,6 +241,8 @@ async function addToY(params: AddToYParams) {
           } else {
             string.set(key, validValue, 'tiptap');
           }
+
+          return;
         }
       } catch (error) {
         console.error(error);
@@ -230,8 +260,6 @@ async function addToY(params: AddToYParams) {
 
   const unsaved = params.ydoc?.getArray('__unsavedFields');
   unsaved?.delete(0, unsaved.length);
-
-  console.log(params.ydoc.toJSON());
 }
 
 export { addToY };

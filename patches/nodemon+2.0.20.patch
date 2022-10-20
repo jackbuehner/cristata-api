@@ -1,0 +1,24 @@
+diff --git a/node_modules/nodemon/lib/nodemon.js b/node_modules/nodemon/lib/nodemon.js
+index ce649cb..32b48e0 100644
+--- a/node_modules/nodemon/lib/nodemon.js
++++ b/node_modules/nodemon/lib/nodemon.js
+@@ -108,7 +108,8 @@ function nodemon(settings) {
+         if (str === config.options.restartable) {
+           bus.emit('restart');
+         } else if (data.charCodeAt(0) === 12) { // ctrl+l
+-          console.clear();
++          // we do not want to clear the console when the server crashes
++          //console.clear();
+         }
+       });
+     } else if (config.options.stdin) {
+@@ -136,7 +137,8 @@ function nodemon(settings) {
+         } else if (chr === 13 || chr === 10) { // enter / carriage return
+           buffer = '';
+         } else if (chr === 12) { // ctrl+l
+-          console.clear();
++          // we do not want to clear the console when the server crashes
++          // console.clear();
+           buffer = '';
+         }
+         ctrlC = false;
