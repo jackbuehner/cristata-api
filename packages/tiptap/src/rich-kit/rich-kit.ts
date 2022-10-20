@@ -1,6 +1,10 @@
 import { AnyExtension, Extension } from '@tiptap/core';
 import FontFamily, { FontFamilyOptions } from '@tiptap/extension-font-family';
 import Link, { LinkOptions } from '@tiptap/extension-link';
+import Table, { TableOptions } from '@tiptap/extension-table';
+import TableCell, { TableCellOptions } from '@tiptap/extension-table-cell';
+import TableHeader, { TableHeaderOptions } from '@tiptap/extension-table-header';
+import TableRow, { TableRowOptions } from '@tiptap/extension-table-row';
 import TextStyle, { TextStyleOptions } from '@tiptap/extension-text-style';
 import Underline, { UnderlineOptions } from '@tiptap/extension-underline';
 import StarterKit, { StarterKitOptions } from '@tiptap/starter-kit';
@@ -24,6 +28,10 @@ interface RichKitOptions extends StarterKitOptions {
   powerComment: false;
   pullQuote: Partial<PullQuoteOptions> | false;
   sweepwidgetWidget: Partial<SweepwidgetWidgetOptions> | false;
+  table: Partial<TableOptions> | false;
+  tableCell: Partial<TableCellOptions> | false;
+  tableHeader: Partial<TableHeaderOptions> | false;
+  tableRow: Partial<TableRowOptions> | false;
   trackChanges: Partial<TrackChangesOptions> | false;
   textStyle: Partial<TextStyleOptions> | false;
   underline: Partial<UnderlineOptions> | false;
@@ -80,6 +88,22 @@ const RichKit = Extension.create<RichKitOptions>({
 
     if (this.options.sweepwidgetWidget !== false) {
       extensions.push(SweepwidgetWidget.configure(this.options?.sweepwidgetWidget));
+    }
+
+    if (this.options.table !== false) {
+      extensions.push(Table.configure(this.options?.table));
+    }
+
+    if (this.options.tableCell !== false) {
+      extensions.push(TableCell.configure(this.options?.tableCell));
+    }
+
+    if (this.options.tableHeader !== false) {
+      extensions.push(TableHeader.configure(this.options?.tableHeader));
+    }
+
+    if (this.options.tableRow !== false) {
+      extensions.push(TableRow.configure(this.options?.tableRow));
     }
 
     if (this.options.trackChanges !== false) {
