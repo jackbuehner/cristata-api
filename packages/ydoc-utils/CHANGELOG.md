@@ -1,5 +1,15 @@
 # @jackbuehner/cristata-ydoc-utils
 
+## 3.0.0
+
+### Major Changes
+
+- f7499e8: update ydoc utils to handle all cases and references
+
+  With the addition of tests for every ydoc util, setting and retrieving data becomes more predictible and reliable. Things that were previously supported in the web app are now supported in this package, including getting data from referenced collections (or not), predictable return types, and correct doc array values.
+
+- f7499e8: handle document saves through new server used for collaborative editing
+
 ## 2.0.1
 
 ### Patch Changes
