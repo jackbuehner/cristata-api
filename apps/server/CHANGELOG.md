@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.1.0
+
+### Minor Changes
+
+- cffaee6: show errors when failed to set data in collaborative doc via hocuspocus
+
 ## 7.0.0
 
 ### Major Changes
