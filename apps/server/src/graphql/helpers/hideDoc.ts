@@ -70,7 +70,7 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
     : doc.people.modified_by;
 
   // sync the changes to the yjs doc
-  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
+  const result = setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
     const rc = { collection: 'User' };
 
     // set the hidden property in the document
@@ -86,6 +86,8 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
 
     return true;
   });
+
+  if (result instanceof Error) throw result;
 
   if (process.env.NODE_ENV === 'test' && context.profile) {
     doc.hidden = hide;

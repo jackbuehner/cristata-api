@@ -127,7 +127,7 @@ async function modifyDoc<DocType, DataType>({
   );
 
   // sync the changes to the yjs doc
-  setYDocType(context, model, `${_id}`, async (TenantModel, ydoc) => {
+  const result = setYDocType(context, model, `${_id}`, async (TenantModel, ydoc) => {
     const collection = context.config.collections?.find((col) => col.name === model);
 
     const schema = merge<SchemaDefType, SchemaDefType[]>(
@@ -149,6 +149,11 @@ async function modifyDoc<DocType, DataType>({
 
     return true;
   });
+
+  if (result instanceof Error) {
+    result.message += ', but data may be set until the next time the collaborative document loads';
+    throw result;
+  }
 
   return res;
 }

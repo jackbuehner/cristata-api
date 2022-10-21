@@ -73,7 +73,7 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
     : doc.people.modified_by;
 
   // sync the changes to the yjs doc
-  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
+  const result = setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
     const rc = { collection: 'User' };
 
     // set the locked property in the document
@@ -89,6 +89,8 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
 
     return true;
   });
+
+  if (result instanceof Error) throw result;
 
   if (process.env.NODE_ENV === 'test' && context.profile) {
     doc.locked = lock;
