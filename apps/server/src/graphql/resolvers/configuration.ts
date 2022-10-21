@@ -272,6 +272,7 @@ const configuration = {
     },
     sub: async (_: unknown, { key }: { key: string }, context: Context): Promise<ReturnedSubNavGroup[]> => {
       const cmsNavConfig = [
+        ...filterHidden(context.config.navigation.sub[key], context),
         ...filterHidden(
           [
             {
@@ -308,7 +309,6 @@ const configuration = {
           ],
           context
         ),
-        ...filterHidden(context.config.navigation.sub[key], context),
       ];
 
       return cmsNavConfig.map((group) => {
