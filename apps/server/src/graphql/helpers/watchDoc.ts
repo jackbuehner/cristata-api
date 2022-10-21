@@ -77,20 +77,27 @@ async function watchDoc({ model, accessor, watch, watcher, context }: WatchDoc) 
   const res = await doc.save();
 
   // sync the changes to the yjs doc
-  setYDocType(context, model, accessor.value.toString(), async (TenantModel, ydoc, sharedHelper) => {
-    const type = new sharedHelper.Reference(ydoc);
-    const key = 'people.watching';
-    const referenceConfig = { collection: 'User' };
+  const result = setYDocType(
+    context,
+    model,
+    accessor.value.toString(),
+    async (TenantModel, ydoc, sharedHelper) => {
+      const type = new sharedHelper.Reference(ydoc);
+      const key = 'people.watching';
+      const referenceConfig = { collection: 'User' };
 
-    await type.set(
-      key,
-      res.people.watching.map((_id) => _id.toHexString()),
-      TenantModel,
-      referenceConfig
-    );
+      await type.set(
+        key,
+        res.people.watching.map((_id) => _id.toHexString()),
+        TenantModel,
+        referenceConfig
+      );
 
-    return true;
-  });
+      return true;
+    }
+  );
+
+  if (result instanceof Error) throw result;
 
   return res;
 }

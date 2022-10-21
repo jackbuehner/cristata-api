@@ -40,7 +40,7 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
     throw new ForbiddenError('you cannot publish this document');
 
   // sync the changes to the yjs doc
-  await setYDocType(context, model, `${_id}`, async (TM, ydoc, sharedHelper) => {
+  const result = await setYDocType(context, model, `${_id}`, async (TM, ydoc, sharedHelper) => {
     const reference = new sharedHelper.Reference(ydoc);
     const date = new sharedHelper.Date(ydoc);
     const float = new sharedHelper.Float(ydoc);
@@ -92,6 +92,8 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
 
     return true;
   });
+
+  if (result instanceof Error) throw result;
 
   // save history
   if (context.profile) {

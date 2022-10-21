@@ -78,7 +78,7 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
     : doc.people.modified_by;
 
   // sync the changes to the yjs doc
-  setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
+  const result = await setYDocType(context, model, `${accessor.value}`, async (TM, ydoc, sharedHelper) => {
     const rc = { collection: 'User' };
 
     // set the archived property in the document
@@ -94,6 +94,8 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
 
     return true;
   });
+
+  if (result instanceof Error) throw result;
 
   if (process.env.NODE_ENV === 'test' && context.profile) {
     doc.archived = archive;

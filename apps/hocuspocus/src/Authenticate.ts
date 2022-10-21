@@ -46,11 +46,13 @@ class Authenticate implements Extension {
       connection.isAuthenticated = true;
     }
 
-    const appVersion = requestParameters.get('appVersion');
-    const appVersionRequirement = process.env.APP_VERSION_REQUIREMENT || '=0.0.0';
-    if (!appVersion) throw Forbidden;
-    if (!semver.satisfies(appVersion, appVersionRequirement)) {
-      throw Forbidden;
+    if (!connection.isAuthenticated) {
+      const appVersion = requestParameters.get('appVersion');
+      const appVersionRequirement = process.env.APP_VERSION_REQUIREMENT || '=0.0.0';
+      if (!appVersion) throw Forbidden;
+      if (!semver.satisfies(appVersion, appVersionRequirement)) {
+        throw Forbidden;
+      }
     }
 
     // confirm the document can be read and edited by the client
