@@ -28,20 +28,37 @@ async function setYDocType(
     try {
       // create an empty ydoc to use with the websocket provider
       const ydoc = new Y.Doc();
+      const docName = `${context.tenant}.${model}.${id}`;
 
       // create a websocket provider
-      const wsProvider = new WebsocketProvider(
-        process.env.HOCUSPOCUS_SERVER || '',
-        `${context.tenant}.${model}.${id}`,
-        ydoc,
-        {
-          // @ts-expect-error it's fine
-          WebSocketPolyfill: ws,
-          params: {
-            authSecret: process.env.AUTH_OVERRIDE_SECRET || '',
-          },
+      const wsProvider = new WebsocketProvider(process.env.HOCUSPOCUS_SERVER || '', docName, ydoc, {
+        // @ts-expect-error it's fine
+        WebSocketPolyfill: ws,
+        params: {
+          authSecret: process.env.AUTH_OVERRIDE_SECRET || '',
+        },
+      });
+
+      // fail after unable to connect 10 times
+      let disconnectedCount = 0;
+      wsProvider.on('status', ({ status }: { status: 'disconnected' | 'connecting' | 'connected' }) => {
+        if (status === 'disconnected') {
+          if (disconnectedCount < 10) {
+            disconnectedCount++;
+            console.log('disconnected', disconnectedCount);
+
+            // wait 1 second before attempting to reconnect
+            wsProvider.shouldConnect = false;
+            setTimeout(() => {
+              wsProvider.connect();
+            }, 1000);
+          } else {
+            // after ten attempts, reject with an error and destroy the websocket
+            reject(new Error(`Connection failed after 10 attempts for ${docName}`));
+            wsProvider.destroy();
+          }
         }
-      );
+      });
 
       // run the callback once a sync event has happened
       wsProvider.once('sync', async () => {
