@@ -298,4 +298,62 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     // cleanup
     await newDoc.delete();
   });
+
+  it(`should only return fields in the projection for non-lean docs`, async () => {
+    const Document = createModel(
+      c.collection.name,
+      { slug: { type: 'String', default: 'new-document' }, slug2: { type: 'String' } },
+      c.collection.withPermissions
+    );
+    const context = useApolloContext(c);
+
+    // create and save a doc to find
+    const newDoc = new Document({ yState: '' });
+    newDoc.set('slug', 'new-document-with-projection');
+    newDoc.set('slug2', 'do-not-include-me');
+    await newDoc.save();
+
+    // find the doc
+    const found = await findDoc({
+      model: colName,
+      _id: newDoc._id,
+      context,
+      fullAccess: true,
+      lean: false,
+      project: { slug: 1 },
+    });
+    expect(found?.toObject()).toMatchObject({ slug: 'new-document-with-projection', _id: newDoc._id });
+
+    // cleanup
+    await newDoc.delete();
+  });
+
+  it(`should only return fields in the projection for lean docs`, async () => {
+    const Document = createModel(
+      c.collection.name,
+      { slug: { type: 'String', default: 'new-document' }, slug2: { type: 'String' } },
+      c.collection.withPermissions
+    );
+    const context = useApolloContext(c);
+
+    // create and save a doc to find
+    const newDoc = new Document({ yState: '' });
+    newDoc.set('slug', 'new-document-with-projection');
+    newDoc.set('slug2', 'do-not-include-me');
+    await newDoc.save();
+
+    // find the doc
+    const found = await findDoc({
+      model: colName,
+      _id: newDoc._id,
+      context,
+      fullAccess: true,
+      lean: true,
+      project: { slug: 1 },
+    });
+    expect(found).toMatchObject({ slug: 'new-document-with-projection', _id: newDoc._id });
+
+    // cleanup
+    await newDoc.delete();
+  });
 });
