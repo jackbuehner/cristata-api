@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { flattenObject } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import mongoose, { FilterQuery } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
@@ -66,31 +65,7 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
         ],
       };
 
-  // add temporary fields for timestamps that speciify whether they are greater
-  // than the baseline date meant for use in `accessFilter`
-  // (field names are key + _is_baseline)
-  const timestampBaselineBooleanFields = [
-    ...new Set(
-      Object.keys(flattenObject(Model.schema.obj as { [x: string]: never }))
-        .filter((key) => key.includes('timestamps.obj'))
-        .filter((key) => !key.includes('id'))
-        .map((key) =>
-          key.replace('.type', '').replace('.default', '').replace('.obj', '').replace('.required', '')
-        )
-    ),
-  ].map((key) => ({
-    $addFields: {
-      [key + '_is_baseline']: {
-        $or: [
-          { $eq: ['$' + key, new Date('0001-01-01T01:00:00.000+00:00')] },
-          { $cond: [{ $lte: ['$' + key, null] }, true, false] },
-        ],
-      },
-    },
-  }));
-
   const pipeline: mongoose.PipelineStage[] = [
-    ...timestampBaselineBooleanFields,
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: _ids ? { _id: { $in: _ids } } : {} },
