@@ -120,22 +120,6 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     await newDoc.delete();
   });
 
-  it('should find a doc with empty permissions when custom access rule is empty object', async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
-    const context = useApolloContext(c);
-
-    // create and save a doc to find
-    const newDoc = new Document({ yState: '' });
-    await newDoc.save();
-
-    // find the doc
-    const found = await findDoc({ model: colName, _id: newDoc._id, context, accessRule: {} });
-    expect(found).toHaveProperty('_id', newDoc._id);
-
-    // cleanup
-    await newDoc.delete();
-  });
-
   it(`should find a doc with one of user's teams in permissions`, async () => {
     const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);

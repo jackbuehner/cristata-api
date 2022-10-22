@@ -18,10 +18,9 @@ interface FindDocs {
   };
   context: Context;
   fullAccess?: boolean;
-  accessRule?: FilterQuery<unknown>;
 }
 
-async function findDocs({ model, args, context, fullAccess, accessRule }: FindDocs) {
+async function findDocs({ model, args, context, fullAccess }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
 
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
@@ -51,8 +50,6 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
   // access filter
   const accessFilter = canBypassAccessFilter
     ? {}
-    : accessRule
-    ? accessRule
     : {
         $or: [
           ...(context.profile
