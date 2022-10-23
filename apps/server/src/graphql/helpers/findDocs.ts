@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ApolloError } from 'apollo-server-core';
-import mongoose, { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery, PipelineStage } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
@@ -14,13 +14,14 @@ interface FindDocs {
     page?: number;
     offset?: number;
     limit: number;
-    pipeline2?: mongoose.PipelineStage[];
+    pipeline2?: mongoose.PipelineStage[]; // could be provided by clients
   };
   context: Context;
   fullAccess?: boolean;
+  project?: PipelineStage.Project['$project'];
 }
 
-async function findDocs({ model, args, context, fullAccess }: FindDocs) {
+async function findDocs({ model, args, context, fullAccess, project }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
 
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
@@ -62,11 +63,14 @@ async function findDocs({ model, args, context, fullAccess }: FindDocs) {
         ],
       };
 
+  // use provided projection, but fall back to exlcuding y fields (which can be quite large)
+  const $project = project ? project : { __yState: 0, __yVersions: 0, yState: 0, __migrationBackup: 0 };
+
   const pipeline: mongoose.PipelineStage[] = [
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: _ids ? { _id: { $in: _ids } } : {} },
-    { $project: { __yState: 0, __yVersions: 0, yState: 0, __migrationBackup: 0 } },
+    { $project },
     ...(args.pipeline2 || []),
   ];
 
@@ -80,7 +84,7 @@ async function findDocs({ model, args, context, fullAccess }: FindDocs) {
   }
   // @ts-expect-error aggregatePaginate DOES exist.
   // The types for the plugin have not been updated for newer versions of mongoose.
-  return await Model.aggregatePaginate(aggregate, { sort, page, limit });
+  return await Model.aggregatePaginate(aggregate, { sort, page, limit, allowDiskUse: true });
 }
 
 export { findDocs };
