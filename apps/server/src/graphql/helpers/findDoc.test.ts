@@ -242,23 +242,21 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const newDocA = new Document({
       letter: 'a',
       yState: '',
-      'timestamps.created_at': new Date(Date.now() - 1000),
     }); // subtract time to make it older than b
     await newDocA.save();
 
-    const newDocB = new Document({ letter: 'b', yState: '', 'timestamps.created_at': new Date() });
+    const newDocB = new Document({ letter: 'b', yState: '' });
     await newDocB.save();
 
     const newDocC = new Document({
       letter: 'c',
       yState: '',
-      'timestamps.created_at': new Date(Date.now() - 2000),
     }); // subtract time to make it older than b
     await newDocC.save();
 
     // find the doc
     const found = await findDoc({ model: colName, by: 'slug', _id: newDocB.slug, context, fullAccess: true });
-    expect(found).toHaveProperty('letter', 'b');
+    expect(found).toHaveProperty('letter', 'c');
 
     // cleanup
     await newDocA.delete();
