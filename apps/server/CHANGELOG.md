@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.2.0
+
+### Minor Changes
+
+- d04849c: optimize query performance with mongodb projections
+
 ## 7.1.0
 
 ### Minor Changes
