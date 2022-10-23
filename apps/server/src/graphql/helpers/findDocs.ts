@@ -70,6 +70,7 @@ async function findDocs({ model, args, context, fullAccess, project }: FindDocs)
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: _ids ? { _id: { $in: _ids } } : {} },
+    { $sort: { _id: -1 } },
     { $project },
     ...(args.pipeline2 || []),
   ];

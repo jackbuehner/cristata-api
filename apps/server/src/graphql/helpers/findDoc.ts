@@ -72,6 +72,7 @@ async function findDoc({
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: { [by || '_id']: _id || null } },
+    { $sort: { _id: -1 } },
     { $project },
   ];
 
