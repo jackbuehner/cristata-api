@@ -120,22 +120,6 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     await newDoc.delete();
   });
 
-  it('should find a doc with empty permissions when custom access rule is empty object', async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
-    const context = useApolloContext(c);
-
-    // create and save a doc to find
-    const newDoc = new Document({ yState: '' });
-    await newDoc.save();
-
-    // find the doc
-    const found = await findDoc({ model: colName, _id: newDoc._id, context, accessRule: {} });
-    expect(found).toHaveProperty('_id', newDoc._id);
-
-    // cleanup
-    await newDoc.delete();
-  });
-
   it(`should find a doc with one of user's teams in permissions`, async () => {
     const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
@@ -258,23 +242,21 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     const newDocA = new Document({
       letter: 'a',
       yState: '',
-      'timestamps.created_at': new Date(Date.now() - 1000),
     }); // subtract time to make it older than b
     await newDocA.save();
 
-    const newDocB = new Document({ letter: 'b', yState: '', 'timestamps.created_at': new Date() });
+    const newDocB = new Document({ letter: 'b', yState: '' });
     await newDocB.save();
 
     const newDocC = new Document({
       letter: 'c',
       yState: '',
-      'timestamps.created_at': new Date(Date.now() - 2000),
     }); // subtract time to make it older than b
     await newDocC.save();
 
     // find the doc
     const found = await findDoc({ model: colName, by: 'slug', _id: newDocB.slug, context, fullAccess: true });
-    expect(found).toHaveProperty('letter', 'b');
+    expect(found).toHaveProperty('letter', 'c');
 
     // cleanup
     await newDocA.delete();
@@ -294,6 +276,64 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     // find the doc
     const found = await findDoc({ model: colName, _id: newDoc._id, context, fullAccess: true, lean: false });
     expect(found?.constructor.name).toEqual(Document.name);
+
+    // cleanup
+    await newDoc.delete();
+  });
+
+  it(`should only return fields in the projection for non-lean docs`, async () => {
+    const Document = createModel(
+      c.collection.name,
+      { slug: { type: 'String', default: 'new-document' }, slug2: { type: 'String' } },
+      c.collection.withPermissions
+    );
+    const context = useApolloContext(c);
+
+    // create and save a doc to find
+    const newDoc = new Document({ yState: '' });
+    newDoc.set('slug', 'new-document-with-projection');
+    newDoc.set('slug2', 'do-not-include-me');
+    await newDoc.save();
+
+    // find the doc
+    const found = await findDoc({
+      model: colName,
+      _id: newDoc._id,
+      context,
+      fullAccess: true,
+      lean: false,
+      project: { slug: 1 },
+    });
+    expect(found?.toObject()).toMatchObject({ slug: 'new-document-with-projection', _id: newDoc._id });
+
+    // cleanup
+    await newDoc.delete();
+  });
+
+  it(`should only return fields in the projection for lean docs`, async () => {
+    const Document = createModel(
+      c.collection.name,
+      { slug: { type: 'String', default: 'new-document' }, slug2: { type: 'String' } },
+      c.collection.withPermissions
+    );
+    const context = useApolloContext(c);
+
+    // create and save a doc to find
+    const newDoc = new Document({ yState: '' });
+    newDoc.set('slug', 'new-document-with-projection');
+    newDoc.set('slug2', 'do-not-include-me');
+    await newDoc.save();
+
+    // find the doc
+    const found = await findDoc({
+      model: colName,
+      _id: newDoc._id,
+      context,
+      fullAccess: true,
+      lean: true,
+      project: { slug: 1 },
+    });
+    expect(found).toMatchObject({ slug: 'new-document-with-projection', _id: newDoc._id });
 
     // cleanup
     await newDoc.delete();

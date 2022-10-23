@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { notEmpty } from '@jackbuehner/cristata-utils';
+import getFieldNames from 'graphql-list-fields';
 import mongoose from 'mongoose';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { getUsers } from '../helpers';
@@ -7,6 +8,8 @@ import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
 import { Context } from '../server';
 
 type ActivityArgs = { limit?: number; collections?: string[]; exclude?: string[]; page?: number };
+type ObjectId = mongoose.Types.ObjectId;
+type Info = Parameters<typeof getFieldNames>[0];
 
 const core = {
   Date: DateScalar,
@@ -86,11 +89,12 @@ const core = {
     },
   },
   CollectionActivity: {
-    user: ({ user }: { user: mongoose.Types.ObjectId }, __: never, context: Context) => getUsers(user, context),
+    user: ({ user }: { user: ObjectId }, __: never, context: Context, info: Info) =>
+      getUsers(user, context, info),
   },
   CollectionPermissions: {
-    users: ({ users }: { users: mongoose.Types.ObjectId[] }, __: never, context: Context) =>
-      getUsers(users, context),
+    users: ({ users }: { users: ObjectId[] }, __: never, context: Context, info: Info) =>
+      getUsers(users, context, info),
   },
 };
 

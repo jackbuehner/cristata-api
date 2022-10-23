@@ -18,11 +18,18 @@
     "start:hocuspocus": "cd apps/hocuspocus && npm run start"
   },
   "devDependencies": {
+    "@babel/core": "^7.19.6",
+    "@babel/preset-env": "^7.19.4",
+    "@babel/preset-typescript": "^7.18.6",
+    "@types/graphql-list-fields": "^2.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.40.1",
+    "@typescript-eslint/parser": "^5.40.1",
     "eslint": "^8.23.0",
     "eslint-plugin-turbo": "^0.0.3",
     "nodemon": "^2.0.20",
     "prettier": "^2.5.1",
-    "turbo": "latest"
+    "turbo": "latest",
+    "typescript": "^4.8.4"
   },
   "dependencies": {
     "@changesets/cli": "^2.24.4",
@@ -44,6 +51,7 @@
     "@tiptap/extension-text-style": "^2.0.0-beta.199",
     "@tiptap/extension-underline": "^2.0.0-beta.199",
     "@tiptap/starter-kit": "^2.0.0-beta.199",
+    "graphql-list-fields": "^2.0.2",
     "is-what": "^4.1.7",
     "ws": "^8.8.1",
     "y-websocket": "^1.4.5"

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { flattenObject } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
-import mongoose, { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery, PipelineStage } from 'mongoose';
 import { canDo, CollectionDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
@@ -15,14 +14,14 @@ interface FindDocs {
     page?: number;
     offset?: number;
     limit: number;
-    pipeline2?: mongoose.PipelineStage[];
+    pipeline2?: mongoose.PipelineStage[]; // could be provided by clients
   };
   context: Context;
   fullAccess?: boolean;
-  accessRule?: FilterQuery<unknown>;
+  project?: PipelineStage.Project['$project'];
 }
 
-async function findDocs({ model, args, context, fullAccess, accessRule }: FindDocs) {
+async function findDocs({ model, args, context, fullAccess, project }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
 
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
@@ -52,8 +51,6 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
   // access filter
   const accessFilter = canBypassAccessFilter
     ? {}
-    : accessRule
-    ? accessRule
     : {
         $or: [
           ...(context.profile
@@ -66,37 +63,16 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
         ],
       };
 
-  // add temporary fields for timestamps that speciify whether they are greater
-  // than the baseline date meant for use in `accessFilter`
-  // (field names are key + _is_baseline)
-  const timestampBaselineBooleanFields = [
-    ...new Set(
-      Object.keys(flattenObject(Model.schema.obj as { [x: string]: never }))
-        .filter((key) => key.includes('timestamps.obj'))
-        .filter((key) => !key.includes('id'))
-        .map((key) =>
-          key.replace('.type', '').replace('.default', '').replace('.obj', '').replace('.required', '')
-        )
-    ),
-  ].map((key) => ({
-    $addFields: {
-      [key + '_is_baseline']: {
-        $or: [
-          { $eq: ['$' + key, new Date('0001-01-01T01:00:00.000+00:00')] },
-          { $cond: [{ $lte: ['$' + key, null] }, true, false] },
-        ],
-      },
-    },
-  }));
+  // use provided projection, but fall back to exlcuding y fields (which can be quite large)
+  const $project = project ? project : { __yState: 0, __yVersions: 0, yState: 0, __migrationBackup: 0 };
 
   const pipeline: mongoose.PipelineStage[] = [
-    ...timestampBaselineBooleanFields,
     { $match: filter ? filter : {} },
     { $match: accessFilter },
     { $match: _ids ? { _id: { $in: _ids } } : {} },
-    { $project: { __yState: 0, __yVersions: 0, yState: 0, __migrationBackup: 0 } },
+    { $sort: { _id: -1 } },
+    { $project },
     ...(args.pipeline2 || []),
-    { $sort: { 'timestamps.created_at': -1 } },
   ];
 
   const aggregate = Model.aggregate(pipeline);
@@ -109,7 +85,7 @@ async function findDocs({ model, args, context, fullAccess, accessRule }: FindDo
   }
   // @ts-expect-error aggregatePaginate DOES exist.
   // The types for the plugin have not been updated for newer versions of mongoose.
-  return await Model.aggregatePaginate(aggregate, { sort, page, limit });
+  return await Model.aggregatePaginate(aggregate, { sort, page, limit, allowDiskUse: true });
 }
 
 export { findDocs };
