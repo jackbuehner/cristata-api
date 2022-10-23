@@ -1,11 +1,14 @@
 import {
   calcAccessor,
+  deconstructSchema,
+  defaultSchemaDefTypes,
   GenSchemaInput,
   isCustomGraphSchemaType,
   isSchemaDef,
   isSchemaDefOrType,
   isSchemaRef,
   isTypeTuple,
+  MongooseSchemaType,
   SchemaDef,
   SchemaDefType,
   SchemaRef,
@@ -20,6 +23,7 @@ import {
 } from '@jackbuehner/cristata-utils';
 import { ApolloError, UserInputError } from 'apollo-server-errors';
 import { findAndReplace } from 'find-and-replace-anything';
+import getFieldNames from 'graphql-list-fields';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { get as getProperty } from 'object-path';
@@ -29,10 +33,13 @@ import { TenantDB } from '../../../mongodb/TenantDB';
 import { collectionPeopleResolvers, Context, publishableCollectionPeopleResolvers } from '../../server';
 import { constructDocFromRef } from './constructDocFromRef';
 
+type Info = Parameters<typeof getFieldNames>[0];
+
 async function construct(
   doc: CollectionDoc | null | undefined,
   schemaRefs: [string, SchemaRef][],
   context: Context,
+  info: Info,
   helpers: Helpers
 ) {
   if (doc === null || doc === undefined) return null;
@@ -60,12 +67,82 @@ async function construct(
 
   // reference user objects instead of user ids
   if (constructedDoc && constructedDoc.permissions) {
+    const fields = getFieldNames(info)
+      .map((field) => field.replace('docs.', ''))
+      .filter((field) => field.indexOf('permissions.users.') === 0)
+      .map((field) => field.replace('permissions.users.', ''));
+
     return merge(constructedDoc, {
-      permissions: { users: await helpers.getUsers(constructedDoc.permissions.users || [], context) },
+      permissions: { users: await helpers.getUsers(constructedDoc.permissions.users || [], context, fields) },
     });
   }
 
   return constructedDoc;
+}
+
+/**
+ * Creates a projection that only fetches the document fields
+ * requested in the GraphQL query.
+ *
+ * We do not worry about values required in fields' setters
+ * since this is only run on the API server.
+ * All changes on this server also go to the hocuspocus server,
+ * which will handle the setters.
+ */
+function createProjection(
+  info: Info,
+  config: {
+    schemaDef: GenResolversInput['schemaDef'];
+    canPublish: GenResolversInput['canPublish'];
+    withPermissions: GenResolversInput['withPermissions'];
+  }
+) {
+  // ensure we include the common schema defs
+  const fullSchema = merge<SchemaDefType, SchemaDefType[]>(
+    config.schemaDef || {},
+    defaultSchemaDefTypes.standard,
+    config.canPublish ? defaultSchemaDefTypes.publishable : {},
+    config.withPermissions ? defaultSchemaDefTypes.withPermissions : {}
+  );
+
+  const deconstructedSchema = deconstructSchema(fullSchema);
+
+  // determine the names of the fields that are references/objectids
+  const objectIdFields = deconstructedSchema
+    .map(([key, def]): [string, MongooseSchemaType | 'DocArray', boolean] => {
+      const [schemaType, isArray] = (() => {
+        const schemaType: MongooseSchemaType | 'DocArray' = isTypeTuple(def.type) ? def.type[1] : def.type;
+        const isArrayType = Array.isArray(schemaType);
+
+        if (isArrayType) return [schemaType[0], true];
+        return [schemaType, false];
+      })();
+
+      return [key, schemaType, isArray];
+    })
+    .filter(([, schemaType]) => {
+      return schemaType === 'ObjectId';
+    })
+    .map(([key]) => key);
+
+  // get the names of the requested fields
+  let fields = getFieldNames(info).map((field) => field.replace('docs.', ''));
+
+  // remove fields that are referenced values that the database does not see
+  // (the database only has the _id, and graphql pulls them together)
+  // and then add the root field with the _id
+  objectIdFields.forEach((idField) => {
+    if (fields.find((field) => field.indexOf(idField) === 0)) {
+      fields = [...fields.filter((field) => field.indexOf(idField) !== 0), idField];
+    }
+  });
+
+  const projection: Record<string, 1> = {};
+  fields.forEach((field) => {
+    projection[field] = 1;
+  });
+
+  return projection;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -85,15 +162,16 @@ function genResolvers(config: GenResolversInput, tenant: string) {
     /**
      * Finds a single document by the accessor specified in the config.
      */
-    Query[uncapitalize(name)] = async (parent, args, context) => {
+    Query[uncapitalize(name)] = async (parent, args, context, info) => {
       const doc = await helpers.findDoc({
         model: name,
         by: oneAccessorName,
         _id:
           oneAccessorType.replace('!', '') === 'Date' ? new Date(args[oneAccessorName]) : args[oneAccessorName],
         context,
+        project: createProjection(info, config),
       });
-      return await construct(doc, schemaRefs, context, helpers);
+      return await construct(doc, schemaRefs, context, info, helpers);
     };
   }
 
@@ -103,15 +181,16 @@ function genResolvers(config: GenResolversInput, tenant: string) {
      *
      * TODO: search by a custom accessor (`manyAccessorName`)
      */
-    Query[pluralize(uncapitalize(name))] = async (parent, args, context) => {
+    Query[pluralize(uncapitalize(name))] = async (parent, args, context, info) => {
       const { docs, ...paged }: { docs: CollectionDoc[] } = await helpers.findDocs({
         model: name,
         args,
         context,
+        project: createProjection(info, config),
       });
       return {
         ...paged,
-        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, helpers))),
+        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, info, helpers))),
       };
     };
   }
@@ -126,7 +205,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
   }
 
   if (options?.disablePublicFindOneQuery !== true && hasPublic && publicRules !== false) {
-    Query[`${uncapitalize(name)}Public`] = async (parent, args, context) => {
+    Query[`${uncapitalize(name)}Public`] = async (parent, args, context, info) => {
       return await construct(
         await helpers.findDoc({
           model: name,
@@ -138,9 +217,11 @@ function genResolvers(config: GenResolversInput, tenant: string) {
           filter: publicRules.filter,
           context,
           fullAccess: true,
+          project: createProjection(info, config),
         }),
         schemaRefs,
         context,
+        info,
         helpers
       );
     };
@@ -155,7 +236,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
      * This query is for the Pruned document type, which disallows getting
      * fields unless they are marked `public: true`.
      */
-    Query[`${pluralize(uncapitalize(name))}Public`] = async (parent, args, context) => {
+    Query[`${pluralize(uncapitalize(name))}Public`] = async (parent, args, context, info) => {
       const { docs, ...paged }: { docs: CollectionDoc[] } = await helpers.findDocs({
         model: name,
         args: { ...args, filter: { ...args.filter, ...publicRules.filter } },
@@ -164,7 +245,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
       });
       return {
         ...paged,
-        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, helpers))),
+        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, info, helpers))),
       };
     };
   }
@@ -176,7 +257,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
      * This query is for the Pruned document type, which disallows getting
      * fields unless they are marked `public: true`.
      */
-    Query[`${uncapitalize(name)}BySlugPublic`] = async (parent, args, context) => {
+    Query[`${uncapitalize(name)}BySlugPublic`] = async (parent, args, context, info) => {
       // create filter to find newest document with matching slug
       const filter =
         args.date && publicRules.slugDateField
@@ -197,10 +278,11 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         filter,
         context,
         fullAccess: true,
+        project: createProjection(info, config),
       });
 
       // return a fully constructed doc
-      return await construct(doc, schemaRefs, context, helpers);
+      return await construct(doc, schemaRefs, context, info, helpers);
     };
   }
 
@@ -353,6 +435,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
             context,
             fullAccess: true,
             lean: false,
+            project: { [mutation.action.inc[0]]: 1 },
           });
           if (doc) {
             doc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
@@ -374,7 +457,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 type ResolverType = Record<
   string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (parent: unknown, args: any, context: Context, info: any) => Promise<unknown | unknown[]>
+  (parent: unknown, args: any, context: Context, info: Info) => Promise<unknown | unknown[]>
 >;
 function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverType {
   const hasPublic = JSON.stringify(input.schemaDef).includes(`"public":true`);
@@ -410,7 +493,12 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
                *
                * The collection is considered to be the name of the type.
                */
-              [fieldName]: async (parent: { [x: string]: unknown[] }, args: never, context: Context) => {
+              [fieldName]: async (
+                parent: { [x: string]: unknown[] },
+                args: never,
+                context: Context,
+                info: Info
+              ) => {
                 const tenantDB = new TenantDB(tenant, context.config.collections);
                 await tenantDB.connect();
 
@@ -448,8 +536,22 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
                     }
                   );
 
+                // calculate a projection so we do not need to load unused fields
+                const projection = createProjection(info, input);
+                const isOnlyId = (() => {
+                  const keys = Object.keys(projection);
+                  return keys.length === 1 && keys[0] === '_id';
+                })();
+
                 // get the documents from their collection
-                return await Promise.all(fieldValue.map(async (_id) => await Model.findById(_id)));
+                const promises = fieldValue.map(async (_id) => {
+                  if (isOnlyId) return { _id }; // do not query if we only need _id
+                  return await Model.findById(_id, projection);
+                });
+
+                // wait for them to all resolve
+                const docs = await Promise.all(promises);
+                return docs;
               },
             };
           }
@@ -464,7 +566,12 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
              *
              * The collection is considered to be the name of the type.
              */
-            [fieldName]: async (parent: { [x: string]: unknown }, args: never, context: Context) => {
+            [fieldName]: async (
+              parent: { [x: string]: unknown },
+              args: never,
+              context: Context,
+              info: Info
+            ) => {
               const tenantDB = new TenantDB(tenant, context.config.collections);
               await tenantDB.connect();
 
@@ -494,8 +601,21 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
                   field: { name: fieldName, value: parent[fieldName] },
                 });
 
+              // calculate a projection so we do not need to load unused fields
+              const projection = createProjection(info, input);
+              const isOnlyId = (() => {
+                const keys = Object.keys(projection);
+                return keys.length === 1 && keys[0] === '_id';
+              })();
+
+              // do not query if we only need _id
+              if (isOnlyId) {
+                return { _id: parent[fieldName] };
+              }
+
               // get the document from its collection
-              return await Model.findById(parent[fieldName]);
+              const doc = await Model.findById(parent[fieldName]);
+              return doc;
             },
           };
         })
