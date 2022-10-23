@@ -65,10 +65,10 @@ async function createDoc<DataType>({ model, args, context, withPermissions, modi
   // if the modify function is defined:
   // modify the document, save the changes to it, and return the changed doc
   if (modify) {
-    const data = doc.toObject() as unknown as DataType;
+    const data = doc.toObject();
 
     // execute the modify function
-    await modify?.(null, data);
+    await modify?.(null, data as unknown as DataType);
 
     // attempt to patch the article
     return await Model.findByIdAndUpdate(doc._id, { $set: data }, { returnOriginal: false });
