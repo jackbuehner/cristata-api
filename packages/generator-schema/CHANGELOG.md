@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 2.1.0
+
+### Minor Changes
+
+- 768c5f0: add helper and mutation to clone a collection document
+
 ## 2.0.1
 
 ### Patch Changes
