@@ -1,5 +1,12 @@
 # Changelog
 
+## 7.3.2
+
+### Patch Changes
+
+- e7bc429: correctly apply collection configurations
+- e7bc429: do not log and store user credentials when sign in attempt fails
+
 ## 7.3.1
 
 ### Patch Changes
