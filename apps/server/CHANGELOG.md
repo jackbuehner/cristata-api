@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.2.1
+
+### Patch Changes
+
+- 1a91596: include User schema in hocuspocus server
+
 ## 7.2.0
 
 ### Minor Changes

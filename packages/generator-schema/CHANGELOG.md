@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 2.0.1
+
+### Patch Changes
+
+- 1a91596: include User schema in hocuspocus server
+
 ## 2.0.0
 
 ### Major Changes
