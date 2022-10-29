@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.0.2
+
+### Patch Changes
+
+- 1a91596: include User schema in hocuspocus server
+
 ## 1.0.1
 
 ### Patch Changes
