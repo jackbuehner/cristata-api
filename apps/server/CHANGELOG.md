@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.3.0
+
+### Minor Changes
+
+- 768c5f0: add helper and mutation to clone a collection document
+
 ## 7.2.1
 
 ### Patch Changes
