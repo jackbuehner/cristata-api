@@ -1,5 +1,23 @@
 # Changelog
 
+## 7.3.1
+
+### Patch Changes
+
+- 41d6744: correctly apply collection configurations
+
+## 7.3.0
+
+### Minor Changes
+
+- 768c5f0: add helper and mutation to clone a collection document
+
+## 7.2.1
+
+### Patch Changes
+
+- 1a91596: include User schema in hocuspocus server
+
 ## 7.2.0
 
 ### Minor Changes
