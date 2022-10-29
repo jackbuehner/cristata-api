@@ -15,6 +15,7 @@ import { findDoc } from './findDoc';
 import { canDo } from './canDo';
 import { deleteDoc } from './deleteDoc';
 import { findDocs } from './findDocs';
+import { cloneDoc } from './cloneDoc';
 import { genSchema } from '@jackbuehner/cristata-generator-schema';
 import { requireAuthentication } from './requireAuthentication';
 import { getCollectionActionAccess } from './getCollectionActionAccess';
@@ -35,6 +36,7 @@ const helpers = {
   canDo,
   deleteDoc,
   findDocs,
+  cloneDoc,
   requireAuthentication,
   getCollectionActionAccess,
   publishDoc,
@@ -63,6 +65,7 @@ export { findDoc };
 export { canDo };
 export { deleteDoc };
 export { findDocs };
+export { cloneDoc };
 export { requireAuthentication };
 export { getCollectionActionAccess };
 export { publishDoc };
