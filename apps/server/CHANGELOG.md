@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.3.1
+
+### Patch Changes
+
+- 41d6744: correctly apply collection configurations
+
 ## 7.3.0
 
 ### Minor Changes
