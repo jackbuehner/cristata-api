@@ -10,6 +10,7 @@ const json = new GraphQLScalarType({
   parseValue(value) {
     const parsed = JSON.parse(value);
     if (parsed.skipAdditionalParsing === true) {
+      delete parsed.skipAdditionalParsing;
       return parsed;
     }
     return converObjIsoDatesToDates(convertStringsToObjIds(parsed));
