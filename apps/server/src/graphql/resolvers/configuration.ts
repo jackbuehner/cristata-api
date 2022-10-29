@@ -10,7 +10,7 @@ import {
   ReturnedSubNavGroup,
   SubNavGroup,
 } from '../../types/config';
-import { constructCollections, convertCollectionToCollectionInput } from '../../utils/constructCollections';
+import { collectionsAsCollectionInputs, constructCollections } from '../../utils/constructCollections';
 import helpers, { requireAuthentication } from '../helpers';
 import { GenCollectionInput } from '../helpers/generators/genCollection';
 import { Context } from '../server';
@@ -103,28 +103,32 @@ const configuration = {
         };
       }
 
+      // create a backup of the existing config
+      const backup: Configuration<Collection> = JSON.parse(JSON.stringify(context.config));
+
       // construct the new config
-      const backup: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(context.config));
-      const copy: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(backup));
+      const collectionFromRaw = helpers.generators.genCollection(raw, context.tenant);
+      const copy: Configuration<Collection> = JSON.parse(JSON.stringify(backup));
       const colIndex = copy.collections.findIndex((col) => col.name === name);
-      if (colIndex === -1) copy.collections.push(raw);
-      else copy.collections[colIndex] = raw;
+      if (colIndex === -1) copy.collections.push(collectionFromRaw);
+      else copy.collections[colIndex] = collectionFromRaw;
 
       // update the config in the cristata instance
-      copy.collections.forEach((col) => convertCollectionToCollectionInput(col));
       context.cristata.config[context.tenant] = {
         ...copy,
-        collections: constructCollections(copy.collections, context.tenant),
+        collections: constructCollections(copy.collections.map(collectionsAsCollectionInputs), context.tenant),
       };
       const ret = await context.restartApollo();
 
       // something went wrong
       if (ret instanceof Error) {
         // restore the old config
-        backup.collections.forEach((col) => convertCollectionToCollectionInput(col));
         context.cristata.config[context.tenant] = {
           ...backup,
-          collections: constructCollections(backup.collections, context.tenant),
+          collections: constructCollections(
+            backup.collections.map(collectionsAsCollectionInputs),
+            context.tenant
+          ),
         };
 
         // throw the error

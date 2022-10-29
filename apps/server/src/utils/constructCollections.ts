@@ -41,17 +41,8 @@ function isCollection(toCheck: Collection | GenCollectionInput): toCheck is Coll
  * This is needed if a deep copy of a collection is made because a deep copy will
  * not retain the function references inside the `collection.resolvers` object.
  */
-function convertCollectionToCollectionInput(col: Collection | GenCollectionInput): void {
-  if (isCollection(col)) {
-    //@ts-expect-error deleting thse coverts the type from Collection to GenCollectionInput
-    delete col.resolvers;
-    //@ts-expect-error deleting thse coverts the type from Collection to GenCollectionInput
-    delete col.typeDefs;
-    //@ts-expect-error deleting thse coverts the type from Collection to GenCollectionInput
-    delete col.schemaFields;
-    //@ts-expect-error deleting thse coverts the type from Collection to GenCollectionInput
-    delete col.textIndexFieldNames;
-  }
+function collectionsAsCollectionInputs(value: Collection) {
+  return value.raw;
 }
 
-export { constructCollections, convertCollectionToCollectionInput };
+export { constructCollections, collectionsAsCollectionInputs };
