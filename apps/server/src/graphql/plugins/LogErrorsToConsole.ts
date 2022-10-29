@@ -12,6 +12,9 @@ function LogErrorsToConsole() {
     async requestDidStart(): Promise<GraphQLRequestListener | void> {
       return {
         async didEncounterErrors(requestContext: GraphQLRequestContext) {
+          const isSilentOperation = requestContext.operationName?.indexOf('__Silent_') === 0;
+          if (isSilentOperation) return;
+
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { http, ...prunedRequest } = requestContext.request;
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
