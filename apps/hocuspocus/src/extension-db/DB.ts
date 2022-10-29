@@ -1,4 +1,5 @@
 import { defaultSchemaDefTypes, GenSchemaInput, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
+import userCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/User';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
@@ -82,6 +83,15 @@ export class DB {
   }
 
   async collectionSchema(tenant: string, collectionName: string): Promise<SchemaDefType> {
+    if (collectionName === 'User') {
+      return merge<SchemaDefType, SchemaDefType[]>(
+        userCollection?.schemaDef || {},
+        defaultSchemaDefTypes.standard,
+        userCollection?.canPublish ? defaultSchemaDefTypes.publishable : {},
+        userCollection?.withPermissions ? defaultSchemaDefTypes.withPermissions : {}
+      );
+    }
+
     const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
     const tenantConfig = await tenantsCollection.findOne(
       { name: tenant },
