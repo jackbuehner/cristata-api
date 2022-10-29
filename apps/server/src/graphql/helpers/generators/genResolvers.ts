@@ -337,6 +337,23 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         withPermissions: config.withPermissions,
       });
     };
+
+    Mutation[`${uncapitalize(name)}Clone`] = async (parent, args, context) => {
+      // check input rules
+      Object.keys(flattenObject(args)).forEach((key) => {
+        const inputRule: SchemaDef['rule'] = getProperty(config.schemaDef, key)?.rule;
+        if (inputRule) {
+          const match = getProperty(args, key)?.match(
+            new RegExp(inputRule.regexp.pattern, inputRule.regexp.flags)
+          );
+          if (match === null || match === undefined) throw new UserInputError(inputRule.message);
+        }
+      });
+
+      const accessor = { key: oneAccessorName, value: args[oneAccessorName] };
+
+      return await helpers.cloneDoc({ model: name, accessor, context });
+    };
   }
 
   if (options?.disableModifyMutation !== true) {

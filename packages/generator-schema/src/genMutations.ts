@@ -57,6 +57,14 @@ function genMutations(args: GenMutationsParams) {
                 ? args.modifyMutationInputTypeName
                 : `${args.typeName}ModifyInput!`
             }): ${args.typeName}
+              """
+              Clone an existing ${args.typeName} document.
+        
+              Certain fields are removed from the document (_id, slug, and any that start with __)
+              """
+              ${uncapitalize(args.typeName)}Clone(${args.accessor.one.name}: ${args.accessor.one.typeName}): ${
+              args.typeName
+            }
             `
           : ``
       }
