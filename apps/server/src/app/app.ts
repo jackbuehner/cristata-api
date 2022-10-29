@@ -123,7 +123,7 @@ function createExpressApp(cristata: Cristata): Application {
       path: '/',
       sameSite: process.env.NODE_ENV === 'production' || !process.env.GITPOD_WORKSPACE_URL ? 'strict' : 'none',
       secure: process.env.NODE_ENV === 'production' || !!process.env.GITPOD_WORKSPACE_URL,
-      domain: '.cristata.app',
+      domain: process.env.NODE_ENV === 'production' ? '.cristata.app' : undefined,
     })
   );
 
