@@ -2,18 +2,21 @@ import { storePayload } from '@hocuspocus/server';
 import { conditionallyModifyDocField, deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { hasKey } from '@jackbuehner/cristata-utils';
 import { addToY, getFromY } from '@jackbuehner/cristata-ydoc-utils';
+import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import * as Y from 'yjs';
-import { AwarenessUser, isAwarenessUser, reduceDays, uint8ToBase64 } from '../utils';
+import { AwarenessUser, isAwarenessUser, parseName, reduceDays, uint8ToBase64 } from '../utils';
 import { CollectionDoc, DB } from './DB';
 import { sendStageUpdateEmails } from './sendStageUpdateEmails';
 import { TenantModel } from './TenantModel';
-import { merge } from 'merge-anything';
 
 export function store(tenantDb: DB) {
   return async ({ document: ydoc, documentName, context, requestParameters }: storePayload): Promise<void> => {
-    const [tenant, collectionName, itemId] = documentName.split('.');
+    const { tenant, collectionName, itemId, version } = parseName(documentName);
+
+    // skip saving if an old version was opened because old versions cannot be edited
+    if (version) return;
 
     // store that this connected client has modified something
     // (used to set history once the client disconnected)

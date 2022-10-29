@@ -2,6 +2,7 @@ import { onLoadDocumentPayload } from '@hocuspocus/server';
 import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
+import { parseName } from '../utils';
 import { DB } from './DB';
 import { TenantModel } from './TenantModel';
 
@@ -10,7 +11,10 @@ export async function updateReferenceValues(
   documentName: onLoadDocumentPayload['documentName'],
   ydoc: onLoadDocumentPayload['document']
 ) {
-  const [tenant, collectionName, itemId] = documentName.split('.');
+  const { tenant, collectionName, itemId, version } = parseName(documentName);
+
+  // do not modify doc if it is an old version
+  if (version) return;
 
   // get the collection
   const collection = tenantDb.collection(tenant, collectionName);
