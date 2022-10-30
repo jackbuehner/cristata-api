@@ -145,6 +145,16 @@ async function saveSnapshot(
     { state, timestamp, users },
   ];
 
+  // create shared type with list of versions
+  const versionsList = ydoc.getArray('__internal_versionsList');
+  ydoc.transact(() => {
+    versionsList.delete(0, versionsList.length);
+    versionsList.insert(
+      0,
+      versions.map(({ timestamp, users }) => ({ timestamp: timestamp.toISOString(), users }))
+    );
+  });
+
   // save versions/snapshots
   const updateResult = collection.updateOne(
     { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
