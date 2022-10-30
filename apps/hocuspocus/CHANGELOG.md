@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.1.0
+
+### Minor Changes
+
+- 73dc330: track list of versions in yjs shared type and fix timestamps of versions
+
 ## 1.0.2
 
 ### Patch Changes
