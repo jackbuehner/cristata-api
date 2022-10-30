@@ -2,18 +2,21 @@ import { storePayload } from '@hocuspocus/server';
 import { conditionallyModifyDocField, deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { hasKey } from '@jackbuehner/cristata-utils';
 import { addToY, getFromY } from '@jackbuehner/cristata-ydoc-utils';
+import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import * as Y from 'yjs';
-import { AwarenessUser, isAwarenessUser, reduceDays, uint8ToBase64 } from '../utils';
+import { AwarenessUser, isAwarenessUser, parseName, reduceDays, uint8ToBase64 } from '../utils';
 import { CollectionDoc, DB } from './DB';
 import { sendStageUpdateEmails } from './sendStageUpdateEmails';
 import { TenantModel } from './TenantModel';
-import { merge } from 'merge-anything';
 
 export function store(tenantDb: DB) {
   return async ({ document: ydoc, documentName, context, requestParameters }: storePayload): Promise<void> => {
-    const [tenant, collectionName, itemId] = documentName.split('.');
+    const { tenant, collectionName, itemId, version } = parseName(documentName);
+
+    // skip saving if an old version was opened because old versions cannot be edited
+    if (version) return;
 
     // store that this connected client has modified something
     // (used to set history once the client disconnected)
@@ -88,7 +91,7 @@ export function store(tenantDb: DB) {
     const options = await tenantDb.collectionOptions(tenant, collectionName);
 
     // save versions asynchronously
-    saveSnapshot(documentName, ydoc, collection, by);
+    saveSnapshot(documentName, ydoc, collection, by, new Date());
 
     // send stage update emails
     if (hasKey('stage', partialDbDoc) && typeof partialDbDoc.stage === 'number') {
@@ -113,9 +116,12 @@ async function saveSnapshot(
   documentName: storePayload['documentName'],
   ydoc: storePayload['document'],
   collection: mongodb.Collection<CollectionDoc>,
-  by: Awaited<ReturnType<DB['collectionAccessor']>>
+  by: Awaited<ReturnType<DB['collectionAccessor']>>,
+  timestamp: Date
 ): Promise<mongodb.UpdateResult> {
   const [, , itemId] = documentName.split('.');
+
+  const state = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
 
   // get database document
   const dbDoc = await collection.findOne(
@@ -130,16 +136,24 @@ async function saveSnapshot(
     }
   );
 
+  const users = awarenessValues.map((value) => value.user);
+
   // create a snapshot of this point
   const versions = [
     // reduce versions from previous days to single version
     ...reduceDays(dbDoc?.__yVersions, 3), // must be at least 3 days old
-    {
-      state: uint8ToBase64(Y.encodeStateAsUpdate(ydoc)),
-      timestamp: new Date(),
-      users: awarenessValues.map((value) => value.user),
-    },
+    { state, timestamp, users },
   ];
+
+  // create shared type with list of versions
+  const versionsList = ydoc.getArray('__internal_versionsList');
+  ydoc.transact(() => {
+    versionsList.delete(0, versionsList.length);
+    versionsList.insert(
+      0,
+      versions.map(({ timestamp, users }) => ({ timestamp: timestamp.toISOString(), users }))
+    );
+  });
 
   // save versions/snapshots
   const updateResult = collection.updateOne(
