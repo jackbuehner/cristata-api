@@ -11,7 +11,7 @@ export function reduceDays(
 
   // put all versions from the same day in the same array
   versions?.forEach((version) => {
-    const date = version.timestamp || new Date('2020-06-04');
+    const date = new Date(version.timestamp) || new Date('2020-06-04');
     date.setUTCHours(0, 0, 0, 0);
     const day = date.toISOString().substring(0, 10);
 
