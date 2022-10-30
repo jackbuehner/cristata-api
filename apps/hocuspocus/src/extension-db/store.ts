@@ -91,7 +91,7 @@ export function store(tenantDb: DB) {
     const options = await tenantDb.collectionOptions(tenant, collectionName);
 
     // save versions asynchronously
-    saveSnapshot(documentName, ydoc, collection, by);
+    saveSnapshot(documentName, ydoc, collection, by, new Date());
 
     // send stage update emails
     if (hasKey('stage', partialDbDoc) && typeof partialDbDoc.stage === 'number') {
@@ -116,9 +116,12 @@ async function saveSnapshot(
   documentName: storePayload['documentName'],
   ydoc: storePayload['document'],
   collection: mongodb.Collection<CollectionDoc>,
-  by: Awaited<ReturnType<DB['collectionAccessor']>>
+  by: Awaited<ReturnType<DB['collectionAccessor']>>,
+  timestamp: Date
 ): Promise<mongodb.UpdateResult> {
   const [, , itemId] = documentName.split('.');
+
+  const state = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
 
   // get database document
   const dbDoc = await collection.findOne(
@@ -133,15 +136,13 @@ async function saveSnapshot(
     }
   );
 
+  const users = awarenessValues.map((value) => value.user);
+
   // create a snapshot of this point
   const versions = [
     // reduce versions from previous days to single version
     ...reduceDays(dbDoc?.__yVersions, 3), // must be at least 3 days old
-    {
-      state: uint8ToBase64(Y.encodeStateAsUpdate(ydoc)),
-      timestamp: new Date(),
-      users: awarenessValues.map((value) => value.user),
-    },
+    { state, timestamp, users },
   ];
 
   // save versions/snapshots
