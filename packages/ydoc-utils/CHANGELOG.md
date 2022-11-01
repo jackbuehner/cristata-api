@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-ydoc-utils
 
+## 3.0.1
+
+### Patch Changes
+
+- bad6e9f: chore: fix release script to build packages
+
 ## 3.0.0
 
 ### Major Changes

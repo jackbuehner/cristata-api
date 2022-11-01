@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 2.2.1
+
+### Patch Changes
+
+- bad6e9f: chore: fix release script to build packages
+
 ## 2.2.0
 
 ### Minor Changes

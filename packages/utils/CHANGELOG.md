@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-utils
 
+## 2.0.1
+
+### Patch Changes
+
+- bad6e9f: chore: fix release script to build packages
+
 ## 2.0.0
 
 ### Major Changes
