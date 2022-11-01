@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.1.1
+
+### Patch Changes
+
+- bad6e9f: chore: fix release script to build packages
+
 ## 1.1.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.3.3
+
+### Patch Changes
+
+- bad6e9f: chore: fix release script to build packages
+
 ## 7.3.2
 
 ### Patch Changes
