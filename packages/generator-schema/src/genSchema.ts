@@ -439,9 +439,12 @@ interface FieldDef {
    */
   options?: StringOption[] | NumberOption[];
   /**
-   * Hide this field
+   * Hide this field.
+   *
+   * To only show the field in the publish modal, use `'publish-only'`.\
+   * To completely hide the field, use `false`.
    */
-  hidden?: boolean;
+  hidden?: boolean | 'publish-only';
   /**
    * Configure this field as a reference to another collection.
    */
