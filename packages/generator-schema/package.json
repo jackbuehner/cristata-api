@@ -1,6 +1,6 @@
 {
   "name": "@jackbuehner/cristata-generator-schema",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "author": "Jack Buehner",
   "license": "ISC",
   "main": "dist/index",

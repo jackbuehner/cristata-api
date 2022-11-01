@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 2.2.0
+
+### Minor Changes
+
+- 5eaad7e: support specifying that a field should only appear in the publish modal
+
 ## 2.1.0
 
 ### Minor Changes
