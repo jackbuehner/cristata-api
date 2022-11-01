@@ -2,7 +2,7 @@ import aws from 'aws-sdk';
 import dotenv from 'dotenv';
 
 // load environmental variables
-dotenv.config();
+if (typeof window === 'undefined') dotenv.config();
 
 // set the region to us-east
 aws.config.update({
