@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-utils
 
+## 2.0.2
+
+### Patch Changes
+
+- cf5a0e6: fix: do not run dotenv if in browser
+
 ## 2.0.1
 
 ### Patch Changes
