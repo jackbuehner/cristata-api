@@ -10,7 +10,7 @@ import { TenantDB } from '../../mongodb/TenantDB';
  */
 const router = Router();
 
-router.get('/user-photo/:user_id', async (req, res) => {
+router.get('/:tenant/user-photo/:user_id', async (req, res) => {
   try {
     // connect to database
     const tenantDB = new TenantDB((req.user as IDeserializedUser).tenant);
@@ -24,7 +24,14 @@ router.get('/user-photo/:user_id', async (req, res) => {
     const user_id = req.params.user_id === 'me' ? authUser._id : req.params.user_id;
 
     // get the user
-    const user = await User?.findById(user_id);
+    const user = await User?.findById(user_id, { _id: 1, photo: 1 });
+
+    // set the header for the phooto type
+    if (user?.photo) {
+      const type = mime.lookup(user.photo);
+      const charset = mime.charsets.lookup(user.photo, 'UTF-8');
+      res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
+    }
 
     // tell clients to cache profile photos for 5 minutes
     res.set('Cache-control', 'public, max-age=300');
