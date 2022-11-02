@@ -34,6 +34,9 @@ class Authenticate implements Extension {
   }: onConnectPayload): Promise<void> {
     const [tenant, collectionName, itemId] = documentName.split('.');
 
+    // throw if connection to database is not ready
+    if (tenantDb.readyState !== 1) throw 'not ready';
+
     // always start off as unauthenticated
     connection.requiresAuthentication = true;
     connection.isAuthenticated = false;

@@ -1,4 +1,5 @@
 import { FloatKit } from '@jackbuehner/cristata-tiptap';
+import { hasKey } from '@jackbuehner/cristata-utils';
 import { JSDOM } from 'jsdom';
 import * as Y from 'yjs';
 import { setTipTapXMLFragment } from './setTipTapXMLFragment';
@@ -58,14 +59,35 @@ class YFloat<K extends string, V extends number | undefined | null> {
   }
 
   get(key: K, isArray: false): number;
-  get(key: K, isArray: true): Option<number>[];
-  get(key: K, isArray: boolean): number | Option<number>[] {
+  get(key: K, isArray: true, options?: Option<string | number>[]): Option<number>[];
+  get(key: K, isArray: boolean, options?: Option<string | number>[]): number | Option<number>[] {
     if (isArray) {
-      return this.#ydoc
-        .getArray<Option<string | number>>(key)
-        .toArray()
+      const found = this.#ydoc.getArray<Option<number> | Y.XmlElement>(key).toArray();
+
+      const resolved = found.map((value): Option<string | number> | undefined | null => {
+        // existing option
+        if (hasKey('value', value) && hasKey('label', value)) {
+          return value;
+        }
+
+        // YXMLFragment
+        const textContent = value.toDOM(document).textContent;
+        if (textContent) {
+          if (options)
+            return options
+              .filter((opt): opt is Option<number> => typeof opt.value === 'number')
+              .find((opt) => opt.value === parseFloat(textContent));
+          return { value: parseFloat(textContent), label: `${parseFloat(textContent)}` };
+        }
+
+        return undefined;
+      });
+
+      return resolved
+        .filter((elem): elem is Option<string | number> => !!elem)
         .map(({ value, ...rest }) => ({ value: parseFloat(`${value}`), ...rest }));
     }
+
     return parseFloat(this.#ydoc.getXmlFragment(key).toDOM(document).textContent || '');
   }
 
