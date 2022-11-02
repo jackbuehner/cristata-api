@@ -3,6 +3,8 @@ import { IUser } from '../../mongodb/users';
 import { IDeserializedUser } from '../passport';
 import https from 'https';
 import { TenantDB } from '../../mongodb/TenantDB';
+import mime from 'mime';
+import ColorHash from 'color-hash';
 
 /**
  * Router for root endpoints for the v3 API.
@@ -31,6 +33,8 @@ router.get('/:tenant/user-photo/:user_id', async (req, res) => {
       const type = mime.lookup(user.photo);
       const charset = mime.charsets.lookup(user.photo, 'UTF-8');
       res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
+    } else {
+      res.setHeader('Content-Type', 'image/svg+xml');
     }
 
     // tell clients to cache profile photos for 5 minutes
@@ -39,6 +43,28 @@ router.get('/:tenant/user-photo/:user_id', async (req, res) => {
     // pipe the request to the user photo url
     if (user?.photo) {
       const externalReq = https.request(user.photo, (externalRes) => {
+        externalRes.pipe(res);
+      });
+      externalReq.end();
+    } else if (user) {
+      const size = (req.query as unknown as URLSearchParams).get('size') || '120';
+
+      const avatar = new URL(`https://source.boringavatars.com/beam/${size}/62fd3aef937c1ea557370d33`);
+      avatar.searchParams.set('square', '');
+
+      // @ts-expect-error 'bkdr' is a vlid hash config value
+      const colorHash = new ColorHash({ saturation: 0.6, lightness: 0.7, hash: 'bkdr' }); // note that this config is different than the one that picks the user accent color
+
+      const id = user._id.toHexString();
+      const colors = [
+        colorHash.hex(user._id),
+        colorHash.hex(id.substr(4, id.length / 2)),
+        colorHash.hex(id.substr(id.length / 2, id.length)),
+        colorHash.hex(id.split('').reverse().join('')),
+      ];
+      avatar.searchParams.set('colors', colors.toString().replace(/#/g, ''));
+
+      const externalReq = https.request(avatar.toString(), (externalRes) => {
         externalRes.pipe(res);
       });
       externalReq.end();
