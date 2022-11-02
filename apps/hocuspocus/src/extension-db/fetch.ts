@@ -9,6 +9,9 @@ export function fetch(tenantDb: DB) {
   return async ({ documentName, context }: fetchPayload): Promise<Uint8Array | null> => {
     const { tenant, collectionName, version } = parseName(documentName);
 
+    // throw if connection to database is not ready
+    if (tenantDb.readyState !== 1) throw 'not ready';
+
     // get the collection
     const collection = tenantDb.collection(tenant, collectionName);
     if (!collection) {

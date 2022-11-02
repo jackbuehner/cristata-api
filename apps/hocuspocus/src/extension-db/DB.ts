@@ -55,6 +55,10 @@ export class DB {
     this.connect(c);
   }
 
+  get readyState() {
+    return mongoose.connection.readyState;
+  }
+
   async connect({ username, password, host, options }: ConnectionDetails) {
     if (!options) options = `retryWrites=true&w=majority`;
 
