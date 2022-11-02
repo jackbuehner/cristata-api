@@ -121,14 +121,6 @@ async function saveSnapshot(
 ): Promise<mongodb.UpdateResult> {
   const [, , itemId] = documentName.split('.');
 
-  const state = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
-
-  // get database document
-  const dbDoc = await collection.findOne(
-    { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-    { projection: { __yVersions: 1 } }
-  );
-
   // get awareness values and filter out unexpected values
   const awarenessValues = Array.from(ydoc.awareness.getStates().values()).filter(
     (value): value is AwarenessUser => {
@@ -137,6 +129,14 @@ async function saveSnapshot(
   );
 
   const users = awarenessValues.map((value) => value.user);
+
+  const state = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
+
+  // get database document
+  const dbDoc = await collection.findOne(
+    { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+    { projection: { __yVersions: 1 } }
+  );
 
   // create a snapshot of this point
   const versions = [
