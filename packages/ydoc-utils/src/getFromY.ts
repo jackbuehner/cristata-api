@@ -173,7 +173,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
 
         if (isArray || !!options || !!reference) {
           // get the value
-          let toSet = float.get(key, true).map(({ value }) => value);
+          let toSet = float.get(key, true, options).map(({ value }) => value);
 
           // set default value
           if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
@@ -226,7 +226,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
 
         if (isArray || !!options || !!reference) {
           // get the value
-          let toSet = integer.get(key, true).map(({ value }) => value);
+          let toSet = integer.get(key, true, options).map(({ value }) => value);
 
           // set default value
           if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
@@ -271,7 +271,9 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
         // options/array
         if (isArray || options || reference) {
           // get the value
-          let toSet = (await string.get(key, true, false, false)).map(({ value }) => `${value}`);
+          let toSet = (await string.get(key, true, false, false, options)).map(({ value }) =>
+            value ? `${value}` : ''
+          );
 
           // set default value
           if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {

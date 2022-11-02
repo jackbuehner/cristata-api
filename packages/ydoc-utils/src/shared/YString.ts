@@ -1,4 +1,5 @@
 import { RichKit, StringKit } from '@jackbuehner/cristata-tiptap';
+import { hasKey } from '@jackbuehner/cristata-utils';
 import { JSDOM } from 'jsdom';
 import * as Y from 'yjs';
 import { getTipTapEditorJson } from './getTipTapEditorJson';
@@ -81,9 +82,42 @@ class YString<K extends string, V extends string | undefined | null> {
   }
 
   async get(key: K, isArray: false, isRichText: boolean, isCode: boolean): Promise<string>;
-  async get(key: K, isArray: true, isRichText: false, isCode: false): Promise<Option[]>;
-  async get(key: K, isArray: boolean, isRichText: boolean, isCode: boolean): Promise<string | Option[]> {
-    if (isArray) return this.#ydoc.getArray<Option>(key).toArray();
+  async get(key: K, isArray: true, isRichText: false, isCode: false, options?: Option[]): Promise<Option[]>;
+  async get(
+    key: K,
+    isArray: boolean,
+    isRichText: boolean,
+    isCode: boolean,
+    options?: Option[]
+  ): Promise<string | Option[]> {
+    if (isArray) {
+      const found = this.#ydoc.getArray<Option | string | Y.XmlElement>(key).toArray();
+
+      const resolved = found.map((value): Option | undefined | null => {
+        // plain string
+        if (typeof value === 'string') {
+          if (options) return options.find((opt) => opt.value === value);
+          return { value, label: value };
+        }
+
+        // existing option
+        if (hasKey('value', value) && hasKey('label', value)) {
+          return value;
+        }
+
+        // YXMLFragment
+        const textContent = value.toDOM(document).textContent;
+        if (textContent) {
+          if (options) return options.find((opt) => opt.value === textContent);
+          return { value: textContent, label: textContent };
+        }
+
+        return undefined;
+      });
+
+      return resolved.filter((elem): elem is Option => !!elem);
+    }
+
     if (isRichText) return await getTipTapEditorJson(key, this.#ydoc);
     if (isCode) return this.#ydoc.getText(key).toJSON();
     return this.#ydoc.getXmlFragment(key).toDOM(document).textContent || '';
