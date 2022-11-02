@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.1.2
+
+### Patch Changes
+
+- ed41db2: throw error when database connection is not established in order to prevent errors with `mongoose.connection.db` not being defined
+
 ## 1.1.1
 
 ### Patch Changes
