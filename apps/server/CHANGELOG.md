@@ -1,5 +1,15 @@
 # Changelog
 
+## 7.4.0
+
+### Minor Changes
+
+- d3dc240: fall back to automatically generated user photo from boringavatars.com when no user photo found in database
+
+### Patch Changes
+
+- d3dc240: fix path and response content-type header for user photo route
+
 ## 7.3.3
 
 ### Patch Changes
