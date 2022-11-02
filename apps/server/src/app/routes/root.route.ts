@@ -47,7 +47,7 @@ router.get('/:tenant/user-photo/:user_id', async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(400).json(error);
+    res.status(404).end();
   }
 });
 
