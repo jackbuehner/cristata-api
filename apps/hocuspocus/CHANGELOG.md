@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.1.3
+
+### Patch Changes
+
+- 327348b: get users from awareness before waiting for database doc
+
 ## 1.1.2
 
 ### Patch Changes
