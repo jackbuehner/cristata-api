@@ -94,6 +94,40 @@ class TenantDB {
 
     return Model as mongoose.Model<T>;
   }
+
+  async createDefaultUsers() {
+    // connect to the databse
+    const connection = await this.connect();
+
+    // create the model based on the schema
+    const User = connection.model('User');
+
+    // create the unknown user if it does not exist
+    const unknownUserExists = !!(await User.findOne({ name: 'Unknown', slug: 'unknown-user-internal' }));
+    if (!unknownUserExists) {
+      const newUser = new User({
+        _id: new mongoose.Types.ObjectId('000000000000000000000000'),
+        name: 'Unknown',
+        slug: 'unknown-user-internal',
+        hidden: true,
+        locked: true,
+      });
+      await newUser.save();
+    }
+
+    // create the deleted user if it does not exist
+    const deletedUserExists = !!(await User.findOne({ name: 'Deleted', slug: 'deleted-user-internal' }));
+    if (!deletedUserExists) {
+      const newUser = new User({
+        _id: new mongoose.Types.ObjectId('000000000000000000000001'),
+        name: 'Deleted',
+        slug: 'deleted-user-internal',
+        hidden: true,
+        locked: true,
+      });
+      await newUser.save();
+    }
+  }
 }
 
 interface TenantDBOptions {
