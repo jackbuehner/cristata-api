@@ -563,7 +563,14 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
                 // get the documents from their collection
                 const promises = fieldValue.map(async (_id) => {
                   if (isOnlyId) return { _id }; // do not query if we only need _id
-                  return await Model.findById(_id, projection);
+
+                  let doc = await Model.findById(_id, projection);
+
+                  if (modelName === 'User' && !doc) {
+                    doc = await Model.findById('000000000000000000000001', projection);
+                  }
+
+                  return doc;
                 });
 
                 // wait for them to all resolve
@@ -631,7 +638,12 @@ function genCustomResolvers(input: GenResolversInput, tenant: string): ResolverT
               }
 
               // get the document from its collection
-              const doc = await Model.findById(parent[fieldName]);
+              let doc = await Model.findById(parent[fieldName], projection);
+
+              if (modelName === 'User' && !doc) {
+                doc = await Model.findById('000000000000000000000001', projection);
+              }
+
               return doc;
             },
           };
