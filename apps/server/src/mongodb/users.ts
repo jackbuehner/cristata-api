@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { deconstructSchema, isTypeTuple } from '@jackbuehner/cristata-generator-schema';
 import userCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/User';
-import { getPasswordStatus, sendEmail, slugify } from '@jackbuehner/cristata-utils';
+import { getPasswordStatus, notEmpty, sendEmail, slugify } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
@@ -44,6 +45,18 @@ const users = (tenant: string): Collection => {
       methods: [String]!
       doc: PrunedUser
     }
+
+    type UserReference {
+      _id: String!
+      count: Int!
+      docs: [UserReferenceDoc!]!
+    }
+
+    type UserReferenceDoc {
+      _id: ObjectID!
+      name: String
+      url: String
+    }
   
     type Query {
       """
@@ -62,6 +75,11 @@ const users = (tenant: string): Collection => {
       Returns the sign-on methods for the username.
       """
       userMethods(username: String!): [String]!
+
+      """
+      Returns a list of documents in collections that reference this user
+      """
+      userReferences(_id: ObjectID, collections: [String!], exclude: [String!]): [UserReference!]!
     }
   
     type Mutation {
@@ -123,6 +141,18 @@ const users = (tenant: string): Collection => {
           ((await findDoc({ ...findArgs, by: 'username' })) as unknown as IUser | undefined) ||
           ((await findDoc({ ...findArgs, by: 'slug' })) as unknown as IUser | undefined);
         return user?.methods || [];
+      },
+
+      userReferences: async (
+        _: never,
+        {
+          _id,
+          collections,
+          exclude,
+        }: { _id: mongoose.Types.ObjectId; collections?: string[]; exclude?: string[] },
+        context: Context
+      ) => {
+        return await getUserReferences({ _id, collections, exclude, context });
       },
     },
     Mutation: {
@@ -372,6 +402,142 @@ async function setTemporaryPassword<
   }
 
   return user;
+}
+
+/**
+ * Gets a list of doc _ids in each collection where the user
+ * with the provided _id is referenced.
+ *
+ * Use this function to determine if a user can be deleted without
+ * damaging existing references.
+ */
+async function getUserReferences({
+  _id,
+  collections,
+  exclude,
+  context,
+}: {
+  _id: mongoose.Types.ObjectId;
+  collections?: string[];
+  exclude?: string[];
+  context: Context;
+}) {
+  let collectionNames = context.config.collections.map((col) => col.name);
+  if (collections) collectionNames = collectionNames.filter((name) => collections.includes(name));
+  else if (exclude) collectionNames = collectionNames.filter((name) => !exclude.includes(name));
+
+  const collectionNamesPluralized = collectionNames
+    .map((name) => mongoose.pluralize()?.(name))
+    .filter(notEmpty);
+
+  const tenantDB = new TenantDB(context.tenant, context.config.collections);
+  await tenantDB.connect();
+  const Model = await tenantDB.model(collectionNames[0]);
+
+  const peopleFields = ([] as string[]).concat(
+    ...collectionNames.map((name): string[] => {
+      const collection = context.config.collections.find((col) => col.name === name);
+      const deconstructedSchema = deconstructSchema(collection?.schemaDef || {});
+
+      // return an array of keys that are reference fields to User
+      return deconstructedSchema
+        .filter(([, def]) => {
+          return isTypeTuple(def.type) && def.type[0].includes('User');
+        })
+        .map(([key]) => key);
+    })
+  );
+
+  const pipeline: mongoose.PipelineStage[] = [
+    { $addFields: { collection: collectionNamesPluralized[0] } },
+    ...collectionNamesPluralized.map((collectionName) => ({
+      $unionWith: {
+        coll: collectionName,
+        pipeline: [{ $addFields: { collection: collectionName } }],
+      },
+    })),
+    {
+      $match: {
+        $or: [
+          { 'people.created_by': _id },
+          { 'people.last_modified_by': _id },
+          { 'people.modified_by': _id },
+          { 'people.watching': _id },
+          { 'people.published_by': _id },
+          ...peopleFields.map((fieldName) => {
+            return { [fieldName]: _id };
+          }),
+        ],
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        collection: 1,
+        // use empty array if field does not exist
+        'permissions.users': {
+          $ifNull: ['$permissions.users', '$permissions.users', [context.profile?._id]],
+        }, // put _id inside to doc will appear for this user (missing permissions object means there are no permissions)
+        'permissions.teams': { $ifNull: ['$permissions.teams', '$permissions.teams', []] },
+      },
+    },
+    {
+      $group: {
+        _id: '$collection' as any,
+        count: {
+          $sum: 1,
+        },
+        docs: {
+          $push: context.profile?.teams.includes('000000000000000000000001')
+            ? {
+                _id: '$_id',
+                name: '$name',
+                url: {
+                  $concat: [
+                    'https://cristata.app/',
+                    context.tenant,
+                    '/cms/collection/',
+                    '$collection',
+                    '/',
+                    { $toString: '$_id' },
+                  ],
+                },
+              }
+            : {
+                $cond: [
+                  {
+                    $or: [
+                      { $in: [context.profile?._id, '$permissions.users'] },
+                      { $in: [context.profile?._id, '$permissions.teams'] },
+                    ],
+                  },
+                  {
+                    _id: '$_id',
+                    name: '$name',
+                    url: {
+                      $concat: [
+                        'https://cristata.app/',
+                        context.tenant,
+                        '/cms/collection/',
+                        '$collection',
+                        '/',
+                        { $toString: '$_id' },
+                      ],
+                    },
+                  },
+                  '$$REMOVE',
+                ],
+              },
+        },
+      },
+    },
+  ];
+
+  if (Model) {
+    return Model?.aggregate(pipeline);
+  }
+
+  return [];
 }
 
 type GitHubUserID = number;
