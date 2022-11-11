@@ -611,6 +611,20 @@ interface TiptapOptions {
    * automaticallt resize to fit the frame contents.
    */
   metaFrame?: string;
+  /**
+   * Custom css that will be applied to the editor. It can include nested selectors.
+   */
+  css?: string;
+  /**
+   * Fields that should have their value stored as a data attribute
+   * on the prosemirror div. The data attribute can be used for
+   * providing specific css based on field values.
+   *
+   * Only fields that have a string or numeric value will be used
+   * for data attributes. ObjectId fields will be stingified into their
+   * hexadecimal representation.
+   */
+  pmAttrFields?: string[];
   features: {
     fontFamilies?: {
       name: string;
