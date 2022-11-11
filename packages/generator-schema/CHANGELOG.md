@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 2.3.0
+
+### Minor Changes
+
+- d80a2ff: add css and attribute fields to tiptap field def
+
 ## 2.2.1
 
 ### Patch Changes
