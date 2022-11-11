@@ -45,12 +45,23 @@ async function getUsers(
 
   // if it is an array of ObjectId
   if (Array.isArray(_ids)) {
-    return (await Promise.all(_ids.map(async (_id) => await User.findById(_id, projection)))).filter(notEmpty);
+    return (
+      await Promise.all(
+        _ids.map(
+          async (_id) =>
+            (await User.findById(_id, projection)) ||
+            // fall back to the internal deleted user
+            (await User.findById('000000000000000000000001', projection))
+        )
+      )
+    ).filter(notEmpty);
   }
 
   // if it just a single ObjectId
   const _id = _ids;
-  return await User.findById(_id, projection);
+  return (
+    (await User.findById(_id, projection)) || (await User.findById('000000000000000000000001', projection))
+  );
 }
 
 /**
