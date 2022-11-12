@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 2.4.0
+
+### Minor Changes
+
+- d21d1ec: add feature booleans for tables and fotns
+
 ## 2.3.0
 
 ### Minor Changes
