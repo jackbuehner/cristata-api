@@ -586,20 +586,10 @@ interface ColumnDef {
 }
 
 interface TiptapOptions {
-  type: string;
   isHTMLkey?: string;
   layouts?: {
     key: string;
     options: { value: string; label: string }[];
-  };
-  keys_article?: {
-    headline: string;
-    description: string;
-    categories: string;
-    caption: string;
-    photo_url: string;
-    authors: string;
-    target_publish_at: string;
   };
   /**
    * URL to be loaded in an iFrame that can receive document data and present it.
@@ -631,7 +621,9 @@ interface TiptapOptions {
       label?: string;
       disabled?: boolean;
     }[];
+    fontFamilyPicker?: boolean;
     fontSizes?: string[];
+    fontSizePicker?: boolean;
     bold?: boolean;
     italic?: boolean;
     underline?: boolean;
@@ -650,6 +642,7 @@ interface TiptapOptions {
     comment?: boolean;
     trackChanges?: boolean;
     pullQuote?: boolean;
+    tables?: boolean;
   };
 }
 
