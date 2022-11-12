@@ -621,7 +621,9 @@ interface TiptapOptions {
       label?: string;
       disabled?: boolean;
     }[];
+    fontFamilyPicker?: boolean;
     fontSizes?: string[];
+    fontSizePicker?: boolean;
     bold?: boolean;
     italic?: boolean;
     underline?: boolean;
@@ -640,6 +642,7 @@ interface TiptapOptions {
     comment?: boolean;
     trackChanges?: boolean;
     pullQuote?: boolean;
+    tables?: boolean;
   };
 }
 
