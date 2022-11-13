@@ -133,7 +133,7 @@ function createProjection(
   // and then add the root field with the _id
   objectIdFields.forEach((idField) => {
     if (fields.find((field) => field.indexOf(idField) === 0)) {
-      fields = [...fields.filter((field) => field.indexOf(idField) !== 0), idField];
+      fields = [...fields.filter((field) => field.indexOf(idField + '.') !== 0), idField];
     }
   });
 
