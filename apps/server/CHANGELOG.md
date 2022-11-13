@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.6.0
+
+### Minor Changes
+
+- 68901eb: do not send email to newly created retired user
+
 ## 7.5.0
 
 ### Minor Changes
