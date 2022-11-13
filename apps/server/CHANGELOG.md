@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.6.1
+
+### Patch Changes
+
+- 895558d: do not exclude fields that start with the same name as the idField
+
 ## 7.6.0
 
 ### Minor Changes
