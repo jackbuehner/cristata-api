@@ -173,7 +173,7 @@ const users = (tenant: string): Collection => {
         const user = (await createDoc({ model: 'User', args, context })) as IUser & PassportLocalDocument;
 
         // return the user
-        return setTemporaryPassword(user, 'reinvite', context);
+        return setTemporaryPassword(user, 'invite', context, args.retired === true);
       },
       userModify: (_: never, { _id, input }: any, context: Context) => {
         const isSelf = _id.toHexString() === context.profile?._id.toHexString();
@@ -289,7 +289,12 @@ async function setTemporaryPassword<
     email?: string;
     name?: string;
   }
->(user: T, reason: 'reinvite' | 'reset the password of' | 'invite' | 'migrate', context: Context): Promise<T> {
+>(
+  user: T,
+  reason: 'reinvite' | 'reset the password of' | 'invite' | 'migrate',
+  context: Context,
+  skipEmail?: boolean
+): Promise<T> {
   if (!user.email) throw new ForbiddenError(`you cannot ${reason} a user without an email address`);
 
   // step 0: create a username
@@ -391,7 +396,7 @@ async function setTemporaryPassword<
     secrets: context.config.secrets.aws,
   };
 
-  if (user.email) {
+  if (user.email && skipEmail !== true) {
     sendEmail(
       emailConfig,
       user.email,
