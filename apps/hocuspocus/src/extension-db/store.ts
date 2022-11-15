@@ -13,98 +13,103 @@ import { TenantModel } from './TenantModel';
 
 export function store(tenantDb: DB) {
   return async ({ document: ydoc, documentName, context, requestParameters }: storePayload): Promise<void> => {
-    const { tenant, collectionName, itemId, version } = parseName(documentName);
+    try {
+      const { tenant, collectionName, itemId, version } = parseName(documentName);
 
-    // skip saving if an old version was opened because old versions cannot be edited
-    if (version) return;
+      // skip saving if an old version was opened because old versions cannot be edited
+      if (version) return;
 
-    // store that this connected client has modified something
-    // (used to set history once the client disconnected)
-    context.hasModified = true;
-    context.lastModifiedAt = new Date().toISOString();
-    context._id = requestParameters.get('_id') || '000000000000000000000000';
+      // store that this connected client has modified something
+      // (used to set history once the client disconnected)
+      context.hasModified = true;
+      context.lastModifiedAt = new Date().toISOString();
+      context._id = requestParameters.get('_id') || '000000000000000000000000';
 
-    // get the collection
-    const collection = tenantDb.collection(tenant, collectionName);
-    if (!collection) {
-      console.error('[INVALID COLLECTION] FAILED TO SAVE YDOC WITH VALUES:', ydoc.toJSON());
-      throw new Error(`Document '${documentName}' was not found in the database`);
-    }
+      // get the collection
+      const collection = tenantDb.collection(tenant, collectionName);
+      if (!collection) {
+        console.error('[INVALID COLLECTION] FAILED TO SAVE YDOC WITH VALUES:', ydoc.toJSON());
+        throw new Error(`Document '${documentName}' was not found in the database`);
+      }
 
-    // get the collection accessor
-    const by = await tenantDb.collectionAccessor(tenant, collectionName);
+      // get the collection accessor
+      const by = await tenantDb.collectionAccessor(tenant, collectionName);
 
-    // get the collection schema
-    const schema = await tenantDb.collectionSchema(tenant, collectionName);
-    const deconstructedSchema = deconstructSchema(schema || {});
+      // get the collection schema
+      const schema = await tenantDb.collectionSchema(tenant, collectionName);
+      const deconstructedSchema = deconstructSchema(schema || {});
 
-    // get the values of the ydoc shared types
-    // (to be used for setting database document values)
-    const docData = await getFromY(ydoc, deconstructedSchema, {
-      keepJsonParsed: true,
-      hexIdsAsObjectIds: true,
-      replaceUndefinedNull: true,
-    });
-
-    // modify doc data based on setters in the schema
-    const changed = merge(
-      { timestamps: { modified_at: new Date().toISOString() } },
-      conditionallyModifyDocField(docData, deconstructedSchema)
-    );
-    if (Object.keys(changed).length > 0) {
-      await addToY({
-        ydoc,
-        schemaDef: deconstructedSchema,
-        inputData: changed,
-        TenantModel: TenantModel(tenantDb, tenant),
-        onlyProvided: true, // only update the properties in `changed`
+      // get the values of the ydoc shared types
+      // (to be used for setting database document values)
+      const docData = await getFromY(ydoc, deconstructedSchema, {
+        keepJsonParsed: true,
+        hexIdsAsObjectIds: true,
+        replaceUndefinedNull: true,
       });
-    }
 
-    // get database document
-    const partialDbDoc = await collection.findOne(
-      { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-      { projection: { _id: 1, stage: 1 } }
-    );
-    const dbDocExists = !!partialDbDoc;
-
-    // throw an error if the document was not found
-    if (!dbDocExists) {
-      console.error(
-        '[MISSING DOC] FAILED TO SAVE YDOC WITH VALUES:',
-        JSON.stringify(getFromY(ydoc, deconstructedSchema))
+      // modify doc data based on setters in the schema
+      const changed = merge(
+        { timestamps: { modified_at: new Date().toISOString() } },
+        conditionallyModifyDocField(docData, deconstructedSchema)
       );
-      throw new Error(`Document '${documentName}' was not found in the database`);
-    }
+      if (Object.keys(changed).length > 0) {
+        await addToY({
+          ydoc,
+          schemaDef: deconstructedSchema,
+          inputData: changed,
+          TenantModel: TenantModel(tenantDb, tenant),
+          onlyProvided: true, // only update the properties in `changed`
+        });
+      }
 
-    // remove history array (we update this only on changes via the api)
-    delete docData.history;
-
-    // save document state
-    const yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
-    collection.updateOne(
-      { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-      { $set: { ...docData, __yState: yState } }
-    );
-
-    // get the collection options
-    const options = await tenantDb.collectionOptions(tenant, collectionName);
-
-    // save versions asynchronously
-    saveSnapshot(documentName, ydoc, collection, by, new Date());
-
-    // send stage update emails
-    if (hasKey('stage', partialDbDoc) && typeof partialDbDoc.stage === 'number') {
-      sendStageUpdateEmails(
-        documentName,
-        docData,
-        partialDbDoc.stage,
-        collection,
-        by,
-        options,
-        tenantDb,
-        deconstructedSchema
+      // get database document
+      const partialDbDoc = await collection.findOne(
+        { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+        { projection: { _id: 1, stage: 1 } }
       );
+      const dbDocExists = !!partialDbDoc;
+
+      // throw an error if the document was not found
+      if (!dbDocExists) {
+        console.error(
+          '[MISSING DOC] FAILED TO SAVE YDOC WITH VALUES:',
+          JSON.stringify(getFromY(ydoc, deconstructedSchema))
+        );
+        throw new Error(`Document '${documentName}' was not found in the database`);
+      }
+
+      // remove history array (we update this only on changes via the api)
+      delete docData.history;
+
+      // save document state
+      const yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
+      collection.updateOne(
+        { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+        { $set: { ...docData, __yState: yState } }
+      );
+
+      // get the collection options
+      const options = await tenantDb.collectionOptions(tenant, collectionName);
+
+      // save versions asynchronously
+      saveSnapshot(documentName, ydoc, collection, by, new Date());
+
+      // send stage update emails
+      if (hasKey('stage', partialDbDoc) && typeof partialDbDoc.stage === 'number') {
+        sendStageUpdateEmails(
+          documentName,
+          docData,
+          partialDbDoc.stage,
+          collection,
+          by,
+          options,
+          tenantDb,
+          deconstructedSchema
+        );
+      }
+    } catch (error) {
+      console.error('[UNEXPECTED ERROR] FAILED TO SAVE YDOC WITH VALUES:', ydoc.toJSON());
+      console.error(error);
     }
   };
 }
