@@ -63,7 +63,7 @@ class YDocArray<K extends string, V extends Record<string, unknown>[]> {
     populate?: { schema: DeconstructedSchemaDefType; opts?: GetYFieldsOptions }
   ): Promise<Record<string, unknown>[]> {
     const type = this.#ydoc.getArray<Record<string, unknown> & { uuid: string }>(key);
-    const arr = type.toArray();
+    const arr = type.toArray().filter((v) => !!v);
 
     if (populate) {
       await Promise.all(
@@ -89,7 +89,7 @@ class YDocArray<K extends string, V extends Record<string, unknown>[]> {
       );
     }
 
-    return arr;
+    return arr.filter((v) => !!v);
   }
 
   delete(key: K): void {
