@@ -181,7 +181,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
               toSet = [defaultValue];
             } else if (
               Array.isArray(defaultValue) &&
-              (defaultValue as unknown[]).every((val) => typeof val === 'number')
+              ((defaultValue as unknown[]) || []).every((val) => typeof val === 'number')
             ) {
               toSet = defaultValue as number[];
             } else {
@@ -234,7 +234,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
               toSet = [defaultValue];
             } else if (
               Array.isArray(defaultValue) &&
-              (defaultValue as unknown[]).every((val) => typeof val === 'number')
+              ((defaultValue as unknown[]) || []).every((val) => typeof val === 'number')
             ) {
               toSet = defaultValue as number[];
             } else {
@@ -278,7 +278,7 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           // set default value
           if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
             if (isArray) {
-              if ((defaultValue as unknown[]).every((val) => typeof val === 'string'))
+              if (((defaultValue as unknown[]) || []).every((val) => typeof val === 'string'))
                 toSet = defaultValue as string[];
               else toSet = [];
             } else {
