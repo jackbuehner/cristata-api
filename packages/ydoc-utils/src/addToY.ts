@@ -87,6 +87,8 @@ async function addToY(params: AddToYParams) {
         | { value: string | number; label: string; disabled?: boolean }[]
         | undefined;
 
+      const reference = def.field?.reference;
+
       try {
         if (schemaType === 'ObjectId' || def.field?.reference?.collection) {
           const validator = z.union([
@@ -182,13 +184,13 @@ async function addToY(params: AddToYParams) {
           ]);
           const validValue = validator.parse(getProperty(data, key));
 
-          if (Array.isArray(validValue) || options) {
+          if (isArray || options) {
             // if it is not an array, but there are options, stick
             // the value in an array since the SelectOne field
             // requires the value to be in an array
             float.set(key, Array.isArray(validValue) ? validValue : [validValue], options);
           } else {
-            float.set(key, validValue);
+            float.set(key, Array.isArray(validValue) ? validValue[0] : validValue);
           }
 
           return;
@@ -211,13 +213,13 @@ async function addToY(params: AddToYParams) {
           ]);
           const validValue = validator.parse(getProperty(data, key));
 
-          if (Array.isArray(validValue) || options) {
+          if (isArray || options) {
             // if it is not an array, but there are options, stick
             // the value in an array since the SelectOne field
             // requires the value to be in an array
             integer.set(key, Array.isArray(validValue) ? validValue : [validValue], options);
           } else {
-            integer.set(key, validValue);
+            integer.set(key, Array.isArray(validValue) ? validValue[0] : validValue);
           }
 
           return;
@@ -231,15 +233,17 @@ async function addToY(params: AddToYParams) {
           ]);
           const validValue = validator.parse(getProperty(data, key));
 
-          if (Array.isArray(validValue) || options || def.field?.reference?.collection) {
+          if (isArray || options || reference?.collection) {
             // if it is not an array, but there are options (or a reference config), stick
             // the value in an array since the SelectOne and ReferenceOne fields
             // require the value to be in an array
             string.set(key, Array.isArray(validValue) ? validValue : [validValue], options);
           } else if (def.field?.markdown) {
-            string.set(key, validValue, 'code');
+            string.set(key, Array.isArray(validValue) ? validValue[0] : validValue, 'code');
+          } else if (def.field?.tiptap) {
+            string.set(key, Array.isArray(validValue) ? validValue[0] : validValue, 'tiptap');
           } else {
-            string.set(key, validValue, 'tiptap');
+            string.set(key, Array.isArray(validValue) ? validValue[0] : validValue);
           }
 
           return;
