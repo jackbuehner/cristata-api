@@ -1,5 +1,17 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.2.0
+
+### Minor Changes
+
+- ee8840b: log doc json if any errors occur
+
+### Patch Changes
+
+- ee8840b: - remove undefined or null array values in YArray getter
+  - fall back to empty array when default array is missing
+  - fix: use correct array type checks
+
 ## 1.1.3
 
 ### Patch Changes

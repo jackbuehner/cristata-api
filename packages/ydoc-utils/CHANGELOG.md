@@ -1,5 +1,13 @@
 # @jackbuehner/cristata-ydoc-utils
 
+## 3.0.3
+
+### Patch Changes
+
+- ee8840b: - remove undefined or null array values in YArray getter
+  - fall back to empty array when default array is missing
+  - fix: use correct array type checks
+
 ## 3.0.2
 
 ### Patch Changes

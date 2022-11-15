@@ -1,6 +1,6 @@
 {
   "name": "@jackbuehner/cristata-ydoc-utils",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "author": "Jack Buehner",
   "license": "ISC",
   "main": "dist/index",
