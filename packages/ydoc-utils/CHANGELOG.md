@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-ydoc-utils
 
+## 3.1.0
+
+### Minor Changes
+
+- 5e52777: support nested doc arrays
+
 ## 3.0.3
 
 ### Patch Changes
