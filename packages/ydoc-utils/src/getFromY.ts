@@ -147,13 +147,30 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
       if (schemaType === 'DocArray') {
         const array = new shared.DocArray(ydoc);
 
+        // construct the object with details on how to replace
+        // the identifier in the schema to use a unique id for
+        // subfields in yjs shared types
+        const replace = (() => {
+          const parentKey = key.match(/(?<=‾‾)(.*)(?=‾‾)/)?.[0];
+          const parentUuid = key.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0];
+          const accessKey = key
+            .replace(`__docArray.‾‾${parentKey}‾‾.`, parentKey || '') // remove docarray string data
+            .replace(parentUuid || /(?!)/, '.0'); // remove parent uuid and replace with .0 required by storage structure
+
+          return {
+            searchKey: accessKey.replace('.0', ''),
+            replaceKey: accessKey,
+            replaceSuffix: parentKey ? '.' + accessKey.replace('.0', '') : undefined,
+          };
+        })();
+
         // get the value of the shared type as an array of objects
         let arrayValue: Record<string, unknown>[] = [];
         if (def.docs) {
           const namedSubdocSchemas = def.docs.filter(([docKey]) => !docKey.includes('#'));
-          arrayValue = await array.get(key, { opts, schema: namedSubdocSchemas });
+          arrayValue = await array.get(key, { opts, schema: namedSubdocSchemas }, replace);
         } else {
-          arrayValue = await array.get(key);
+          arrayValue = await array.get(key, undefined, replace);
         }
 
         // remove the uuid

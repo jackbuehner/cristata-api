@@ -60,7 +60,8 @@ class YDocArray<K extends string, V extends Record<string, unknown>[]> {
 
   async get(
     key: K,
-    populate?: { schema: DeconstructedSchemaDefType; opts?: GetYFieldsOptions }
+    populate?: { schema: DeconstructedSchemaDefType; opts?: GetYFieldsOptions },
+    replace?: { searchKey: string; replaceKey: string; replaceSuffix?: string }
   ): Promise<Record<string, unknown>[]> {
     const type = this.#ydoc.getArray<Record<string, unknown> & { uuid: string }>(key);
     const arr = type.toArray().filter((v) => !!v);
@@ -68,12 +69,22 @@ class YDocArray<K extends string, V extends Record<string, unknown>[]> {
     if (populate) {
       await Promise.all(
         arr.map(async ({ __uuid }, index) => {
+          // determine the key that will be used for storing DocArray
+          // subfields in shared types
+          const [searchKey, replaceKey] = (() => {
+            const searchKey = replace?.searchKey || key;
+            const replaceKey = replace?.replaceKey || key;
+            const replaceSuffix = replace?.replaceSuffix || '';
+
+            return [searchKey, `__docArray.‾‾${replaceKey}‾‾.${__uuid}${replaceSuffix}`];
+          })();
+
           // create the schema for that will allow us to get the field
           // values of the the properies inside the object at this index
           const defs = populate.schema
             .filter(([docKey]) => !docKey.includes('#'))
             .map(([docKey, docDef]): typeof populate.schema[0] => {
-              const docArrayKey = docKey.replace(key, `__docArray.‾‾${key}‾‾.${__uuid}`);
+              const docArrayKey = docKey.replace(searchKey, replaceKey);
               return [docArrayKey, docDef];
             });
 
@@ -81,7 +92,7 @@ class YDocArray<K extends string, V extends Record<string, unknown>[]> {
           const data = await getFromY(this.#ydoc, defs, populate.opts);
 
           // get the object with data to use for this index
-          const obj = getProperty(data, `__docArray.‾‾${key}‾‾.${__uuid}`);
+          const obj = getProperty(data, replaceKey);
 
           // set the object at this index
           setProperty(arr, index, obj);
