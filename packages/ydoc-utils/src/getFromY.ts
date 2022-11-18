@@ -155,12 +155,11 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           const parentUuid = key.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0];
           const accessKey = key
             .replace(`__docArray.‾‾${parentKey}‾‾.`, parentKey || '') // remove docarray string data
-            .replace(parentUuid || /(?!)/, '.0'); // remove parent uuid and replace with .0 required by storage structure
+            .replace(parentUuid || '', ''); // remove parent uuid
 
           return {
-            searchKey: accessKey.replace('.0', ''),
+            searchKey: accessKey,
             replaceKey: accessKey,
-            replaceSuffix: parentKey ? '.' + accessKey.replace('.0', '') : undefined,
           };
         })();
 
