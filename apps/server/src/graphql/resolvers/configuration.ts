@@ -395,7 +395,15 @@ const setRawConfigurationCollection = async (
     tenantDB.models.delete(modelName);
   }
 
-  if (colIndex === -1) {
+  // determine if the collection is in the database config
+  const res = await tenantsCollection.findOne(
+    { name: 'troop-370' },
+    { projection: { 'config.collections.name': 1 } }
+  );
+  const dbCollections = res?.config.collections.map((collection) => collection.name) || [];
+  const isInDbConfig = dbCollections.includes(raw.name);
+
+  if (!isInDbConfig) {
     // create the collection in the database
     await tenantsCollection.findOneAndUpdate(
       { name: context.tenant },
