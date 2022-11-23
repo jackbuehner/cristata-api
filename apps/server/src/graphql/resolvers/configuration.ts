@@ -1,5 +1,5 @@
 import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cristata-utils';
-import { ForbiddenError } from 'apollo-server-errors';
+import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
 import { TenantDB } from '../../mongodb/TenantDB';
@@ -51,7 +51,9 @@ const configuration = {
           return null;
         },
         collections: () =>
-          context.config.collections.filter((col) => col.name !== 'User' && col.name !== 'Team'),
+          context.config.collections.filter(
+            (col) => col.name !== 'User' && col.name !== 'Team' && col.name !== 'File'
+          ),
       };
     },
   },
@@ -61,9 +63,16 @@ const configuration = {
       { name, raw }: { name: string; raw?: GenCollectionInput },
       context: Context
     ): Promise<GenCollectionInput> => {
+      if (name === 'User') throw new UserInputError('cannot configure User collection');
+      if (name === 'Team') throw new UserInputError('cannot configure Team collection');
+      if (name === 'File') throw new UserInputError('cannot configure File collection');
       return setRawConfigurationCollection({ name, raw }, context);
     },
     deleteCollection: async (_: unknown, { name }: { name: string }, context: Context): Promise<void> => {
+      if (name === 'User') throw new UserInputError('cannot delete User collection');
+      if (name === 'Team') throw new UserInputError('cannot delete Team collection');
+      if (name === 'File') throw new UserInputError('cannot delete File collection');
+
       helpers.requireAuthentication(context);
       const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
