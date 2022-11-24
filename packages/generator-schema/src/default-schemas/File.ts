@@ -2,7 +2,7 @@ import { GenSchemaInput } from 'genSchema';
 
 const collection: GenSchemaInput = {
   name: 'File',
-  canPublish: true,
+  canPublish: false,
   withPermissions: false,
   publicRules: { filter: {} },
   schemaDef: {
@@ -18,29 +18,6 @@ const collection: GenSchemaInput = {
           'The display name of this file. Changing this name does not affect the location/URL of the file – it only affects how you see it in Cristata.',
       },
       column: { order: 1, label: 'Name', width: 300, sortable: true },
-    },
-    stage: {
-      type: 'Float',
-      required: true,
-      modifiable: true,
-      default: 1.1,
-      field: {
-        options: [
-          { label: 'Unpublished', value: 1.1 },
-          { label: 'Published', value: 5.2, disabled: true },
-        ],
-        label: 'Stage',
-      },
-      column: {
-        chips: [
-          { label: 'Unpublished', value: 1.1, color: 'red' },
-          { label: 'Published', value: 5.2, color: 'green' },
-        ],
-        order: 2,
-        label: 'Stage',
-        width: 120,
-        sortable: true,
-      },
     },
     file_type: {
       type: 'String',
