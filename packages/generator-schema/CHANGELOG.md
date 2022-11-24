@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 2.5.0
+
+### Minor Changes
+
+- e08b8a3: Add the files collection, which supports storing references to uploaded files in AWS S3. The files collection is a system collection, but it's action access can still be edited by tenants.
+
 ## 2.4.0
 
 ### Minor Changes
