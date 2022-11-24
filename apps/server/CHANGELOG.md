@@ -1,5 +1,19 @@
 # Changelog
 
+## 8.0.0
+
+### Major Changes
+
+- e08b8a3: Use the REST URLs for AWS S3 buckets instead of the website URLs when returning an uploaded file's URL. This only affects newly uploaded files, but tenants that expect a specific URL structure may need to adjust code.
+
+### Minor Changes
+
+- e08b8a3: Add the files collection, which supports storing references to uploaded files in AWS S3. The files collection is a system collection, but it's action access can still be edited by tenants.
+
+### Patch Changes
+
+- e08b8a3: Use AWS credentials from env variables instead of from tenant configs. For a while now, tenants have not needed to supply their own credentials, but now credentials for the Cristata AWS account do not need to be stored in every tenant's config
+
 ## 7.6.1
 
 ### Patch Changes
