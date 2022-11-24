@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fileCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/File';
 import { AuthenticationError } from 'apollo-server-core';
+import AWS from 'aws-sdk';
 import { merge } from 'merge-anything';
 import helpers, { genCollection } from '../graphql/helpers';
 import { setRawConfigurationCollection } from '../graphql/resolvers/configuration';
@@ -29,6 +30,8 @@ const files = (tenant: string): Collection => {
     },
     tenant
   );
+
+  createBucket(tenant);
 
   collection.typeDefs += gql`
     type FileCollectionActionAccess {
@@ -112,5 +115,47 @@ const files = (tenant: string): Collection => {
 
   return collection;
 };
+
+const credentials = {
+  accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+};
+
+/**
+ * Creates the AWS s3 bucket for the files collection.
+ */
+function createBucket(tenant: string) {
+  AWS.config.update({ region: 'us-east-1' });
+  const s3 = new AWS.S3(credentials);
+  const bucketName = `app.cristata.${tenant}.files`;
+
+  // create the bucket
+  s3.createBucket({ Bucket: bucketName }, (err) => {
+    if (err && err.statusCode !== 409) {
+      // 409: bucket already exists
+      console.error(err);
+    }
+  });
+
+  // set CORS so we can upload using signed URLs
+  s3.putBucketCors(
+    {
+      Bucket: bucketName,
+      CORSConfiguration: {
+        CORSRules: [
+          {
+            AllowedHeaders: ['*'],
+            AllowedMethods: ['GET', 'HEAD', 'POST', 'PUT'],
+            AllowedOrigins: ['*'],
+            ExposeHeaders: [],
+          },
+        ],
+      },
+    },
+    (err) => {
+      if (err) console.error(err);
+    }
+  );
+}
 
 export { files };
