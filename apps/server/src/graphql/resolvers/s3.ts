@@ -16,6 +16,7 @@ const s3 = {
       context: Context
     ): Promise<{ signedRequest: string; location: string }> => {
       requireAuthentication(context);
+      aws.config.update({ region: 'us-east-1' });
       const s3 = new aws.S3({ credentials });
 
       const s3Params = {
@@ -37,7 +38,7 @@ const s3 = {
           }
           resolve({
             signedRequest,
-            location: `https://${s3Bucket}.s3.amazonaws.com/${fileName}`,
+            location: `https://s3.us-east-1.amazonaws.com/${s3Bucket}/${fileName}`,
           });
         });
       });
