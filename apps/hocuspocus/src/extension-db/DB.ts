@@ -167,14 +167,18 @@ export class DB {
       {
         projection: {
           'config.tenantDisplayName': 1,
-          'config.secrets.aws': 1,
         },
       }
     );
 
     return {
       tenantDisplayName: tenantConfig?.config.tenantDisplayName || tenant,
-      secrets: tenantConfig?.config.secrets,
+      secrets: {
+        aws: {
+          accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+        },
+      },
     };
   }
 }

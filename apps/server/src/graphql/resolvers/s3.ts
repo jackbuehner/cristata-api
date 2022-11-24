@@ -3,6 +3,11 @@ import aws from 'aws-sdk';
 import { Context } from '../server';
 import { requireAuthentication } from '../helpers';
 
+const credentials = {
+  accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+};
+
 const s3 = {
   Query: {
     s3Sign: async (
@@ -11,7 +16,7 @@ const s3 = {
       context: Context
     ): Promise<{ signedRequest: string; location: string }> => {
       requireAuthentication(context);
-      const s3 = new aws.S3({ credentials: context.config.secrets.aws });
+      const s3 = new aws.S3({ credentials });
 
       const s3Params = {
         Bucket: s3Bucket,

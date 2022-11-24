@@ -15,6 +15,8 @@ if (!process.env.COOKIE_SESSION_SECRET) throw new Error('COOKIE_SESSION_SECRET n
 if (!process.env.MONGO_DB_USERNAME) throw new Error('MONGO_DB_USERNAME not defined in env');
 if (!process.env.MONGO_DB_PASSWORD) throw new Error('MONGO_DB_PASSWORD not defined in env');
 if (!process.env.MONGO_DB_HOST) throw new Error('MONGO_DB_HOST not defined in env');
+if (!process.env.AWS_SECRET_KEY_ID) throw new Error('AWS_SECRET_KEY_ID not defined in env');
+if (!process.env.AWS_SECRET_ACCESS_KEY) throw new Error('AWS_SECRET_ACCESS_KEY not defined in env');
 if (!process.env.PORT) throw new Error('PORT not defined in env');
 
 class Cristata {
