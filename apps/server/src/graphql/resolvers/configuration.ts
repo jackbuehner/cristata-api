@@ -1,5 +1,5 @@
 import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cristata-utils';
-import { ForbiddenError } from 'apollo-server-errors';
+import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
 import { TenantDB } from '../../mongodb/TenantDB';
@@ -51,7 +51,9 @@ const configuration = {
           return null;
         },
         collections: () =>
-          context.config.collections.filter((col) => col.name !== 'User' && col.name !== 'Team'),
+          context.config.collections.filter(
+            (col) => col.name !== 'User' && col.name !== 'Team' && col.name !== 'File'
+          ),
       };
     },
   },
@@ -61,107 +63,16 @@ const configuration = {
       { name, raw }: { name: string; raw?: GenCollectionInput },
       context: Context
     ): Promise<GenCollectionInput> => {
-      helpers.requireAuthentication(context);
-      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
-      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
-
-      const appDb = new TenantDB('app');
-      const appConn = await appDb.connect();
-
-      const tenantsCollection = appConn.db.collection<{
-        _id: ObjectId;
-        name: string;
-        config: Configuration;
-      }>('tenants');
-
-      if (!raw) {
-        raw = {
-          name,
-          canPublish: false,
-          publicRules: false,
-          withPermissions: false,
-          schemaDef: {
-            name: {
-              type: 'String',
-              modifiable: true,
-              required: true,
-              textSearch: true,
-              field: { label: 'Name', order: 1 },
-              column: { sortable: true, order: 1, width: 300 },
-            },
-          },
-          actionAccess: {
-            get: { teams: ['000000000000000000000001'], users: [] },
-            create: { teams: ['000000000000000000000001'], users: [] },
-            modify: { teams: ['000000000000000000000001'], users: [] },
-            hide: { teams: ['000000000000000000000001'], users: [] },
-            lock: { teams: ['000000000000000000000001'], users: [] },
-            archive: { teams: ['000000000000000000000001'], users: [] },
-            watch: { teams: ['000000000000000000000001'], users: [] },
-            delete: { teams: ['000000000000000000000001'], users: [] },
-          },
-        };
-      }
-
-      // create a backup of the existing config
-      const backup: Configuration<Collection> = JSON.parse(JSON.stringify(context.config));
-
-      // construct the new config
-      const collectionFromRaw = helpers.generators.genCollection(raw, context.tenant);
-      const copy: Configuration<Collection> = JSON.parse(JSON.stringify(backup));
-      const colIndex = copy.collections.findIndex((col) => col.name === name);
-      if (colIndex === -1) copy.collections.push(collectionFromRaw);
-      else copy.collections[colIndex] = collectionFromRaw;
-
-      // update the config in the cristata instance
-      context.cristata.config[context.tenant] = {
-        ...copy,
-        collections: constructCollections(copy.collections.map(collectionsAsCollectionInputs), context.tenant),
-      };
-      const ret = await context.restartApollo();
-
-      // something went wrong
-      if (ret instanceof Error) {
-        // restore the old config
-        context.cristata.config[context.tenant] = {
-          ...backup,
-          collections: constructCollections(
-            backup.collections.map(collectionsAsCollectionInputs),
-            context.tenant
-          ),
-        };
-
-        // throw the error
-        throw ret;
-      }
-
-      // clear the models so that models based on an old version of the config
-      // are not used with the new collection configs
-      const tenantDB = new TenantDB(context.tenant, context.config.collections);
-      for (const modelName in tenantDB.models.keys()) {
-        tenantDB.models.delete(modelName);
-      }
-
-      if (colIndex === -1) {
-        // create the collection in the database
-        await tenantsCollection.findOneAndUpdate(
-          { name: context.tenant },
-          { $push: { 'config.collections': raw } },
-          { returnDocument: 'after' }
-        );
-      } else {
-        // update the collection config in the database
-        await tenantsCollection.findOneAndUpdate(
-          { name: context.tenant, 'config.collections.name': name },
-          { $set: { 'config.collections.$': raw } },
-          { returnDocument: 'after' }
-        );
-      }
-
-      // return the value that is now available in the cristata instance
-      return raw;
+      if (name === 'User') throw new UserInputError('cannot configure User collection');
+      if (name === 'Team') throw new UserInputError('cannot configure Team collection');
+      if (name === 'File') throw new UserInputError('cannot configure File collection');
+      return setRawConfigurationCollection({ name, raw }, context);
     },
     deleteCollection: async (_: unknown, { name }: { name: string }, context: Context): Promise<void> => {
+      if (name === 'User') throw new UserInputError('cannot delete User collection');
+      if (name === 'Team') throw new UserInputError('cannot delete Team collection');
+      if (name === 'File') throw new UserInputError('cannot delete File collection');
+
       helpers.requireAuthentication(context);
       const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
@@ -402,4 +313,114 @@ const filterHidden = (groups: SubNavGroup[] | undefined, context: Context): SubN
     .filter((group): group is ReturnedSubNavGroup => !!group);
 };
 
-export { configuration };
+const setRawConfigurationCollection = async (
+  { name, raw }: { name: string; raw?: GenCollectionInput },
+  context: Context
+): Promise<GenCollectionInput> => {
+  helpers.requireAuthentication(context);
+  const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+  if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+  const appDb = new TenantDB('app');
+  const appConn = await appDb.connect();
+
+  const tenantsCollection = appConn.db.collection<{
+    _id: ObjectId;
+    name: string;
+    config: Configuration;
+  }>('tenants');
+
+  if (!raw) {
+    raw = {
+      name,
+      canPublish: false,
+      publicRules: false,
+      withPermissions: false,
+      schemaDef: {
+        name: {
+          type: 'String',
+          modifiable: true,
+          required: true,
+          textSearch: true,
+          field: { label: 'Name', order: 1 },
+          column: { sortable: true, order: 1, width: 300 },
+        },
+      },
+      actionAccess: {
+        get: { teams: ['000000000000000000000001'], users: [] },
+        create: { teams: ['000000000000000000000001'], users: [] },
+        modify: { teams: ['000000000000000000000001'], users: [] },
+        hide: { teams: ['000000000000000000000001'], users: [] },
+        lock: { teams: ['000000000000000000000001'], users: [] },
+        archive: { teams: ['000000000000000000000001'], users: [] },
+        watch: { teams: ['000000000000000000000001'], users: [] },
+        delete: { teams: ['000000000000000000000001'], users: [] },
+      },
+    };
+  }
+
+  // create a backup of the existing config
+  const backup: Configuration<Collection> = JSON.parse(JSON.stringify(context.config));
+
+  // construct the new config
+  const collectionFromRaw = helpers.generators.genCollection(raw, context.tenant);
+  const copy: Configuration<Collection> = JSON.parse(JSON.stringify(backup));
+  const colIndex = copy.collections.findIndex((col) => col.name === name);
+  if (colIndex === -1) copy.collections.push(collectionFromRaw);
+  else copy.collections[colIndex] = collectionFromRaw;
+
+  // update the config in the cristata instance
+  context.cristata.config[context.tenant] = {
+    ...copy,
+    collections: constructCollections(copy.collections.map(collectionsAsCollectionInputs), context.tenant),
+  };
+  const ret = await context.restartApollo();
+
+  // something went wrong
+  if (ret instanceof Error) {
+    // restore the old config
+    context.cristata.config[context.tenant] = {
+      ...backup,
+      collections: constructCollections(backup.collections.map(collectionsAsCollectionInputs), context.tenant),
+    };
+
+    // throw the error
+    throw ret;
+  }
+
+  // clear the models so that models based on an old version of the config
+  // are not used with the new collection configs
+  const tenantDB = new TenantDB(context.tenant, context.config.collections);
+  for (const modelName in tenantDB.models.keys()) {
+    tenantDB.models.delete(modelName);
+  }
+
+  // determine if the collection is in the database config
+  const res = await tenantsCollection.findOne(
+    { name: 'troop-370' },
+    { projection: { 'config.collections.name': 1 } }
+  );
+  const dbCollections = res?.config.collections.map((collection) => collection.name) || [];
+  const isInDbConfig = dbCollections.includes(raw.name);
+
+  if (!isInDbConfig) {
+    // create the collection in the database
+    await tenantsCollection.findOneAndUpdate(
+      { name: context.tenant },
+      { $push: { 'config.collections': raw } },
+      { returnDocument: 'after' }
+    );
+  } else {
+    // update the collection config in the database
+    await tenantsCollection.findOneAndUpdate(
+      { name: context.tenant, 'config.collections.name': name },
+      { $set: { 'config.collections.$': raw } },
+      { returnDocument: 'after' }
+    );
+  }
+
+  // return the value that is now available in the cristata instance
+  return raw;
+};
+
+export { configuration, setRawConfigurationCollection };

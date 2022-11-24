@@ -3,25 +3,42 @@ import helpers from '../graphql/helpers';
 import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
 import teams from '../mongodb/teams.collection.json';
 import { users } from '../mongodb/users';
+import { files } from '../mongodb/files';
 import { Collection } from '../types/config';
+import { merge } from 'merge-anything';
 
 function constructCollections(collections: (Collection | GenCollectionInput)[], tenant: string): Collection[] {
   if (tenant === 'admin') throw new Error('cannot create a database for tenant with name "admin"');
   if (tenant === 'local') throw new Error('cannot create a database for tenant with name "local"');
   if (tenant === 'users') throw new Error('cannot create a database for tenant with name "users"');
 
+  // merge select options from the provided collections with system collections
+  const filesConfig = collections.find((col) => col.name === 'File');
+  const filesCollection = (() => {
+    if (filesConfig?.actionAccess) {
+      return merge(files(tenant), {
+        actionAccess: filesConfig.actionAccess,
+        raw: { actionAccess: filesConfig.actionAccess },
+      });
+    }
+    return files(tenant);
+  })();
+
   return [
     users(tenant),
+    filesCollection,
     helpers.generators.genCollection(teams as unknown as GenCollectionInput, tenant),
     ...collections
       .filter((col): col is GenCollectionInput => !!col && !isCollection(col))
       .filter((col) => col.name !== 'User')
       .filter((col) => col.name !== 'Team')
+      .filter((col) => col.name !== 'File')
       .map((col) => helpers.generators.genCollection(col, tenant)),
     ...collections
       .filter((col): col is Collection => isCollection(col))
       .filter((col) => col.name !== 'User')
-      .filter((col) => col.name !== 'Team'),
+      .filter((col) => col.name !== 'Team')
+      .filter((col) => col.name !== 'File'),
   ];
 }
 

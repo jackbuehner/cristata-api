@@ -3,6 +3,11 @@ import aws from 'aws-sdk';
 import { Context } from '../server';
 import { requireAuthentication } from '../helpers';
 
+const credentials = {
+  accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+};
+
 const s3 = {
   Query: {
     s3Sign: async (
@@ -11,7 +16,8 @@ const s3 = {
       context: Context
     ): Promise<{ signedRequest: string; location: string }> => {
       requireAuthentication(context);
-      const s3 = new aws.S3({ credentials: context.config.secrets.aws });
+      aws.config.update({ region: 'us-east-1' });
+      const s3 = new aws.S3({ credentials });
 
       const s3Params = {
         Bucket: s3Bucket,
@@ -32,7 +38,7 @@ const s3 = {
           }
           resolve({
             signedRequest,
-            location: `https://${s3Bucket}.s3.amazonaws.com/${fileName}`,
+            location: `https://s3.us-east-1.amazonaws.com/${s3Bucket}/${fileName}`,
           });
         });
       });

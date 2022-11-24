@@ -110,6 +110,10 @@ const collection = gql`
     mandatoryWatchers: [String]
     previewUrl: String
     nameField: String
+    disableCreateMutation: Boolean
+    disableHideMutation: Boolean
+    disableArchiveMutation: Boolean
+    disablePublishMutation: Boolean
   }
 
   type ConfigurationCollectionBy {
