@@ -163,68 +163,33 @@ const configuration = {
     },
   },
   ConfigurationNavigation: {
-    main: (_: unknown, __: unknown, context: Context): ReturnedMainNavItem[] => {
-      return context.config.navigation.main
-        .filter((item) => {
-          if (isObject(item.isHidden)) {
-            if (typeof item.isHidden.notInTeam === 'string') {
-              return context.profile?.teams.includes(item.isHidden.notInTeam);
+    main: async (_: unknown, __: unknown, context: Context): Promise<ReturnedMainNavItem[]> => {
+      return Promise.all(
+        context.config.navigation.main
+          .filter((item) => {
+            if (isObject(item.isHidden)) {
+              if (typeof item.isHidden.notInTeam === 'string') {
+                return context.profile?.teams.includes(item.isHidden.notInTeam);
+              }
+              return item.isHidden.notInTeam.some((team) => context.profile?.teams.includes(team));
             }
-            return item.isHidden.notInTeam.some((team) => context.profile?.teams.includes(team));
-          }
-          return item.isHidden !== true;
-        })
-        .map((item): ReturnedMainNavItem => {
-          delete item.isHidden;
-          if (isObject(item.to)) {
-            return {
-              ...item,
-              to: filterHidden(context.config.navigation.sub[item.to.first], context)[0]?.items?.[0]?.to || '/',
-            };
-          }
-          return { ...item, to: item.to };
-        });
+            return item.isHidden !== true;
+          })
+          .map(async (item): Promise<ReturnedMainNavItem> => {
+            delete item.isHidden;
+            if (isObject(item.to)) {
+              const subNavConfig = await getCmsNavConfig(context, item.to.first);
+              return {
+                ...item,
+                to: subNavConfig[0]?.items?.[0]?.to || '/',
+              };
+            }
+            return { ...item, to: item.to };
+          })
+      );
     },
     sub: async (_: unknown, { key }: { key: string }, context: Context): Promise<ReturnedSubNavGroup[]> => {
-      const cmsNavConfig = [
-        ...filterHidden(context.config.navigation.sub[key], context),
-        ...filterHidden(
-          [
-            {
-              label: 'Collections',
-              items: await Promise.all(
-                context.config.collections
-                  .filter(({ name }) => name !== 'Team' && name !== 'User')
-                  .filter(({ navLabel }) => navLabel !== '__hidden')
-                  .sort((a, b) => {
-                    let nameA = a.navLabel || a.name;
-                    if (nameA.split('::').length === 2) nameA = nameA.split('::')[1];
-
-                    let nameB = b.navLabel || b.name;
-                    if (nameB.split('::').length === 2) nameB = nameB.split('::')[1];
-
-                    return nameA.localeCompare(nameB);
-                  })
-                  .map(async (collection) => {
-                    const isHidden = !(await helpers.canDo({ model: collection.name, action: 'get', context }));
-                    const pluralName = pluralize(collection.name);
-                    const hyphenatedName = camelToDashCase(pluralName);
-                    let label = collection.navLabel || capitalize(hyphenatedName.replace('-', ' '));
-                    let to = `/cms/collection/${hyphenatedName}`;
-
-                    if (collection.name === 'Photo') {
-                      label = `Photo library`;
-                      to = `/cms/photos/library`;
-                    }
-
-                    return { label, icon: 'CircleSmall24Filled', to, isHidden };
-                  })
-              ),
-            },
-          ],
-          context
-        ),
-      ];
+      const cmsNavConfig = await getCmsNavConfig(context, key);
 
       return cmsNavConfig.map((group) => {
         return {
@@ -421,6 +386,50 @@ const setRawConfigurationCollection = async (
 
   // return the value that is now available in the cristata instance
   return raw;
+};
+
+const getCmsNavConfig = async (context: Context, key = 'cms') => {
+  return [
+    ...filterHidden(context.config.navigation.sub[key], context),
+    ...(key === 'cms'
+      ? filterHidden(
+          [
+            {
+              label: 'Collections',
+              items: await Promise.all(
+                context.config.collections
+                  .filter(({ name }) => name !== 'Team' && name !== 'User')
+                  .filter(({ navLabel }) => navLabel !== '__hidden')
+                  .sort((a, b) => {
+                    let nameA = a.navLabel || a.name;
+                    if (nameA.split('::').length === 2) nameA = nameA.split('::')[1];
+
+                    let nameB = b.navLabel || b.name;
+                    if (nameB.split('::').length === 2) nameB = nameB.split('::')[1];
+
+                    return nameA.localeCompare(nameB);
+                  })
+                  .map(async (collection) => {
+                    const isHidden = !(await helpers.canDo({ model: collection.name, action: 'get', context }));
+                    const pluralName = pluralize(collection.name);
+                    const hyphenatedName = camelToDashCase(pluralName);
+                    let label = collection.navLabel || capitalize(hyphenatedName.replace('-', ' '));
+                    let to = `/cms/collection/${hyphenatedName}`;
+
+                    if (collection.name === 'Photo') {
+                      label = `Photo library`;
+                      to = `/cms/photos/library`;
+                    }
+
+                    return { label, icon: 'CircleSmall24Filled', to, isHidden };
+                  })
+              ),
+            },
+          ],
+          context
+        )
+      : []),
+  ];
 };
 
 export { configuration, setRawConfigurationCollection };
