@@ -393,7 +393,10 @@ async function setTemporaryPassword<
   const emailConfig = {
     defaultSender: context.config.defaultSender,
     tenantDisplayName: context.config.tenantDisplayName,
-    secrets: context.config.secrets.aws,
+    secrets: {
+      accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    },
   };
 
   if (user.email && skipEmail !== true) {

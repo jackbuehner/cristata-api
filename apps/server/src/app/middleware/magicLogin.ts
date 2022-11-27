@@ -42,9 +42,16 @@ const magicLogin = new MagicLoginStrategy({
 
     const token = new URL(`https://cristata.app/${href}`).searchParams.get('token') || '';
 
-    const { defaultSender, tenantDisplayName, secrets } = req.cristata.config[tenant];
+    const { defaultSender, tenantDisplayName } = req.cristata.config[tenant];
     sendEmail(
-      { defaultSender, tenantDisplayName, secrets: secrets.aws },
+      {
+        defaultSender,
+        tenantDisplayName,
+        secrets: {
+          accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+        },
+      },
       doc.email,
       `Your magic sign-in link`,
       `Click here to sign in: ${
