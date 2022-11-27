@@ -228,7 +228,6 @@ const configuration = {
         return context.config.secrets;
       } catch {
         return {
-          aws: null,
           fathom: null,
         };
       }

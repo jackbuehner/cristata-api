@@ -134,13 +134,7 @@ const security = gql`
   }
 
   type ConfigurationSecuritySecrets {
-    aws: ConfigurationSecuritySecretsAws
     fathom: ConfigurationSecuritySecretsFathom
-  }
-
-  type ConfigurationSecuritySecretsAws {
-    accessKeyId: String!
-    secretAccessKey: String!
   }
 
   type ConfigurationSecuritySecretsFathom {

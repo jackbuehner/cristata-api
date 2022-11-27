@@ -115,7 +115,10 @@ const billing = {
 
       const bucket =
         context.tenant === 'paladin-news' ? 'paladin-photo-library' : `app.cristata.${context.tenant}.photos`;
-      const s3Size = await calcS3Storage(bucket, context.config.secrets.aws);
+      const s3Size = await calcS3Storage(bucket, {
+        accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      });
 
       return {
         database: (await conn.db.stats()).dataSize,
@@ -125,7 +128,7 @@ const billing = {
   },
 };
 
-async function calcS3Storage(bucket: string, credentials: Context['config']['secrets']['aws']) {
+async function calcS3Storage(bucket: string, credentials: { accessKeyId: string; secretAccessKey: string }) {
   const cw = new aws.CloudWatch({ credentials });
   const params = {
     Namespace: 'AWS/S3',

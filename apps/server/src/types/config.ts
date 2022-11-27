@@ -16,10 +16,6 @@ interface Configuration<CT = Collection> {
    */
   collections: Array<CT>;
   secrets: {
-    aws?: {
-      accessKeyId: string;
-      secretAccessKey: string;
-    } | null;
     fathom?: {
       siteId: string;
       dashboardPassword: string;
