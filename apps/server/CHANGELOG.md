@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.0.2
+
+### Patch Changes
+
+- 59eaf26: fix: do not use aws secrets from config
+
 ## 8.0.1
 
 ### Patch Changes
