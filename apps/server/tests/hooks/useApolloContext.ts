@@ -41,7 +41,6 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
     minimumClientVersion: '0.0.0',
     tenantDisplayName: 'Test Tenant',
     secrets: {
-      aws: { accessKeyId: '', secretAccessKey: '' },
       fathom: { dashboardPassword: '', siteId: '' },
     },
     navigation: {
