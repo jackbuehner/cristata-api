@@ -327,6 +327,17 @@ async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opt
           // get the value
           let toSet = await string.get(key, false, true, false);
 
+          // This key states if the body value is not tiptap/prosemirror JSON.
+          // If the value of this key is true, we should skip providing a value
+          // for this field since it is supposedly HTML or Markdown that should
+          // not be modified.
+          const shouldSkipKey = def.field.tiptap.isHTMLkey;
+          if (shouldSkipKey) {
+            const boolean = new shared.Boolean(ydoc);
+            const shouldSkip = boolean.get(shouldSkipKey) === true;
+            if (shouldSkip) return;
+          }
+
           // set default value
           if ((!toSet || toSet.length === 0) && (required || opts?.replaceUndefinedNull)) {
             if (typeof defaultValue === 'string' && isJSON(toSet) && Array.isArray(JSON.parse(toSet)))
