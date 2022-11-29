@@ -73,6 +73,7 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
     restartApollo: async () => {
       return;
     },
+    serverOrigin: 'http://localhost:3000',
   };
 }
 
