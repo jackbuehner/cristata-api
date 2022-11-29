@@ -8,6 +8,7 @@ import { setRawConfigurationCollection } from '../graphql/resolvers/configuratio
 import { Context } from '../graphql/server';
 import { Collection, CollectionPermissions } from '../types/config';
 import { collectionsAsCollectionInputs } from '../utils/constructCollections';
+import { CollectionSchemaFields } from './helpers/constructBasicSchemaFields';
 
 const files = (tenant: string): Collection => {
   const { gql, requireAuthentication } = helpers;
@@ -158,4 +159,14 @@ function createBucket(tenant: string) {
   );
 }
 
+interface IFile extends CollectionSchemaFields {
+  name: string;
+  file_type: string;
+  size_byes: number;
+  uuid: string;
+  note?: string;
+  tags?: string[];
+}
+
 export { files };
+export type { IFile };
