@@ -1,5 +1,16 @@
 # Changelog
 
+## 8.1.0
+
+### Minor Changes
+
+- 526985b: Store uuid instead of location of file. Location of file can be determined based on tenant name and uuid. Additionally, the correct way to retrieve a file is now by using /filestore/:tenant/:\_id. \_id is the document's object id. The server will get the document with \_id to determine the file type, file display name, and file uuid. The server will build the url to the file and pipe a request to that url.
+- bfe5fa8: Include href in file doc response. The location of the document file is given in the href field. The server automatically constructs this href and sends it; no additional url/href is required upon document creating.
+
+### Patch Changes
+
+- bfe5fa8: Determine tenant from url path parameters instead of depending on the currently authenticated user. There might not be a currently authenticated user.
+
 ## 8.0.2
 
 ### Patch Changes
