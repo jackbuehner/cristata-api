@@ -5,6 +5,7 @@ import https from 'https';
 import { TenantDB } from '../../mongodb/TenantDB';
 import mime from 'mime';
 import ColorHash from 'color-hash';
+import { IFile } from '../../mongodb/files';
 
 /**
  * Router for root endpoints for the v3 API.
@@ -12,7 +13,7 @@ import ColorHash from 'color-hash';
  */
 const router = Router();
 
-router.get('/:tenant/user-photo/:user_id', async (req, res) => {
+router.get('/v3/:tenant/user-photo/:user_id', async (req, res) => {
   try {
     // connect to database
     const tenantDB = new TenantDB((req.user as IDeserializedUser).tenant);
@@ -74,6 +75,36 @@ router.get('/:tenant/user-photo/:user_id', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(404).end();
+  }
+});
+
+router.get('/filestore/:tenant/:_id', async (req, res) => {
+  try {
+    // connect to database
+    const tenantDB = new TenantDB((req.user as IDeserializedUser).tenant);
+    await tenantDB.connect();
+    const File = await tenantDB.model<IFile>('File');
+
+    // get the file, and end the request if it cannot be found
+    const foundFile = await File?.findById(req.params._id);
+    if (!foundFile) {
+      res.status(404).end();
+      return;
+    }
+
+    // use the correct mime type and name
+    res.setHeader('Content-Type', `${foundFile.file_type}; charset=UTF-8`);
+    res.setHeader('Content-Disposition', `inline; filename="${foundFile.name}"`);
+
+    // pipe the request to this url
+    const s3href = `https://s3.us-east-1.amazonaws.com/app.cristata.${req.params.tenant}.files/${foundFile.uuid}`;
+    const externalReq = https.request(s3href, (externalRes) => {
+      externalRes.pipe(res);
+    });
+    externalReq.end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).end();
   }
 });
 

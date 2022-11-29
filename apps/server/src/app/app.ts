@@ -139,7 +139,7 @@ function createExpressApp(cristata: Cristata): Application {
   app.use(proxyRouterFactory()); // CORS proxy routes
   app.use(stripeRouterFactory(cristata)); // stripe routes
   app.use(`/v3/constant-contact`, constantContactRouterFactory(cristata)); // constant contact routes
-  app.use(`/v3`, rootRouter); // root v3 routes
+  app.use(``, rootRouter); // root v3 routes
 
   app.get(``, requireAuth, (req: Request, res: Response) => {
     res.send(`Cristata API Server`);
