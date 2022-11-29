@@ -33,16 +33,12 @@ const collection: GenSchemaInput = {
       field: { hidden: true },
       column: { hidden: true },
     },
-    location: {
+    uuid: {
       type: 'String',
       required: true,
       modifiable: false,
       textSearch: true,
-      field: {
-        order: 4,
-        label: 'Location (URL)',
-        description: 'Enter this URL into your browser to view or download this file.',
-      },
+      field: { hidden: true },
       column: { hidden: true },
     },
     note: {
