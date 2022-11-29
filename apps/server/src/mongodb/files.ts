@@ -35,6 +35,10 @@ const files = (tenant: string): Collection => {
   createBucket(tenant);
 
   collection.typeDefs += gql`
+    extend type File {
+      href: String
+    }
+
     type FileCollectionActionAccess {
       get: FileCollectionActionAccessObject
       create: FileCollectionActionAccessObject

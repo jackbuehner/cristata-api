@@ -40,8 +40,9 @@ async function construct(
   schemaRefs: [string, SchemaRef][],
   context: Context,
   info: Info,
-  helpers: Helpers
-) {
+  helpers: Helpers,
+  collectionName: string
+): Promise<CollectionDoc | null> {
   if (doc === null || doc === undefined) return null;
 
   // construct a document that includes
@@ -74,7 +75,12 @@ async function construct(
 
     return merge(constructedDoc, {
       permissions: { users: await helpers.getUsers(constructedDoc.permissions.users || [], context, fields) },
-    });
+    } as unknown as Partial<CollectionDoc>);
+  }
+
+  // if the file collection, inject the file url
+  if (collectionName === 'File') {
+    doc.href = `${context.serverOrigin}/filestore/${context.tenant}/${doc._id}`;
   }
 
   return constructedDoc;
@@ -171,7 +177,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         context,
         project: createProjection(info, config),
       });
-      return await construct(doc, schemaRefs, context, info, helpers);
+      return await construct(doc, schemaRefs, context, info, helpers, name);
     };
   }
 
@@ -190,7 +196,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
       });
       return {
         ...paged,
-        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, info, helpers))),
+        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, info, helpers, name))),
       };
     };
   }
@@ -222,7 +228,8 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         schemaRefs,
         context,
         info,
-        helpers
+        helpers,
+        name
       );
     };
   }
@@ -245,7 +252,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
       });
       return {
         ...paged,
-        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, info, helpers))),
+        docs: await Promise.all(docs.map((doc) => construct(doc, schemaRefs, context, info, helpers, name))),
       };
     };
   }
@@ -282,7 +289,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
       });
 
       // return a fully constructed doc
-      return await construct(doc, schemaRefs, context, info, helpers);
+      return await construct(doc, schemaRefs, context, info, helpers, name);
     };
   }
 

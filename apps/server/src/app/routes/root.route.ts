@@ -16,7 +16,7 @@ const router = Router();
 router.get('/v3/:tenant/user-photo/:user_id', async (req, res) => {
   try {
     // connect to database
-    const tenantDB = new TenantDB((req.user as IDeserializedUser).tenant);
+    const tenantDB = new TenantDB(req.params.tenant);
     await tenantDB.connect();
     const User = await tenantDB.model<IUser>('User');
 
@@ -81,7 +81,7 @@ router.get('/v3/:tenant/user-photo/:user_id', async (req, res) => {
 router.get('/filestore/:tenant/:_id', async (req, res) => {
   try {
     // connect to database
-    const tenantDB = new TenantDB((req.user as IDeserializedUser).tenant);
+    const tenantDB = new TenantDB(req.params.tenant);
     await tenantDB.connect();
     const File = await tenantDB.model<IFile>('File');
 
