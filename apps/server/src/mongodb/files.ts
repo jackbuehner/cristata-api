@@ -170,6 +170,7 @@ interface IFile extends CollectionSchemaFields {
   uuid: string;
   note?: string;
   tags?: string[];
+  require_auth?: boolean;
 }
 
 export { files };
