@@ -5,7 +5,6 @@ import mime from 'mime';
 import { IFile } from '../../mongodb/files';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';
-import { requireAuth } from '../middleware/requireAuth';
 import { IDeserializedUser } from '../passport';
 
 /**
@@ -79,7 +78,7 @@ router.get('/v3/:tenant/user-photo/:user_id', async (req, res) => {
   }
 });
 
-router.get('/filestore/:tenant/:_id', async (req, res, next) => {
+router.get('/filestore/:tenant/:_id', async (req, res) => {
   try {
     // connect to database
     const tenantDB = new TenantDB(req.params.tenant);
@@ -94,8 +93,9 @@ router.get('/filestore/:tenant/:_id', async (req, res, next) => {
     }
 
     // if the file requires Cristata authentication, ensure authenticated
-    if (foundFile.require_auth === true) {
-      requireAuth(req, res, next);
+    if (foundFile.require_auth === true && !req.user) {
+      res.status(401).end();
+      return;
     }
 
     // use the correct mime type and name
