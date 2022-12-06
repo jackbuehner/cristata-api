@@ -47,7 +47,7 @@ const collection: GenSchemaInput = {
       modifiable: true,
       textSearch: true,
       field: {
-        order: 3,
+        order: 4,
         label: 'Note',
         description: 'Track details/notes about this file. Text in this field is searchable.',
       },
@@ -60,7 +60,19 @@ const collection: GenSchemaInput = {
       textSearch: true,
       default: [],
       field: { order: 2, label: 'Tags' },
-      column: { order: 4, label: 'Tags', chips: true, width: 200 },
+      column: { order: 2, label: 'Tags', chips: true, width: 200 },
+    },
+    require_auth: {
+      type: 'Boolean',
+      required: false,
+      modifiable: true,
+      textSearch: false,
+      default: false,
+      field: {
+        order: 3,
+        label: 'Require authentication with Cristata to view or download this file via the direct URL',
+      },
+      column: { order: 3, label: 'Require login', chips: true, width: 150 },
     },
   },
   options: {

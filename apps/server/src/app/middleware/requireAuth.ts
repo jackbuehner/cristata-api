@@ -10,7 +10,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if (req.user) {
     next();
   } else {
-    res.status(403).end();
+    res.status(401).end();
   }
 };
 

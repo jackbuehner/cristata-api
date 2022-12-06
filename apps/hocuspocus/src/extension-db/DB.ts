@@ -1,5 +1,6 @@
 import { defaultSchemaDefTypes, GenSchemaInput, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
 import userCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/User';
+import fileCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/File';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
@@ -93,6 +94,15 @@ export class DB {
         defaultSchemaDefTypes.standard,
         userCollection?.canPublish ? defaultSchemaDefTypes.publishable : {},
         userCollection?.withPermissions ? defaultSchemaDefTypes.withPermissions : {}
+      );
+    }
+
+    if (collectionName === 'File') {
+      return merge<SchemaDefType, SchemaDefType[]>(
+        fileCollection?.schemaDef || {},
+        defaultSchemaDefTypes.standard,
+        fileCollection?.canPublish ? defaultSchemaDefTypes.publishable : {},
+        fileCollection?.withPermissions ? defaultSchemaDefTypes.withPermissions : {}
       );
     }
 

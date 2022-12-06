@@ -1,11 +1,12 @@
-import { Router } from 'express';
-import { IUser } from '../../mongodb/users';
-import { IDeserializedUser } from '../passport';
-import https from 'https';
-import { TenantDB } from '../../mongodb/TenantDB';
-import mime from 'mime';
 import ColorHash from 'color-hash';
+import { Router } from 'express';
+import https from 'https';
+import mime from 'mime';
 import { IFile } from '../../mongodb/files';
+import { TenantDB } from '../../mongodb/TenantDB';
+import { IUser } from '../../mongodb/users';
+import { requireAuth } from '../middleware/requireAuth';
+import { IDeserializedUser } from '../passport';
 
 /**
  * Router for root endpoints for the v3 API.
@@ -78,7 +79,7 @@ router.get('/v3/:tenant/user-photo/:user_id', async (req, res) => {
   }
 });
 
-router.get('/filestore/:tenant/:_id', async (req, res) => {
+router.get('/filestore/:tenant/:_id', async (req, res, next) => {
   try {
     // connect to database
     const tenantDB = new TenantDB(req.params.tenant);
@@ -90,6 +91,11 @@ router.get('/filestore/:tenant/:_id', async (req, res) => {
     if (!foundFile) {
       res.status(404).end();
       return;
+    }
+
+    // if the file requires Cristata authentication, ensure authenticated
+    if (foundFile.require_auth === true) {
+      requireAuth(req, res, next);
     }
 
     // use the correct mime type and name
