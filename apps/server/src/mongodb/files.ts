@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fileCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/File';
+import { notEmpty } from '@jackbuehner/cristata-utils';
 import { AuthenticationError } from 'apollo-server-core';
 import AWS from 'aws-sdk';
 import { merge } from 'merge-anything';
@@ -134,33 +135,45 @@ function createBucket(tenant: string) {
   const s3 = new AWS.S3(credentials);
   const bucketName = `app.cristata.${tenant}.files`;
 
-  // create the bucket
-  s3.createBucket({ Bucket: bucketName }, (err) => {
-    if (err && err.statusCode !== 409) {
-      // 409: bucket already exists
-      console.error(err);
+  // obtain a list of bucket names for this aws account
+  s3.listBuckets((err, { Buckets }) => {
+    if (err) {
+      console.error('Error in list buckets:', err);
     }
-  });
 
-  // set CORS so we can upload using signed URLs
-  s3.putBucketCors(
-    {
-      Bucket: bucketName,
-      CORSConfiguration: {
-        CORSRules: [
-          {
-            AllowedHeaders: ['*'],
-            AllowedMethods: ['GET', 'HEAD', 'POST', 'PUT'],
-            AllowedOrigins: ['*'],
-            ExposeHeaders: [],
-          },
-        ],
+    const buckets = Buckets?.map((bucket) => bucket.Name).filter(notEmpty) || [];
+
+    // return early if the bucket already exists
+    if (buckets.includes(bucketName)) return;
+
+    // create the bucket
+    s3.createBucket({ Bucket: bucketName }, (err) => {
+      if (err && err.statusCode !== 409) {
+        // 409: bucket already exists
+        console.error(err);
+      }
+    });
+
+    // set CORS so we can upload using signed URLs
+    s3.putBucketCors(
+      {
+        Bucket: bucketName,
+        CORSConfiguration: {
+          CORSRules: [
+            {
+              AllowedHeaders: ['*'],
+              AllowedMethods: ['GET', 'HEAD', 'POST', 'PUT'],
+              AllowedOrigins: ['*'],
+              ExposeHeaders: [],
+            },
+          ],
+        },
       },
-    },
-    (err) => {
-      if (err) console.error(err);
-    }
-  );
+      (err) => {
+        if (err) console.error(err);
+      }
+    );
+  });
 }
 
 interface IFile extends CollectionSchemaFields {
