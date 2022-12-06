@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 3.1.0
+
+### Minor Changes
+
+- cfb71f3: require authentication when `require_auth === true` for File collection
+
 ## 3.0.0
 
 ### Major Changes

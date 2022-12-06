@@ -1,5 +1,19 @@
 # Changelog
 
+## 8.2.0
+
+### Minor Changes
+
+- cfb71f3: require authentication when `require_auth === true` for File collection
+
+### Patch Changes
+
+- 3465eab: only create s3 bucket if nonexistent
+- 90989c9: return function after sending auth error
+- cfb71f3: Require authentication when `require_auth === true` for File collection.
+
+  Correctly return 401 error instead of 403 error when requests to the server are not authenticated at all.
+
 ## 8.1.0
 
 ### Minor Changes
