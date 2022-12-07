@@ -1,5 +1,13 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.2.2
+
+### Patch Changes
+
+- cfb71f3: Require authentication when `require_auth === true` for File collection.
+
+  Correctly return 401 error instead of 403 error when requests to the server are not authenticated at all.
+
 ## 1.2.1
 
 ### Patch Changes
