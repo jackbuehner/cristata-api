@@ -179,7 +179,7 @@ function createBucket(tenant: string) {
 interface IFile extends CollectionSchemaFields {
   name: string;
   file_type: string;
-  size_byes: number;
+  size_bytes: number;
   uuid: string;
   note?: string;
   tags?: string[];
