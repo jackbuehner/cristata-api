@@ -4,7 +4,7 @@ import {
   isTypeTuple,
   MongooseSchemaType,
 } from '@jackbuehner/cristata-generator-schema';
-import { replaceCircular } from '@jackbuehner/cristata-utils';
+import { isJSON, replaceCircular } from '@jackbuehner/cristata-utils';
 import { Logtail } from '@logtail/node';
 import { Model } from 'mongoose';
 import { get as getProperty, set as setProperty } from 'object-path';
@@ -62,8 +62,9 @@ async function addToY(params: AddToYParams) {
 
     // push the data to the key so it available when creating the shared type
     if (!def.field?.custom) {
+      const value = getProperty(data, key);
       // JSON fields store their data as strignified JSON
-      data[key] = JSON.parse(getProperty(data, key));
+      if (value && isJSON(value)) data[key] = JSON.parse(value);
     } else {
       // if this is a custom/branching set of fields, it is not stringified
       data[key] = getProperty(data, key);
