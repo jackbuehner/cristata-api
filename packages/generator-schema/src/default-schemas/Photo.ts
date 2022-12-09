@@ -126,6 +126,14 @@ const collection: GenSchemaInput = {
       },
     },
   },
+  options: {
+    disablePublicFindOneBySlugQuery: true,
+    disableHideMutation: true,
+    disableArchiveMutation: true,
+    disableLockMutation: true,
+    disableWatchMutation: true,
+    disableDeleteMutation: true,
+  },
 };
 
 export default collection;
