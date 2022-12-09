@@ -1,5 +1,15 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.3.0
+
+### Minor Changes
+
+- d9f5180: add photos collection as a system collection (similar to files)
+
+### Patch Changes
+
+- d9f5180: hocuspocus server: in `setDocValues.ts`, wrap `addToY` in a try-catch block to improve error diagnosis
+
 ## 1.2.2
 
 ### Patch Changes

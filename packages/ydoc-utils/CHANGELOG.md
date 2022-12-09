@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-ydoc-utils
 
+## 3.1.2
+
+### Patch Changes
+
+- d9f5180: in `addToY.ts`, handle case where json field data is undefined
+
 ## 3.1.1
 
 ### Patch Changes
