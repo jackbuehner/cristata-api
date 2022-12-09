@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import fileCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/File';
+import photoCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Photo';
 import { notEmpty } from '@jackbuehner/cristata-utils';
 import { AuthenticationError } from 'apollo-server-core';
 import AWS from 'aws-sdk';
@@ -11,12 +11,12 @@ import { Collection, CollectionPermissions } from '../types/config';
 import { collectionsAsCollectionInputs } from '../utils/constructCollections';
 import { CollectionSchemaFields } from './helpers/constructBasicSchemaFields';
 
-const files = (tenant: string): Collection => {
+const photos = (tenant: string): Collection => {
   const { gql, requireAuthentication } = helpers;
 
   const collection = genCollection(
     {
-      ...fileCollection,
+      ...photoCollection,
       actionAccess: {
         get: { teams: ['admin'], users: [] },
         create: { teams: ['admin'], users: [] },
@@ -36,57 +36,60 @@ const files = (tenant: string): Collection => {
   createBucket(tenant);
 
   collection.typeDefs += gql`
-    extend type File {
+    extend type Photo {
       href: String
+      photo_url: String
     }
 
-    type FileCollectionActionAccess {
-      get: FileCollectionActionAccessObject
-      create: FileCollectionActionAccessObject
-      modify: FileCollectionActionAccessObject
-      hide: FileCollectionActionAccessObject
-      lock: FileCollectionActionAccessObject
-      watch: FileCollectionActionAccessObject
-      delete: FileCollectionActionAccessObject
-      archive: FileCollectionActionAccessObject
-      publish: FileCollectionActionAccessObject
-      bypassDocPermissions: FileCollectionActionAccessObject
+    type PhotoCollectionActionAccess {
+      get: PhotoCollectionActionAccessObject
+      create: PhotoCollectionActionAccessObject
+      modify: PhotoCollectionActionAccessObject
+      hide: PhotoCollectionActionAccessObject
+      lock: PhotoCollectionActionAccessObject
+      watch: PhotoCollectionActionAccessObject
+      delete: PhotoCollectionActionAccessObject
+      archive: PhotoCollectionActionAccessObject
+      publish: PhotoCollectionActionAccessObject
+      bypassDocPermissions: PhotoCollectionActionAccessObject
     }
 
-    type FileCollectionActionAccessObject {
+    type PhotoCollectionActionAccessObject {
       teams: [String!]
       users: [String!]
     }
 
-    input FileCollectionActionAccessInput {
-      get: FileCollectionActionAccessObjectInput
-      create: FileCollectionActionAccessObjectInput
-      modify: FileCollectionActionAccessObjectInput
-      hide: FileCollectionActionAccessObjectInput
-      lock: FileCollectionActionAccessObjectInput
-      watch: FileCollectionActionAccessObjectInput
-      delete: FileCollectionActionAccessObjectInput
-      archive: FileCollectionActionAccessObjectInput
-      publish: FileCollectionActionAccessObjectInput
-      bypassDocPermissions: FileCollectionActionAccessObjectInput
+    input PhotoCollectionActionAccessInput {
+      get: PhotoCollectionActionAccessObjectInput
+      create: PhotoCollectionActionAccessObjectInput
+      modify: PhotoCollectionActionAccessObjectInput
+      hide: PhotoCollectionActionAccessObjectInput
+      lock: PhotoCollectionActionAccessObjectInput
+      watch: PhotoCollectionActionAccessObjectInput
+      delete: PhotoCollectionActionAccessObjectInput
+      archive: PhotoCollectionActionAccessObjectInput
+      publish: PhotoCollectionActionAccessObjectInput
+      bypassDocPermissions: PhotoCollectionActionAccessObjectInput
     }
 
-    input FileCollectionActionAccessObjectInput {
+    input PhotoCollectionActionAccessObjectInput {
       teams: [String!]
       users: [String!]
     }
 
     type Mutation {
       """
-      Sets the action access config for the File collection.
+      Sets the action access config for the Photo collection.
       """
-      fileCollectionSetActionAccess(actionAccess: FileCollectionActionAccessInput!): FileCollectionActionAccess
+      photoCollectionSetActionAccess(
+        actionAccess: PhotoCollectionActionAccessInput!
+      ): PhotoCollectionActionAccess
     }
   `;
 
   collection.resolvers = merge(collection.resolvers, {
     Mutation: {
-      fileCollectionSetActionAccess: async (
+      photoCollectionSetActionAccess: async (
         _: never,
         { actionAccess }: { actionAccess: Partial<CollectionPermissions> },
         context: Context
@@ -98,7 +101,7 @@ const files = (tenant: string): Collection => {
 
         // get the current config value
         const currentCollectionConfig = context.config.collections.find(
-          (collection) => collection.name === 'File'
+          (collection) => collection.name === 'Photo'
         );
         if (!currentCollectionConfig) throw new Error('could not find collection');
 
@@ -111,7 +114,7 @@ const files = (tenant: string): Collection => {
 
         // attempt to save the change using the same logic as the normal collection configurations
         // (roll back changes if collection is invalid)
-        const result = await setRawConfigurationCollection({ name: 'File', raw: rawCopy }, context);
+        const result = await setRawConfigurationCollection({ name: 'Photo', raw: rawCopy }, context);
 
         // return resultant actionAccess instead of the entire collection so the resolver type is correct
         return result.actionAccess;
@@ -128,12 +131,12 @@ const credentials = {
 };
 
 /**
- * Creates the AWS s3 bucket for the files collection.
+ * Creates the AWS s3 bucket for the photos collection.
  */
 function createBucket(tenant: string) {
   AWS.config.update({ region: 'us-east-1' });
   const s3 = new AWS.S3(credentials);
-  const bucketName = `app.cristata.${tenant}.files`;
+  const bucketName = tenant === 'paladin-news' ? 'paladin-photo-library' : `app.cristata.${tenant}.photos`;
 
   // obtain a list of bucket names for this aws account
   s3.listBuckets((err, { Buckets }) => {
@@ -176,15 +179,29 @@ function createBucket(tenant: string) {
   });
 }
 
-interface IFile extends CollectionSchemaFields {
+interface IPhoto extends CollectionSchemaFields {
   name: string;
   file_type: string;
-  size_bytes: number;
+  size: number;
   uuid: string;
   note?: string;
   tags?: string[];
   require_auth?: boolean;
+  dimensions?: {
+    x?: number;
+    y?: number;
+  };
+  people: {
+    photo_created_by?: string;
+  } & CollectionSchemaFields['people'];
+  json?: string;
+  legacy_caption?: string;
+  legacy_thumbnail_id?: string;
+  /**
+   * In tenant `paladin-news`, photo locations were originally stored as a url instead of as a uuid. Prefer to use this url.
+   */
+  photo_url?: string;
 }
 
-export { files };
-export type { IFile };
+export { photos };
+export type { IPhoto };

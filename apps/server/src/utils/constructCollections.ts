@@ -4,6 +4,7 @@ import { GenCollectionInput } from '../graphql/helpers/generators/genCollection'
 import teams from '../mongodb/teams.collection.json';
 import { users } from '../mongodb/users';
 import { files } from '../mongodb/files';
+import { photos } from '../mongodb/photos';
 import { Collection } from '../types/config';
 import { merge } from 'merge-anything';
 
@@ -24,21 +25,35 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
     return files(tenant);
   })();
 
+  const photosConfig = collections.find((col) => col.name === 'Photo');
+  const photosCollection = (() => {
+    if (photosConfig?.actionAccess) {
+      return merge(photos(tenant), {
+        actionAccess: photosConfig.actionAccess,
+        raw: { actionAccess: photosConfig.actionAccess },
+      });
+    }
+    return photos(tenant);
+  })();
+
   return [
     users(tenant),
     filesCollection,
+    photosCollection,
     helpers.generators.genCollection(teams as unknown as GenCollectionInput, tenant),
     ...collections
       .filter((col): col is GenCollectionInput => !!col && !isCollection(col))
       .filter((col) => col.name !== 'User')
       .filter((col) => col.name !== 'Team')
       .filter((col) => col.name !== 'File')
+      .filter((col) => col.name !== 'Photo')
       .map((col) => helpers.generators.genCollection(col, tenant)),
     ...collections
       .filter((col): col is Collection => isCollection(col))
       .filter((col) => col.name !== 'User')
       .filter((col) => col.name !== 'Team')
-      .filter((col) => col.name !== 'File'),
+      .filter((col) => col.name !== 'File')
+      .filter((col) => col.name !== 'Photo'),
   ];
 }
 
