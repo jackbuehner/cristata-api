@@ -54,10 +54,14 @@ export async function setDocValues(
   }
 
   // add data to ydoc, which will be the collaborative source of truth for clients
-  await addToY({
-    ydoc,
-    schemaDef: deconstructSchema(await tenantDb.collectionSchema(tenant, collectionName)),
-    inputData: inputData,
-    TenantModel: TenantModel(tenantDb, tenant),
-  });
+  try {
+    await addToY({
+      ydoc,
+      schemaDef: deconstructSchema(await tenantDb.collectionSchema(tenant, collectionName)),
+      inputData: inputData,
+      TenantModel: TenantModel(tenantDb, tenant),
+    });
+  } catch (error) {
+    console.error(error);
+  }
 }
