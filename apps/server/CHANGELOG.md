@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.3.0
+
+### Minor Changes
+
+- d9f5180: add photos collection as a system collection (similar to files)
+
 ## 8.2.0
 
 ### Minor Changes

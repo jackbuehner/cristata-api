@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 3.2.0
+
+### Minor Changes
+
+- d9f5180: add photos collection as a system collection (similar to files)
+
 ## 3.1.0
 
 ### Minor Changes
