@@ -2,6 +2,7 @@ import ColorHash from 'color-hash';
 import { Router } from 'express';
 import https from 'https';
 import mime from 'mime';
+import { IPhoto } from '../../mongodb/photos';
 import { IFile } from '../../mongodb/files';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';
@@ -104,6 +105,46 @@ router.get('/filestore/:tenant/:_id', async (req, res) => {
 
     // pipe the request to this url
     const s3href = `https://s3.us-east-1.amazonaws.com/app.cristata.${req.params.tenant}.files/${foundFile.uuid}`;
+    const externalReq = https.request(s3href, (externalRes) => {
+      externalRes.pipe(res);
+    });
+    externalReq.end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).end();
+  }
+});
+
+router.get('/photo/:tenant/:_id', async (req, res) => {
+  try {
+    // connect to database
+    const tenantDB = new TenantDB(req.params.tenant);
+    await tenantDB.connect();
+    const Photo = await tenantDB.model<IPhoto>('Photo');
+
+    // get the photo, and end the request if it cannot be found
+    const foundPhoto = await Photo?.findById(req.params._id);
+    if (!foundPhoto) {
+      res.status(404).end();
+      return;
+    }
+
+    // if the photo requires Cristata authentication, ensure authenticated
+    if (foundPhoto.require_auth === true && !req.user) {
+      res.status(401).end();
+      return;
+    }
+
+    // use the correct mime type and name
+    res.setHeader('Content-Type', `${foundPhoto.file_type}; charset=UTF-8`);
+    res.setHeader('Content-Disposition', `inline; filename="${foundPhoto.name}"`);
+
+    // pipe the request to this url
+    const bucketName =
+      req.params.tenant === 'paladin-news'
+        ? 'paladin-photo-library'
+        : `app.cristata.${req.params.tenant}.photos`;
+    const s3href = `https://s3.us-east-1.amazonaws.com/${bucketName}/${foundPhoto.uuid}`;
     const externalReq = https.request(s3href, (externalRes) => {
       externalRes.pipe(res);
     });

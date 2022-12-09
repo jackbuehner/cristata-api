@@ -83,6 +83,12 @@ async function construct(
     doc.href = `${context.serverOrigin}/filestore/${context.tenant}/${doc._id}`;
   }
 
+  // if the photo collection, inject the photo url
+  if (collectionName === 'Photo') {
+    doc.href = `${context.serverOrigin}/photo/${context.tenant}/${doc._id}`;
+    doc.photo_url = `${context.serverOrigin}/photo/${context.tenant}/${doc._id}`;
+  }
+
   return constructedDoc;
 }
 
