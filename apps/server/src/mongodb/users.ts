@@ -405,7 +405,7 @@ async function setTemporaryPassword<
       user.email,
       subject,
       email,
-      `${context.config.tenantDisplayName} <noreply@thepaladin.news>`
+      `${context.config.tenantDisplayName} <noreply.${context.tenant}@notices.cristata.app>`
     );
   }
 
