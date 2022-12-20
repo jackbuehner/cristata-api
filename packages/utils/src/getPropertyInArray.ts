@@ -14,6 +14,8 @@ function getPropertyInArray(obj: Record<string, unknown>, searchKey: string): [u
   const [firstSearch, ...restSearch] = searchKey.split('.');
   const found = obj[firstSearch];
 
+  if (restSearch.length === 0) return [found, firstSearch];
+
   if (Array.isArray(found)) {
     const vals = found.map((foundPiece) => {
       return getPropertyInArray(foundPiece, restSearch.join('.'));
@@ -21,12 +23,15 @@ function getPropertyInArray(obj: Record<string, unknown>, searchKey: string): [u
     const determinedRestSearch = vals[0][1];
     const determinedSearchKey = firstSearch + '.$.' + determinedRestSearch;
     return [vals.map((v) => v[0]), determinedSearchKey];
-  } else if (isObject(found)) {
+  }
+
+  if (isObject(found)) {
     const val = getPropertyInArray(found, restSearch.join('.'));
     const determinedRestSearch = val[1];
     const determinedSearchKey = firstSearch + '.' + determinedRestSearch;
     return [val[0], determinedSearchKey];
   }
+
   return [found, firstSearch];
 }
 
