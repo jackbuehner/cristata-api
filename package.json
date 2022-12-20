@@ -27,6 +27,7 @@
     "@typescript-eslint/parser": "^5.40.1",
     "eslint": "^8.23.0",
     "eslint-plugin-turbo": "^0.0.3",
+    "mongodb-memory-server": "^8.10.2",
     "nodemon": "^2.0.20",
     "prettier": "^2.5.1",
     "turbo": "latest",
