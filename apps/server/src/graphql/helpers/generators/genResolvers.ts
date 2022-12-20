@@ -1,17 +1,12 @@
 import {
-  calcAccessor,
-  deconstructSchema,
-  defaultSchemaDefTypes,
-  GenSchemaInput,
+  calcAccessor, GenSchemaInput,
   isCustomGraphSchemaType,
   isSchemaDef,
   isSchemaDefOrType,
   isSchemaRef,
-  isTypeTuple,
-  MongooseSchemaType,
-  SchemaDef,
+  isTypeTuple, SchemaDef,
   SchemaDefType,
-  SchemaRef,
+  SchemaRef
 } from '@jackbuehner/cristata-generator-schema';
 import {
   capitalize,
@@ -19,7 +14,7 @@ import {
   flattenObject,
   hasKey,
   isObjectId,
-  uncapitalize,
+  uncapitalize
 } from '@jackbuehner/cristata-utils';
 import { ApolloError, UserInputError } from 'apollo-server-errors';
 import { findAndReplace } from 'find-and-replace-anything';
@@ -32,6 +27,7 @@ import { CollectionDoc, Helpers } from '..';
 import { TenantDB } from '../../../mongodb/TenantDB';
 import { collectionPeopleResolvers, Context, publishableCollectionPeopleResolvers } from '../../server';
 import { constructDocFromRef } from './constructDocFromRef';
+import { createProjection } from './createProjection';
 
 type Info = Parameters<typeof getFieldNames>[0];
 
