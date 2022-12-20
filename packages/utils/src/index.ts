@@ -4,6 +4,7 @@ export { checkSessionCookie } from './checkSessionCookie';
 export { converObjIsoDatesToDates } from './converObjIsoDatesToDates';
 export { convertNullPrototype } from './convertNullPrototype';
 export { convertStringsToObjIds } from './convertStringsToObjIds';
+export { countSubstringOccurance } from './countSubstringOccurance';
 export { dateAtTimeZero } from './dateAtTimeZero';
 export { flattenObject } from './flattenObject';
 export { getFlatKeys } from './getFlatKeys';
