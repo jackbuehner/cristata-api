@@ -107,6 +107,9 @@ function createProjection(
     schemaDef: GenResolversInput['schemaDef'];
     canPublish: GenResolversInput['canPublish'];
     withPermissions: GenResolversInput['withPermissions'];
+  },
+  options?: {
+    keepReferenceFields?: boolean;
   }
 ) {
   // ensure we include the common schema defs
@@ -119,35 +122,37 @@ function createProjection(
 
   const deconstructedSchema = deconstructSchema(fullSchema);
 
-  // determine the names of the fields that are references/objectids
-  const objectIdFields = deconstructedSchema
-    .map(([key, def]): [string, MongooseSchemaType | 'DocArray', boolean] => {
-      const [schemaType, isArray] = (() => {
-        const schemaType: MongooseSchemaType | 'DocArray' = isTypeTuple(def.type) ? def.type[1] : def.type;
-        const isArrayType = Array.isArray(schemaType);
-
-        if (isArrayType) return [schemaType[0], true];
-        return [schemaType, false];
-      })();
-
-      return [key, schemaType, isArray];
-    })
-    .filter(([, schemaType]) => {
-      return schemaType === 'ObjectId';
-    })
-    .map(([key]) => key);
-
   // get the names of the requested fields
   let fields = getFieldNames(info).map((field) => field.replace('docs.', ''));
 
-  // remove fields that are referenced values that the database does not see
-  // (the database only has the _id, and graphql pulls them together)
-  // and then add the root field with the _id
-  objectIdFields.forEach((idField) => {
-    if (fields.find((field) => field.indexOf(idField) === 0)) {
-      fields = [...fields.filter((field) => field.indexOf(idField + '.') !== 0), idField];
-    }
-  });
+  if (options?.keepReferenceFields !== true) {
+    // determine the names of the fields that are references/objectids
+    const objectIdFields = deconstructedSchema
+      .map(([key, def]): [string, MongooseSchemaType | 'DocArray', boolean] => {
+        const [schemaType, isArray] = (() => {
+          const schemaType: MongooseSchemaType | 'DocArray' = isTypeTuple(def.type) ? def.type[1] : def.type;
+          const isArrayType = Array.isArray(schemaType);
+
+          if (isArrayType) return [schemaType[0], true];
+          return [schemaType, false];
+        })();
+
+        return [key, schemaType, isArray];
+      })
+      .filter(([, schemaType]) => {
+        return schemaType === 'ObjectId';
+      })
+      .map(([key]) => key);
+
+    // remove fields that are referenced values that the database does not see
+    // (the database only has the _id, and graphql pulls them together)
+    // and then add the root field with the _id
+    objectIdFields.forEach((idField) => {
+      if (fields.find((field) => field.indexOf(idField) === 0)) {
+        fields = [...fields.filter((field) => field.indexOf(idField + '.') !== 0), idField];
+      }
+    });
+  }
 
   const projection: Record<string, 1> = {};
   fields.forEach((field) => {
