@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.5.1
+
+### Patch Changes
+
+- a4cb116: fix: enable cors on photos and files
+
 ## 8.5.0
 
 ### Minor Changes
