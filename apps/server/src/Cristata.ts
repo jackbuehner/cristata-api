@@ -70,7 +70,7 @@ class Cristata {
       };
       this.tenants.push(process.env.TENANT);
     }
-    // NOTE: tenants will be fetch from the app db if a tenant is not provided to the constructor
+    // * tenants will be fetched from the app db if a tenant is not provided to the constructor
   }
 
   /**
