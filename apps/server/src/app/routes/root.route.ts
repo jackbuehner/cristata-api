@@ -103,6 +103,9 @@ router.get('/filestore/:tenant/:_id', async (req, res) => {
     res.setHeader('Content-Type', `${foundFile.file_type}; charset=UTF-8`);
     res.setHeader('Content-Disposition', `inline; filename="${foundFile.name}"`);
 
+    // allow usage on non-Cristata websites
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
     // pipe the request to this url
     const s3href = `https://s3.us-east-1.amazonaws.com/app.cristata.${req.params.tenant}.files/${foundFile.uuid}`;
     const externalReq = https.request(s3href, (externalRes) => {
@@ -138,6 +141,9 @@ router.get('/photo/:tenant/:_id', async (req, res) => {
     // use the correct mime type and name
     res.setHeader('Content-Type', `${foundPhoto.file_type}; charset=UTF-8`);
     res.setHeader('Content-Disposition', `inline; filename="${foundPhoto.name}"`);
+
+    // allow usage on non-Cristata websites
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     // pipe the request to this url
     const bucketName =
