@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { corsConfig } from '../../app/middleware/cors';
 import Cristata from '../../Cristata';
 import { GraphQLPlayground, LogErrorsToConsole, LogErrorsToLogtail } from '../plugins';
+import { collectionResolvers } from '../resolvers';
 import { collectionTypeDefs } from '../typeDefs';
 import { context } from './context';
 import { makeGraphSchema } from './makeGraphSchema';
@@ -55,5 +56,8 @@ async function apollo(
   }
 }
 
+const collectionPeopleResolvers = collectionResolvers.CollectionPeople;
+const publishableCollectionPeopleResolvers = collectionResolvers.PublishableCollectionPeople;
+
 export type { Context } from './context';
-export { apollo, collectionTypeDefs };
+export { apollo, collectionPeopleResolvers, collectionTypeDefs, publishableCollectionPeopleResolvers };
