@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 3.3.0
+
+### Minor Changes
+
+- 5c89488: add `dynamicPreviewHref` to schema options
+
 ## 3.2.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.5.0
+
+### Minor Changes
+
+- 5c89488: add `dynamicPreviewHref` to schema options
+
 ## 8.4.1
 
 ### Patch Changes
