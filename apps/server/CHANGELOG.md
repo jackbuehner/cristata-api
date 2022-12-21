@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.4.1
+
+### Patch Changes
+
+- 9b010fa: Do not attempt to modify user permission objects. Before `resolveReferencedDocuments` was added, it was necessary to manually convert user ids into user docs. Now, `resolveReferencedDocuments` does this already. Attempting to covert the user docs causes an error because the user doc cannot be interpreted as an objectId.
+
 ## 8.4.0
 
 ### Minor Changes
