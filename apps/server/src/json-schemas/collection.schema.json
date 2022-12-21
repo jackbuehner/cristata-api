@@ -4460,6 +4460,9 @@
                 "previewUrl": {
                     "type": "string"
                 },
+                "dynamicPreviewHref": {
+                    "type": "string"
+                },
                 "watcherNotices": {
                     "additionalProperties": false,
                     "defaultProperties": [],

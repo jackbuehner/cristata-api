@@ -60,6 +60,14 @@ interface GenSchemaInput {
     };
     nameField?: string;
     previewUrl?: string;
+    /**
+     * If set, the app will attempt to send data to this location
+     * with IframeResizer. The page at this location can be hosted
+     * anywhere and is responsible for rendering a preview that
+     * reflects the data. Updated data is sent whenever the user
+     * makes changes in the app.
+     */
+    dynamicPreviewHref?: string;
   };
   /**
    * Whether documents in this collection can be marked as published.

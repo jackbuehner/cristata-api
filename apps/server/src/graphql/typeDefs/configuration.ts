@@ -109,6 +109,7 @@ const collection = gql`
   type ConfigurationCollectionGenerationOptions {
     mandatoryWatchers: [String]
     previewUrl: String
+    dynamicPreviewHref: String
     nameField: String
     disableCreateMutation: Boolean
     disableHideMutation: Boolean
