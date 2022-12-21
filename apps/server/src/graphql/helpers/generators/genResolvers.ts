@@ -9,7 +9,6 @@ import { capitalize, dateAtTimeZero, flattenObject, hasKey, uncapitalize } from 
 import { UserInputError } from 'apollo-server-errors';
 import { findAndReplace } from 'find-and-replace-anything';
 import getFieldNames from 'graphql-list-fields';
-import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { get as getProperty } from 'object-path';
 import pluralize from 'pluralize';
@@ -52,18 +51,6 @@ async function construct(
     // use an already resolved Promise for the first iteration,
     Promise.resolve()
   );
-
-  // reference user objects instead of user ids
-  if (constructedDoc && constructedDoc.permissions) {
-    const fields = getFieldNames(info)
-      .map((field) => field.replace('docs.', ''))
-      .filter((field) => field.indexOf('permissions.users.') === 0)
-      .map((field) => field.replace('permissions.users.', ''));
-
-    constructedDoc = merge(constructedDoc, {
-      permissions: { users: await helpers.getUsers(constructedDoc.permissions.users || [], context, fields) },
-    } as unknown as Partial<CollectionDoc>);
-  }
 
   // if the file collection, inject the file url
   if (collectionName === 'File') {

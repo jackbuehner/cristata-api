@@ -274,17 +274,18 @@ async function resolveReferencedDocument(
     if (!Array.isArray(identifier) || !identifier.every((_id) => isObjectId(_id))) return;
     const _ids = identifier.map((_id) => new mongoose.Types.ObjectId(_id));
 
-    // if we only need the _id, we do not need a query
-    if (isOnlyId) {
-      setProperty(
-        doc,
-        key,
-        _ids.map((_id) => ({ _id }))
-      );
-      return;
-    }
-
     _ids.forEach((_id, index) => {
+      // if we only need the _id, we do not need a query
+      if (isOnlyId) {
+        if (determinedKey.includes('$')) {
+          setProperty(doc, determinedKey.replace('$', index.toString()), { _id });
+        } else {
+          setProperty(doc, key + '.' + index, { _id });
+        }
+        console.log(JSON.stringify(doc));
+        return;
+      }
+
       // create an identifier that includes collection, id, and projection information
       const promiseKey = `${collectionName}.${_id}.${Object.keys(removePathCollision(project)).join('%%')}`;
 
