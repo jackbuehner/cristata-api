@@ -6,7 +6,6 @@ import { Collection } from '../../types/config';
 import {
   coreResolvers,
   s3Resolvers,
-  collectionResolvers,
   configurationResolvers,
   analyticsResolvers,
   billingResolvers,
@@ -42,7 +41,6 @@ function makeGraphSchema(collections: Collection[]): GraphQLSchema {
   const resolvers = merge(
     coreResolvers,
     s3Resolvers,
-    collectionResolvers,
     configurationResolvers,
     analyticsResolvers,
     billingResolvers,
