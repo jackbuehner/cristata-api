@@ -237,8 +237,9 @@ async function resolveReferencedDocuments(
 
   // determine the names of the fields in the projection that are references/objectids
   const objectIdFields = getObjectIdFields(deconstructedSchema, context, fullProjection, projection);
-  const promises: Record<string, Promise<Record<string, unknown> | null> | undefined> = {};
+  const promises: Record<string, MaybePromise<Record<string, unknown> | null> | undefined> = {};
 
+  // resolve doc references for each input document, creating promises for documents along the way
   await Promise.all(
     docs.map((doc) => {
       return Promise.all(objectIdFields.map((v) => resolveReferencedDocument(promises, tenantDB, doc, v)));
@@ -248,8 +249,10 @@ async function resolveReferencedDocuments(
   return docs;
 }
 
+type MaybePromise<T> = Promise<T> | T;
+
 async function resolveReferencedDocument(
-  promises: Record<string, Promise<Record<string, unknown> | null> | undefined>,
+  promises: Record<string, MaybePromise<Record<string, unknown> | null> | undefined>,
   tenantDB: TenantDB,
   doc: CollectionDoc,
   [key, , collectionName, isArray, project, children]: ObjectIdFieldsType
@@ -284,65 +287,67 @@ async function resolveReferencedDocument(
       return;
     }
 
-    _ids.forEach((_id, index) => {
-      // create an identifier that includes collection, id, and projection information
-      const promiseKey = `${collectionName}.${_id}.${Object.keys(removePathCollision(project)).join('%%')}`;
+    await Promise.all(
+      _ids.map(async (_id, index) => {
+        // create an identifier that includes collection, id, and projection information
+        const promiseKey = `${collectionName}.${_id}.${Object.keys(removePathCollision(project)).join('%%')}`;
 
-      // determine if there is an existing promise that is compatable
-      const [matchingPromiseKey, matchingPromise] = Object.entries(promises).find(([key]) => {
-        const [otherCollectionName, other_id, projectString] = key.split('.');
-        const projectStringKeys = projectString.split('%%');
+        // determine if there is an existing promise that is compatable
+        const [matchingPromiseKey, matchingPromise] = Object.entries(promises).find(([key]) => {
+          const [otherCollectionName, other_id, projectString] = key.split('.');
+          const projectStringKeys = projectString.split('%%');
 
-        // require collection names and document ids to match
-        if (otherCollectionName !== collectionName) return false;
-        if (_id.toHexString() !== other_id) return false;
+          // require collection names and document ids to match
+          if (otherCollectionName !== collectionName) return false;
+          if (_id.toHexString() !== other_id) return false;
 
-        // compatable promises must include every key required by the projection (and may contain extra keys)
-        return Object.keys(project).every((key) => projectStringKeys.includes(key));
-      }) || ['', null];
+          // compatable promises must include every key required by the projection (and may contain extra keys)
+          return Object.keys(project).every((key) => projectStringKeys.includes(key));
+        }) || ['', null];
 
-      // use the compatable promise instead so there are fewer database queries
-      if (matchingPromise) {
+        // use the compatable promise instead so there are fewer database queries
+        if (matchingPromise) {
+          if (determinedKey.includes('$')) {
+            setProperty(doc, determinedKey.replace('$', index.toString()), promises[matchingPromiseKey]);
+          } else {
+            setProperty(doc, key + '.' + index, promises[matchingPromiseKey]);
+          }
+          return;
+        }
+
+        // create a promise for the document
+        promises[promiseKey] = await Model.findById(_id, removePathCollision(project))
+          .then(async (doc) => {
+            if (doc) {
+              // convert the document to a plain object
+              const _doc = doc.toObject() as CollectionDoc;
+
+              // inject promises to resolve for all nested children
+              await Promise.all(
+                children.map(async (child) => {
+                  return resolveReferencedDocument(promises, tenantDB, _doc, child);
+                })
+              );
+
+              // return the doc with the promises
+              return _doc;
+            }
+            return null;
+          })
+          .catch((err) => {
+            console.error(err);
+            return null;
+          });
+
+        // set the value to the promise for the document
         if (determinedKey.includes('$')) {
-          setProperty(doc, determinedKey.replace('$', index.toString()), promises[matchingPromiseKey]);
+          setProperty(doc, determinedKey.replace('$', index.toString()), promises[promiseKey]);
         } else {
-          setProperty(doc, key + '.' + index, promises[matchingPromiseKey]);
+          setProperty(doc, key + '.' + index, promises[promiseKey]);
         }
         return;
-      }
-
-      // create a promise for the document
-      promises[promiseKey] = Model.findById(_id, removePathCollision(project))
-        .then(async (doc) => {
-          if (doc) {
-            // convert the document to a plain object
-            const _doc = doc.toObject() as CollectionDoc;
-
-            // inject promises to resolve for all nested children
-            await Promise.all(
-              children.map(async (child) => {
-                return resolveReferencedDocument(promises, tenantDB, _doc, child);
-              })
-            );
-
-            // return the doc with the promises
-            return _doc;
-          }
-          return null;
-        })
-        .catch((err) => {
-          console.error(err);
-          return null;
-        });
-
-      // set the value to the promise for the document
-      if (determinedKey.includes('$')) {
-        setProperty(doc, determinedKey.replace('$', index.toString()), promises[promiseKey]);
-      } else {
-        setProperty(doc, key + '.' + index, promises[promiseKey]);
-      }
-      return;
-    });
+      })
+    );
 
     return;
   }
@@ -380,7 +385,7 @@ async function resolveReferencedDocument(
   }
 
   // create a promise for the document
-  promises[promiseKey] = Model.findById(_id, removePathCollision(project))
+  promises[promiseKey] = await Model.findById(_id, removePathCollision(project))
     .then(async (doc) => {
       if (doc) {
         // convert the document to a plain object
