@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.7.0
+
+### Minor Changes
+
+- 7108a1b: support editing nav pane groups and their items
+
 ## 8.6.0
 
 ### Minor Changes
