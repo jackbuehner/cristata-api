@@ -63,6 +63,14 @@ const navigation = gql`
     sub(key: String!): [ConfigurationNavigationSubGroup]!
   }
 
+  type Mutation {
+    """
+    Set the groups of items to use for the sub navigation panel in the app.
+    System groups that are provided in the query are removed upon receipt.
+    """
+    setConfigurationNavigationSub(key: String!, input: [ConfigurationNavigationSubGroupInput]!): [ConfigurationNavigationSubGroup]!
+  }
+
   type ConfigurationNavigationMainItem {
     label: String!
     icon: String!
@@ -71,14 +79,39 @@ const navigation = gql`
   }
 
   type ConfigurationNavigationSubGroup {
+    uuid: String!
     label: String!
     items: [ConfigurationNavigationSubGroupItems]!
   }
 
   type ConfigurationNavigationSubGroupItems {
+    uuid: String!
     label: String!
     icon: String!
     to: String!
+    hiddenFilter: ConfigurationNavigationSubGroupItemsHiddenFilter
+  }
+
+  type ConfigurationNavigationSubGroupItemsHiddenFilter {
+    notInTeam: [String!]
+  }
+
+  input ConfigurationNavigationSubGroupInput {
+    uuid: String!
+    label: String!
+    items: [ConfigurationNavigationSubGroupItemsInput]!
+  }
+
+  input ConfigurationNavigationSubGroupItemsInput {
+    uuid: String!
+    label: String!
+    icon: String!
+    to: String!
+    isHidden: ConfigurationNavigationSubGroupItemsHiddenFilterInput
+  }
+
+  input ConfigurationNavigationSubGroupItemsHiddenFilterInput {
+    notInTeam: [String!]
   }
 `;
 

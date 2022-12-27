@@ -106,8 +106,10 @@ interface Configuration<CT = Collection> {
     }>;
     sub: {
       [key: string]: Array<{
+        uuid: string;
         label: string;
         items: Array<{
+          uuid: string;
           label: string;
           icon: FluentIconNames;
           to: string;
@@ -241,12 +243,15 @@ interface ReturnedMainNavItem extends Omit<Configuration['navigation']['main'][0
 }
 
 interface SubNavGroup {
+  uuid: string;
   label: string;
   items: Array<{
+    uuid: string;
     label: string;
     icon: FluentIconNames;
     to: string;
-    isHidden?: boolean | { notInTeam: string | string[] };
+    isHidden?: boolean;
+    hiddenFilter?: { notInTeam: string[] };
   }>;
 }
 

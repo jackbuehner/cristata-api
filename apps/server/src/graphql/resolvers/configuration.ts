@@ -2,6 +2,7 @@ import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cris
 import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
+import { v3 } from 'uuid';
 import { TenantDB } from '../../mongodb/TenantDB';
 import {
   Collection,
@@ -148,6 +149,40 @@ const configuration = {
       // return the value that is now available in the cristata instance
       return value;
     },
+    setConfigurationNavigationSub: async (
+      _: unknown,
+      { key, input }: { key: string; input: SubNavGroup[] },
+      context: Context
+    ): Promise<ReturnedSubNavGroup[]> => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      // remove the default collections group
+      input = input.filter((v) => v.label !== 'Collections');
+
+      const tenantsCollection = context.cristata.tenantsCollection;
+
+      // update the config in the database
+      const res = await tenantsCollection?.findOneAndUpdate(
+        { name: context.tenant },
+        { $set: { [`config.navigation.sub.${key}`]: input } },
+        { returnDocument: 'after' }
+      );
+
+      // update the config in the cristata instance
+      if (res?.value?.config) {
+        const newConfig = {
+          ...res.value.config,
+          collections: constructCollections(res.value.config.collections, context.tenant),
+        };
+        context.cristata.config[context.tenant] = newConfig;
+        await context.restartApollo();
+        return returnCmsNavConfig(context, key);
+      }
+
+      return returnCmsNavConfig(context, key);
+    },
   },
   ConfigurationDashboard: {
     collectionRows: (
@@ -189,22 +224,7 @@ const configuration = {
       );
     },
     sub: async (_: unknown, { key }: { key: string }, context: Context): Promise<ReturnedSubNavGroup[]> => {
-      const cmsNavConfig = await getCmsNavConfig(context, key);
-
-      return cmsNavConfig.map((group) => {
-        return {
-          label: group.label,
-          items: group.items.map((item) => {
-            return {
-              label: item.label,
-              // use circle icon if no other icon is provided
-              icon: item.icon || 'CircleSmall24Filled',
-              to: item.to,
-              isHidden: item.isHidden,
-            };
-          }),
-        };
-      });
+      return returnCmsNavConfig(context, key);
     },
   },
   ConfigurationSecurity: {
@@ -246,17 +266,26 @@ const configuration = {
   },
 };
 
-const filterHidden = (groups: SubNavGroup[] | undefined, context: Context): SubNavGroup[] => {
+function filterHidden(
+  groups: SubNavGroup[] | undefined,
+  context: Context,
+  opts: { keepHiddenFilter: true }
+): SubNavGroup[];
+function filterHidden(
+  groups: SubNavGroup[] | undefined,
+  context: Context,
+  opts: { keepHiddenFilter?: boolean }
+): ReturnedSubNavGroup[] | SubNavGroup[] {
   if (!groups) return [];
   return groups
     .map((group): ReturnedSubNavGroup | null => {
       // store the group items that are not hidden
       const enabledGroupItems = group.items.filter((item) => {
-        if (isObject(item.isHidden)) {
-          if (typeof item.isHidden.notInTeam === 'string') {
-            return context.profile?.teams.includes(item.isHidden.notInTeam);
+        if (item.hiddenFilter) {
+          if (typeof item.hiddenFilter.notInTeam === 'string') {
+            return context.profile?.teams.includes(item.hiddenFilter.notInTeam);
           }
-          return item.isHidden.notInTeam.some((team) => context.profile?.teams.includes(team));
+          return item.hiddenFilter.notInTeam.some((team) => context.profile?.teams.includes(team));
         }
         return item.isHidden !== true;
       });
@@ -265,17 +294,16 @@ const filterHidden = (groups: SubNavGroup[] | undefined, context: Context): SubN
       if (enabledGroupItems.length === 0) return null;
 
       // otherwise, return the group
-
       return {
         ...group,
         items: enabledGroupItems.map((item) => {
-          delete item.isHidden;
+          if (!opts.keepHiddenFilter) delete item.isHidden;
           return item as ReturnedSubNavGroup['items'][0];
         }),
       };
     })
     .filter((group): group is ReturnedSubNavGroup => !!group);
-};
+}
 
 const setRawConfigurationCollection = async (
   { name, raw }: { name: string; raw?: GenCollectionInput },
@@ -388,47 +416,99 @@ const setRawConfigurationCollection = async (
 };
 
 const getCmsNavConfig = async (context: Context, key = 'cms') => {
-  return [
-    ...filterHidden(context.config.navigation.sub[key], context),
+  const values: SubNavGroup[] = [
+    ...context.config.navigation.sub[key].map((group) => {
+      return {
+        ...group,
+        items: group.items.map((item) => {
+          return {
+            ...item,
+            isHidden: typeof item.isHidden === 'boolean' ? item.isHidden : undefined,
+            hiddenFilter: isObject(item.isHidden)
+              ? typeof item.isHidden.notInTeam === 'string'
+                ? { notInTeam: [item.isHidden.notInTeam] }
+                : { notInTeam: item.isHidden.notInTeam }
+              : undefined,
+          };
+        }),
+      };
+    }),
     ...(key === 'cms'
-      ? filterHidden(
-          [
-            {
-              label: 'Collections',
-              items: await Promise.all(
-                context.config.collections
-                  .filter(({ name }) => name !== 'Team' && name !== 'User')
-                  .filter(({ navLabel }) => navLabel !== '__hidden')
-                  .sort((a, b) => {
-                    let nameA = a.navLabel || a.name;
-                    if (nameA.split('::').length === 2) nameA = nameA.split('::')[1];
+      ? [
+          {
+            uuid: v3('Collections', 'c2af0a4c-5c85-4959-9e48-7dbd4f5fc8f7'),
+            label: 'Collections',
+            items: await Promise.all(
+              context.config.collections
+                .filter(({ name }) => name !== 'Team' && name !== 'User')
+                .filter(({ navLabel }) => navLabel !== '__hidden')
+                .sort((a, b) => {
+                  let nameA = a.navLabel || a.name;
+                  if (nameA.split('::').length === 2) nameA = nameA.split('::')[1];
 
-                    let nameB = b.navLabel || b.name;
-                    if (nameB.split('::').length === 2) nameB = nameB.split('::')[1];
+                  let nameB = b.navLabel || b.name;
+                  if (nameB.split('::').length === 2) nameB = nameB.split('::')[1];
 
-                    return nameA.localeCompare(nameB);
-                  })
-                  .map(async (collection) => {
-                    const isHidden = !(await helpers.canDo({ model: collection.name, action: 'get', context }));
-                    const pluralName = pluralize(collection.name);
-                    const hyphenatedName = camelToDashCase(pluralName);
-                    let label = collection.navLabel || capitalize(hyphenatedName.replace('-', ' '));
-                    let to = `/cms/collection/${hyphenatedName}`;
+                  return nameA.localeCompare(nameB);
+                })
+                .map(async (collection) => {
+                  const isHidden = !(await helpers.canDo({ model: collection.name, action: 'get', context }));
+                  const pluralName = pluralize(collection.name);
+                  const hyphenatedName = camelToDashCase(pluralName);
+                  let label = collection.navLabel || capitalize(hyphenatedName.replace('-', ' '));
+                  let to = `/cms/collection/${hyphenatedName}`;
 
-                    if (collection.name === 'Photo') {
-                      label = `Photo library`;
-                      to = `/cms/photos/library`;
-                    }
+                  if (collection.name === 'Photo') {
+                    label = `Photo library`;
+                    to = `/cms/photos/library`;
+                  }
 
-                    return { label, icon: 'CircleSmall24Filled', to, isHidden };
-                  })
-              ),
-            },
-          ],
-          context
-        )
+                  return {
+                    uuid: v3(label, 'c2af0a4c-5c85-4959-9e48-7dbd4f5fc8f7'),
+                    label,
+                    icon: 'CircleSmall24Filled' as typeof context.config.navigation.sub['cms'][0]['items'][0]['icon'],
+                    to,
+                    isHidden,
+                  };
+                })
+            ),
+          },
+        ]
       : []),
   ];
+
+  // inject uuids if they are missing
+  values.forEach((group) => {
+    if (!group.uuid) group.uuid = v3(group.label, '33f084b9-02c1-4077-898a-819dd6fa615e');
+
+    group.items.forEach((item) => {
+      if (!item.uuid) item.uuid = v3(item.label, '33f084b9-02c1-4077-898a-819dd6fa615e');
+    });
+  });
+
+  return filterHidden(values, context, { keepHiddenFilter: true });
+};
+
+const returnCmsNavConfig = async (context: Context, key = 'cms') => {
+  const cmsNavConfig = await getCmsNavConfig(context, key);
+
+  return cmsNavConfig.map((group) => {
+    return {
+      uuid: group.uuid,
+      label: group.label,
+      items: group.items.map((item) => {
+        return {
+          uuid: item.uuid,
+          label: item.label,
+          // use circle icon if no other icon is provided
+          icon: item.icon || 'CircleSmall24Filled',
+          to: item.to,
+          isHidden: item.isHidden,
+          hiddenFilter: item.hiddenFilter,
+        };
+      }),
+    };
+  });
 };
 
 export { configuration, setRawConfigurationCollection };
