@@ -79,14 +79,22 @@ const navigation = gql`
   }
 
   type ConfigurationNavigationSubGroup {
+    uuid: String!
     label: String!
     items: [ConfigurationNavigationSubGroupItems]!
   }
 
   type ConfigurationNavigationSubGroupItems {
+    uuid: String!
     label: String!
     icon: String!
     to: String!
+    hiddenFilter: ConfigurationNavigationSubGroupItemsHiddenFilter
+  }
+
+  type ConfigurationNavigationSubGroupItemsHiddenFilter {
+    notInTeam: [String!]
+  }
 
   input ConfigurationNavigationSubGroupInput {
     uuid: String!
@@ -99,8 +107,11 @@ const navigation = gql`
     label: String!
     icon: String!
     to: String!
+    isHidden: ConfigurationNavigationSubGroupItemsHiddenFilterInput
   }
 
+  input ConfigurationNavigationSubGroupItemsHiddenFilterInput {
+    notInTeam: [String!]
   }
 `;
 
