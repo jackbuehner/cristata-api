@@ -148,6 +148,40 @@ const configuration = {
       // return the value that is now available in the cristata instance
       return value;
     },
+    setConfigurationNavigationSub: async (
+      _: unknown,
+      { key, input }: { key: string; input: SubNavGroup[] },
+      context: Context
+    ): Promise<ReturnedSubNavGroup[]> => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      // remove the default collections group
+      input = input.filter((v) => v.label !== 'Collections');
+
+      const tenantsCollection = context.cristata.tenantsCollection;
+
+      // update the config in the database
+      const res = await tenantsCollection?.findOneAndUpdate(
+        { name: context.tenant },
+        { $set: { [`config.navigation.sub.${key}`]: input } },
+        { returnDocument: 'after' }
+      );
+
+      // update the config in the cristata instance
+      if (res?.value?.config) {
+        const newConfig = {
+          ...res.value.config,
+          collections: constructCollections(res.value.config.collections, context.tenant),
+        };
+        context.cristata.config[context.tenant] = newConfig;
+        await context.restartApollo();
+        return returnCmsNavConfig(context, key);
+      }
+
+      return returnCmsNavConfig(context, key);
+    },
   },
   ConfigurationDashboard: {
     collectionRows: (
@@ -189,22 +223,7 @@ const configuration = {
       );
     },
     sub: async (_: unknown, { key }: { key: string }, context: Context): Promise<ReturnedSubNavGroup[]> => {
-      const cmsNavConfig = await getCmsNavConfig(context, key);
-
-      return cmsNavConfig.map((group) => {
-        return {
-          label: group.label,
-          items: group.items.map((item) => {
-            return {
-              label: item.label,
-              // use circle icon if no other icon is provided
-              icon: item.icon || 'CircleSmall24Filled',
-              to: item.to,
-              isHidden: item.isHidden,
-            };
-          }),
-        };
-      });
+      return returnCmsNavConfig(context, key);
     },
   },
   ConfigurationSecurity: {
@@ -429,6 +448,24 @@ const getCmsNavConfig = async (context: Context, key = 'cms') => {
         )
       : []),
   ];
+const returnCmsNavConfig = async (context: Context, key = 'cms') => {
+  const cmsNavConfig = await getCmsNavConfig(context, key);
+
+  return cmsNavConfig.map((group) => {
+    return {
+      uuid: group.uuid,
+      label: group.label,
+      items: group.items.map((item) => {
+        return {
+          uuid: item.uuid,
+          label: item.label,
+          // use circle icon if no other icon is provided
+          icon: item.icon || 'CircleSmall24Filled',
+          to: item.to,
+        };
+      }),
+    };
+  });
 };
 
 export { configuration, setRawConfigurationCollection };
