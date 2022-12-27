@@ -425,4 +425,4 @@ interface GenResolversInput extends GenSchemaInput {
 }
 
 export type { GenResolversInput };
-export { genResolvers };
+export { genResolvers, construct };
