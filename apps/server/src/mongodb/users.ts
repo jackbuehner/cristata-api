@@ -5,13 +5,18 @@ import { getPasswordStatus, notEmpty, sendEmail, slugify } from '@jackbuehner/cr
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
+import getFieldNames from 'graphql-list-fields';
 import { merge } from 'merge-anything';
 import mongoose, { PassportLocalDocument } from 'mongoose';
 import helpers, { genCollection } from '../graphql/helpers';
+import { construct } from '../graphql/helpers/generators/genResolvers';
+import { resolveReferencedDocuments } from '../graphql/helpers/generators/resolveReferencedDocuments';
 import { Context } from '../graphql/server';
 import { Collection } from '../types/config';
 import { CollectionSchemaFields, GitHubTeamNodeID } from './helpers/constructBasicSchemaFields';
 import { TenantDB } from './TenantDB';
+
+type Info = Parameters<typeof getFieldNames>[0];
 
 const users = (tenant: string): Collection => {
   const { canDo, createDoc, findDoc, findDocs, gql, modifyDoc, requireAuthentication } = helpers;
@@ -114,12 +119,18 @@ const users = (tenant: string): Collection => {
 
   collection.resolvers = merge(collection.resolvers, {
     Query: {
-      user: (_: never, args: { _id: any }, context: Context) =>
-        findDoc({
+      user: async (_: never, args: { _id: any }, context: Context, info: Info) => {
+        const doc = await findDoc({
           model: 'User',
           _id: args._id || new mongoose.Types.ObjectId(context.profile?._id),
           context,
-        }),
+        });
+
+        if (!doc) return null;
+
+        const [resolvedDoc] = await resolveReferencedDocuments([doc], info, context, 'User');
+        return await construct(resolvedDoc, [], context, info, helpers, 'User');
+      },
 
       userExists: async (_: never, args: any, context: Context) => {
         const findArgs = {
