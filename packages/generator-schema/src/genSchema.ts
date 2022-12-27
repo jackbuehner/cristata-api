@@ -51,11 +51,9 @@ interface GenSchemaInput {
     watcherNotices?: {
       subjectField: string;
       stageField: string;
-      stageMap: Record<number, string>;
       fields: Array<{
         name: string;
         label: string;
-        numMap?: Record<number, string>;
       }>;
     };
     nameField?: string;
