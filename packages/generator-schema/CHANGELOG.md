@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 3.4.0
+
+### Minor Changes
+
+- 7108a1b: support editing nav pane groups and their items
+
 ## 3.3.0
 
 ### Minor Changes
