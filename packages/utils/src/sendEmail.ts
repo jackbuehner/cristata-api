@@ -1,14 +1,3 @@
-import aws from 'aws-sdk';
-import dotenv from 'dotenv';
-
-// load environmental variables
-if (typeof window === 'undefined') dotenv.config();
-
-// set the region to us-east
-aws.config.update({
-  region: 'us-east-1',
-});
-
 interface EmailConfig {
   defaultSender: string;
   tenantDisplayName: string;
@@ -32,42 +21,53 @@ function sendEmail(
   message: string,
   from = config.defaultSender
 ): void {
-  const ses = new aws.SES({ apiVersion: '2010-12-01', credentials: config?.secrets });
+  if (typeof window !== 'undefined') {
+    throw new Error('You cannot use `sendEmail()` in the browser');
+  }
 
-  const Data = `
-    <h1 style="font-size: 20px;">
-      ${config.tenantDisplayName}
-    </h1>
-    ${message}
-    <p style="color: #aaaaaa">
-      Powered by Cristata
-      <br />
-      <span style="font-size: 12px; line-height: 12px;">© Jack Buehner</span>
-    </p>
-  `;
-  const params = {
-    Destination: {
-      ToAddresses: typeof to === 'string' ? [to] : to,
-    },
-    Message: {
-      Body: {
-        Html: {
+  import('aws-sdk').then((aws) => {
+    // set the region to us-east
+    aws.config.update({
+      region: 'us-east-1',
+    });
+
+    const ses = new aws.SES({ apiVersion: '2010-12-01', credentials: config?.secrets });
+
+    const Data = `
+      <h1 style="font-size: 20px;">
+        ${config.tenantDisplayName}
+      </h1>
+      ${message}
+      <p style="color: #aaaaaa">
+        Powered by Cristata
+        <br />
+        <span style="font-size: 12px; line-height: 12px;">© Jack Buehner</span>
+      </p>
+    `;
+    const params = {
+      Destination: {
+        ToAddresses: typeof to === 'string' ? [to] : to,
+      },
+      Message: {
+        Body: {
+          Html: {
+            Charset: 'UTF-8',
+            Data,
+          },
+        },
+        Subject: {
           Charset: 'UTF-8',
-          Data,
+          Data: subject,
         },
       },
-      Subject: {
-        Charset: 'UTF-8',
-        Data: subject,
-      },
-    },
-    ReturnPath: from,
-    Source: from,
-  };
-  ses.sendEmail(params, (err) => {
-    if (err) {
-      return console.error(err, err.stack);
-    }
+      ReturnPath: from,
+      Source: from,
+    };
+    ses.sendEmail(params, (err) => {
+      if (err) {
+        return console.error(err, err.stack);
+      }
+    });
   });
 }
 
