@@ -1,6 +1,9 @@
 import { Hocuspocus } from '@hocuspocus/server';
+import dotenv from 'dotenv';
 import { Authenticate } from './Authenticate';
 import { db, dbHelper } from './extension-db';
+
+dotenv.config();
 
 if (!process.env.SERVER_AUTH_URL) throw new Error('SERVER_AUTH_URL is a required environment variable');
 if (!process.env.SERVER_API_URL) throw new Error('SERVER_API_URL is a required environment variable');
