@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.7.2
+
+### Patch Changes
+
+- d0c4aaf: require auth for config/billing/history queries and mutations\
+
 ## 8.7.1
 
 ### Patch Changes
