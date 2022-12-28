@@ -3,7 +3,7 @@ import { ForbiddenError } from 'apollo-server-errors';
 import aws from 'aws-sdk';
 import Stripe from 'stripe';
 import { TenantDB } from '../../mongodb/TenantDB';
-import { requireAuthentication } from '../helpers';
+import helpers, { requireAuthentication } from '../helpers';
 import { Context } from '../server';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
 
@@ -40,6 +40,8 @@ const billing = {
 
   Usage: {
     api: async (_: unknown, { year, month }: { year?: number; month?: number }, context: Context) => {
+      helpers.requireAuthentication(context);
+
       try {
         if (year === undefined && month === undefined) {
           const tenantDoc = await context.cristata.tenantsCollection?.findOne({ name: context.tenant });
@@ -110,6 +112,8 @@ const billing = {
       __: unknown,
       context: Context
     ): Promise<{ database: number; files: number }> => {
+      helpers.requireAuthentication(context);
+
       const tenantDB = new TenantDB(context.tenant, context.config.collections);
       const conn = await tenantDB.connect();
 

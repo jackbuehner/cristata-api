@@ -3,7 +3,7 @@ import { notEmpty } from '@jackbuehner/cristata-utils';
 import getFieldNames from 'graphql-list-fields';
 import mongoose from 'mongoose';
 import { TenantDB } from '../../mongodb/TenantDB';
-import { getUsers } from '../helpers';
+import helpers, { getUsers } from '../helpers';
 import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
 import { Context } from '../server';
 
@@ -22,6 +22,8 @@ const core = {
       { limit, collections, exclude, page }: ActivityArgs,
       context: Context
     ) => {
+      helpers.requireAuthentication(context);
+
       let collectionNames = context.config.collections.map((col) => col.name);
       if (collections) collectionNames = collectionNames.filter((name) => collections.includes(name));
       else if (exclude) collectionNames = collectionNames.filter((name) => !exclude.includes(name));
