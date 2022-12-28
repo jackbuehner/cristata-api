@@ -1,12 +1,14 @@
-import { replaceCircular } from '@jackbuehner/cristata-utils';
+import { hasKey, isObjectId, replaceCircular } from '@jackbuehner/cristata-utils';
 import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
+import { isPlainObject } from 'is-what';
 import passport from 'passport';
 import Cristata from '../../Cristata';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { magicLogin } from '../middleware/magicLogin';
 import { requireAuth } from '../middleware/requireAuth';
-import { deserializeUser, IDeserializedUser } from '../passport';
+import { deserializeUser, IDeserializedUser, UserToSerialize } from '../passport';
+import mongoose from 'mongoose';
 
 // load environmental variables
 dotenv.config();
@@ -85,11 +87,13 @@ function factory(cristata: Cristata): Router {
     await tenantDB.model('User');
 
     // use the local strategy for the provided tenant
-    passport.authenticate(`local-${tenant}`, (err: Error | null, user, authErr: Error) => {
-      // handle error
-      if (err) handleError(err, req, res, cristata, true);
-      // handle authentication error
-      else if (authErr) {
+    passport.authenticate(`local-${tenant}`, (err: Error | null, user: never, authErr: Error) => {
+      if (err) {
+        handleError(err, req, res, cristata, true);
+        return;
+      }
+
+      if (authErr) {
         // map error names to status codes
         const code = (name: string) => {
           if (name === 'IncorrectPasswordError') return 401;
@@ -100,9 +104,11 @@ function factory(cristata: Cristata): Router {
           return 500;
         };
         handleError(authErr, req, res, cristata, true, code(authErr.name));
+        return;
       }
+
       // don't sign in if user is missing after authentication
-      else if (!user) {
+      if (!user) {
         if (req.body.redirect === false) res.json({ error: 'user is missing' });
         else
           res.redirect(
@@ -110,25 +116,26 @@ function factory(cristata: Cristata): Router {
               ? req.baseUrl + '/local'
               : process.env.AUTH_APP_URL + '/' + (req.user as IDeserializedUser).tenant
           );
-      } else {
-        // sign in
-        req.logIn(user, (err) => {
-          if (err) handleError(err, req, res, cristata);
-          else if (req.body.redirect === false) {
-            deserializeUser({
-              _id: user._id,
-              provider: user.provider,
-              next_step: user.next_step,
-              tenant: user.tenant,
-            }).then((result) => {
-              // error message
-              if (typeof result === 'string') res.status(401).json({ error: result });
-              // user object
-              else res.json({ data: result });
-            });
-          } else res.redirect(process.env.AUTH_APP_URL + '/' + (req.user as IDeserializedUser).tenant);
-        });
+        return;
       }
+
+      // sign in
+      const userToLogIn = prepareUser(user);
+      req.logIn(userToLogIn, (err) => {
+        if (err) {
+          handleError(err, req, res, cristata);
+          return;
+        }
+
+        if (req.body.redirect === false) {
+          deserializeUser(userToLogIn).then((result) => {
+            // error message
+            if (typeof result === 'string') res.status(401).json({ error: result });
+            // user object
+            else res.json({ data: result });
+          });
+        } else res.redirect(process.env.AUTH_APP_URL + '/' + userToLogIn.tenant);
+      });
     })(req, res, next);
   });
 
@@ -138,52 +145,95 @@ function factory(cristata: Cristata): Router {
   // authenticate using a magic link
   router.post('/magiclogin', magicLogin.send);
   router.get('/magiclogin/callback', (req, res, next) => {
-    passport.authenticate(
-      'magiclogin',
-      (
-        err: Error | null,
-        user:
-          | {
-              _id: string;
-              provider: string;
-              next_step?: string | undefined;
-              tenant: string;
-            }
-          | undefined
-      ) => {
-        if (err) {
-          handleError(err, req, res, cristata, true);
-          return;
-        }
-
-        if (!user) {
-          if ((req.query as unknown as URLSearchParams).get('redirect') === 'false')
-            res.json({ error: 'user is missing' });
-          else res.redirect(req.body.server ? req.baseUrl + '/magiclogin' : process.env.AUTH_APP_URL || '');
-          return;
-        }
-
-        // sign in
-        req.logIn(user, (err) => {
-          if (err) {
-            handleError(err, req, res, cristata);
-            return;
-          }
-
-          if ((req.query as unknown as URLSearchParams).get('redirect') === 'false') {
-            deserializeUser(user).then((result) => {
-              // error message
-              if (typeof result === 'string') res.status(401).json({ error: result });
-              // user object
-              else res.json({ data: result });
-            });
-          } else res.redirect(process.env.AUTH_APP_URL + '/' + user.tenant);
-        });
+    passport.authenticate('magiclogin', (err: Error | null, user: never) => {
+      if (err) {
+        handleError(err, req, res, cristata, true);
+        return;
       }
-    )(req, res, next);
+
+      if (!user) {
+        if ((req.query as unknown as URLSearchParams).get('redirect') === 'false')
+          res.json({ error: 'user is missing' });
+        else res.redirect(req.body.server ? req.baseUrl + '/magiclogin' : process.env.AUTH_APP_URL || '');
+        return;
+      }
+
+      // sign in
+      const userToLogIn = prepareUser(user);
+      req.logIn(userToLogIn, (err) => {
+        if (err) {
+          handleError(err, req, res, cristata);
+          return;
+        }
+
+        if ((req.query as unknown as URLSearchParams).get('redirect') === 'false') {
+          deserializeUser(userToLogIn).then((result) => {
+            // error message
+            if (typeof result === 'string') res.status(401).json({ error: result });
+            // user object
+            else res.json({ data: result });
+          });
+        } else res.redirect(process.env.AUTH_APP_URL + '/' + userToLogIn.tenant);
+      });
+    })(req, res, next);
   });
 
   return router;
+}
+
+/**
+ * Takes an input user object and prepares if for serialization
+ */
+function prepareUser(user: unknown): UserToSerialize {
+  if (isPlainObject(user)) {
+    return {
+      _id: (() => {
+        if (hasKey('_id', user) && isObjectId(user._id)) {
+          return new mongoose.Types.ObjectId(user._id as string);
+        }
+        throw new Error('_id must be a valid Object Id');
+      })(),
+      tenant: (() => {
+        if (hasKey('tenant', user) && typeof user.tenant === 'string') {
+          return user.tenant;
+        }
+        throw new Error('tenant must be a string');
+      })(),
+      provider: (() => {
+        if (hasKey('provider', user) && typeof user.provider === 'string') {
+          return user.provider;
+        }
+        throw new Error('provider must be a string');
+      })(),
+      name: (() => {
+        if (hasKey('name', user) && typeof user.name === 'string') {
+          return user.name;
+        }
+      })(),
+      next_step: (() => {
+        if (hasKey('next_step', user) && typeof user.next_step === 'string') {
+          return user.next_step;
+        }
+      })(),
+      errors: (() => {
+        if (
+          hasKey('errors', user) &&
+          Array.isArray(user.errors) &&
+          user.errors.every(
+            (errorArr): errorArr is [string, string] =>
+              Array.isArray(errorArr) &&
+              errorArr.length === 2 &&
+              typeof errorArr[0] === 'string' &&
+              typeof errorArr[1] === 'string'
+          )
+        ) {
+          return user.errors;
+        }
+      })(),
+    };
+  } else {
+    throw new Error('user must be a object');
+  }
 }
 
 export { factory as authRouterFactory };

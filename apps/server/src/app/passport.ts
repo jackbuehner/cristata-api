@@ -10,11 +10,8 @@ import { isArray } from '@jackbuehner/cristata-utils';
 dotenv.config();
 
 // passport stuff:
-interface UserToSerialize {
-  _id: mongoose.Types.ObjectId;
-  tenant: string;
-  provider: string;
-  next_step?: string;
+interface UserToSerialize extends Omit<IDeserializedUser, 'name'> {
+  name?: string;
   errors?: [string, string][] | never;
 }
 
@@ -32,15 +29,12 @@ interface IDeserializedUser {
   provider: string;
   _id: mongoose.Types.ObjectId;
   name: string;
-  username: string;
-  email: string;
-  teams: string[];
   next_step?: string;
-  methods: string[];
+  otherUsers?: UserToSerialize[];
 }
 
 async function deserializeUser(
-  user: { _id: string; provider: string; next_step?: string; tenant: string },
+  user: { _id: string | mongoose.Types.ObjectId; provider: string; next_step?: string; tenant: string },
   done?: (err: Error | null, user?: false | null | Express.User) => void
 ): Promise<string | IDeserializedUser> {
   try {
@@ -109,11 +103,7 @@ async function deserializeUser(
       provider: user.provider,
       _id: new mongoose.Types.ObjectId(user._id),
       name: doc.name,
-      username: doc.username,
-      email: doc.email || 'no-reply@cristata.app',
-      teams: teams.map((team) => team._id.toHexString()),
       next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
-      methods: doc.methods || [],
     };
     done?.(null, du);
     return du;
