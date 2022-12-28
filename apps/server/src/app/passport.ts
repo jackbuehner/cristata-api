@@ -35,7 +35,6 @@ interface IDeserializedUser {
   username: string;
   email: string;
   teams: string[];
-  two_factor_authentication: boolean;
   next_step?: string;
   methods: string[];
 }
@@ -113,7 +112,6 @@ async function deserializeUser(
       username: doc.username,
       email: doc.email || 'no-reply@cristata.app',
       teams: teams.map((team) => team._id.toHexString()),
-      two_factor_authentication: false,
       next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
       methods: doc.methods || [],
     };

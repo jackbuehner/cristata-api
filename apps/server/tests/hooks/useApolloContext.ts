@@ -62,7 +62,6 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
           teams: isAdmin
             ? ['000000000000000000000001', '000000000000000000000099']
             : ['000000000000000000000099'],
-          two_factor_authentication: false,
           next_step: undefined,
           methods: ['local'],
           tenant: 'db_2',

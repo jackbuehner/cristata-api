@@ -45,7 +45,6 @@ const context: ContextFunction<Input, Context> = ({ req, __cristata }) => {
           provider: 'local',
           teams: matchedToken.scope.admin === true ? ['000000000000000000000001'] : [],
           tenant: tenant,
-          two_factor_authentication: false,
           username: 'TOKEN_' + matchedToken.name,
         };
         return { config, isAuthenticated, profile, tenant, cristata, restartApollo, serverOrigin };
