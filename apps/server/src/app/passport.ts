@@ -10,10 +10,17 @@ import { isArray } from '@jackbuehner/cristata-utils';
 dotenv.config();
 
 // passport stuff:
+interface UserToSerialize {
+  _id: mongoose.Types.ObjectId;
+  tenant: string;
+  provider: string;
+  next_step?: string;
+  errors?: [string, string][] | never;
+}
+
 //@ts-expect-error: we have our own user object
-passport.serializeUser((user: Record<string, unknown>, done) => {
-  if (user.errors && isArray(user.errors) && user.errors.length > 0) {
-    const errors = user.errors as [string, string][];
+passport.serializeUser(({ errors, ...user }: UserToSerialize, done) => {
+  if (errors && isArray(errors) && errors.length > 0) {
     done(new Error(`${errors[0]?.[0]}: ${errors[0][1]}`));
   } else if (!user._id) done(new Error('User missing _id'));
   else if (!user.provider) done(new Error('User missing provider'));
@@ -31,11 +38,6 @@ interface IDeserializedUser {
   two_factor_authentication: boolean;
   next_step?: string;
   methods: string[];
-  constantcontact?: {
-    access_token: string;
-    refresh_token: string;
-    expires_at: number;
-  };
 }
 
 async function deserializeUser(
@@ -114,7 +116,6 @@ async function deserializeUser(
       two_factor_authentication: false,
       next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
       methods: doc.methods || [],
-      constantcontact: doc.constantcontact,
     };
     done?.(null, du);
     return du;
@@ -133,4 +134,4 @@ async function deserializeUser(
 passport.deserializeUser(deserializeUser);
 
 export { deserializeUser };
-export type { IDeserializedUser };
+export type { IDeserializedUser, UserToSerialize };
