@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-utils
 
+## 2.2.1
+
+### Patch Changes
+
+- 0794dd5: dynamically import aws-sdk only if not in browser
+
 ## 2.2.0
 
 ### Minor Changes
