@@ -3,6 +3,7 @@ import fileCollection from '@jackbuehner/cristata-generator-schema/dist/default-
 import { notEmpty } from '@jackbuehner/cristata-utils';
 import { AuthenticationError } from 'apollo-server-core';
 import AWS from 'aws-sdk';
+import dotenv from 'dotenv';
 import { merge } from 'merge-anything';
 import helpers, { genCollection } from '../graphql/helpers';
 import { setRawConfigurationCollection } from '../graphql/resolvers/configuration';
@@ -10,6 +11,12 @@ import { Context } from '../graphql/server';
 import { Collection, CollectionPermissions } from '../types/config';
 import { collectionsAsCollectionInputs } from '../utils/constructCollections';
 import { CollectionSchemaFields } from './helpers/constructBasicSchemaFields';
+
+dotenv.config();
+const credentials = {
+  accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+};
 
 const files = (tenant: string): Collection => {
   const { gql, requireAuthentication } = helpers;
@@ -120,11 +127,6 @@ const files = (tenant: string): Collection => {
   });
 
   return collection;
-};
-
-const credentials = {
-  accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
 };
 
 /**

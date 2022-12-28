@@ -1,11 +1,14 @@
 import { defaultSchemaDefTypes, GenSchemaInput, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
-import userCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/User';
 import fileCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/File';
 import photoCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Photo';
+import userCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/User';
+import dotenv from 'dotenv';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { AwarenessUser } from 'utils';
+
+dotenv.config();
 
 export interface CollectionDoc {
   __yState?: string;

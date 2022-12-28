@@ -25,6 +25,8 @@ const configuration = {
         navigation: {},
         security: {},
         collection: async ({ name }: { name: string }) => {
+          helpers.requireAuthentication(context);
+
           const collection = context.config.collections.find((col) => col.name === name);
 
           if (collection) {
@@ -51,10 +53,13 @@ const configuration = {
           // if the collection does not exist, return null
           return null;
         },
-        collections: () =>
-          context.config.collections.filter(
+        collections: () => {
+          helpers.requireAuthentication(context);
+
+          return context.config.collections.filter(
             (col) => col.name !== 'User' && col.name !== 'Team' && col.name !== 'File'
-          ),
+          );
+        },
       };
     },
   },
@@ -64,19 +69,23 @@ const configuration = {
       { name, raw }: { name: string; raw?: GenCollectionInput },
       context: Context
     ): Promise<GenCollectionInput> => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
       if (name === 'User') throw new UserInputError('cannot configure User collection');
       if (name === 'Team') throw new UserInputError('cannot configure Team collection');
       if (name === 'File') throw new UserInputError('cannot configure File collection');
       return setRawConfigurationCollection({ name, raw }, context);
     },
     deleteCollection: async (_: unknown, { name }: { name: string }, context: Context): Promise<void> => {
-      if (name === 'User') throw new UserInputError('cannot delete User collection');
-      if (name === 'Team') throw new UserInputError('cannot delete Team collection');
-      if (name === 'File') throw new UserInputError('cannot delete File collection');
-
       helpers.requireAuthentication(context);
       const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      if (name === 'User') throw new UserInputError('cannot delete User collection');
+      if (name === 'Team') throw new UserInputError('cannot delete Team collection');
+      if (name === 'File') throw new UserInputError('cannot delete File collection');
 
       const appDb = new TenantDB('app');
       const appConn = await appDb.connect();
@@ -124,7 +133,7 @@ const configuration = {
       conn.dropCollection(name);
     },
     setSecret: async (_: unknown, { key, value }: { key: string; value: Collection }, context: Context) => {
-      requireAuthentication(context);
+      helpers.requireAuthentication(context);
       const isAdmin = context.profile?.teams.includes('000000000000000000000001');
       if (!isAdmin) throw new ForbiddenError('you must be an administrator');
 
@@ -199,6 +208,8 @@ const configuration = {
   },
   ConfigurationNavigation: {
     main: async (_: unknown, __: unknown, context: Context): Promise<ReturnedMainNavItem[]> => {
+      helpers.requireAuthentication(context);
+
       return Promise.all(
         context.config.navigation.main
           .filter((item) => {
@@ -224,6 +235,8 @@ const configuration = {
       );
     },
     sub: async (_: unknown, { key }: { key: string }, context: Context): Promise<ReturnedSubNavGroup[]> => {
+      helpers.requireAuthentication(context);
+
       return returnCmsNavConfig(context, key);
     },
   },
