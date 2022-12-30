@@ -1,5 +1,22 @@
 # Changelog
 
+## 9.0.0
+
+### Major Changes
+
+- ece1ead: remove unnecessary variables from deserialized user: two_factor_authentication, username, email, teams, and methods
+- ece1ead: remove constant contact integration
+
+### Minor Changes
+
+- ece1ead: support switching to other authenticated user accounts
+
+  Other accounts are stored in the `otherUsers` array. View/retrieve it from the `/auth` endpoint.
+
+### Patch Changes
+
+- ece1ead: allow dotenv to override env variables
+
 ## 8.7.2
 
 ### Patch Changes
