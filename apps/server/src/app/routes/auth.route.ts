@@ -11,7 +11,7 @@ import { deserializeUser, IDeserializedUser, UserToSerialize } from '../passport
 import mongoose from 'mongoose';
 
 // load environmental variables
-dotenv.config();
+dotenv.config({ override: true });
 
 /**
  * Handle authentication errors.

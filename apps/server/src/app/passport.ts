@@ -7,7 +7,7 @@ import { getPasswordStatus } from '@jackbuehner/cristata-utils';
 import { isArray } from '@jackbuehner/cristata-utils';
 
 // load environmental variables
-dotenv.config();
+dotenv.config({ override: true });
 
 // passport stuff:
 interface UserToSerialize extends Omit<IDeserializedUser, 'name'> {
