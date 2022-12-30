@@ -7,17 +7,28 @@ import { getPasswordStatus } from '@jackbuehner/cristata-utils';
 import { isArray } from '@jackbuehner/cristata-utils';
 
 // load environmental variables
-dotenv.config();
+dotenv.config({ override: true });
 
 // passport stuff:
+interface UserToSerialize extends Omit<IDeserializedUser, 'name'> {
+  name?: string;
+  errors?: [string, string][] | never;
+}
+
 //@ts-expect-error: we have our own user object
-passport.serializeUser((user: Record<string, unknown>, done) => {
-  if (user.errors && isArray(user.errors) && user.errors.length > 0) {
-    const errors = user.errors as [string, string][];
+passport.serializeUser(({ errors, ...user }: UserToSerialize, done) => {
+  if (errors && isArray(errors) && errors.length > 0) {
     done(new Error(`${errors[0]?.[0]}: ${errors[0][1]}`));
   } else if (!user._id) done(new Error('User missing _id'));
   else if (!user.provider) done(new Error('User missing provider'));
-  else done(null, { _id: user._id, provider: user.provider, next_step: user.next_step, tenant: user.tenant });
+  else
+    done(null, {
+      _id: user._id,
+      provider: user.provider,
+      next_step: user.next_step,
+      tenant: user.tenant,
+      otherUsers: user.otherUsers,
+    });
 });
 
 interface IDeserializedUser {
@@ -25,21 +36,18 @@ interface IDeserializedUser {
   provider: string;
   _id: mongoose.Types.ObjectId;
   name: string;
-  username: string;
-  email: string;
-  teams: string[];
-  two_factor_authentication: boolean;
   next_step?: string;
-  methods: string[];
-  constantcontact?: {
-    access_token: string;
-    refresh_token: string;
-    expires_at: number;
-  };
+  otherUsers?: UserToSerialize[];
 }
 
 async function deserializeUser(
-  user: { _id: string; provider: string; next_step?: string; tenant: string },
+  user: {
+    _id: string | mongoose.Types.ObjectId;
+    provider: string;
+    next_step?: string;
+    tenant: string;
+    otherUsers?: UserToSerialize[];
+  },
   done?: (err: Error | null, user?: false | null | Express.User) => void
 ): Promise<string | IDeserializedUser> {
   try {
@@ -108,13 +116,8 @@ async function deserializeUser(
       provider: user.provider,
       _id: new mongoose.Types.ObjectId(user._id),
       name: doc.name,
-      username: doc.username,
-      email: doc.email || 'no-reply@cristata.app',
-      teams: teams.map((team) => team._id.toHexString()),
-      two_factor_authentication: false,
       next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
-      methods: doc.methods || [],
-      constantcontact: doc.constantcontact,
+      otherUsers: user.otherUsers,
     };
     done?.(null, du);
     return du;
@@ -133,4 +136,4 @@ async function deserializeUser(
 passport.deserializeUser(deserializeUser);
 
 export { deserializeUser };
-export type { IDeserializedUser };
+export type { IDeserializedUser, UserToSerialize };

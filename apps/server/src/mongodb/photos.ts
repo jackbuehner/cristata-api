@@ -12,7 +12,7 @@ import { Collection, CollectionPermissions } from '../types/config';
 import { collectionsAsCollectionInputs } from '../utils/constructCollections';
 import { CollectionSchemaFields } from './helpers/constructBasicSchemaFields';
 
-dotenv.config();
+dotenv.config({ override: true });
 const credentials = {
   accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',

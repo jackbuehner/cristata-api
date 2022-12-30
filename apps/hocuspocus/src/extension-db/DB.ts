@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { AwarenessUser } from 'utils';
 
-dotenv.config();
+dotenv.config({ override: true });
 
 export interface CollectionDoc {
   __yState?: string;

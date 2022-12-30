@@ -1,4 +1,5 @@
 import { hasKey, isObject, replaceCircular } from '@jackbuehner/cristata-utils';
+import { requireAdmin } from '../../app/middleware/requireAdmin';
 import express, { Router } from 'express';
 import Stripe from 'stripe';
 import Cristata from '../../Cristata';
@@ -12,69 +13,62 @@ function factory(cristata: Cristata): Router {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
 
   // handle stripe payments
-  router.post('/stripe/create-checkout-session', async (req, res) => {
+  router.post('/stripe/create-checkout-session', requireAdmin, async (req, res) => {
     try {
-      if (req.isAuthenticated()) {
-        const user = req.user as IDeserializedUser;
-        const isAdmin = user.teams.includes('000000000000000000000001');
+      // get the document with all tenant information and configuration
+      const tenantDoc = await cristata.tenantsCollection?.findOne({
+        name: (req.user as IDeserializedUser).tenant,
+      });
 
-        if (isAdmin) {
-          // get the document with all tenant information and configuration
-          const tenantDoc = await cristata.tenantsCollection?.findOne({
-            name: user.tenant,
-          });
+      // create a Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        billing_address_collection: 'auto',
+        line_items: [
+          {
+            // core cost
+            price: 'price_1L7SECHoKn7kS1oW6JrXN7AI',
+            quantity: 1,
+          },
+          {
+            // photo and file storage
+            price: 'price_1L7SE5HoKn7kS1oWTY4igElZ',
+          },
+          {
+            // mongodb
+            price: 'price_1L7SE9HoKn7kS1oWC1BTOlev',
+          },
+          {
+            // api usage (external)
+            price: 'price_1L7SEHHoKn7kS1oWXmCOLF8F',
+          },
+          {
+            // cristata.app api usage (internal)
+            price: 'price_1L7SDiHoKn7kS1oWnaahztcK',
+          },
+          {
+            // premium integrations and custom fields/previews
+            price: 'price_1L7SDPHoKn7kS1oWb18xRVXN',
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        allow_promotion_codes: true,
+        subscription_data: {
+          trial_period_days: 2,
+        },
+        phone_number_collection: { enabled: true },
+        success_url: `${process.env.APP_URL}/configuration/billing/payments?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.APP_URL}/configuration/billing/payments?canceled=true`,
+        automatic_tax: { enabled: true },
+        customer: tenantDoc?.billing.stripe_customer_id, // if the customer already exists, do not create a new customer
+        metadata: {
+          tenant: (req.user as IDeserializedUser).tenant,
+        },
+      });
 
-          // create a Stripe checkout session
-          const session = await stripe.checkout.sessions.create({
-            billing_address_collection: 'auto',
-            line_items: [
-              {
-                // core cost
-                price: 'price_1L7SECHoKn7kS1oW6JrXN7AI',
-                quantity: 1,
-              },
-              {
-                // photo and file storage
-                price: 'price_1L7SE5HoKn7kS1oWTY4igElZ',
-              },
-              {
-                // mongodb
-                price: 'price_1L7SE9HoKn7kS1oWC1BTOlev',
-              },
-              {
-                // api usage (external)
-                price: 'price_1L7SEHHoKn7kS1oWXmCOLF8F',
-              },
-              {
-                // cristata.app api usage (internal)
-                price: 'price_1L7SDiHoKn7kS1oWnaahztcK',
-              },
-              {
-                // premium integrations and custom fields/previews
-                price: 'price_1L7SDPHoKn7kS1oWb18xRVXN',
-                quantity: 1,
-              },
-            ],
-            mode: 'subscription',
-            allow_promotion_codes: true,
-            subscription_data: {
-              trial_period_days: 2,
-            },
-            phone_number_collection: { enabled: true },
-            success_url: `${process.env.APP_URL}/configuration/billing/payments?success=true&session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.APP_URL}/configuration/billing/payments?canceled=true`,
-            automatic_tax: { enabled: true },
-            customer: tenantDoc?.billing.stripe_customer_id, // if the customer already exists, do not create a new customer
-            metadata: {
-              tenant: user.tenant,
-            },
-          });
-
-          if (session.url) {
-            res.redirect(303, session.url);
-          } else res.status(403).send();
-        } else res.status(403).send();
-      } else res.status(401).send();
+      if (session.url) {
+        res.redirect(303, session.url);
+      } else res.status(403).send();
     } catch (error) {
       console.error(error);
       cristata.logtail.error(JSON.stringify(replaceCircular(error)));
@@ -82,37 +76,26 @@ function factory(cristata: Cristata): Router {
   });
 
   // create a portal session for managing the subscription via Stripe
-  router.post('/stripe/create-portal-session', async (req, res) => {
+  router.post('/stripe/create-portal-session', requireAdmin, async (req, res) => {
     try {
-      if (req.isAuthenticated()) {
-        const isAdmin = (req.user as IDeserializedUser).teams.includes('000000000000000000000001');
-        if (isAdmin) {
-          // get the document with all tenant information and configuration
-          const tenantDoc = await cristata.tenantsCollection?.findOne({
-            name: (req.user as IDeserializedUser).tenant,
-          });
+      // get the document with all tenant information and configuration
+      const tenantDoc = await cristata.tenantsCollection?.findOne({
+        name: (req.user as IDeserializedUser).tenant,
+      });
 
-          // get the stripe customer id so it can be used to create a stripe portal session
-          const customerId = tenantDoc?.billing.stripe_customer_id;
+      // get the stripe customer id so it can be used to create a stripe portal session
+      const customerId = tenantDoc?.billing.stripe_customer_id;
 
-          if (customerId) {
-            // create a portal session and redirect to it
-            const portalSession = await stripe.billingPortal.sessions.create({
-              customer: customerId,
-              return_url: process.env.APP_URL,
-            });
-            res.redirect(303, portalSession.url);
-          } else {
-            // payment required: the customer does not exist because there has never been a payment
-            res.status(402).send();
-          }
-        } else {
-          // unauthorized: user must be an admin
-          res.status(403).send();
-        }
+      if (customerId) {
+        // create a portal session and redirect to it
+        const portalSession = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: process.env.APP_URL,
+        });
+        res.redirect(303, portalSession.url);
       } else {
-        // unauthenticated: user must be authenticated
-        res.status(401).send();
+        // payment required: the customer does not exist because there has never been a payment
+        res.status(402).send();
       }
     } catch (error) {
       console.error(error);

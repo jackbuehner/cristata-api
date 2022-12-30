@@ -18,7 +18,6 @@ import { stripeRouterFactory } from './routes/stripe.route';
 import Stripe from 'stripe';
 import { NextFunction } from 'express-serve-static-core';
 import { calcS3Storage } from '../graphql/resolvers/billing';
-import { constantContactRouterFactory } from './routes/constant-contact.route';
 import { rootRouter } from './routes/root.route';
 import { connectDb } from '../mongodb/connectDB';
 import { TenantDB } from '../mongodb/TenantDB';
@@ -27,7 +26,7 @@ import { replaceCircular } from '@jackbuehner/cristata-utils';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
 
 // load environmental variables
-dotenv.config();
+dotenv.config({ override: true });
 
 function createExpressApp(cristata: Cristata): Application {
   // create express app
@@ -138,7 +137,6 @@ function createExpressApp(cristata: Cristata): Application {
   app.use(`/auth`, authRouterFactory(cristata)); // authentication routes
   app.use(proxyRouterFactory()); // CORS proxy routes
   app.use(stripeRouterFactory(cristata)); // stripe routes
-  app.use(`/v3/constant-contact`, constantContactRouterFactory(cristata)); // constant contact routes
   app.use(``, rootRouter); // root v3 routes
 
   app.get(``, requireAuth, (req: Request, res: Response) => {

@@ -1,8 +1,11 @@
+import { hasKey } from '@jackbuehner/cristata-utils';
 import { ContextFunction } from 'apollo-server-core';
 import { ExpressContext } from 'apollo-server-express';
 import mongoose from 'mongoose';
-import Cristata from '../../Cristata';
 import { IDeserializedUser } from '../../app/passport';
+import Cristata from '../../Cristata';
+import { TenantDB } from '../../mongodb/TenantDB';
+import { IUser } from '../../mongodb/users';
 import { Configuration } from '../../types/config';
 
 interface Input extends ExpressContext {
@@ -15,7 +18,7 @@ interface Input extends ExpressContext {
 /**
  * Returns a context object containing authentication information.
  */
-const context: ContextFunction<Input, Context> = ({ req, __cristata }) => {
+const context: ContextFunction<Input, Context> = async ({ req, __cristata }): Promise<Context> => {
   const { tenant, cristata } = __cristata;
   const config = cristata.config[tenant];
   const restartApollo = () => cristata.restartApollo(tenant);
@@ -36,16 +39,13 @@ const context: ContextFunction<Input, Context> = ({ req, __cristata }) => {
       const matchedToken = config.tokens?.find(({ token: appToken }) => appToken === token);
       if (matchedToken) {
         const isAuthenticated = !!matchedToken;
-        const profile: IDeserializedUser = {
+        const profile: Context['profile'] = {
           _id: new mongoose.Types.ObjectId('000000000000000000000000'),
           email: 'token@cristata.app',
           methods: ['local'],
           name: 'TOKEN_' + matchedToken.name,
-          next_step: '',
-          provider: 'local',
           teams: matchedToken.scope.admin === true ? ['000000000000000000000001'] : [],
           tenant: tenant,
-          two_factor_authentication: false,
           username: 'TOKEN_' + matchedToken.name,
         };
         return { config, isAuthenticated, profile, tenant, cristata, restartApollo, serverOrigin };
@@ -54,14 +54,62 @@ const context: ContextFunction<Input, Context> = ({ req, __cristata }) => {
   }
 
   const isAuthenticated = req.isAuthenticated() && (req.user as IDeserializedUser).tenant === tenant;
-  const profile = req.user as IDeserializedUser | undefined;
+
+  const profile: Context['profile'] = await (async () => {
+    if (!req.user) return;
+    if (!hasKey('_id', req.user)) return;
+
+    // connect to the database
+    const tenantDB = new TenantDB(tenant);
+    await tenantDB.connect();
+    const Users = await tenantDB.model<IUser>('User');
+    const Teams = await tenantDB.model('Team');
+
+    // get the user document
+    const doc = await Users?.findById(req.user._id);
+
+    // handle if doc is undefined
+    if (!doc) {
+      const message = 'context: user doc is undefined';
+      console.error(message);
+      throw new Error(message);
+    }
+
+    // find the user's teams
+    let teams = await Teams?.find({ $or: [{ organizers: req.user._id }, { members: req.user._id }] });
+
+    // if teams is undefined or null, log error and set to empty array
+    if (!teams) {
+      console.error('teams was undefined or null');
+      teams = [];
+    }
+
+    return {
+      tenant,
+      _id: doc._id as mongoose.Types.ObjectId,
+      name: doc.name,
+      username: doc.username,
+      email: doc.email || `${doc.username}__noreply@${tenant}.cristata.app`,
+      teams: teams.map((team) => team._id.toHexString()),
+      methods: doc.methods || [],
+    };
+  })();
+
   return { config, isAuthenticated, profile, tenant, cristata, restartApollo, serverOrigin };
 };
 
 interface Context {
   config: Configuration;
   isAuthenticated: boolean;
-  profile?: IDeserializedUser;
+  profile?: {
+    tenant: string;
+    _id: mongoose.Types.ObjectId;
+    name: string;
+    username: string;
+    email: string;
+    teams: string[];
+    methods: string[];
+  };
   tenant: string;
   cristata: Cristata;
   restartApollo: () => Promise<Error | void>;
