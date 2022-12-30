@@ -54,6 +54,85 @@ function factory(cristata: Cristata): Router {
   // send an error message
   router.get('/error', (req: Request, res: Response) => res.send('Unknown Error'));
 
+  // switch to a different signed in account
+  // (tenant, _id, name, and photo are stored for other accounts)
+  router.get('/switch/:tenant', (req: Request, res: Response) => {
+    try {
+      const user = req.user as IDeserializedUser | undefined;
+      const searchParams = req.query as unknown as URLSearchParams;
+
+      const redirect = new URL(process.env.AUTH_APP_URL + '/' + req.params.tenant);
+      redirect.searchParams.set('continue', '1');
+      if (searchParams.has('return')) redirect.searchParams.set('return', searchParams.get('return') || '');
+
+      if (!user) {
+        if (req.body.redirect === false) {
+          res.status(404).json({ error: 'no users are currently signed in' });
+          return;
+        }
+        res.redirect(redirect.href);
+        return;
+      }
+
+      if (user.tenant === req.params.tenant) {
+        if (req.body.redirect === false) {
+          res.status(200).end();
+          return;
+        }
+        res.redirect(redirect.href);
+        return;
+      }
+
+      if (!user.otherUsers) {
+        if (req.body.redirect === false) {
+          res.status(404).json({ error: 'no other users are currently signed in' });
+          return;
+        }
+        res.redirect(redirect.href);
+        return;
+      }
+
+      const otherUser = user.otherUsers.find((otherUser) => otherUser.tenant === req.params.tenant);
+      if (!otherUser) {
+        if (req.body.redirect === false) {
+          res.status(404).json({ error: 'that user could not be found' });
+          return;
+        }
+        res.redirect(redirect.href);
+        return;
+      }
+
+      // sign in
+      const remainingUsers = [
+        prepareUser(user),
+        ...(user.otherUsers || []).filter((otherUser) => otherUser.tenant !== req.params.tenant),
+      ];
+      const userToLogIn = prepareUser(otherUser, remainingUsers);
+      req.logIn(userToLogIn, (err) => {
+        if (err) {
+          handleError(err, req, res, cristata);
+          return;
+        }
+
+        if (req.body.redirect === false) {
+          deserializeUser(userToLogIn).then((result) => {
+            // error message
+            if (typeof result === 'string') res.status(401).json({ error: result });
+            // user object
+            else res.json({ data: result });
+          });
+        } else
+          res.redirect(
+            process.env.AUTH_APP_URL + '/' + userToLogIn.tenant + '?' + redirect.searchParams.toString()
+          );
+      });
+    } catch (error) {
+      if (error instanceof Error) handleError(error, req, res, cristata);
+      else handleError(new Error('an unexpected error occured while switching accounts'), req, res, cristata);
+      return;
+    }
+  });
+
   // clear credentials from the client (sign out)
   router.get('/clear', (req: Request, res: Response) => {
     req.session = null;
@@ -79,6 +158,10 @@ function factory(cristata: Cristata): Router {
       res.status(404).end();
       return;
     }
+
+    const redirectSearchParams = new URLSearchParams();
+    searchParams.set('continue', '1');
+    if (searchParams.has('return')) redirectSearchParams.set('return', searchParams.get('return') || '');
 
     // create the user model in case it does not exist,
     // which also will cause the auth strategy to be created
@@ -120,7 +203,21 @@ function factory(cristata: Cristata): Router {
       }
 
       // sign in
-      const userToLogIn = prepareUser(user);
+      const remainingUsers = (() => {
+        try {
+          if (req.user) {
+            const currentUser = req.user as IDeserializedUser;
+            return [
+              prepareUser(currentUser),
+              ...(currentUser.otherUsers || []).filter((otherUser) => otherUser.tenant !== tenant),
+            ];
+          }
+          return [];
+        } catch (error) {
+          return [];
+        }
+      })();
+      const userToLogIn = prepareUser(user, remainingUsers);
       req.logIn(userToLogIn, (err) => {
         if (err) {
           handleError(err, req, res, cristata);
@@ -134,7 +231,10 @@ function factory(cristata: Cristata): Router {
             // user object
             else res.json({ data: result });
           });
-        } else res.redirect(process.env.AUTH_APP_URL + '/' + userToLogIn.tenant);
+        } else
+          res.redirect(
+            process.env.AUTH_APP_URL + '/' + userToLogIn.tenant + '?' + redirectSearchParams.toString()
+          );
       });
     })(req, res, next);
   });
@@ -145,37 +245,73 @@ function factory(cristata: Cristata): Router {
   // authenticate using a magic link
   router.post('/magiclogin', magicLogin.send);
   router.get('/magiclogin/callback', (req, res, next) => {
-    passport.authenticate('magiclogin', (err: Error | null, user: never) => {
-      if (err) {
-        handleError(err, req, res, cristata, true);
-        return;
-      }
+    const searchParams = req.query as unknown as URLSearchParams;
 
-      if (!user) {
-        if ((req.query as unknown as URLSearchParams).get('redirect') === 'false')
-          res.json({ error: 'user is missing' });
-        else res.redirect(req.body.server ? req.baseUrl + '/magiclogin' : process.env.AUTH_APP_URL || '');
-        return;
-      }
+    const redirectSearchParams = new URLSearchParams();
+    searchParams.set('continue', '1');
+    if (searchParams.has('return')) redirectSearchParams.set('return', searchParams.get('return') || '');
 
-      // sign in
-      const userToLogIn = prepareUser(user);
-      req.logIn(userToLogIn, (err) => {
+    passport.authenticate(
+      'magiclogin',
+      (
+        err: Error | null,
+        user:
+          | {
+              _id: string;
+              provider: string;
+              next_step?: string | undefined;
+              tenant: string;
+            }
+          | undefined
+      ) => {
         if (err) {
-          handleError(err, req, res, cristata);
+          handleError(err, req, res, cristata, true);
           return;
         }
 
-        if ((req.query as unknown as URLSearchParams).get('redirect') === 'false') {
-          deserializeUser(userToLogIn).then((result) => {
-            // error message
-            if (typeof result === 'string') res.status(401).json({ error: result });
-            // user object
-            else res.json({ data: result });
-          });
-        } else res.redirect(process.env.AUTH_APP_URL + '/' + userToLogIn.tenant);
-      });
-    })(req, res, next);
+        if (!user) {
+          if ((req.query as unknown as URLSearchParams).get('redirect') === 'false')
+            res.json({ error: 'user is missing' });
+          else res.redirect(req.body.server ? req.baseUrl + '/magiclogin' : process.env.AUTH_APP_URL || '');
+          return;
+        }
+
+        // sign in
+        const remainingUsers = (() => {
+          try {
+            if (req.user) {
+              const currentUser = req.user as IDeserializedUser;
+              return [
+                prepareUser(currentUser),
+                ...(currentUser.otherUsers || []).filter((otherUser) => otherUser.tenant !== user.tenant),
+              ];
+            }
+            return [];
+          } catch (error) {
+            return [];
+          }
+        })();
+        const userToLogIn = prepareUser(user, remainingUsers);
+        req.logIn(userToLogIn, (err) => {
+          if (err) {
+            handleError(err, req, res, cristata);
+            return;
+          }
+
+          if ((req.query as unknown as URLSearchParams).get('redirect') === 'false') {
+            deserializeUser(userToLogIn).then((result) => {
+              // error message
+              if (typeof result === 'string') res.status(401).json({ error: result });
+              // user object
+              else res.json({ data: result });
+            });
+          } else
+            res.redirect(
+              process.env.AUTH_APP_URL + '/' + userToLogIn.tenant + '?' + redirectSearchParams.toString()
+            );
+        });
+      }
+    )(req, res, next);
   });
 
   return router;
@@ -184,7 +320,7 @@ function factory(cristata: Cristata): Router {
 /**
  * Takes an input user object and prepares if for serialization
  */
-function prepareUser(user: unknown): UserToSerialize {
+function prepareUser(user: unknown, otherUsers?: UserToSerialize[]): UserToSerialize {
   if (isPlainObject(user)) {
     return {
       _id: (() => {
@@ -230,6 +366,7 @@ function prepareUser(user: unknown): UserToSerialize {
           return user.errors;
         }
       })(),
+      otherUsers: otherUsers,
     };
   } else {
     throw new Error('user must be a object');

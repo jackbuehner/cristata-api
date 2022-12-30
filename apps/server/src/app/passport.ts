@@ -21,7 +21,14 @@ passport.serializeUser(({ errors, ...user }: UserToSerialize, done) => {
     done(new Error(`${errors[0]?.[0]}: ${errors[0][1]}`));
   } else if (!user._id) done(new Error('User missing _id'));
   else if (!user.provider) done(new Error('User missing provider'));
-  else done(null, { _id: user._id, provider: user.provider, next_step: user.next_step, tenant: user.tenant });
+  else
+    done(null, {
+      _id: user._id,
+      provider: user.provider,
+      next_step: user.next_step,
+      tenant: user.tenant,
+      otherUsers: user.otherUsers,
+    });
 });
 
 interface IDeserializedUser {
@@ -34,7 +41,13 @@ interface IDeserializedUser {
 }
 
 async function deserializeUser(
-  user: { _id: string | mongoose.Types.ObjectId; provider: string; next_step?: string; tenant: string },
+  user: {
+    _id: string | mongoose.Types.ObjectId;
+    provider: string;
+    next_step?: string;
+    tenant: string;
+    otherUsers?: UserToSerialize[];
+  },
   done?: (err: Error | null, user?: false | null | Express.User) => void
 ): Promise<string | IDeserializedUser> {
   try {
@@ -104,6 +117,7 @@ async function deserializeUser(
       _id: new mongoose.Types.ObjectId(user._id),
       name: doc.name,
       next_step: user.next_step ? user.next_step : temporary ? 'change_password' : undefined,
+      otherUsers: user.otherUsers,
     };
     done?.(null, du);
     return du;
