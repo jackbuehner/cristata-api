@@ -5,11 +5,24 @@ const billing = gql`
     billing: Billing!
   }
 
+  type Mutation {
+    billing: MutationBilling!
+  }
+
+  type MutationBilling {
+    features: MutationBillingFeatures!
+  }
+
+  type MutationBillingFeatures {
+    allowDiskUse(allowDiskUse: Boolean!): Boolean!
+  }
+
   type Billing {
     """
     Gets the usage to be used for billing
     """
     usage: Usage!
+    features: BillingFeatures!
     stripe_customer_id: String
     stripe_subscription_id: String
     subscription_last_payment: String
@@ -19,6 +32,10 @@ const billing = gql`
   type Usage {
     api(year: Int, month: Int): ApiUsage
     storage: UsageStorage!
+  }
+
+  type BillingFeatures {
+    allowDiskUse: Boolean!
   }
 
   type ApiUsage {

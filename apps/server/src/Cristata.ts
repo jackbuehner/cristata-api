@@ -42,6 +42,7 @@ class Cristata {
         api_usage: { id: string; usage_reported_at: string };
         app_usage: { id: string; usage_reported_at: string };
         integrations: { id: string; usage_reported_at: string };
+        allow_disk_use?: { id: string; usage_reported_at?: string };
       };
       metrics: {
         [key: number]:
