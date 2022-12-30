@@ -54,7 +54,6 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
     isAuthenticated: !!isAuthenticated,
     profile: isAuthenticated
       ? {
-          provider: 'local',
           _id: new mongoose.Types.ObjectId('000000000000000000000001'),
           name: 'Test User',
           username: 'test-user',
@@ -62,7 +61,6 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
           teams: isAdmin
             ? ['000000000000000000000001', '000000000000000000000099']
             : ['000000000000000000000099'],
-          next_step: undefined,
           methods: ['local'],
           tenant: 'db_2',
         }

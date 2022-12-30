@@ -32,7 +32,7 @@ async function canDo({ model, action, context, doc }: CanDo): Promise<boolean> {
   const up = permissions?.[action]?.users;
 
   // if the user has any `next_step` (aka the account is not fully set up), deny permission
-  if (context.profile.next_step) return false;
+  // if (context.profile.next_step) return false;
 
   // if a team in the action is 0, any person has access
   if (tp?.includes(0)) return true;
