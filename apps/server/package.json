@@ -1,6 +1,6 @@
 {
   "name": "@jackbuehner/cristata-api",
-  "version": "8.7.2",
+  "version": "9.0.0",
   "engines": {
     "node": "16.15.0",
     "npm": "8.5.5"

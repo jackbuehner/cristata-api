@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.3.1
+
+### Patch Changes
+
+- ece1ead: allow dotenv to override env variables
+
 ## 1.3.0
 
 ### Minor Changes
