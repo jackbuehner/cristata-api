@@ -154,13 +154,17 @@ function factory(cristata: Cristata): Router {
               // as needed
               const subscription = await stripe.subscriptions.retrieve(subscriptionId);
               const subItems = subscription.items.data;
-              const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6R5i02xdW8cD');
-              const fileStorageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QsCWpOAPGtu');
-              const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6Rh3tUVYRCCq');
-              const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6RMiFbCxbO3a');
-              const cristataAppUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QZrB2Wa9zq4');
-              const integrationsItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QhM2v3AoJiA');
-              const allowDiskUseItem = subItems.find((sub) => sub.plan.product === 'prod_N51bDi1B5W71bY');
+              const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6R5i02xdW8cD') || null;
+              const fileStorageItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QsCWpOAPGtu') || null;
+              const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6Rh3tUVYRCCq') || null;
+              const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6RMiFbCxbO3a') || null;
+              const cristataAppUsageItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QZrB2Wa9zq4') || null;
+              const integrationsItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QhM2v3AoJiA') || null;
+              const allowDiskUseItem =
+                subItems.find((sub) => sub.plan.product === 'prod_N51bDi1B5W71bY') || null;
 
               // store the subscription and customer details in the tenant data object
               await cristata.tenantsCollection.findOneAndUpdate(
@@ -346,13 +350,17 @@ function factory(cristata: Cristata): Router {
               // as needed
               const subscription = await stripe.subscriptions.retrieve(subscriptionId);
               const subItems = subscription.items.data;
-              const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6R5i02xdW8cD');
-              const fileStorageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QsCWpOAPGtu');
-              const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6Rh3tUVYRCCq');
-              const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6RMiFbCxbO3a');
-              const cristataAppUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QZrB2Wa9zq4');
-              const integrationsItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QhM2v3AoJiA');
-              const allowDiskUseItem = subItems.find((sub) => sub.plan.product === 'prod_N51bDi1B5W71bY');
+              const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6R5i02xdW8cD') || null;
+              const fileStorageItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QsCWpOAPGtu') || null;
+              const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6Rh3tUVYRCCq') || null;
+              const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6RMiFbCxbO3a') || null;
+              const cristataAppUsageItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QZrB2Wa9zq4') || null;
+              const integrationsItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QhM2v3AoJiA') || null;
+              const allowDiskUseItem =
+                subItems.find((sub) => sub.plan.product === 'prod_N51bDi1B5W71bY') || null;
 
               // store the subscription and customer details in the tenant data object
               await cristata.tenantsCollection.findOneAndUpdate(
