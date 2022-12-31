@@ -101,7 +101,7 @@ router.get('/filestore/:tenant/:_id', async (req, res) => {
 
     // use the correct mime type and name
     res.setHeader('Content-Type', `${foundFile.file_type}; charset=UTF-8`);
-    res.setHeader('Content-Disposition', `inline; filename="${foundFile.name}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${foundFile.name || 'file'}"`);
 
     // allow usage on non-Cristata websites
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -140,7 +140,7 @@ router.get('/photo/:tenant/:_id', async (req, res) => {
 
     // use the correct mime type and name
     res.setHeader('Content-Type', `${foundPhoto.file_type}; charset=UTF-8`);
-    res.setHeader('Content-Disposition', `inline; filename="${foundPhoto.name}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${foundPhoto.name || 'photo'}"`);
 
     // allow usage on non-Cristata websites
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
