@@ -79,7 +79,8 @@ async function findDoc({
   const pipeline = pipelineStages.filter((stage): stage is mongoose.PipelineStage => !!stage);
 
   // get the document as a plain javascript object
-  const doc = (await Model.aggregate(pipeline))[0];
+  const canAllowDiskUse = context.cristata.canTenantAllowDiskUse[context.tenant] || false;
+  const doc = (await Model.aggregate(pipeline).allowDiskUse(canAllowDiskUse))[0];
 
   // always cast team to string
   if (doc?.permissions?.teams) {

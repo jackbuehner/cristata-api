@@ -154,12 +154,17 @@ function factory(cristata: Cristata): Router {
               // as needed
               const subscription = await stripe.subscriptions.retrieve(subscriptionId);
               const subItems = subscription.items.data;
-              const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6R5i02xdW8cD');
-              const fileStorageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QsCWpOAPGtu');
-              const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6Rh3tUVYRCCq');
-              const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6RMiFbCxbO3a');
-              const cristataAppUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QZrB2Wa9zq4');
-              const integrationsItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6QhM2v3AoJiA');
+              const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6R5i02xdW8cD') || null;
+              const fileStorageItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QsCWpOAPGtu') || null;
+              const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6Rh3tUVYRCCq') || null;
+              const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6RMiFbCxbO3a') || null;
+              const cristataAppUsageItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QZrB2Wa9zq4') || null;
+              const integrationsItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QhM2v3AoJiA') || null;
+              const allowDiskUseItem =
+                subItems.find((sub) => sub.plan.product === 'prod_N51bDi1B5W71bY') || null;
 
               // store the subscription and customer details in the tenant data object
               await cristata.tenantsCollection.findOneAndUpdate(
@@ -184,6 +189,8 @@ function factory(cristata: Cristata): Router {
                     'billing.stripe_subscription_items.app_usage.usage_reported_at': nowISO,
                     'billing.stripe_subscription_items.integrations.id': integrationsItem?.id,
                     'billing.stripe_subscription_items.integrations.usage_reported_at': nowISO,
+                    'billing.stripe_subscription_items.allow_disk_use.id': allowDiskUseItem?.id,
+                    'billing.stripe_subscription_items.allow_disk_use.usage_reported_at': nowISO,
                   },
                 }
               );
@@ -318,6 +325,75 @@ function factory(cristata: Cristata): Router {
                   .send(`⚠️  Failed to update tenant after customer.subscription.deleted: ${error.message}`);
               }
               return res.status(400).send(`⚠️  Failed to update tenant after customer.subscription.deleted`);
+            }
+          }
+          break;
+        case 'customer.subscription.updated':
+          // Payment is successful and the subscription is created.
+          if (
+            hasKey('metadata', data.object) &&
+            isObject(data.object.metadata) &&
+            hasKey('tenant', data.object.metadata) &&
+            typeof data.object.metadata.tenant === 'string' &&
+            hasKey('customer', data.object) &&
+            typeof data.object.customer === 'string' &&
+            hasKey('id', data.object) &&
+            typeof data.object.id === 'string'
+          ) {
+            try {
+              const tenant = data.object.metadata.tenant;
+              const customerId = data.object.customer;
+              const subscriptionId = data.object.id;
+
+              // get the subscription item ids from the subscription
+              // so we can update the usage of the metered usage items
+              // as needed
+              const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+              const subItems = subscription.items.data;
+              const coreCostItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6R5i02xdW8cD') || null;
+              const fileStorageItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QsCWpOAPGtu') || null;
+              const databaseItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6Rh3tUVYRCCq') || null;
+              const apiUsageItem = subItems.find((sub) => sub.plan.product === 'prod_Lp6RMiFbCxbO3a') || null;
+              const cristataAppUsageItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QZrB2Wa9zq4') || null;
+              const integrationsItem =
+                subItems.find((sub) => sub.plan.product === 'prod_Lp6QhM2v3AoJiA') || null;
+              const allowDiskUseItem =
+                subItems.find((sub) => sub.plan.product === 'prod_N51bDi1B5W71bY') || null;
+
+              // store the subscription and customer details in the tenant data object
+              await cristata.tenantsCollection.findOneAndUpdate(
+                {
+                  name: tenant,
+                },
+                {
+                  $set: {
+                    'billing.stripe_customer_id': customerId,
+                    'billing.stripe_subscription_id': subscriptionId,
+                    'billing.subscription_active': true,
+                    'billing.stripe_subscription_items.core.id': coreCostItem?.id,
+                    'billing.stripe_subscription_items.file_storage.id': fileStorageItem?.id,
+                    'billing.stripe_subscription_items.database_usage.id': databaseItem?.id,
+                    'billing.stripe_subscription_items.api_usage.id': apiUsageItem?.id,
+                    'billing.stripe_subscription_items.app_usage.id': cristataAppUsageItem?.id,
+                    'billing.stripe_subscription_items.integrations.id': integrationsItem?.id,
+                    'billing.stripe_subscription_items.allow_disk_use.id': allowDiskUseItem?.id,
+                  },
+                }
+              );
+
+              // immediately update the tenant pay status
+              cristata.hasTenantPaid[tenant] = true;
+            } catch (error) {
+              console.error(`Failed to update tenant after checkout.session.completed`, error);
+              cristata.logtail.error(JSON.stringify(replaceCircular(error)));
+              if (error instanceof Error) {
+                return res
+                  .status(400)
+                  .send(`⚠️  Failed to update tenant after checkout.session.updated: ${error.message}`);
+              }
+              return res.status(400).send(`⚠️  Failed to update tenant after checkout.session.updated`);
             }
           }
           break;

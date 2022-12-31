@@ -1,5 +1,5 @@
 import { replaceCircular } from '@jackbuehner/cristata-utils';
-import { ForbiddenError } from 'apollo-server-errors';
+import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import aws from 'aws-sdk';
 import Stripe from 'stripe';
 import { TenantDB } from '../../mongodb/TenantDB';
@@ -15,6 +15,7 @@ const billing = {
       context: Context
     ): Promise<{
       usage: Record<string, never>;
+      features: Record<string, never>;
       stripe_customer_id?: string;
       stripe_subscription_id?: string;
       subscription_last_payment?: string;
@@ -30,6 +31,7 @@ const billing = {
 
       return {
         usage: {},
+        features: {},
         stripe_customer_id: tenantDoc?.billing?.stripe_customer_id,
         stripe_subscription_id: tenantDoc?.billing?.stripe_subscription_id,
         subscription_last_payment: tenantDoc?.billing?.subscription_last_payment,
@@ -128,6 +130,104 @@ const billing = {
         database: (await conn.db.stats()).dataSize,
         files: s3Size,
       };
+    },
+  },
+
+  BillingFeatures: {
+    allowDiskUse: async (_: never, __: never, context: Context): Promise<boolean> => {
+      requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantDoc = await context.cristata.tenantsCollection?.findOne({
+        name: context.tenant,
+      });
+
+      const stripe_customer_id = tenantDoc?.billing.stripe_customer_id;
+      if (!stripe_customer_id) throw new ApolloError('could not find customer id', 'CUSTOMER_DETAILS_MISSING');
+
+      const stripe_subscription_id = tenantDoc?.billing.stripe_subscription_id;
+      if (!stripe_subscription_id)
+        throw new ApolloError('could not find subscription id', 'SUBSCRIPTION_DETAILS_MISSING');
+
+      const stripe_subscription_items = tenantDoc?.billing.stripe_subscription_items;
+      if (!stripe_subscription_items)
+        throw new ApolloError('could not find subscription items', 'SUBSCRIPTION_DETAILS_MISSING');
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
+      const subscription = await stripe.subscriptions.retrieve(stripe_subscription_id);
+
+      const allow_disk_usage_item = subscription.items.data.find((item) => {
+        return item.price.id === 'price_1MKrYOHoKn7kS1oWZkpAF3eK';
+      });
+
+      if (allow_disk_usage_item) return true;
+      return false;
+    },
+  },
+
+  Mutation: {
+    billing: () => {
+      return {
+        features: {},
+      };
+    },
+  },
+
+  MutationBilling: {
+    features: () => {
+      return {
+        allowDiskUse: {},
+      };
+    },
+  },
+
+  MutationBillingFeatures: {
+    allowDiskUse: async (
+      _: never,
+      { allowDiskUse }: { allowDiskUse: boolean },
+      context: Context
+    ): Promise<boolean> => {
+      requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantDoc = await context.cristata.tenantsCollection?.findOne({
+        name: context.tenant,
+      });
+
+      const stripe_subscription_id = tenantDoc?.billing.stripe_subscription_id;
+      if (!stripe_subscription_id)
+        throw new ApolloError('could not find subscription id', 'SUBSCRIPTION_DETAILS_MISSING');
+
+      const stripe_subscription_items = tenantDoc?.billing.stripe_subscription_items;
+      if (!stripe_subscription_items)
+        throw new ApolloError('could not find subscription items', 'SUBSCRIPTION_DETAILS_MISSING');
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
+      const subscription = await stripe.subscriptions.retrieve(stripe_subscription_id);
+      const subscriptionDiskUseItem = subscription.items.data.find((item) => {
+        return item.price.id === 'price_1MKrYOHoKn7kS1oWZkpAF3eK';
+      });
+
+      if (subscriptionDiskUseItem && allowDiskUse) return true;
+      if (!subscriptionDiskUseItem && !allowDiskUse) return false;
+
+      const updatedSubscription = await stripe.subscriptions.update(stripe_subscription_id, {
+        metadata: {
+          tenant: context.tenant,
+        },
+        items: [
+          {
+            id: subscriptionDiskUseItem?.id,
+            price: 'price_1MKrYOHoKn7kS1oWZkpAF3eK',
+            deleted: allowDiskUse === false,
+          },
+        ],
+      });
+      return !!updatedSubscription.items.data.find((item) => {
+        return item.price.id === 'price_1MKrYOHoKn7kS1oWZkpAF3eK';
+      });
     },
   },
 };

@@ -75,7 +75,8 @@ async function findDocs({ model, args, context, fullAccess, project }: FindDocs)
     ...(args.pipeline2 || []),
   ];
 
-  const aggregate = Model.aggregate(pipeline);
+  const canAllowDiskUse = context.cristata.canTenantAllowDiskUse[context.tenant] || false;
+  const aggregate = Model.aggregate(pipeline).allowDiskUse(canAllowDiskUse);
 
   // offset and page or incompatable, so do not pass page variable when offset is defined
   if (offset !== undefined) {
