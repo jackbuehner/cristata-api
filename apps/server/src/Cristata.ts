@@ -26,6 +26,7 @@ class Cristata {
   #stopApollo: Record<string, () => Promise<void>> = {};
   tenants: string[] = [];
   hasTenantPaid: Record<string, boolean> = {};
+  canTenantAllowDiskUse: Record<string, boolean> = {};
   tenantsCollection: MongoCollection<{
     _id: ObjectId;
     name: string;
@@ -247,7 +248,9 @@ class Cristata {
             const tenantDoc = await this.tenantsCollection?.findOne({ name: tenant });
             if (tenantDoc) {
               const hasPaid = tenantDoc.billing.subscription_active;
+              const canAllowDiskUse = !!tenantDoc.billing.stripe_subscription_items?.allow_disk_use;
               this.hasTenantPaid[tenant] = hasPaid;
+              this.canTenantAllowDiskUse[tenant] = canAllowDiskUse;
             }
           } catch (error) {
             console.error(error);

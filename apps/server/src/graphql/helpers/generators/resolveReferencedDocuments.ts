@@ -240,9 +240,12 @@ async function resolveReferencedDocuments(
   const promises: Record<string, MaybePromise<Record<string, unknown> | null> | undefined> = {};
 
   // resolve doc references for each input document, creating promises for documents along the way
+  const canAllowDiskUse = context.cristata.canTenantAllowDiskUse[context.tenant] || false;
   await Promise.all(
     docs.map((doc) => {
-      return Promise.all(objectIdFields.map((v) => resolveReferencedDocument(promises, tenantDB, doc, v)));
+      return Promise.all(
+        objectIdFields.map((v) => resolveReferencedDocument(promises, tenantDB, canAllowDiskUse, doc, v))
+      );
     })
   );
 
@@ -254,6 +257,7 @@ type MaybePromise<T> = Promise<T> | T;
 async function resolveReferencedDocument(
   promises: Record<string, MaybePromise<Record<string, unknown> | null> | undefined>,
   tenantDB: TenantDB,
+  canAllowDiskUse: boolean,
   doc: CollectionDoc,
   [key, , collectionName, isArray, project, children]: ObjectIdFieldsType
 ): Promise<void> {
@@ -317,6 +321,7 @@ async function resolveReferencedDocument(
 
         // create a promise for the document
         promises[promiseKey] = await Model.findById(_id, removePathCollision(project))
+          .allowDiskUse(canAllowDiskUse)
           .then(async (doc) => {
             if (doc) {
               // convert the document to a plain object
@@ -325,7 +330,7 @@ async function resolveReferencedDocument(
               // inject promises to resolve for all nested children
               await Promise.all(
                 children.map(async (child) => {
-                  return resolveReferencedDocument(promises, tenantDB, _doc, child);
+                  return resolveReferencedDocument(promises, tenantDB, canAllowDiskUse, _doc, child);
                 })
               );
 
@@ -386,6 +391,7 @@ async function resolveReferencedDocument(
 
   // create a promise for the document
   promises[promiseKey] = await Model.findById(_id, removePathCollision(project))
+    .allowDiskUse(canAllowDiskUse)
     .then(async (doc) => {
       if (doc) {
         // convert the document to a plain object
@@ -394,7 +400,7 @@ async function resolveReferencedDocument(
         // inject promises to resolve for all nested children
         await Promise.all(
           children.map(async (child) => {
-            return resolveReferencedDocument(promises, tenantDB, _doc, child);
+            return resolveReferencedDocument(promises, tenantDB, canAllowDiskUse, _doc, child);
           })
         );
 

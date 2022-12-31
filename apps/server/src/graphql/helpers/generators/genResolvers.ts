@@ -254,7 +254,8 @@ function genResolvers(config: GenResolversInput, tenant: string) {
           populatedPipline = findAndReplace(populatedPipline, `%${name}%`, args[name]);
         });
 
-        const aggregate = await Model?.aggregate(populatedPipline);
+        const canAllowDiskUse = context.cristata.canTenantAllowDiskUse[context.tenant] || false;
+        const aggregate = await Model?.aggregate(populatedPipline).allowDiskUse(canAllowDiskUse);
 
         if (query.path) return getProperty(aggregate || [], query.path);
         return aggregate;
