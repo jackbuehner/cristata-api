@@ -66,7 +66,11 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
         }
       : undefined,
     tenant: 'db_2',
-    cristata: {} as unknown as Cristata,
+    cristata: {
+      canTenantAllowDiskUse: {
+        db_2: true,
+      },
+    } as unknown as Cristata,
     restartApollo: async () => {
       return;
     },
