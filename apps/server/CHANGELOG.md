@@ -1,5 +1,12 @@
 # Changelog
 
+## 9.1.0
+
+### Minor Changes
+
+- 2af2f9a: rewrite file/photo extension to match mime-type
+- 802a942: add allowDiskUse subscription item, which permits aggregations to use the disk when they run out of memory if the allow disk use subscription is active (paid addon)
+
 ## 9.0.0
 
 ### Major Changes
