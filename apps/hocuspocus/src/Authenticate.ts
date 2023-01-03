@@ -133,6 +133,39 @@ class Authenticate implements Extension {
         // prevent later hooks and default handler
         throw Forbidden;
       }
+
+      // get the options for the collection
+      const options = await tenantDb.collectionOptions(tenant, collectionName);
+
+      // disable writing when doc is hidden, archived, locked
+      // unless connecting from the server
+      if (
+        process.env.AUTH_OVERRIDE_SECRET &&
+        requestParameters.get('authSecret') !== process.env.AUTH_OVERRIDE_SECRET
+      ) {
+        await tenantDb
+          .collection(tenant, collectionName)
+          ?.findOne(
+            { _id: new mongoose.Types.ObjectId(_id) },
+            { projection: { hidden: 1, archived: 1, locked: 1, stage: 1 } }
+          )
+          .then((res) => {
+            if (!res) throw new Error(`failed to get readonly info`);
+
+            const { hidden, archived, locked, stage } = res;
+
+            if (hidden || archived || locked) {
+              connection.readOnly = true;
+            }
+
+            if (options?.independentPublishedDocCopy && stage == 5.2) {
+              connection.readOnly = true;
+            }
+          })
+          .catch((error) => {
+            throw new Error(`failed to get readonly info: ${error}`);
+          });
+      }
     }
   }
 
