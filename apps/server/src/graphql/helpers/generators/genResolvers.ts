@@ -178,7 +178,9 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         if (!doc.__publishedDoc) return null;
 
         const [resolvedDoc] = await resolveReferencedDocuments([doc.__publishedDoc], info, context, name);
-        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name);
+        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name).then(
+          (doc) => doc?.__publishedDoc || null
+        );
       }
 
       const [resolvedDoc] = await resolveReferencedDocuments([doc], info, context, name);
@@ -215,14 +217,23 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         fullAccess: true,
       });
 
-      let resolvedDocs: CollectionDoc[];
       if (generationOptions?.independentPublishedDocCopy) {
         const publishedDocs = docs.filter((doc) => !!doc.__publishedDoc);
-        resolvedDocs = await resolveReferencedDocuments(publishedDocs, info, context, name);
-      } else {
-        resolvedDocs = await resolveReferencedDocuments(docs, info, context, name);
+        const resolvedDocs = await resolveReferencedDocuments(publishedDocs, info, context, name);
+        return {
+          ...paged,
+          docs: await Promise.all(
+            resolvedDocs.map((doc) =>
+              construct(doc, schemaRefs, context, info, helpers, name).then((doc) => {
+                console.log(doc.__publishedDoc);
+                return doc?.__publishedDoc || null;
+              })
+            )
+          ),
+        };
       }
 
+      const resolvedDocs = await resolveReferencedDocuments(docs, info, context, name);
       return {
         ...paged,
         docs: await Promise.all(
@@ -280,7 +291,9 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         if (!doc.__publishedDoc) return null;
 
         const [resolvedDoc] = await resolveReferencedDocuments([doc.__publishedDoc], info, context, name);
-        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name);
+        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name).then(
+          (doc) => doc?.__publishedDoc || null
+        );
       }
 
       // return a fully constructed doc
@@ -467,6 +480,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
             doc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
             if (generationOptions?.independentPublishedDocCopy && doc.__publishedDoc) {
               doc.__publishedDoc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
+              return doc.save().then((doc) => doc?.__publishedDoc || null);
             }
             return doc.save();
           }
