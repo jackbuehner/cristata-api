@@ -225,7 +225,6 @@ function genResolvers(config: GenResolversInput, tenant: string) {
           docs: await Promise.all(
             resolvedDocs.map((doc) =>
               construct(doc, schemaRefs, context, info, helpers, name).then((doc) => {
-                console.log(doc.__publishedDoc);
                 return doc?.__publishedDoc || null;
               })
             )
