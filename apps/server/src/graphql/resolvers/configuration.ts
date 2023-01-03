@@ -443,17 +443,17 @@ const setRawConfigurationCollection = async (
       if (Model) {
         const docNonPrivateKeys = deconstructSchema(raw.schemaDef)
           .map(([key]) => key)
-          .filter((key) => {
-            if (key === '_id') return true;
-            return key.indexOf('_') !== 0;
-          });
+          .filter((key) => key.indexOf('_') !== 0);
 
         await Model.updateMany({ stage: 5.2 }, [
           {
             $set: {
-              ...docNonPrivateKeys.reduce((obj, key) => {
-                return Object.assign(obj, { [`__publishedDoc.${key}`]: `$${key}` });
-              }, {}),
+              ...docNonPrivateKeys.reduce(
+                (obj, key) => {
+                  return Object.assign(obj, { [`__publishedDoc.${key}`]: `$${key}` });
+                },
+                { '__publishedDoc._id': '$_id' }
+              ),
               has_published_doc: false,
             },
           },
@@ -465,6 +465,7 @@ const setRawConfigurationCollection = async (
       const Model = await tenantDB.model(name);
 
       if (Model) {
+        await Model.updateMany({ __publishedDoc: { $exists: true } }, [{ $set: { stage: 5.2 } }]);
         await Model.updateMany({}, [{ $unset: ['__publishedDoc', 'has_published_doc'] }]);
       }
     }
