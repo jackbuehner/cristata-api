@@ -54,6 +54,10 @@ async function watchDoc({ model, accessor, watch, watcher, context }: WatchDoc) 
   // get the document
   const doc = await findDoc({ model, by: accessor.key, _id: accessor.value, context, lean: false });
 
+  // the config exists if the model worked in `findDoc()`
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const collectionConfig = context.config.collections.find((col) => col.name === model)!;
+
   // throw error if user cannot view the doc
   if (!doc) {
     throw new ApolloError(
@@ -71,6 +75,11 @@ async function watchDoc({ model, accessor, watch, watcher, context }: WatchDoc) 
     doc.people.watching = insertUserToArray(doc.people.watching, watcher); // adds the user to the array, and then removes duplicates
   } else {
     doc.people.watching = doc.people.watching.filter((_id) => _id.toHexString() !== watcher?.toHexString());
+  }
+
+  // save change in published doc
+  if (collectionConfig.generationOptions?.independentPublishedDocCopy && doc.__publishedDoc) {
+    doc.__publishedDoc.people.watching = doc.people.watching;
   }
 
   // save the document
