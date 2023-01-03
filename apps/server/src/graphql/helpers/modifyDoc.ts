@@ -60,6 +60,11 @@ async function modifyDoc<DocType, DataType>({
       'DOCUMENT_NOT_FOUND'
     );
 
+  // do not allow changing the stage to published
+  if (currentDoc.stage !== 5.2 && data.stage === 5.2) {
+    throw new UserInputError('you must use the publish mutation to set the stage to 5.2');
+  }
+
   // merge the current doc and new data
   data = merge(currentDoc, convertNullPrototype(data));
 
