@@ -561,7 +561,7 @@ async function getUserReferences({
 
 type GitHubUserID = number;
 
-interface IUser extends CollectionSchemaFields {
+interface IUser extends Omit<CollectionSchemaFields, '_id'> {
   name: string;
   username: string; // from passpsort-local-mongoose
   slug: string;

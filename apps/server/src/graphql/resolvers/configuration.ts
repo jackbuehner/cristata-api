@@ -1,3 +1,4 @@
+import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cristata-utils';
 import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { ObjectId } from 'mongoose';
@@ -422,6 +423,51 @@ const setRawConfigurationCollection = async (
       { $set: { 'config.collections.$': raw } },
       { returnDocument: 'after' }
     );
+  }
+
+  if (!isInDbConfig) return raw;
+  const initialColConfig = backup.collections.find((col) => col.name === name)?.raw;
+  if (!initialColConfig) return raw;
+
+  // add or remove required keys when toggling independentPublishedDocCopy option
+  if (initialColConfig.options?.independentPublishedDocCopy !== raw.options?.independentPublishedDocCopy) {
+    const shouldCreatePublishedCopy =
+      !initialColConfig.options?.independentPublishedDocCopy && !!raw.options?.independentPublishedDocCopy;
+    const shouldDeletePublishedCopy =
+      !!initialColConfig.options?.independentPublishedDocCopy && !raw.options?.independentPublishedDocCopy;
+
+    // upate every published doc to include a published doc copy
+    if (shouldCreatePublishedCopy) {
+      const Model = await tenantDB.model(name);
+
+      if (Model) {
+        const docNonPrivateKeys = deconstructSchema(raw.schemaDef)
+          .map(([key]) => key)
+          .filter((key) => {
+            if (key === '_id') return true;
+            return key.indexOf('_') !== 0;
+          });
+
+        await Model.updateMany({ stage: 5.2 }, [
+          {
+            $set: {
+              ...docNonPrivateKeys.reduce((obj, key) => {
+                return Object.assign(obj, { [`__publishedDoc.${key}`]: `$${key}` });
+              }, {}),
+              has_published_doc: false,
+            },
+          },
+        ]);
+      }
+    }
+    // remove the published doc copy
+    else if (shouldDeletePublishedCopy) {
+      const Model = await tenantDB.model(name);
+
+      if (Model) {
+        await Model.updateMany({}, [{ $unset: ['__publishedDoc', 'has_published_doc'] }]);
+      }
+    }
   }
 
   // return the value that is now available in the cristata instance

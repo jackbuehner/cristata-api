@@ -25,6 +25,7 @@ const { schemaFields: withPermissionsCollectionSchemaFields } = genSchemaFields(
 type GitHubTeamNodeID = string;
 
 interface CollectionSchemaFields {
+  _id: mongoose.Types.ObjectId;
   timestamps: {
     created_at: string; // ISO string
     modified_at: string; // ISO string
@@ -37,13 +38,19 @@ interface CollectionSchemaFields {
   };
   hidden: boolean;
   locked: boolean;
-  __yState?: string;
-  __yVersions?: CollectionDocVersion[];
   history: Array<{
     type: string;
     user: mongoose.Types.ObjectId;
     at: string; // ISO string
   }>;
+}
+
+interface PrivateCollectionDocFields {
+  __yState?: string;
+  __yVersions?: CollectionDocVersion[];
+  __publishedDoc?:
+    | (CollectionSchemaFields & PublishableCollectionSchemaFields & Record<string, unknown>)
+    | null;
 }
 
 interface CollectionDocVersion {
@@ -68,6 +75,10 @@ interface PublishableCollectionSchemaFields {
     published_by: mongoose.Types.ObjectId[]; // mongoose always returns at least an empty array
     last_published_by?: mongoose.Types.ObjectId;
   };
+  /**
+   * `true` when the doc has been published and a copy of the published doc is stored
+   */
+  has_published_doc?: boolean;
 }
 
 export {
@@ -79,6 +90,7 @@ export {
 export type {
   CollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
+  PrivateCollectionDocFields,
   PublishableCollectionSchemaFields,
   GitHubTeamNodeID,
 };

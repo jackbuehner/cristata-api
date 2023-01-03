@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import {
   CollectionSchemaFields,
+  PrivateCollectionDocFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/helpers/constructBasicSchemaFields';
@@ -48,6 +49,7 @@ const helpers = {
 type Helpers = typeof helpers;
 
 type CollectionDoc = CollectionSchemaFields &
+  PrivateCollectionDocFields &
   Partial<PublishableCollectionSchemaFields> &
   Partial<WithPermissionsCollectionSchemaFields> &
   Partial<Record<string, unknown>> &

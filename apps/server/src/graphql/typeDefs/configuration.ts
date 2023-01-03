@@ -148,6 +148,7 @@ const collection = gql`
     disableHideMutation: Boolean
     disableArchiveMutation: Boolean
     disablePublishMutation: Boolean
+    independentPublishedDocCopy: Boolean
   }
 
   type ConfigurationCollectionBy {
