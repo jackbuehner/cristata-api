@@ -17,7 +17,12 @@ async function setYDocType(
     TenantModel: (name: string) => Promise<mongoose.Model<unknown> | null>,
     ydoc: Y.Doc,
     sharedHelper: typeof shared
-  ) => Promise<true | Error>
+  ) => Promise<true | Error>,
+  /**
+   * reject and destroy after this time
+   * (default 1 minute)
+   */
+  maxTime = 1000 * 60
 ): Promise<true | Error> {
   // return without connecting if we are testing
   if (process.env.NODE_ENV === 'test') {
@@ -38,6 +43,13 @@ async function setYDocType(
           authSecret: process.env.AUTH_OVERRIDE_SECRET || '',
         },
       });
+
+      // reject if not resolved or rejected by the maximum time allowed
+      const timeout = setTimeout(() => {
+        reject(new Error('maximum time allotted for setting a ydoc shared type has elapsed'));
+        wsProvider.disconnect();
+        wsProvider.destroy();
+      }, maxTime);
 
       // fail after unable to connect 10 times
       let disconnectedCount = 0;
@@ -71,9 +83,10 @@ async function setYDocType(
         if (res === true) resolve(true);
         else reject(res);
 
+        clearTimeout(timeout);
+        wsProvider.disconnect();
         wsProvider.destroy();
       });
-      return true;
     } catch (error) {
       if (error instanceof Error) {
         reject(error);
