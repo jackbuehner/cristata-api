@@ -62,8 +62,13 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
       value: lastStage || 5.2,
       label: 'Published',
     };
+    const draftStageOption = stageFieldOptions.find(({ value }) => value === 2.1) || {
+      value: 2.1,
+      label: 'Draft',
+    };
 
-    float.set('stage', [lastStage || 5.2], [publishedStageOption]);
+    if (args.publish) float.set('stage', [lastStage || 5.2], [publishedStageOption]);
+    else float.set('stage', [2.1], [draftStageOption]);
 
     // set the publish properties
     if (args.publish) {
