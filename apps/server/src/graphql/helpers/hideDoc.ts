@@ -100,7 +100,7 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
     doc.history = [
       ...(doc.history || []),
       {
-        type: 'hidden',
+        type: hide ? 'hidden' : 'unhidden',
         user: context.profile._id,
         at: new Date().toISOString(),
       },
