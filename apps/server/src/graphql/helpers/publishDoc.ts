@@ -105,7 +105,7 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
     doc.history = [
       ...(doc.history || []),
       {
-        type: 'published',
+        type: args.publish ? 'published' : 'unpublished',
         user: context.profile._id,
         at: new Date().toISOString(),
       },
