@@ -103,7 +103,7 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
     doc.history = [
       ...(doc.history || []),
       {
-        type: 'locked',
+        type: lock ? 'locked' : 'unlocked',
         user: context.profile._id,
         at: new Date().toISOString(),
       },
