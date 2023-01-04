@@ -1,5 +1,14 @@
 # Changelog
 
+## 10.0.1
+
+### Patch Changes
+
+- 5cefb0c: use correct projection when accessing published docs via \_\_publishedDoc
+- f23f538: use complete schema when setting values for \_\_publishedDoc
+- 49462c8: rewrite sort query to include \_\_publishedDoc
+- 57e3d3f: set published doc values (e.g. publish timestamps) in \_\_publishedDoc
+
 ## 10.0.0
 
 ### Major Changes
