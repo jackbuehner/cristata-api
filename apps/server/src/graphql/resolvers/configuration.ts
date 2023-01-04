@@ -1,6 +1,11 @@
-import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import {
+  deconstructSchema,
+  defaultSchemaDefTypes,
+  SchemaDefType,
+} from '@jackbuehner/cristata-generator-schema';
 import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cristata-utils';
 import { ForbiddenError, UserInputError } from 'apollo-server-errors';
+import { merge } from 'merge-anything';
 import { ObjectId } from 'mongoose';
 import pluralize from 'pluralize';
 import { v3 } from 'uuid';
@@ -441,7 +446,14 @@ const setRawConfigurationCollection = async (
       const Model = await tenantDB.model(name);
 
       if (Model) {
-        const docNonPrivateKeys = deconstructSchema(raw.schemaDef)
+        const schema = merge<SchemaDefType, SchemaDefType[]>(
+          raw.schemaDef || {},
+          defaultSchemaDefTypes.standard,
+          raw.canPublish ? defaultSchemaDefTypes.publishable : {},
+          raw.withPermissions ? defaultSchemaDefTypes.withPermissions : {}
+        );
+
+        const docNonPrivateKeys = deconstructSchema(schema)
           .map(([key]) => key)
           .filter((key) => key.indexOf('_') !== 0);
 
