@@ -149,18 +149,39 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 
   if (options?.disablePublicFindOneQuery !== true && hasPublic && publicRules !== false) {
     Query[`${uncapitalize(name)}Public`] = async (parent, args, context, info) => {
+      const generationOptions = context.config.collections.find((col) => col.name === name)?.generationOptions;
+
+      // rewrite the filter if we need to query the published copy
+      let filter = publicRules.filter;
+      if (generationOptions?.independentPublishedDocCopy) {
+        const newFilter = {};
+        Object.entries(filter).forEach(([key, value]) => {
+          filter[`__publishedDoc.${key}`] = value;
+        });
+        filter = newFilter;
+      }
+
       const doc = await helpers.findDoc({
         model: name,
         by: oneAccessorName,
         _id:
           oneAccessorType.replace('!', '') === 'Date' ? new Date(args[oneAccessorName]) : args[oneAccessorName],
-        filter: publicRules.filter,
+        filter: filter,
         context,
         fullAccess: true,
         project: createProjection(info, config),
       });
 
       if (!doc) return null;
+
+      if (generationOptions?.independentPublishedDocCopy) {
+        if (!doc.__publishedDoc) return null;
+
+        const [resolvedDoc] = await resolveReferencedDocuments([doc.__publishedDoc], info, context, name);
+        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name).then(
+          (doc) => doc?.__publishedDoc || null
+        );
+      }
 
       const [resolvedDoc] = await resolveReferencedDocuments([doc], info, context, name);
       return await construct(resolvedDoc, schemaRefs, context, info, helpers, name);
@@ -177,15 +198,41 @@ function genResolvers(config: GenResolversInput, tenant: string) {
      * fields unless they are marked `public: true`.
      */
     Query[`${pluralize(uncapitalize(name))}Public`] = async (parent, args, context, info) => {
+      const generationOptions = context.config.collections.find((col) => col.name === name)?.generationOptions;
+
+      // rewrite the filter if we need to query the published copy
+      let filter = { ...args.filter, ...publicRules.filter };
+      if (generationOptions?.independentPublishedDocCopy) {
+        const newFilter = {};
+        Object.entries(filter).forEach(([key, value]) => {
+          filter[`__publishedDoc.${key}`] = value;
+        });
+        filter = newFilter;
+      }
+
       const { docs, ...paged }: { docs: CollectionDoc[] } = await helpers.findDocs({
         model: name,
-        args: { ...args, filter: { ...args.filter, ...publicRules.filter } },
+        args: { ...args, filter: filter },
         context,
         fullAccess: true,
       });
 
-      const resolvedDocs = await resolveReferencedDocuments(docs, info, context, name);
+      if (generationOptions?.independentPublishedDocCopy) {
+        const publishedDocs = docs.filter((doc) => !!doc.__publishedDoc);
+        const resolvedDocs = await resolveReferencedDocuments(publishedDocs, info, context, name);
+        return {
+          ...paged,
+          docs: await Promise.all(
+            resolvedDocs.map((doc) =>
+              construct(doc, schemaRefs, context, info, helpers, name).then((doc) => {
+                return doc?.__publishedDoc || null;
+              })
+            )
+          ),
+        };
+      }
 
+      const resolvedDocs = await resolveReferencedDocuments(docs, info, context, name);
       return {
         ...paged,
         docs: await Promise.all(
@@ -203,8 +250,10 @@ function genResolvers(config: GenResolversInput, tenant: string) {
      * fields unless they are marked `public: true`.
      */
     Query[`${uncapitalize(name)}BySlugPublic`] = async (parent, args, context, info) => {
+      const generationOptions = context.config.collections.find((col) => col.name === name)?.generationOptions;
+
       // create filter to find newest document with matching slug
-      const filter =
+      let filter =
         args.date && publicRules.slugDateField
           ? {
               [publicRules.slugDateField]: {
@@ -214,6 +263,15 @@ function genResolvers(config: GenResolversInput, tenant: string) {
               ...publicRules.filter,
             }
           : publicRules.filter;
+
+      // rewrite the filter if we need to query the published copy
+      if (generationOptions?.independentPublishedDocCopy) {
+        const newFilter = {};
+        Object.entries(filter).forEach(([key, value]) => {
+          filter[`__publishedDoc.${key}`] = value;
+        });
+        filter = newFilter;
+      }
 
       // get the doc
       const doc = await helpers.findDoc({
@@ -225,7 +283,17 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         fullAccess: true,
         project: createProjection(info, config),
       });
+
       if (!doc) return null;
+
+      if (generationOptions?.independentPublishedDocCopy) {
+        if (!doc.__publishedDoc) return null;
+
+        const [resolvedDoc] = await resolveReferencedDocuments([doc.__publishedDoc], info, context, name);
+        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name).then(
+          (doc) => doc?.__publishedDoc || null
+        );
+      }
 
       // return a fully constructed doc
       const [resolvedDoc] = await resolveReferencedDocuments([doc], info, context, name);
@@ -389,6 +457,10 @@ function genResolvers(config: GenResolversInput, tenant: string) {
       if (mutation.public === true) customMutationName += 'Public';
 
       Mutation[customMutationName] = async (parent, args, context) => {
+        const generationOptions = context.config.collections.find(
+          (col) => col.name === name
+        )?.generationOptions;
+
         if (mutation.public !== true) {
           helpers.requireAuthentication(context);
         }
@@ -402,10 +474,16 @@ function genResolvers(config: GenResolversInput, tenant: string) {
             lean: false,
             project: { [mutation.action.inc[0]]: 1 },
           });
+
           if (doc) {
             doc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
+            if (generationOptions?.independentPublishedDocCopy && doc.__publishedDoc) {
+              doc.__publishedDoc[mutation.action.inc[0]] += args[`inc${capitalize(mutation.action.inc[0])}`];
+              return doc.save().then((doc) => doc?.__publishedDoc || null);
+            }
             return doc.save();
           }
+
           return doc;
         }
       };

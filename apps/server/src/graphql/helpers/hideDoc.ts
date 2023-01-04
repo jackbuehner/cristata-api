@@ -51,6 +51,10 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
       'DOCUMENT_NOT_FOUND'
     );
 
+  // the config exists if the model worked in `findDoc()`
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const collectionConfig = context.config.collections.find((col) => col.name === model)!;
+
   // if the document is currently published, do not modify unless user can publish
   const canPublish = context.config.collections.find(({ name }) => name === model)?.canPublish;
   if (canPublish) {
@@ -100,11 +104,16 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
     doc.history = [
       ...(doc.history || []),
       {
-        type: 'hidden',
+        type: hide ? 'hidden' : 'unhidden',
         user: context.profile._id,
         at: new Date().toISOString(),
       },
     ];
+  }
+
+  // save change in published doc
+  if (collectionConfig.generationOptions?.independentPublishedDocCopy && doc.__publishedDoc) {
+    doc.__publishedDoc.hidden = hide;
   }
 
   // save the document

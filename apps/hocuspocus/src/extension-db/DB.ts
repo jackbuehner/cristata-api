@@ -16,6 +16,10 @@ export interface CollectionDoc {
   __migrationBackup: never[];
   __ignoreBackup?: boolean;
   __stateExists?: boolean;
+  hidden?: boolean;
+  archived?: boolean;
+  locked?: boolean;
+  stage?: number;
 }
 
 export interface CollectionDocVersion {

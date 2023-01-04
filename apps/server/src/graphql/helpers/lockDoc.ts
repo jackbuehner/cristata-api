@@ -54,6 +54,10 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
     );
   }
 
+  // the config exists if the model worked in `findDoc()`
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const collectionConfig = context.config.collections.find((col) => col.name === model)!;
+
   // if the document is currently published, do not modify unless user can publish
   const canPublish = context.config.collections.find(({ name }) => name === model)?.canPublish;
   if (canPublish) {
@@ -103,11 +107,16 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
     doc.history = [
       ...(doc.history || []),
       {
-        type: 'locked',
+        type: lock ? 'locked' : 'unlocked',
         user: context.profile._id,
         at: new Date().toISOString(),
       },
     ];
+  }
+
+  // save change in published doc
+  if (collectionConfig.generationOptions?.independentPublishedDocCopy && doc.__publishedDoc) {
+    doc.__publishedDoc.locked = lock;
   }
 
   // save the document

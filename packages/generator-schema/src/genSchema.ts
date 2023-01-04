@@ -66,6 +66,14 @@ interface GenSchemaInput {
      * makes changes in the app.
      */
     dynamicPreviewHref?: string;
+    /**
+     * On publish, make a copy of the current doc (with private fields
+     * removed). Use the copy to when serving published docs via the
+     * "Public" API queries. Allows editing documents without altering
+     * the published version until using the `publishDoc()` helper
+     * function.
+     */
+    independentPublishedDocCopy?: boolean;
   };
   /**
    * Whether documents in this collection can be marked as published.

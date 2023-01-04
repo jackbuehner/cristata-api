@@ -6,12 +6,13 @@ import {
 } from '@jackbuehner/cristata-generator-schema';
 import { convertNullPrototype, insertUserToArray, isDefinedDate, slugify } from '@jackbuehner/cristata-utils';
 import { addToY } from '@jackbuehner/cristata-ydoc-utils';
-import { ApolloError, ForbiddenError } from 'apollo-server-errors';
+import { ApolloError, ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
 import {
   CollectionSchemaFields,
+  PrivateCollectionDocFields,
   PublishableCollectionSchemaFields,
   WithPermissionsCollectionSchemaFields,
 } from '../../mongodb/helpers/constructBasicSchemaFields';
@@ -48,6 +49,10 @@ async function modifyDoc<DocType, DataType>({
   const Model = await tenantDB.model<DocType>(model);
   if (!Model) throw new ApolloError('model not found');
 
+  // the config exists if the model was found
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const collectionConfig = context.config.collections.find((col) => col.name === model)!;
+
   // set defaults
   if (publishable === undefined) publishable = false;
   if (fullAccess === undefined) fullAccess = false;
@@ -60,6 +65,24 @@ async function modifyDoc<DocType, DataType>({
       'DOCUMENT_NOT_FOUND'
     );
 
+  // do not allow changing the stage to published
+  if (currentDoc.stage !== 5.2 && data.stage === 5.2) {
+    throw new UserInputError('you must use the publish mutation to set the stage to 5.2');
+  }
+
+  // require the stage to change from 5.2 if the doc is currently published
+  // and this collection stored published docs in a separate copy
+  // (aka directly editing published docs does not occur)
+  if (
+    collectionConfig.generationOptions?.independentPublishedDocCopy &&
+    currentDoc.stage === 5.2 &&
+    data.stage === 5.2
+  ) {
+    throw new UserInputError(
+      'you must change the stage from 5.2 to make an unpublished change to this published doc'
+    );
+  }
+
   // merge the current doc and new data
   data = merge(currentDoc, convertNullPrototype(data));
 
@@ -67,13 +90,15 @@ async function modifyDoc<DocType, DataType>({
   if (!fullAccess && !(await canDo({ action: 'modify', model, context, doc: currentDoc })))
     throw new ForbiddenError('you cannot modify this document');
 
-  // if the document is currently published, do not modify unless user can publish
-  if (publishable) {
+  // if the document is currently published and there is no independent
+  // published doc copy, do not modify unless user can publish
+  if (publishable && !collectionConfig.generationOptions?.independentPublishedDocCopy) {
     const isPublished = isDefinedDate(currentDoc.timestamps.published_at);
 
     if (isPublished && !fullAccess && !(await canDo({ action: 'publish', model, context, doc: currentDoc })))
       throw new ForbiddenError('you cannot modify published documents in this collection');
-    else if (isPublished) {
+
+    if (isPublished) {
       // set updated published document metadata
       if (context.profile) {
         data = merge(data, {
@@ -161,6 +186,7 @@ async function modifyDoc<DocType, DataType>({
 type HydratedCollectionDoc<DocType> = mongoose.Document<unknown, unknown, DocType> & DocType;
 
 type CurrentDocType = CollectionSchemaFields &
+  PrivateCollectionDocFields &
   PublishableCollectionSchemaFields &
   WithPermissionsCollectionSchemaFields &
   Record<string, unknown> & { _id: mongoose.Types.ObjectId };

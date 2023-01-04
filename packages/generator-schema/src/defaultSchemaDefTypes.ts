@@ -44,6 +44,8 @@ const publishable: SchemaDefType = {
     published_by: { type: ['[User]', ['ObjectId']] },
     last_published_by: { type: ['User', 'ObjectId'] },
   },
+  _hasPublishedDoc: { type: 'Boolean', required: false, default: false },
+  __publishedDoc: { type: 'JSON', required: false, strict: false },
 };
 
 const withPermissions: SchemaDefType = {

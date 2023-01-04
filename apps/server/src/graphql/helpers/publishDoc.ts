@@ -4,7 +4,7 @@ import { insertUserToArray } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
-import { canDo, findDoc, requireAuthentication } from '.';
+import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
 import { setYDocType } from './setYDocType';
 
@@ -35,6 +35,10 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
     );
   }
 
+  // the config exists if the model worked in `findDoc()`
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const collectionConfig = context.config.collections.find((col) => col.name === model)!;
+
   //if the user cannot hide documents in the collection, return an error
   if (!(await canDo({ action: 'publish', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot publish this document');
@@ -44,6 +48,7 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
     const reference = new sharedHelper.Reference(ydoc);
     const date = new sharedHelper.Date(ydoc);
     const float = new sharedHelper.Float(ydoc);
+    const boolean = new sharedHelper.Boolean(ydoc);
 
     const rc = { collection: 'User' };
     const toHex = (_id?: mongoose.Types.ObjectId) => _id?.toHexString();
@@ -62,8 +67,13 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
       value: lastStage || 5.2,
       label: 'Published',
     };
+    const draftStageOption = stageFieldOptions.find(({ value }) => value === 2.1) || {
+      value: 2.1,
+      label: 'Draft',
+    };
 
-    float.set('stage', [lastStage || 5.2], [publishedStageOption]);
+    if (args.publish) float.set('stage', [lastStage || 5.2], [publishedStageOption]);
+    else float.set('stage', [2.1], [draftStageOption]);
 
     // set the publish properties
     if (args.publish) {
@@ -77,6 +87,9 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
         rc
       );
       await reference.set('people.last_published_by', [context.profile._id].map(toHex), TM, rc);
+    }
+    if (collectionConfig.generationOptions?.independentPublishedDocCopy) {
+      boolean.set('_hasPublishedDoc', args.publish);
     }
 
     // set modifiication metadata
@@ -100,14 +113,38 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
     doc.history = [
       ...(doc.history || []),
       {
-        type: 'published',
+        type: args.publish ? 'published' : 'unpublished',
         user: context.profile._id,
         at: new Date().toISOString(),
       },
     ];
   }
-  const res = await doc.save();
 
+  // save copy of published doc
+  if (collectionConfig.generationOptions?.independentPublishedDocCopy) {
+    if (args.publish) {
+      const leanDoc = doc.toObject();
+
+      // get a lean copy of the doc with all private keys removed (keys starting with _ or __, excluding _id)
+      const publishDocCopy = Object.keys(leanDoc)
+        .filter((key) => {
+          if (key === '_id') return true;
+          return key.indexOf('_') !== 0;
+        })
+        .reduce((obj, key) => {
+          return Object.assign(obj, {
+            [key]: leanDoc[key],
+          });
+        }, {} as NonNullable<Required<CollectionDoc>['__publishedDoc']>);
+
+      // save the published copy of the doc
+      doc.__publishedDoc = publishDocCopy;
+    } else {
+      doc.__publishedDoc = null;
+    }
+  }
+
+  const res = await doc.save();
   return res;
 }
 
