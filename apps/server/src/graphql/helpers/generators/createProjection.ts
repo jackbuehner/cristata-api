@@ -29,6 +29,7 @@ function createProjection(
   },
   options?: {
     keepReferenceFields?: boolean;
+    prefix?: string;
   }
 ) {
   // ensure we include the common schema defs
@@ -75,7 +76,7 @@ function createProjection(
 
   const projection: Record<string, 1> = {};
   fields.forEach((field) => {
-    projection[field] = 1;
+    projection[`${options?.prefix || ''}${field}`] = 1;
   });
 
   return projection;
