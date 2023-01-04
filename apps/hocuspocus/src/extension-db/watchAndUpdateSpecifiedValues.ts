@@ -112,8 +112,6 @@ async function applyRelevantChanges(
     return keysToWatchAndUpdate.includes(key) && isDifferent(key, dbDoc, docData);
   });
 
-  console.log(filteredDeconstructedSchema);
-
   // update values included in the filtered schema
   await addToY({
     ydoc,
