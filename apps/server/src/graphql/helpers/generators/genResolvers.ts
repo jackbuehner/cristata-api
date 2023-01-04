@@ -217,9 +217,19 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         filter = { ...newFilter, __publishedDoc: { $exists: true } };
       }
 
+      // rewrite the filter if we need to query the published copy
+      let sort = { ...args.sort };
+      if (generationOptions?.independentPublishedDocCopy) {
+        const newSort: Record<string, unknown> = {};
+        Object.entries(sort).forEach(([key, value]) => {
+          newSort[`__publishedDoc.${key}`] = value;
+        });
+        sort = { ...newSort };
+      }
+
       const { docs, ...paged }: { docs: CollectionDoc[] } = await helpers.findDocs({
         model: name,
-        args: { ...args, filter: filter },
+        args: { ...args, filter, sort },
         context,
         fullAccess: true,
         project: createProjection(info, config, {
