@@ -18,7 +18,7 @@ export function afterLoadDocument(tenantDb: DB) {
       // be stale, but they definately are not stale
       // if the entire doc's field have been replaced
       updateReferenceValues(tenantDb, documentName, ydoc);
-      watchAndUpdateSpecifiedValues(tenantDb, documentName, ydoc, ['has_published_doc']);
+      watchAndUpdateSpecifiedValues(tenantDb, documentName, ydoc, ['_hasPublishedDoc']);
     }
   };
 

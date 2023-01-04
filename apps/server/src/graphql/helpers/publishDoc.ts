@@ -89,7 +89,7 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
       await reference.set('people.last_published_by', [context.profile._id].map(toHex), TM, rc);
     }
     if (collectionConfig.generationOptions?.independentPublishedDocCopy) {
-      boolean.set('has_published_doc', args.publish);
+      boolean.set('_hasPublishedDoc', args.publish);
     }
 
     // set modifiication metadata

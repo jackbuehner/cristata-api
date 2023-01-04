@@ -454,7 +454,7 @@ const setRawConfigurationCollection = async (
                 },
                 { '__publishedDoc._id': '$_id' }
               ),
-              has_published_doc: true,
+              _hasPublishedDoc: true,
             },
           },
         ]);
@@ -466,7 +466,7 @@ const setRawConfigurationCollection = async (
 
       if (Model) {
         await Model.updateMany({ __publishedDoc: { $exists: true } }, [{ $set: { stage: 5.2 } }]);
-        await Model.updateMany({}, [{ $unset: ['__publishedDoc', 'has_published_doc'] }]);
+        await Model.updateMany({}, [{ $unset: ['__publishedDoc', '_hasPublishedDoc'] }]);
       }
     }
   }

@@ -78,7 +78,7 @@ interface PublishableCollectionSchemaFields {
   /**
    * `true` when the doc has been published and a copy of the published doc is stored
    */
-  has_published_doc?: boolean;
+  _hasPublishedDoc?: boolean;
 }
 
 export {
