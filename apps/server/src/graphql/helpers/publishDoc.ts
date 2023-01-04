@@ -139,6 +139,12 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
 
       // save the published copy of the doc
       doc.__publishedDoc = publishDocCopy;
+      doc.__publishedDoc.stage = 5.2;
+      doc.__publishedDoc.timestamps.published_at = args.published_at;
+      if (context.profile) {
+        doc.__publishedDoc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
+        doc.__publishedDoc.people.last_modified_by = context.profile._id;
+      }
     } else {
       doc.__publishedDoc = null;
     }
