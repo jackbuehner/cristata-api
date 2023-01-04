@@ -454,7 +454,7 @@ const setRawConfigurationCollection = async (
                 },
                 { '__publishedDoc._id': '$_id' }
               ),
-              has_published_doc: false,
+              has_published_doc: true,
             },
           },
         ]);
