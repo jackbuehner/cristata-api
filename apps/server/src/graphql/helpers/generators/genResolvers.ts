@@ -5,12 +5,19 @@ import {
   SchemaDef,
   SchemaRef,
 } from '@jackbuehner/cristata-generator-schema';
-import { capitalize, dateAtTimeZero, flattenObject, hasKey, uncapitalize } from '@jackbuehner/cristata-utils';
+import {
+  capitalize,
+  dateAtTimeZero,
+  flattenObject,
+  hasKey,
+  notEmpty,
+  uncapitalize,
+} from '@jackbuehner/cristata-utils';
 import { UserInputError } from 'apollo-server-errors';
 import { findAndReplace } from 'find-and-replace-anything';
 import getFieldNames from 'graphql-list-fields';
 import { merge } from 'merge-anything';
-import mongoose from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
 import { get as getProperty } from 'object-path';
 import pluralize from 'pluralize';
 import { CollectionDoc, Helpers } from '..';
@@ -169,7 +176,9 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         filter: filter,
         context,
         fullAccess: true,
-        project: createProjection(info, config),
+        project: createProjection(info, config, {
+          prefix: generationOptions?.independentPublishedDocCopy ? '__publishedDoc.' : undefined,
+        }),
       });
 
       if (!doc) return null;
@@ -178,9 +187,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         if (!doc.__publishedDoc) return null;
 
         const [resolvedDoc] = await resolveReferencedDocuments([doc.__publishedDoc], info, context, name);
-        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name).then(
-          (doc) => doc?.__publishedDoc || null
-        );
+        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name);
       }
 
       const [resolvedDoc] = await resolveReferencedDocuments([doc], info, context, name);
@@ -203,11 +210,11 @@ function genResolvers(config: GenResolversInput, tenant: string) {
       // rewrite the filter if we need to query the published copy
       let filter = { ...args.filter, ...publicRules.filter };
       if (generationOptions?.independentPublishedDocCopy) {
-        const newFilter = {};
+        const newFilter: FilterQuery<CollectionDoc> = {};
         Object.entries(filter).forEach(([key, value]) => {
-          filter[`__publishedDoc.${key}`] = value;
+          newFilter[`__publishedDoc.${key}`] = value;
         });
-        filter = newFilter;
+        filter = { ...newFilter, __publishedDoc: { $exists: true } };
       }
 
       const { docs, ...paged }: { docs: CollectionDoc[] } = await helpers.findDocs({
@@ -215,19 +222,18 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         args: { ...args, filter: filter },
         context,
         fullAccess: true,
+        project: createProjection(info, config, {
+          prefix: generationOptions?.independentPublishedDocCopy ? '__publishedDoc.' : undefined,
+        }),
       });
 
       if (generationOptions?.independentPublishedDocCopy) {
-        const publishedDocs = docs.filter((doc) => !!doc.__publishedDoc);
+        const publishedDocs = docs.map((doc) => doc.__publishedDoc).filter(notEmpty);
         const resolvedDocs = await resolveReferencedDocuments(publishedDocs, info, context, name);
         return {
           ...paged,
           docs: await Promise.all(
-            resolvedDocs.map((doc) =>
-              construct(doc, schemaRefs, context, info, helpers, name).then((doc) => {
-                return doc?.__publishedDoc || null;
-              })
-            )
+            resolvedDocs.map((doc) => construct(doc, schemaRefs, context, info, helpers, name))
           ),
         };
       }
@@ -281,7 +287,9 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         filter,
         context,
         fullAccess: true,
-        project: createProjection(info, config),
+        project: createProjection(info, config, {
+          prefix: generationOptions?.independentPublishedDocCopy ? '__publishedDoc.' : undefined,
+        }),
       });
 
       if (!doc) return null;
@@ -290,9 +298,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         if (!doc.__publishedDoc) return null;
 
         const [resolvedDoc] = await resolveReferencedDocuments([doc.__publishedDoc], info, context, name);
-        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name).then(
-          (doc) => doc?.__publishedDoc || null
-        );
+        return await construct(resolvedDoc, schemaRefs, context, info, helpers, name);
       }
 
       // return a fully constructed doc
