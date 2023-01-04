@@ -1,6 +1,7 @@
 import { Extension } from '@hocuspocus/server';
 import { DB } from './DB';
 import { setDocValues } from './setDocValues';
+import { watchAndUpdateSpecifiedValues } from './watchAndUpdateSpecifiedValues';
 import { updateReferenceValues } from './updateReferenceValues';
 
 export function afterLoadDocument(tenantDb: DB) {
@@ -17,6 +18,7 @@ export function afterLoadDocument(tenantDb: DB) {
       // be stale, but they definately are not stale
       // if the entire doc's field have been replaced
       updateReferenceValues(tenantDb, documentName, ydoc);
+      watchAndUpdateSpecifiedValues(tenantDb, documentName, ydoc, ['has_published_doc']);
     }
   };
 
