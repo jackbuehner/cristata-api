@@ -229,7 +229,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
 
       const { docs, ...paged }: { docs: CollectionDoc[] } = await helpers.findDocs({
         model: name,
-        args: { ...args, filter, sort },
+        args: { ...args, filter, sort: Object.keys(sort).length > 0 ? sort : undefined },
         context,
         fullAccess: true,
         project: createProjection(info, config, {
