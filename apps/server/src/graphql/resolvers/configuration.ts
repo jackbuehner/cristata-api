@@ -53,6 +53,9 @@ const configuration = {
                     : collection.by?.[0] || '_id',
               },
               raw: collection.raw,
+              pluralName:
+                collection.navLabel?.split('::').slice(-1)[0] ||
+                camelToDashCase(pluralize(name)).replace(/-/g, ' '),
             };
           }
 
@@ -62,9 +65,16 @@ const configuration = {
         collections: () => {
           helpers.requireAuthentication(context);
 
-          return context.config.collections.filter(
-            (col) => col.name !== 'User' && col.name !== 'Team' && col.name !== 'File'
-          );
+          return context.config.collections
+            .filter((col) => col.name !== 'User' && col.name !== 'Team' && col.name !== 'File')
+            .map((col) => {
+              return {
+                ...col,
+                pluralName:
+                  col.navLabel?.split('::').slice(-1)[0] ||
+                  camelToDashCase(pluralize(col.name)).replace(/-/g, ' '),
+              };
+            });
         },
       };
     },

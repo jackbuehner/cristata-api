@@ -123,6 +123,7 @@ const collection = gql`
 
   type ConfigurationCollection {
     name: String!
+    pluralName: String!
     canPublish: Boolean
     withPermissions: Boolean
     """
