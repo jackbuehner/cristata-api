@@ -25,13 +25,29 @@ const core = gql`
     displayName: String
   }
 
+  type WorkflowGroup {
+    _id: Int!,
+    count: Int!,
+    docs: [WorkflowGroupDoc]!
+  }
+
+  type WorkflowGroupDoc {
+    _id: ObjectID!
+    name: String
+    stage: Float!
+    in: String!
+  }
+
   type Query {
     """
     Get some details about the tenant.
     """
     tenant: TenantDetails
+    """
+    Get the docs in the different workflow categories
+    """
+    workflow(collections: [String], exclude: [String]): [WorkflowGroup!]
   }
-
 `;
 
 export { core };
