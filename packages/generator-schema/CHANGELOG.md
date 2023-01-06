@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 3.6.0
+
+### Minor Changes
+
+- 4cfc32d: support collapsed option on field defs
+
 ## 3.5.0
 
 ### Minor Changes
