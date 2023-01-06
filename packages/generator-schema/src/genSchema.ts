@@ -460,6 +460,10 @@ interface FieldDef {
    */
   hidden?: boolean | 'publish-only';
   /**
+   * Displays this field in the collapsed "more fields" section.
+   */
+  collapsed?: boolean;
+  /**
    * Configure this field as a reference to another collection.
    */
   reference?: {
