@@ -1,5 +1,12 @@
 # Changelog
 
+## 10.1.0
+
+### Minor Changes
+
+- 3c0ea76: include pluralName in config query
+- 3c0ea76: include workflow query that aggregates stages across collections
+
 ## 10.0.1
 
 ### Patch Changes
