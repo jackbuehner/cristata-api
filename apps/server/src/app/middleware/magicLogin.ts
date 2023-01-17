@@ -40,7 +40,7 @@ const magicLogin = new MagicLoginStrategy({
     doc.last_magic_code = verificationCode;
     await doc.save();
 
-    const token = new URL(`https://cristata.app/${href}`).searchParams.get('token') || '';
+    const token = new URL(`https://cristata.app${href}`).searchParams.get('token') || '';
 
     const { defaultSender, tenantDisplayName } = req.cristata.config[tenant];
     sendEmail(
