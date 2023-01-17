@@ -40,7 +40,7 @@ const magicLogin = new MagicLoginStrategy({
     doc.last_magic_code = verificationCode;
     await doc.save();
 
-    const token = new URL(`https://cristata.app/${href}`).searchParams.get('token') || '';
+    const token = new URL(`https://cristata.app${href}`).searchParams.get('token') || '';
 
     const { defaultSender, tenantDisplayName } = req.cristata.config[tenant];
     sendEmail(
@@ -112,6 +112,11 @@ const magicLogin = new MagicLoginStrategy({
 
     // check that the magic link is valid
     if (doc.last_magic_code !== payload.code) {
+      console.error(
+        `Invalid magic link for ${tenant}.users.${doc.id}: received payload [${JSON.stringify(
+          payload
+        )}] and expected code [${doc.last_magic_code}]`
+      );
       done(new Error('This magic link is invalid or has already been used'));
       return;
     }
