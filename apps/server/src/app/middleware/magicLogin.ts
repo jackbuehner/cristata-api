@@ -43,6 +43,12 @@ const magicLogin = new MagicLoginStrategy({
     const token = new URL(`https://cristata.app${href}`).searchParams.get('token') || '';
 
     const { defaultSender, tenantDisplayName } = req.cristata.config[tenant];
+
+    const url = new URL(process.env.AUTH_APP_URL || 'https://auth.cristata.app');
+    url.pathname = `/${tenant}/sign-in/magic-link/use`;
+    url.searchParams.set('token', token);
+    url.searchParams.set('return', req.body.returnUrl);
+
     sendEmail(
       {
         defaultSender,
@@ -54,9 +60,7 @@ const magicLogin = new MagicLoginStrategy({
       },
       doc.email,
       `Your magic sign-in link`,
-      `Click here to sign in: ${
-        process.env.AUTH_APP_URL || ''
-      }/${tenant}/sign-in/magic-link/use?token=${encodeURIComponent(token)}&return=${req.body.returnUrl}`
+      `Click here to sign in: <a href="${url}">${url}</a>`
     );
   },
 
