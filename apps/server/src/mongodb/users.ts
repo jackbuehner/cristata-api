@@ -84,7 +84,7 @@ const users = (tenant: string): Collection => {
       """
       Returns a list of documents in collections that reference this user
       """
-      userReferences(_id: ObjectID, collections: [String!], exclude: [String!]): [UserReference!]!
+      userReferences(_id: ObjectID, collections: [String!], exclude: [String!], limit: Int): [UserReference!]!
     }
   
     type Mutation {
@@ -160,10 +160,11 @@ const users = (tenant: string): Collection => {
           _id,
           collections,
           exclude,
-        }: { _id: mongoose.Types.ObjectId; collections?: string[]; exclude?: string[] },
+          limit,
+        }: { _id: mongoose.Types.ObjectId; collections?: string[]; exclude?: string[]; limit?: number },
         context: Context
       ) => {
-        return await getUserReferences({ _id, collections, exclude, context });
+        return await getUserReferences({ _id, collections, exclude, context, limit });
       },
     },
     Mutation: {
@@ -435,10 +436,12 @@ async function getUserReferences({
   collections,
   exclude,
   context,
+  limit,
 }: {
   _id: mongoose.Types.ObjectId;
   collections?: string[];
   exclude?: string[];
+  limit?: number;
   context: Context;
 }) {
   let collectionNames = context.config.collections.map((col) => col.name);
@@ -553,7 +556,10 @@ async function getUserReferences({
   ];
 
   if (Model) {
-    return Model?.aggregate(pipeline);
+    const result = await Model?.aggregate(pipeline);
+
+    if (!limit) return result;
+    return result.map((group) => ({ ...group, docs: group.docs.slice(0, limit) }));
   }
 
   return [];
