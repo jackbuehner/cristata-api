@@ -1,8 +1,8 @@
 import { Extension } from '@hocuspocus/server';
 import { DB } from './DB';
 import { setDocValues } from './setDocValues';
-import { watchAndUpdateSpecifiedValues } from './watchAndUpdateSpecifiedValues';
 import { updateReferenceValues } from './updateReferenceValues';
+import { watchAndUpdateSpecifiedValues } from './watchAndUpdateSpecifiedValues';
 
 export function afterLoadDocument(tenantDb: DB) {
   const afterLoadDocument: Extension['afterLoadDocument'] = async ({
