@@ -1,5 +1,16 @@
 # Changelog
 
+## 10.2.0
+
+### Minor Changes
+
+- 0f6ad26: use anchor tag for magic sign in link
+
+### Patch Changes
+
+- a11ab5f: prefer to update \_hasPublishedDoc by listening to changes in the database
+- bd39b2c: include logs for invalid magic link
+
 ## 10.1.0
 
 ### Minor Changes
