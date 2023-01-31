@@ -122,6 +122,8 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
 
   // save copy of published doc
   if (collectionConfig.generationOptions?.independentPublishedDocCopy) {
+    doc._hasPublishedDoc = args.publish;
+
     if (args.publish) {
       const leanDoc = doc.toObject();
 
