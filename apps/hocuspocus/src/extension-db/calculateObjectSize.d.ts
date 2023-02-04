@@ -13,5 +13,6 @@ declare module 'bson/lib/bson/parser/calculate_size' {
    * @param {CalculateObjectSizeOptions} options
    * @return {Number} returns the number of bytes the BSON object will take up.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export default function calculateObjectSize(object: any, options?: CalculateObjectSizeOptions): number;
 }
