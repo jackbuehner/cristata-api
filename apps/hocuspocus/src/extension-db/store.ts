@@ -2,6 +2,7 @@ import { storePayload } from '@hocuspocus/server';
 import { conditionallyModifyDocField, deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { hasKey } from '@jackbuehner/cristata-utils';
 import { addToY, getFromY } from '@jackbuehner/cristata-ydoc-utils';
+import calculateObjectSize from 'bson/lib/bson/parser/calculate_size';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
@@ -143,12 +144,34 @@ async function saveSnapshot(
     { projection: { __yVersions: 1 } }
   );
 
+  // get the size of the document
+  const [docInfo] = await collection
+    .aggregate<{ size_bytes: number; size_KB: number; size_MB: number }>([
+      { $match: { _id: dbDoc?._id } },
+      {
+        $project: {
+          size_bytes: { $bsonSize: '$$ROOT' },
+          size_KB: { $divide: [{ $bsonSize: '$$ROOT' }, 1000] },
+          size_MB: { $divide: [{ $bsonSize: '$$ROOT' }, 1000000] },
+        },
+      },
+    ])
+    .toArray();
+
+  const tooLarge = docInfo.size_MB > 10;
+
   // create a snapshot of this point
-  const versions = [
+  let versions = [
     // reduce versions from previous days to single version
-    ...reduceDays(dbDoc?.__yVersions, 3), // must be at least 3 days old
+    ...reduceDays(dbDoc?.__yVersions, tooLarge ? 0 : 3), // must be at least 3 days old
     { state, timestamp, users },
   ];
+
+  // check if the versions array is small enough, and make it smaller if it is not small enough
+  const stillTooLarge = calculateObjectSize(versions) / 1000000 > 10;
+  if (stillTooLarge) {
+    versions = versions.slice(-1);
+  }
 
   // create shared type with list of versions
   const versionsList = ydoc.getArray('__internal_versionsList');
