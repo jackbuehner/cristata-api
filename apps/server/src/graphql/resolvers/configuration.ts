@@ -56,6 +56,9 @@ const configuration = {
               pluralName:
                 collection.navLabel?.split('::').slice(-1)[0] ||
                 camelToDashCase(pluralize(name)).replace(/-/g, ' '),
+              canCreateAndGet:
+                (await helpers.canDo({ model: name, action: 'create', context })) &&
+                (await helpers.canDo({ model: name, action: 'get', context })),
             };
           }
 
@@ -65,16 +68,21 @@ const configuration = {
         collections: () => {
           helpers.requireAuthentication(context);
 
-          return context.config.collections
-            .filter((col) => col.name !== 'User' && col.name !== 'Team' && col.name !== 'File')
-            .map((col) => {
-              return {
-                ...col,
-                pluralName:
-                  col.navLabel?.split('::').slice(-1)[0] ||
-                  camelToDashCase(pluralize(col.name)).replace(/-/g, ' '),
-              };
-            });
+          return Promise.all(
+            context.config.collections
+              .filter((col) => col.name !== 'User' && col.name !== 'Team' && col.name !== 'File')
+              .map(async (col) => {
+                return {
+                  ...col,
+                  pluralName:
+                    col.navLabel?.split('::').slice(-1)[0] ||
+                    camelToDashCase(pluralize(col.name)).replace(/-/g, ' '),
+                  canCreateAndGet:
+                    (await helpers.canDo({ model: col.name, action: 'create', context })) &&
+                    (await helpers.canDo({ model: col.name, action: 'get', context })),
+                };
+              })
+          );
         },
       };
     },

@@ -133,6 +133,10 @@ const collection = gql`
     generationOptions: ConfigurationCollectionGenerationOptions
     by: ConfigurationCollectionBy!
     raw: JSON!
+    """
+    Whether the current user has 'create' and 'get' permisson on this collection
+    """
+    canCreateAndGet: Boolean
   }
 
   type Mutation {
