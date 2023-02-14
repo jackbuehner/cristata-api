@@ -70,7 +70,7 @@ const configuration = {
 
           return Promise.all(
             context.config.collections
-              .filter((col) => col.name !== 'User' && col.name !== 'Team' && col.name !== 'File')
+              .filter((col) => col.name !== 'User' && col.name !== 'Team')
               .map(async (col) => {
                 return {
                   ...col,
