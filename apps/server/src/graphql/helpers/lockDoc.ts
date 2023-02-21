@@ -110,7 +110,7 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
     doc.history = [...(doc.history || []), { type, user: context.profile._id, at: new Date().toISOString() }];
 
     createDoc({
-      model,
+      model: 'Activity',
       context,
       args: {
         name: doc.name,

@@ -142,7 +142,7 @@ async function modifyDoc<DocType, DataType>({
     });
 
     createDoc({
-      model,
+      model: 'Activity',
       context,
       args: {
         name: currentDoc.name,

@@ -34,7 +34,7 @@ async function deleteDoc({ model, by, args, context }: DeleteDoc): Promise<mongo
     const type = 'deleted';
 
     createDoc({
-      model,
+      model: 'Activity',
       context,
       args: {
         name: doc.name,

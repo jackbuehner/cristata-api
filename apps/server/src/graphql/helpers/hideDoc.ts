@@ -107,7 +107,7 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
     doc.history = [...(doc.history || []), { type, user: context.profile._id, at: new Date().toISOString() }];
 
     createDoc({
-      model,
+      model: 'Activity',
       context,
       args: {
         name: doc.name,

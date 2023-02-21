@@ -99,7 +99,7 @@ async function cloneDoc({
       ];
 
       createDoc({
-        model,
+        model: 'Activity',
         context,
         args: {
           name: doc.name,

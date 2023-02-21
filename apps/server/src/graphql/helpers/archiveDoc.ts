@@ -115,7 +115,7 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
     doc.history = [...(doc.history || []), { type, user: context.profile._id, at: new Date().toISOString() }];
 
     createDoc({
-      model,
+      model: 'Activity',
       context,
       args: {
         name: doc.name,
