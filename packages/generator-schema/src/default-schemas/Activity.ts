@@ -10,7 +10,7 @@ const collection: GenSchemaInput = {
     type: { type: 'String', required: true },
     colName: { type: 'String', required: true },
     docId: { type: 'ObjectId', required: true },
-    userId: { type: 'ObjectId', required: true },
+    userIds: { type: ['[User]', ['ObjectId']], required: true },
     at: { type: 'Date', required: true },
     added: { type: 'JSON', modifiable: true, required: false },
     deleted: { type: 'JSON', modifiable: true, required: false },

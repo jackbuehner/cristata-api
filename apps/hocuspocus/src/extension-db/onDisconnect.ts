@@ -87,7 +87,7 @@ export function onDisconnect(tenantDb: DB) {
         type: 'ydoc-modified',
         colName: collectionName,
         docId: new mongoose.Types.ObjectId(itemId),
-        userId: new mongoose.Types.ObjectId(context._id),
+        userIds: [new mongoose.Types.ObjectId(context._id)],
         at: new Date(context.lastModifiedAt),
         added,
         deleted,

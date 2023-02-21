@@ -32,7 +32,7 @@ interface IActivity {
   type: string;
   colName: string;
   docId: mongoose.Types.ObjectId;
-  userId: mongoose.Types.ObjectId;
+  userIds: mongoose.Types.ObjectId[];
   at: Date;
   diff?: any;
   added?: any;

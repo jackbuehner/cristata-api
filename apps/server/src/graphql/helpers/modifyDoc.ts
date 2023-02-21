@@ -152,7 +152,7 @@ async function modifyDoc<DocType, DataType>({
         type,
         colName: model,
         docId: currentDoc._id,
-        userId: context.profile._id,
+        userIds: [context.profile._id],
         at: new Date(),
         added,
         deleted,

@@ -106,7 +106,7 @@ async function cloneDoc({
           type,
           colName: model,
           docId: doc._id,
-          userId: context.profile._id,
+          userIds: [context.profile._id],
           at: new Date(),
         },
       });
