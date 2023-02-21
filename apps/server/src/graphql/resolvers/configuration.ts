@@ -100,6 +100,7 @@ const configuration = {
       if (name === 'User') throw new UserInputError('cannot configure User collection');
       if (name === 'Team') throw new UserInputError('cannot configure Team collection');
       if (name === 'File') throw new UserInputError('cannot configure File collection');
+      if (name === 'Activity') throw new UserInputError('cannot configure Activity collection');
       return setRawConfigurationCollection({ name, raw }, context);
     },
     deleteCollection: async (_: unknown, { name }: { name: string }, context: Context): Promise<void> => {
@@ -110,6 +111,7 @@ const configuration = {
       if (name === 'User') throw new UserInputError('cannot delete User collection');
       if (name === 'Team') throw new UserInputError('cannot delete Team collection');
       if (name === 'File') throw new UserInputError('cannot delete File collection');
+      if (name === 'Activity') throw new UserInputError('cannot delete Activity collection');
 
       const appDb = new TenantDB('app');
       const appConn = await appDb.connect();
@@ -556,7 +558,7 @@ const getCmsNavConfig = async (context: Context, key = 'cms') => {
                   return {
                     uuid: v3(label, 'c2af0a4c-5c85-4959-9e48-7dbd4f5fc8f7'),
                     label,
-                    icon: 'CircleSmall24Filled' as typeof context.config.navigation.sub['cms'][0]['items'][0]['icon'],
+                    icon: 'CircleSmall24Filled' as (typeof context.config.navigation.sub)['cms'][0]['items'][0]['icon'],
                     to,
                     isHidden,
                   };

@@ -1,4 +1,5 @@
 import { defaultSchemaDefTypes, GenSchemaInput, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
+import activityCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Activity';
 import fileCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/File';
 import photoCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Photo';
 import userCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/User';
@@ -121,6 +122,10 @@ export class DB {
         photoCollection?.canPublish ? defaultSchemaDefTypes.publishable : {},
         photoCollection?.withPermissions ? defaultSchemaDefTypes.withPermissions : {}
       );
+    }
+
+    if (collectionName === 'Activity') {
+      return merge<SchemaDefType, SchemaDefType[]>(activityCollection?.schemaDef || {});
     }
 
     const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
