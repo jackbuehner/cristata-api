@@ -2,7 +2,7 @@
 import { insertUserToArray } from '@jackbuehner/cristata-utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
-import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
+import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
 
@@ -90,14 +90,26 @@ async function cloneDoc({
 
     // update history
     if (context.profile) {
+      const type = 'patched';
+
+      // TODO: remove this in a future version
       newDoc.history = [
         ...(doc.history || []),
-        {
-          type: 'patched',
-          user: context.profile._id,
-          at: new Date().toISOString(),
-        },
+        { type, user: context.profile._id, at: new Date().toISOString() },
       ];
+
+      createDoc({
+        model,
+        context,
+        args: {
+          name: doc.name,
+          type,
+          colName: model,
+          docId: doc._id,
+          userId: context.profile._id,
+          at: new Date(),
+        },
+      });
     }
 
     // remove yjs fields that should not be cloned

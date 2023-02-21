@@ -2,7 +2,7 @@
 import { insertUserToArray, isDefinedDate, notEmpty } from '@jackbuehner/cristata-utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
-import { canDo, findDoc, requireAuthentication } from '.';
+import { canDo, createDoc, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
 import { setYDocType } from './setYDocType';
 interface HideDoc {
@@ -101,14 +101,23 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
 
   // set the history
   if (context.profile) {
-    doc.history = [
-      ...(doc.history || []),
-      {
-        type: hide ? 'hidden' : 'unhidden',
-        user: context.profile._id,
-        at: new Date().toISOString(),
+    const type = hide ? 'hidden' : 'unhidden';
+
+    // TODO: remove this in a future version
+    doc.history = [...(doc.history || []), { type, user: context.profile._id, at: new Date().toISOString() }];
+
+    createDoc({
+      model,
+      context,
+      args: {
+        name: doc.name,
+        type,
+        colName: model,
+        docId: doc._id,
+        userId: context.profile._id,
+        at: new Date(),
       },
-    ];
+    });
   }
 
   // save change in published doc

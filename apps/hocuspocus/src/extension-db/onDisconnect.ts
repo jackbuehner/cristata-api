@@ -1,11 +1,20 @@
 import { Extension } from '@hocuspocus/server';
+import type { IActivity } from '@jackbuehner/cristata-api/dist/mongodb/activities';
+import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
+import mongodb from 'mongoose/node_modules/mongodb';
 import { DB } from './DB';
 
 export function onDisconnect(tenantDb: DB) {
-  const onDisconnect: Extension['onDisconnect'] = async ({ documentName, context }): Promise<void> => {
+  const onDisconnect: Extension['onDisconnect'] = async ({
+    documentName,
+    context,
+    document: ydoc,
+  }): Promise<void> => {
     const [tenant, collectionName, itemId] = documentName.split('.');
 
+    // TODO: get rid of this in a future version
     if (context.hasModified && context.lastModifiedAt && context._id) {
       const historyItem = {
         type: 'ydoc-modified',
@@ -28,6 +37,35 @@ export function onDisconnect(tenantDb: DB) {
         { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
         { $push: { history: historyItem } }
       );
+    }
+
+    if (context.hasModified && context.lastModifiedAt && context._id) {
+      // get the collection schema
+      const schema = await tenantDb.collectionSchema(tenant, collectionName);
+      const deconstructedSchema = deconstructSchema(schema || {});
+
+      // get the document data
+      const data = await getFromY(ydoc, deconstructedSchema);
+
+      // get the activities collection, which is where activity/history is stored
+      const activitiesCollection = tenantDb.collection(
+        tenant,
+        'Activity'
+      ) as mongodb.Collection<IActivity> | null;
+      if (!activitiesCollection) {
+        console.error('[INVALID COLLECTION] FAILED TO SAVE DOC ACTIVITY FOR DOC:', documentName);
+        throw new Error(`Activity collection was not found in the database`);
+      }
+
+      // save the activity/history
+      activitiesCollection.insertOne({
+        name: data.name,
+        type: 'ydoc-modified',
+        colName: collectionName,
+        docId: new mongoose.Types.ObjectId(itemId),
+        userId: new mongoose.Types.ObjectId(context._id),
+        at: new Date(context.lastModifiedAt),
+      });
     }
   };
 

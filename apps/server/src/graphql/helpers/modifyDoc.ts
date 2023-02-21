@@ -9,7 +9,7 @@ import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError, ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
-import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
+import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
 import {
   CollectionSchemaFields,
   PrivateCollectionDocFields,
@@ -126,9 +126,32 @@ async function modifyDoc<DocType, DataType>({
       timestamps: {
         modified_at: new Date().toISOString(),
       },
-      history: currentDoc.history
-        ? [...currentDoc.history, { type: 'patched', user: context.profile._id, at: new Date().toISOString() }]
-        : [{ type: 'patched', user: context.profile._id, at: new Date().toISOString() }],
+    });
+  }
+
+  // save history
+  if (context.profile) {
+    const type = 'patched';
+
+    // TODO: remove this in a future version
+    data = merge(data, {
+      history: [
+        ...(currentDoc.history || []),
+        { type, user: context.profile._id, at: new Date().toISOString() },
+      ],
+    });
+
+    createDoc({
+      model,
+      context,
+      args: {
+        name: currentDoc.name,
+        type,
+        colName: model,
+        docId: currentDoc._id,
+        userId: context.profile._id,
+        at: new Date(),
+      },
     });
   }
 

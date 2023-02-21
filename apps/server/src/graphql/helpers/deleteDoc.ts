@@ -1,8 +1,8 @@
-import { Context } from '../server';
-import mongoose from 'mongoose';
-import { ForbiddenError } from 'apollo-server-errors';
-import { canDo, findDoc, requireAuthentication } from '.';
 import { ApolloError } from 'apollo-server-core';
+import { ForbiddenError } from 'apollo-server-errors';
+import mongoose from 'mongoose';
+import { canDo, createDoc, findDoc, requireAuthentication } from '.';
+import { Context } from '../server';
 
 interface DeleteDoc {
   model: string;
@@ -28,6 +28,24 @@ async function deleteDoc({ model, by, args, context }: DeleteDoc): Promise<mongo
   // if the user cannot delete documents in the collection, return an error
   if (!(await canDo({ action: 'delete', model, context, doc: doc as never })))
     throw new ForbiddenError('you cannot delete this document');
+
+  // set history
+  if (context.profile) {
+    const type = 'deleted';
+
+    createDoc({
+      model,
+      context,
+      args: {
+        name: doc.name,
+        type,
+        colName: model,
+        docId: doc._id,
+        userId: context.profile._id,
+        at: new Date(),
+      },
+    });
+  }
 
   // delete the document
   await doc.delete();
