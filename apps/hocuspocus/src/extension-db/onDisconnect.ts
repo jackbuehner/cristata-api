@@ -5,6 +5,7 @@ import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import { detailedDiff } from 'deep-object-diff';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
+import { AwarenessUser, isAwarenessUser } from '../utils/isAwarenessUser';
 import { DB } from './DB';
 
 export function onDisconnect(tenantDb: DB) {
@@ -14,6 +15,13 @@ export function onDisconnect(tenantDb: DB) {
     document: ydoc,
   }): Promise<void> => {
     const [tenant, collectionName, itemId] = documentName.split('.');
+
+    // get awareness values and filter out unexpected values
+    const awarenessValues = Array.from(ydoc.awareness.getStates().values()).filter(
+      (value): value is AwarenessUser => {
+        return isAwarenessUser(value);
+      }
+    );
 
     // TODO: get rid of this in a future version
     if (context.hasModified && context.lastModifiedAt && context._id) {
@@ -81,13 +89,18 @@ export function onDisconnect(tenantDb: DB) {
         );
       const { added, deleted, updated } = detailedDiff(filterDoc(dbDoc || {}), filterDoc(data));
 
+      // create a list of user ids that are currently in the doc or just disconnected
+      const userIds = Array.from(
+        new Set(...[context._id as string, ...awarenessValues.map((value) => value.user._id)])
+      ).map((hexId) => new mongoose.Types.ObjectId(hexId));
+
       // save the activity/history
       activitiesCollection.insertOne({
         name: data.name,
         type: 'ydoc-modified',
         colName: collectionName,
         docId: new mongoose.Types.ObjectId(itemId),
-        userIds: [new mongoose.Types.ObjectId(context._id)],
+        userIds,
         at: new Date(context.lastModifiedAt),
         added,
         deleted,
