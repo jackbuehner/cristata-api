@@ -36,7 +36,7 @@ interface IActivity {
   at: Date;
   diff?: any;
   added?: any;
-  removed?: any;
+  deleted?: any;
   updated?: any;
 }
 

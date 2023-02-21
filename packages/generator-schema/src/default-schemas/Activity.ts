@@ -12,9 +12,8 @@ const collection: GenSchemaInput = {
     docId: { type: 'ObjectId', required: true },
     userId: { type: 'ObjectId', required: true },
     at: { type: 'Date', required: true },
-    diff: { type: 'JSON', modifiable: true, required: false },
     added: { type: 'JSON', modifiable: true, required: false },
-    removed: { type: 'JSON', modifiable: true, required: false },
+    deleted: { type: 'JSON', modifiable: true, required: false },
     updated: { type: 'JSON', modifiable: true, required: false },
   },
   options: {

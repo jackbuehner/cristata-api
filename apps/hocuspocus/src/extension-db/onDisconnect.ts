@@ -2,6 +2,7 @@ import { Extension } from '@hocuspocus/server';
 import type { IActivity } from '@jackbuehner/cristata-api/dist/mongodb/activities';
 import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
+import { detailedDiff } from 'deep-object-diff';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { DB } from './DB';
@@ -44,8 +45,23 @@ export function onDisconnect(tenantDb: DB) {
       const schema = await tenantDb.collectionSchema(tenant, collectionName);
       const deconstructedSchema = deconstructSchema(schema || {});
 
+      // get the collection accessor
+      const by = await tenantDb.collectionAccessor(tenant, collectionName);
+
+      // get database document
+      const dbDoc = await tenantDb
+        .collection(tenant, collectionName)
+        ?.findOne(
+          { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+          { projection: { __yState: 0, __stateExists: 0, __yVersions: 0 } }
+        );
+
       // get the document data
-      const data = await getFromY(ydoc, deconstructedSchema);
+      const data = await getFromY(ydoc, deconstructedSchema, {
+        keepJsonParsed: true,
+        hexIdsAsObjectIds: true,
+        replaceUndefinedNull: true,
+      });
 
       // get the activities collection, which is where activity/history is stored
       const activitiesCollection = tenantDb.collection(
@@ -57,6 +73,14 @@ export function onDisconnect(tenantDb: DB) {
         throw new Error(`Activity collection was not found in the database`);
       }
 
+      // determine which fields have changed
+      // TODO: find a way to create diff from the doc version that existed before -> maybe this logic needs to move to ./store.ts
+      const filterDoc = (doc: object): object =>
+        Object.fromEntries(
+          Object.entries(doc || {}).filter(([key]) => key.indexOf('_') !== 0 && key !== 'history')
+        );
+      const { added, deleted, updated } = detailedDiff(filterDoc(dbDoc || {}), filterDoc(data));
+
       // save the activity/history
       activitiesCollection.insertOne({
         name: data.name,
@@ -65,6 +89,9 @@ export function onDisconnect(tenantDb: DB) {
         docId: new mongoose.Types.ObjectId(itemId),
         userId: new mongoose.Types.ObjectId(context._id),
         at: new Date(context.lastModifiedAt),
+        added,
+        deleted,
+        updated,
       });
     }
   };

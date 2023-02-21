@@ -7,6 +7,7 @@ import {
 import { convertNullPrototype, insertUserToArray, isDefinedDate, slugify } from '@jackbuehner/cristata-utils';
 import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError, ForbiddenError, UserInputError } from 'apollo-server-errors';
+import { detailedDiff } from 'deep-object-diff';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
@@ -141,6 +142,8 @@ async function modifyDoc<DocType, DataType>({
       ],
     });
 
+    const { added, deleted, updated } = detailedDiff(currentDoc, data);
+
     createDoc({
       model: 'Activity',
       context,
@@ -151,6 +154,9 @@ async function modifyDoc<DocType, DataType>({
         docId: currentDoc._id,
         userId: context.profile._id,
         at: new Date(),
+        added,
+        deleted,
+        updated,
       },
     });
   }
