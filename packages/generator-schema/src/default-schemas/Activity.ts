@@ -1,4 +1,5 @@
 import { GenSchemaInput } from 'genSchema';
+import mongoose from 'mongoose';
 
 const collection: GenSchemaInput = {
   name: 'Activity',
@@ -34,4 +35,18 @@ const collection: GenSchemaInput = {
   },
 };
 
+interface ActivityDoc {
+  name?: string;
+  type: string;
+  colName: string;
+  docId: mongoose.Types.ObjectId;
+  userIds: mongoose.Types.ObjectId[];
+  at: Date;
+  diff?: object;
+  added?: object;
+  deleted?: object;
+  updated?: object;
+}
+
 export default collection;
+export type { ActivityDoc };

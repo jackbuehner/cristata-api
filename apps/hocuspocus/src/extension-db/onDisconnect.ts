@@ -1,5 +1,4 @@
 import { Extension } from '@hocuspocus/server';
-import type { IActivity } from '@jackbuehner/cristata-api/dist/mongodb/activities';
 import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import { detailedDiff } from 'deep-object-diff';
@@ -7,6 +6,7 @@ import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { AwarenessUser, isAwarenessUser } from '../utils/isAwarenessUser';
 import { DB } from './DB';
+import type { ActivityDoc } from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Activity';
 
 export function onDisconnect(tenantDb: DB) {
   const onDisconnect: Extension['onDisconnect'] = async ({
@@ -75,7 +75,7 @@ export function onDisconnect(tenantDb: DB) {
       const activitiesCollection = tenantDb.collection(
         tenant,
         'Activity'
-      ) as mongodb.Collection<IActivity> | null;
+      ) as mongodb.Collection<ActivityDoc> | null;
       if (!activitiesCollection) {
         console.error('[INVALID COLLECTION] FAILED TO SAVE DOC ACTIVITY FOR DOC:', documentName);
         throw new Error(`Activity collection was not found in the database`);

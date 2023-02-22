@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import activityCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Activity';
-import mongoose from 'mongoose';
 import { genCollection } from '../graphql/helpers';
 import { Collection } from '../types/config';
 
@@ -27,18 +26,4 @@ const activities = (tenant: string): Collection => {
   return collection;
 };
 
-interface IActivity {
-  name?: string;
-  type: string;
-  colName: string;
-  docId: mongoose.Types.ObjectId;
-  userIds: mongoose.Types.ObjectId[];
-  at: Date;
-  diff?: any;
-  added?: any;
-  deleted?: any;
-  updated?: any;
-}
-
 export { activities };
-export type { IActivity };
