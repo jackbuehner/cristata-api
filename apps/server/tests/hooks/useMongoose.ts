@@ -1,14 +1,15 @@
-import mongoose, { Model } from 'mongoose';
+import { genSchemaFields } from '@jackbuehner/cristata-generator-schema';
+import activityCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Activity';
+import { merge } from 'merge-anything';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose, { Model, SchemaDefinitionProperty } from 'mongoose';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import {
   collectionSchemaFields,
   publishableCollectionSchemaFields,
-  withPermissionsCollectionSchemaFields,
+  withPermissionsCollectionSchemaFields
 } from '../../src/mongodb/helpers/constructBasicSchemaFields';
 import { convertTopNestedObjectsToSubdocuments } from '../../src/mongodb/helpers/convertTopNestedObjectsToSubdocuments';
-import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
-import { SchemaDefinitionProperty } from 'mongoose';
-import { merge } from 'merge-anything';
 
 /**
  * Create a MongoDB server in memory for tests and connect
@@ -42,20 +43,30 @@ function useMongoose(): {
   ) => {
     const tenantDB = mongoose.connection.useDb('db_2', { useCache: true });
 
+    // create the activity model since many of the helpers require it
+    if (name !== 'Activity') createModel('Activity');
+
     // delete the model if it already exists
     delete tenantDB.models[name];
 
     // create the schema
-    const Schema = new mongoose.Schema(
-      convertTopNestedObjectsToSubdocuments(
-        merge(
-          collectionSchemaFields,
-          withPermissions ? withPermissionsCollectionSchemaFields : {},
-          canPublish ? publishableCollectionSchemaFields : {},
-          customFields || {}
-        )
-      ) as { [path: string]: SchemaDefinitionProperty<undefined> }
-    );
+    const Schema = (() => {
+      if (name === 'Activity') {
+        const { schemaFields } = genSchemaFields(activityCollection.schemaDef);
+        return new mongoose.Schema(schemaFields);
+      }
+
+      return new mongoose.Schema(
+        convertTopNestedObjectsToSubdocuments(
+          merge(
+            collectionSchemaFields,
+            withPermissions ? withPermissionsCollectionSchemaFields : {},
+            canPublish ? publishableCollectionSchemaFields : {},
+            customFields || {}
+          )
+        ) as { [path: string]: SchemaDefinitionProperty<undefined> }
+      );
+    })();
 
     // enable pagination on aggregation
     Schema.plugin(aggregatePaginate);

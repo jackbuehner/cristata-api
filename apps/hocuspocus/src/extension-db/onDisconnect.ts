@@ -1,11 +1,29 @@
 import { Extension } from '@hocuspocus/server';
+import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
+import { detailedDiff } from 'deep-object-diff';
 import mongoose from 'mongoose';
+import mongodb from 'mongoose/node_modules/mongodb';
+import { AwarenessUser, isAwarenessUser } from '../utils/isAwarenessUser';
 import { DB } from './DB';
+import type { ActivityDoc } from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Activity';
 
 export function onDisconnect(tenantDb: DB) {
-  const onDisconnect: Extension['onDisconnect'] = async ({ documentName, context }): Promise<void> => {
+  const onDisconnect: Extension['onDisconnect'] = async ({
+    documentName,
+    context,
+    document: ydoc,
+  }): Promise<void> => {
     const [tenant, collectionName, itemId] = documentName.split('.');
 
+    // get awareness values and filter out unexpected values
+    const awarenessValues = Array.from(ydoc.awareness.getStates().values()).filter(
+      (value): value is AwarenessUser => {
+        return isAwarenessUser(value);
+      }
+    );
+
+    // TODO: get rid of this in a future version
     if (context.hasModified && context.lastModifiedAt && context._id) {
       const historyItem = {
         type: 'ydoc-modified',
@@ -28,6 +46,66 @@ export function onDisconnect(tenantDb: DB) {
         { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
         { $push: { history: historyItem } }
       );
+    }
+
+    if (context.hasModified && context.lastModifiedAt && context._id) {
+      // get the collection schema
+      const schema = await tenantDb.collectionSchema(tenant, collectionName);
+      const deconstructedSchema = deconstructSchema(schema || {});
+
+      // get the collection accessor
+      const by = await tenantDb.collectionAccessor(tenant, collectionName);
+
+      // get database document
+      const dbDoc = await tenantDb
+        .collection(tenant, collectionName)
+        ?.findOne(
+          { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+          { projection: { __yState: 0, __stateExists: 0, __yVersions: 0 } }
+        );
+
+      // get the document data
+      const data = await getFromY(ydoc, deconstructedSchema, {
+        keepJsonParsed: true,
+        hexIdsAsObjectIds: true,
+        replaceUndefinedNull: true,
+      });
+
+      // get the activities collection, which is where activity/history is stored
+      const activitiesCollection = tenantDb.collection(
+        tenant,
+        'Activity'
+      ) as mongodb.Collection<ActivityDoc> | null;
+      if (!activitiesCollection) {
+        console.error('[INVALID COLLECTION] FAILED TO SAVE DOC ACTIVITY FOR DOC:', documentName);
+        throw new Error(`Activity collection was not found in the database`);
+      }
+
+      // determine which fields have changed
+      // TODO: find a way to create diff from the doc version that existed before -> maybe this logic needs to move to ./store.ts
+      const filterDoc = (doc: object): object =>
+        Object.fromEntries(
+          Object.entries(doc || {}).filter(([key]) => key.indexOf('_') !== 0 && key !== 'history')
+        );
+      const { added, deleted, updated } = detailedDiff(filterDoc(dbDoc || {}), filterDoc(data));
+
+      // create a list of user ids that are currently in the doc or just disconnected
+      const userIds = Array.from(
+        new Set(...[context._id as string, ...awarenessValues.map((value) => value.user._id)])
+      ).map((hexId) => new mongoose.Types.ObjectId(hexId));
+
+      // save the activity/history
+      activitiesCollection.insertOne({
+        name: data.name,
+        type: 'ydoc-modified',
+        colName: collectionName,
+        docId: new mongoose.Types.ObjectId(itemId),
+        userIds,
+        at: new Date(context.lastModifiedAt),
+        added,
+        deleted,
+        updated,
+      });
     }
   };
 

@@ -7,9 +7,10 @@ import {
 import { convertNullPrototype, insertUserToArray, isDefinedDate, slugify } from '@jackbuehner/cristata-utils';
 import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError, ForbiddenError, UserInputError } from 'apollo-server-errors';
+import { detailedDiff } from 'deep-object-diff';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
-import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
+import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
 import {
   CollectionSchemaFields,
   PrivateCollectionDocFields,
@@ -126,9 +127,37 @@ async function modifyDoc<DocType, DataType>({
       timestamps: {
         modified_at: new Date().toISOString(),
       },
-      history: currentDoc.history
-        ? [...currentDoc.history, { type: 'patched', user: context.profile._id, at: new Date().toISOString() }]
-        : [{ type: 'patched', user: context.profile._id, at: new Date().toISOString() }],
+    });
+  }
+
+  // save history
+  if (context.profile) {
+    const type = 'patched';
+
+    // TODO: remove this in a future version
+    data = merge(data, {
+      history: [
+        ...(currentDoc.history || []),
+        { type, user: context.profile._id, at: new Date().toISOString() },
+      ],
+    });
+
+    const { added, deleted, updated } = detailedDiff(currentDoc, data);
+
+    createDoc({
+      model: 'Activity',
+      context,
+      args: {
+        name: currentDoc.name,
+        type,
+        colName: model,
+        docId: currentDoc._id,
+        userIds: [context.profile._id],
+        at: new Date(),
+        added,
+        deleted,
+        updated,
+      },
     });
   }
 

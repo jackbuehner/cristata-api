@@ -3,6 +3,7 @@ import { Context } from '../../src/graphql/server';
 import mongoose from 'mongoose';
 import { GenCollectionInput } from '../../src/graphql/helpers/generators/genCollection';
 import Cristata from '../../src/Cristata';
+import { activities } from '../../src/mongodb/activities';
 
 interface UseApolloContext {
   isAuthenticated?: boolean;
@@ -34,6 +35,7 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
             textIndexFieldNames: [],
             singleDocument: false,
           },
+          activities('db_2'),
         ]
       : [],
     dashboard: { collectionRows: [] },

@@ -3,7 +3,7 @@ import { insertUserToArray, isDefinedDate, notEmpty } from '@jackbuehner/cristat
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
-import { canDo, findDoc, requireAuthentication } from '.';
+import { canDo, createDoc, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
 import { setYDocType } from './setYDocType';
 
@@ -104,14 +104,23 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
 
   // set the history
   if (context.profile) {
-    doc.history = [
-      ...(doc.history || []),
-      {
-        type: lock ? 'locked' : 'unlocked',
-        user: context.profile._id,
-        at: new Date().toISOString(),
+    const type = lock ? 'locked' : 'unlocked';
+
+    // TODO: remove this in a future version
+    doc.history = [...(doc.history || []), { type, user: context.profile._id, at: new Date().toISOString() }];
+
+    createDoc({
+      model: 'Activity',
+      context,
+      args: {
+        name: doc.name,
+        type,
+        colName: model,
+        docId: doc._id,
+        userIds: [context.profile._id],
+        at: new Date(),
       },
-    ];
+    });
   }
 
   // save change in published doc

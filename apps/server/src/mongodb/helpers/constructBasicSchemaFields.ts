@@ -7,6 +7,8 @@ import { Collection } from '../../types/config';
  * Merges preset schema fields per the config with fields from the collection config.
  */
 function constructBasicSchemaFields(collection: Collection) {
+  if (collection.name === 'Activity') return collection.schemaFields;
+
   return mergeAndConcat(
     collectionSchemaFields,
     collection.schemaFields,

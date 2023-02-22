@@ -2,7 +2,7 @@
 import { insertUserToArray, isDefinedDate, notEmpty } from '@jackbuehner/cristata-utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
-import { canDo, findDoc, requireAuthentication } from '.';
+import { canDo, createDoc, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
 import { setYDocType } from './setYDocType';
 
@@ -109,14 +109,23 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
 
   // set history
   if (context.profile) {
-    doc.history = [
-      ...(doc.history || []),
-      {
-        type: archive ? 'archive' : 'unarchive',
-        user: context.profile._id,
-        at: new Date().toISOString(),
+    const type = archive ? 'archive' : 'unarchive';
+
+    // TODO: remove this in a future version
+    doc.history = [...(doc.history || []), { type, user: context.profile._id, at: new Date().toISOString() }];
+
+    createDoc({
+      model: 'Activity',
+      context,
+      args: {
+        name: doc.name,
+        type,
+        colName: model,
+        docId: doc._id,
+        userIds: [context.profile._id],
+        at: new Date(),
       },
-    ];
+    });
   }
 
   // save change in published doc

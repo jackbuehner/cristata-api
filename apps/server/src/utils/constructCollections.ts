@@ -1,12 +1,13 @@
 import { hasKey } from '@jackbuehner/cristata-utils';
+import { merge } from 'merge-anything';
 import helpers from '../graphql/helpers';
 import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
-import teams from '../mongodb/teams.collection.json';
-import { users } from '../mongodb/users';
+import { activities } from '../mongodb/activities';
 import { files } from '../mongodb/files';
 import { photos } from '../mongodb/photos';
+import teams from '../mongodb/teams.collection.json';
+import { users } from '../mongodb/users';
 import { Collection } from '../types/config';
-import { merge } from 'merge-anything';
 
 function constructCollections(collections: (Collection | GenCollectionInput)[], tenant: string): Collection[] {
   if (tenant === 'admin') throw new Error('cannot create a database for tenant with name "admin"');
@@ -40,6 +41,7 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
     users(tenant),
     filesCollection,
     photosCollection,
+    activities(tenant),
     helpers.generators.genCollection(teams as unknown as GenCollectionInput, tenant),
     ...collections
       .filter((col): col is GenCollectionInput => !!col && !isCollection(col))
@@ -47,13 +49,15 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
       .filter((col) => col.name !== 'Team')
       .filter((col) => col.name !== 'File')
       .filter((col) => col.name !== 'Photo')
+      .filter((col) => col.name !== 'Activity')
       .map((col) => helpers.generators.genCollection(col, tenant)),
     ...collections
       .filter((col): col is Collection => isCollection(col))
       .filter((col) => col.name !== 'User')
       .filter((col) => col.name !== 'Team')
       .filter((col) => col.name !== 'File')
-      .filter((col) => col.name !== 'Photo'),
+      .filter((col) => col.name !== 'Photo')
+      .filter((col) => col.name !== 'Activity'),
   ];
 }
 

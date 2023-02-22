@@ -55,6 +55,7 @@
     "@tiptap/starter-kit": "^2.0.0-beta.199",
     "color-hash": "^2.0.1",
     "copy-anything": "^3.0.3",
+    "deep-object-diff": "^1.1.9",
     "graphql-list-fields": "^2.0.2",
     "is-what": "^4.1.7",
     "ws": "^8.8.1",

@@ -4,7 +4,7 @@ import { insertUserToArray } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
-import { canDo, CollectionDoc, findDoc, requireAuthentication } from '.';
+import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
 import { setYDocType } from './setYDocType';
 
@@ -110,14 +110,23 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
 
   // save history
   if (context.profile) {
-    doc.history = [
-      ...(doc.history || []),
-      {
-        type: args.publish ? 'published' : 'unpublished',
-        user: context.profile._id,
-        at: new Date().toISOString(),
+    const type = args.publish ? 'published' : 'unpublished';
+
+    // TODO: remove this in a future version
+    doc.history = [...(doc.history || []), { type, user: context.profile._id, at: new Date().toISOString() }];
+
+    createDoc({
+      model: 'Activity',
+      context,
+      args: {
+        name: doc.name,
+        type,
+        colName: model,
+        docId: doc._id,
+        userIds: [context.profile._id],
+        at: new Date(),
       },
-    ];
+    });
   }
 
   // save copy of published doc

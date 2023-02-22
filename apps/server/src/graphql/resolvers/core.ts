@@ -86,7 +86,10 @@ const core = {
       else if (exclude) collectionNames = collectionNames.filter((name) => !exclude.includes(name));
 
       const collectionNamesPluralized = collectionNames
-        .filter((name) => name !== 'File' && name !== 'Photo' && name !== 'User' && name !== 'Team')
+        .filter(
+          (name) =>
+            name !== 'File' && name !== 'Photo' && name !== 'User' && name !== 'Team' && name !== 'Activity'
+        )
         .map((name) => [name, mongoose.pluralize()?.(name)])
         .filter((c): c is [string, string] => !!c);
 

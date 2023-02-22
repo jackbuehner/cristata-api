@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Context } from '../server';
+import { hasKey } from '@jackbuehner/cristata-utils';
+import { ApolloError } from 'apollo-server-core';
 import mongoose from 'mongoose';
 import { requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
-import { ApolloError } from 'apollo-server-core';
+import { Context } from '../server';
 
 interface CreateDoc<DataType> {
   model: string;
   args: {
-    name: string;
-    permissions: Record<string, mongoose.Types.ObjectId[]>;
+    name: unknown;
+    permissions?: Record<string, mongoose.Types.ObjectId[]>;
     [key: string]: unknown;
   };
   context: Context;
@@ -42,13 +43,6 @@ async function createDoc<DataType>({ model, args, context, withPermissions, modi
       last_modified_by: context.profile._id,
       watching: [context.profile._id],
     };
-    args.history = [
-      {
-        type: 'created',
-        user: context.profile._id,
-        at: new Date().toISOString(),
-      },
-    ];
   }
 
   // ensure the current user has permission to view the document
@@ -72,6 +66,27 @@ async function createDoc<DataType>({ model, args, context, withPermissions, modi
 
     // attempt to patch the article
     return await Model.findByIdAndUpdate(doc._id, { $set: data }, { returnOriginal: false });
+  }
+
+  // set history
+  if (context.profile && model !== 'Activity') {
+    const type = 'created';
+
+    // TODO: remove this in a future version
+    args.history = [{ type, user: context.profile._id, at: new Date().toISOString() }];
+
+    createDoc({
+      model: 'Activity',
+      context,
+      args: {
+        name: hasKey('name', doc) ? doc.name : undefined,
+        type,
+        colName: model,
+        docId: doc._id,
+        userIds: [context.profile._id],
+        at: new Date(),
+      },
+    });
   }
 
   // return the doc
