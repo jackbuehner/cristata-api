@@ -2,13 +2,13 @@ import { hasKey, isObjectId, replaceCircular } from '@jackbuehner/cristata-utils
 import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
 import { isPlainObject } from 'is-what';
+import mongoose from 'mongoose';
 import passport from 'passport';
 import Cristata from '../../Cristata';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { magicLogin } from '../middleware/magicLogin';
 import { requireAuth } from '../middleware/requireAuth';
 import { deserializeUser, IDeserializedUser, UserToSerialize } from '../passport';
-import mongoose from 'mongoose';
 
 // load environmental variables
 dotenv.config({ override: true });
@@ -226,6 +226,9 @@ function factory(cristata: Cristata): Router {
 
         if (req.body.redirect === false) {
           deserializeUser(userToLogIn).then((result) => {
+            // allow disabling http only (cookies are still limited to the cristata domain)
+            if (req.body.disableHttpOnly) req.sessionOptions.httpOnly = false;
+
             // error message
             if (typeof result === 'string') res.status(401).json({ error: result });
             // user object
