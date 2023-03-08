@@ -1,12 +1,12 @@
 import { Extension } from '@hocuspocus/server';
 import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import type { ActivityDoc } from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Activity';
 import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import { detailedDiff } from 'deep-object-diff';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { AwarenessUser, isAwarenessUser } from '../utils/isAwarenessUser';
 import { DB } from './DB';
-import type { ActivityDoc } from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Activity';
 
 export function onDisconnect(tenantDb: DB) {
   const onDisconnect: Extension['onDisconnect'] = async ({
@@ -24,7 +24,7 @@ export function onDisconnect(tenantDb: DB) {
     );
 
     // TODO: get rid of this in a future version
-    if (context.hasModified && context.lastModifiedAt && context._id) {
+    if (context.hasModified && context.lastModifiedAt && context._id && context._id.length === 24) {
       const historyItem = {
         type: 'ydoc-modified',
         user: new mongoose.Types.ObjectId(context._id),
@@ -48,7 +48,7 @@ export function onDisconnect(tenantDb: DB) {
       );
     }
 
-    if (context.hasModified && context.lastModifiedAt && context._id) {
+    if (context.hasModified && context.lastModifiedAt && context._id && context._id.length === 24) {
       // get the collection schema
       const schema = await tenantDb.collectionSchema(tenant, collectionName);
       const deconstructedSchema = deconstructSchema(schema || {});

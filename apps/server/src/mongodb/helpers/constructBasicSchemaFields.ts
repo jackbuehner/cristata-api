@@ -1,4 +1,5 @@
 import { defaultSchemaDefTypes, genSchemaFields } from '@jackbuehner/cristata-generator-schema';
+import { copy } from 'copy-anything';
 import { mergeAndConcat } from 'merge-anything';
 import mongoose from 'mongoose';
 import { Collection } from '../../types/config';
@@ -9,12 +10,26 @@ import { Collection } from '../../types/config';
 function constructBasicSchemaFields(collection: Collection) {
   if (collection.name === 'Activity') return collection.schemaFields;
 
-  return mergeAndConcat(
+  const basicSchema = mergeAndConcat(
     collectionSchemaFields,
     collection.schemaFields,
     collection.canPublish ? publishableCollectionSchemaFields : {},
     collection.withPermissions ? withPermissionsCollectionSchemaFields : {}
   );
+
+  if (collection.generationOptions?.independentPublishedDocCopy) {
+    const schemaCopy = copy(basicSchema);
+
+    // TODO: filter keys not at the top level
+    const schemaCopyWithoutPrivateKeys = Object.fromEntries(
+      Object.entries(schemaCopy).filter(([key]) => key.indexOf('_') !== 0)
+    );
+
+    basicSchema.__publishedDoc = schemaCopyWithoutPrivateKeys;
+    console.log(collection.name, basicSchema);
+  }
+
+  return basicSchema;
 }
 
 // schema fields to include in every collection
