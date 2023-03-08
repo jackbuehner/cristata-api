@@ -1,3 +1,5 @@
+import { replaceCircular } from '@jackbuehner/cristata-utils';
+import { Logtail } from '@logtail/node';
 import { Application, Router } from 'express';
 import http from 'http';
 import { ObjectId } from 'mongoose';
@@ -8,8 +10,6 @@ import { apollo } from './graphql/server';
 import { connectDb } from './mongodb/connectDB';
 import { Collection, Configuration } from './types/config';
 import { constructCollections } from './utils/constructCollections';
-import { Logtail } from '@logtail/node';
-import { replaceCircular } from '@jackbuehner/cristata-utils';
 
 if (!process.env.COOKIE_SESSION_SECRET) throw new Error('COOKIE_SESSION_SECRET not defined in env');
 if (!process.env.MONGO_DB_USERNAME) throw new Error('MONGO_DB_USERNAME not defined in env');
