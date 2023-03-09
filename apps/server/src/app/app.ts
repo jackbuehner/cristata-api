@@ -1,27 +1,28 @@
+import { replaceCircular } from '@jackbuehner/cristata-utils';
 import compression from 'compression';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application, Request, Response } from 'express';
+import { NextFunction } from 'express-serve-static-core';
 import helmet from 'helmet';
 import passport from 'passport';
-import { authRouterFactory } from './routes/auth.route';
-import Cristata from '../Cristata';
-import { corsConfig } from './middleware/cors';
-import { requireAuth } from './middleware/requireAuth';
-import { IUser } from '../mongodb/users';
-import './passport';
-import { IDeserializedUser } from './passport';
-import { proxyRouterFactory } from './routes/proxy.route';
-import { unless } from './middleware/unless';
-import { stripeRouterFactory } from './routes/stripe.route';
 import Stripe from 'stripe';
-import { NextFunction } from 'express-serve-static-core';
+import Cristata from '../Cristata';
 import { calcS3Storage } from '../graphql/resolvers/billing';
-import { rootRouter } from './routes/root.route';
 import { connectDb } from '../mongodb/connectDB';
 import { TenantDB } from '../mongodb/TenantDB';
-import { replaceCircular } from '@jackbuehner/cristata-utils';
+import { IUser } from '../mongodb/users';
+import { corsConfig } from './middleware/cors';
+import { requireAuth } from './middleware/requireAuth';
+import { unless } from './middleware/unless';
+import './passport';
+import { IDeserializedUser } from './passport';
+import { authRouterFactory } from './routes/auth.route';
+import { proxyRouterFactory } from './routes/proxy.route';
+import { releaseRouterFactory } from './routes/release.route';
+import { rootRouter } from './routes/root.route';
+import { stripeRouterFactory } from './routes/stripe.route';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
 
@@ -136,6 +137,7 @@ function createExpressApp(cristata: Cristata): Application {
   // connect routers to app
   app.use(`/auth`, authRouterFactory(cristata)); // authentication routes
   app.use(proxyRouterFactory()); // CORS proxy routes
+  app.use(`/releases`, releaseRouterFactory()); // app release routes
   app.use(stripeRouterFactory(cristata)); // stripe routes
   app.use(``, rootRouter); // root v3 routes
 

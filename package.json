@@ -58,6 +58,7 @@
     "deep-object-diff": "^1.1.9",
     "graphql-list-fields": "^2.0.2",
     "is-what": "^4.1.7",
+    "octokit": "^2.0.14",
     "ws": "^8.8.1",
     "y-websocket": "^1.4.5"
   }
