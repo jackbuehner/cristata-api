@@ -34,25 +34,10 @@ function factory(): Router {
     }
 
     const releaseAsset = t.data.assets.find((a) => a.name === `Cristata_${releaseVersion}_x64_en-US.msi.zip`);
-    const signatureAsset = t.data.assets.find(
-      (a) => a.name === `Cristata_${releaseVersion}_x64_en-US.msi.zip.sig`
-    );
 
     let signature = '';
-    if (signatureAsset) {
-      const a = await octokit.request('GET /repos/{owner}/{repo}/releases/assets/{asset_id}', {
-        owner: 'jackbuehner',
-        repo: 'cristata-app',
-        asset_id: signatureAsset.id,
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28',
-          Accept: 'application/octet-stream',
-        },
-      });
-
-      if (a && a.data && typeof a.data === 'string') {
-        signature = a.data;
-      }
+    if (t.data.body?.includes('[[ SIGNATURE ]]')) {
+      signature = t.data.body.split('[[ SIGNATURE ]]').slice(-1)[0].trim();
     }
 
     res.status(200).json({
