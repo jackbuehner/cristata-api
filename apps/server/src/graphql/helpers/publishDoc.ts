@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { isSchemaDef } from '@jackbuehner/cristata-generator-schema';
+import {
+  conditionallyModifyDocField,
+  deconstructSchema,
+  isSchemaDef,
+} from '@jackbuehner/cristata-generator-schema';
 import { insertUserToArray } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
@@ -156,6 +160,9 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
         doc.__publishedDoc.people.modified_by = insertUserToArray(doc.people.modified_by, context.profile._id);
         doc.__publishedDoc.people.last_modified_by = context.profile._id;
       }
+
+      // apply setters to published doc copy
+      conditionallyModifyDocField(doc.__publishedDoc, deconstructSchema(collectionConfig.schemaDef));
     } else {
       doc.__publishedDoc = null;
     }
