@@ -1,5 +1,4 @@
 import { defaultSchemaDefTypes, genSchemaFields } from '@jackbuehner/cristata-generator-schema';
-import { copy } from 'copy-anything';
 import { mergeAndConcat } from 'merge-anything';
 import mongoose from 'mongoose';
 import { Collection } from '../../types/config';
@@ -18,15 +17,28 @@ function constructBasicSchemaFields(collection: Collection) {
   );
 
   if (collection.generationOptions?.independentPublishedDocCopy) {
-    const schemaCopy = copy(basicSchema);
+    // get a copy of the collection schema with no fields that are required, which
+    // is necessary because we cannot require fields in the __piblishedDoc object
+    // before the document is published
+    const { schemaFields: notRequiredSchemaFields } = genSchemaFields(collection.schemaDef, {
+      neverRequired: true,
+    });
+
+    // re-create the complete schema but with the not required schema fields
+    const notRequiredBasicSchema = mergeAndConcat(
+      { _id: { type: mongoose.Schema.Types.ObjectId } },
+      collectionSchemaFields,
+      notRequiredSchemaFields,
+      collection.canPublish ? publishableCollectionSchemaFields : {},
+      collection.withPermissions ? withPermissionsCollectionSchemaFields : {}
+    ) as { [path: string]: mongoose.SchemaDefinitionProperty<undefined> };
 
     // TODO: filter keys not at the top level
-    const schemaCopyWithoutPrivateKeys = Object.fromEntries(
-      Object.entries(schemaCopy).filter(([key]) => key.indexOf('_') !== 0)
+    const notRequiredSchemaWithoutPrivateKeys: typeof notRequiredBasicSchema = Object.fromEntries(
+      Object.entries(notRequiredBasicSchema).filter(([key]) => key.indexOf('_') !== 0 || key === '_id')
     );
 
-    basicSchema.__publishedDoc = schemaCopyWithoutPrivateKeys;
-    console.log(collection.name, basicSchema);
+    basicSchema.__publishedDoc = notRequiredSchemaWithoutPrivateKeys;
   }
 
   return basicSchema;

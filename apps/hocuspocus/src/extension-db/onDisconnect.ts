@@ -24,7 +24,13 @@ export function onDisconnect(tenantDb: DB) {
     );
 
     // TODO: get rid of this in a future version
-    if (context.hasModified && context.lastModifiedAt && context._id && context._id.length === 24) {
+    if (
+      context.hasModified &&
+      context.lastModifiedAt &&
+      context._id &&
+      context._id.length === 24 &&
+      itemId.length === 24
+    ) {
       const historyItem = {
         type: 'ydoc-modified',
         user: new mongoose.Types.ObjectId(context._id),
@@ -48,7 +54,13 @@ export function onDisconnect(tenantDb: DB) {
       );
     }
 
-    if (context.hasModified && context.lastModifiedAt && context._id && context._id.length === 24) {
+    if (
+      context.hasModified &&
+      context.lastModifiedAt &&
+      context._id &&
+      context._id.length === 24 &&
+      itemId.length === 24
+    ) {
       // get the collection schema
       const schema = await tenantDb.collectionSchema(tenant, collectionName);
       const deconstructedSchema = deconstructSchema(schema || {});
@@ -92,20 +104,24 @@ export function onDisconnect(tenantDb: DB) {
       // create a list of user ids that are currently in the doc or just disconnected
       const userIds = Array.from(
         new Set(...[context._id as string, ...awarenessValues.map((value) => value.user._id)])
-      ).map((hexId) => new mongoose.Types.ObjectId(hexId));
+      )
+        .filter((hexId) => hexId.length === 24)
+        .map((hexId) => new mongoose.Types.ObjectId(hexId));
 
       // save the activity/history
-      activitiesCollection.insertOne({
-        name: data.name,
-        type: 'ydoc-modified',
-        colName: collectionName,
-        docId: new mongoose.Types.ObjectId(itemId),
-        userIds,
-        at: new Date(context.lastModifiedAt),
-        added,
-        deleted,
-        updated,
-      });
+      if (itemId.length === 24) {
+        activitiesCollection.insertOne({
+          name: data.name,
+          type: 'ydoc-modified',
+          colName: collectionName,
+          docId: new mongoose.Types.ObjectId(itemId),
+          userIds,
+          at: new Date(context.lastModifiedAt),
+          added,
+          deleted,
+          updated,
+        });
+      }
     }
   };
 

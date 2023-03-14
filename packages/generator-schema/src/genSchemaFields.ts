@@ -13,7 +13,19 @@ import {
 } from './genSchema';
 import { Type } from './Type';
 
-function genSchemaFields(schemaDef: SchemaDefType): {
+interface GenSchemaFieldsOpts {
+  /**
+   * Overrides the `required` option for every schema field to always have
+   * a value of `false`. This can be useful when using a copy of the schema
+   * as a subdocument that might not initially exist (e.g. `__publishedDoc`).
+   */
+  neverRequired?: boolean;
+}
+
+function genSchemaFields(
+  schemaDef: SchemaDefType,
+  opts?: GenSchemaFieldsOpts
+): {
   schemaFields: SchemaDefinition;
   textIndexFieldNames: string[];
 } {
@@ -82,7 +94,7 @@ function genSchemaFields(schemaDef: SchemaDefType): {
           return {
             [fieldName]: {
               type: type,
-              required: fieldDef.required || false,
+              required: opts?.neverRequired ? false : fieldDef.required || false,
               unique: fieldDef.unique || false,
               default: calcDefaultValue(fieldDef.default),
             },
