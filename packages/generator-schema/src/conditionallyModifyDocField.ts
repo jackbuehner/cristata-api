@@ -56,7 +56,7 @@ type SetterCondition = LogicalOperator<Field>;
  * TODO: document this function
  */
 function conditionallyModifyDocField(
-  doc: mongoose.LeanDocument<mongoose.Document>,
+  doc: mongoose.LeanDocument<mongoose.Document> | mongoose.Document,
   deconstructedSchema: DeconstructedSchemaDefType
 ): Record<string, unknown> {
   const changed = {};
@@ -68,7 +68,7 @@ function conditionallyModifyDocField(
       // whether the setter's condition is met
       const shouldModify = process(doc, def.setter.condition);
       if (shouldModify) {
-        const newValue = calcSetterValue(def.setter.value, doc);
+        const newValue = calcSetterValue(def.setter.value, isMongooseDoc(doc) ? doc.toObject() : doc);
         setProperty(doc, key, newValue);
         setProperty(changed, key, newValue);
       }
@@ -117,12 +117,21 @@ function processField(field: Field, doc: mongoose.LeanDocument<mongoose.Document
 }
 
 /**
+ * Returns whether a document is a mongoose document or a POJO from a mongoose document.
+ */
+function isMongooseDoc(
+  doc: mongoose.Document | mongoose.LeanDocument<mongoose.Document>
+): doc is mongoose.Document {
+  return hasKey('toObject', doc) && hasKey('getChanges', doc);
+}
+
+/**
  * Returns whether the operator's condition is true.
  */
 function processOperator(
   operator: AnyOperator,
   fieldName: string,
-  doc: mongoose.LeanDocument<mongoose.Document>
+  doc: mongoose.LeanDocument<mongoose.Document> | mongoose.Document
 ): boolean {
   // operators can include multiple operators as different
   // key-value pairs, so we need to look at each object entry
@@ -131,7 +140,7 @@ function processOperator(
   // array of booleans where each boolean represents whether the condition was
   // true or false
   const responses: boolean[] = operatorEntries.map(([opName, opVal]) => {
-    const docPropVal = getProperty(doc, fieldName);
+    const docPropVal = getProperty(isMongooseDoc(doc) ? doc.toObject() : doc, fieldName);
 
     if (isComparisonOperator({ [opName]: opVal } as AnyOperator)) {
       if (opName === '$gt') return parseFloat(docPropVal) > parseFloat(opVal);
