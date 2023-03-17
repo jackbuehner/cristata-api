@@ -30,6 +30,7 @@ const configuration = {
         dashboard: {},
         navigation: {},
         security: {},
+        apps: {},
         collection: async ({ name }: { name: string }) => {
           helpers.requireAuthentication(context);
 
@@ -204,6 +205,24 @@ const configuration = {
 
       return returnCmsNavConfig(context, key);
     },
+    setProfilesAppFieldDescriptions: async (
+      _: unknown,
+      { input }: { input: Record<string, string> },
+      context: Context
+    ): Promise<void> => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantsCollection = context.cristata.tenantsCollection;
+
+      // update the config in the database
+      await tenantsCollection?.findOneAndUpdate(
+        { name: context.tenant },
+        { $set: { [`config.apps.profiles.fieldDescriptions`]: input } },
+        { returnDocument: 'after' }
+      );
+    },
   },
   ConfigurationDashboard: {
     collectionRows: (
@@ -289,7 +308,55 @@ const configuration = {
       }
     },
   },
+  ConfigurationApps: {
+    // goes to the ConfigurationProfilesApp resolver
+    profiles: () => ({}),
+  },
+  ConfigurationProfilesApp: {
+    fieldDescriptions: (
+      _: unknown,
+      __: unknown,
+      context: Context
+    ): Required<NonNullable<NonNullable<Context['config']['apps']>['profiles']>['fieldDescriptions']> => {
+      const fieldDescriptions = context.config.apps?.profiles?.fieldDescriptions || {};
+
+      return {
+        name: fieldDescriptions.name ?? getDefaultProfileFieldDescription('name'),
+        email: fieldDescriptions.email ?? getDefaultProfileFieldDescription('email'),
+        phone: fieldDescriptions.phone ?? getDefaultProfileFieldDescription('phone'),
+        twitter: fieldDescriptions.twitter ?? getDefaultProfileFieldDescription('twitter'),
+        biography: fieldDescriptions.biography ?? getDefaultProfileFieldDescription('biography'),
+        title: fieldDescriptions.title ?? getDefaultProfileFieldDescription('title'),
+      };
+    },
+    defaultFieldDescriptions: (): Required<
+      NonNullable<NonNullable<Context['config']['apps']>['profiles']>['fieldDescriptions']
+    > => {
+      return {
+        name: getDefaultProfileFieldDescription('name'),
+        email: getDefaultProfileFieldDescription('email'),
+        phone: getDefaultProfileFieldDescription('phone'),
+        twitter: getDefaultProfileFieldDescription('twitter'),
+        biography: getDefaultProfileFieldDescription('biography'),
+        title: getDefaultProfileFieldDescription('title'),
+      };
+    },
+  },
 };
+
+function getDefaultProfileFieldDescription(
+  field: keyof NonNullable<NonNullable<NonNullable<Context['config']['apps']>['profiles']>['fieldDescriptions']>
+): string {
+  if (field === 'name') return 'The name of this user. This does not change the username or slug.';
+  if (field === 'email') return "The user's email. Try to only use your organization's email domain.";
+  if (field === 'phone')
+    return 'Add your number so coworkers can contact you about your work. It is only available to users with Cristata accounts.';
+  if (field === 'twitter') return 'Let everyone know where to follow you.';
+  if (field === 'biography')
+    return 'A short biography highlighting accomplishments and qualifications. It should be in paragraph form and written in the third person.';
+  if (field === 'title') return 'The position or job title for the user.';
+  return '';
+}
 
 function filterHidden(
   groups: SubNavGroup[] | undefined,

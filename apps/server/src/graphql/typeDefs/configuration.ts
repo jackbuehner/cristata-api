@@ -198,6 +198,49 @@ const security = gql`
   }
 `;
 
-const configuration = base + dashboard + navigation + collection + security;
+const apps = gql`
+  extend type Configuration {
+    apps: ConfigurationApps!
+  }
+
+  type ConfigurationApps {
+    void: Void
+  }
+`;
+
+const profilesApp = gql`
+  extend type ConfigurationApps {
+    profiles: ConfigurationProfilesApp!
+  }
+
+  type ConfigurationProfilesApp {
+    fieldDescriptions: ConfigurationProfilesAppFieldDescriptions!
+    defaultFieldDescriptions: ConfigurationProfilesAppFieldDescriptions!
+  }
+
+  type ConfigurationProfilesAppFieldDescriptions {
+    name: String!
+    email: String!
+    phone: String!
+    twitter: String!
+    biography: String!
+    title: String!
+  }
+
+  input ConfigurationProfilesAppFieldDescriptionsInput {
+    name: String
+    email: String
+    phone: String
+    twitter: String
+    biography: String
+    title: String
+  }
+
+  type Mutation {
+    setProfilesAppFieldDescriptions(input: ConfigurationProfilesAppFieldDescriptionsInput!): Void
+  }
+`;
+
+const configuration = base + dashboard + navigation + collection + security + apps + profilesApp;
 
 export { configuration };
