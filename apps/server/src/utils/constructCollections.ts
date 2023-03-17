@@ -37,8 +37,19 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
     return photos(tenant);
   })();
 
+  const usersConfig = collections.find((col) => col.name === 'User');
+  const usersCollection = (() => {
+    if (usersConfig?.actionAccess) {
+      return merge(users(tenant), {
+        actionAccess: usersConfig.actionAccess,
+        raw: { actionAccess: usersConfig.actionAccess },
+      });
+    }
+    return users(tenant);
+  })();
+
   return [
-    users(tenant),
+    usersCollection,
     filesCollection,
     photosCollection,
     activities(tenant),

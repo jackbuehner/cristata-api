@@ -30,6 +30,7 @@ const configuration = {
         dashboard: {},
         navigation: {},
         security: {},
+        apps: {},
         collection: async ({ name }: { name: string }) => {
           helpers.requireAuthentication(context);
 
@@ -123,25 +124,17 @@ const configuration = {
       }>('tenants');
 
       // construct the new config
-      const backup: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(context.config));
-      const copy: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(backup));
+      const backup: Configuration<Collection> = JSON.parse(JSON.stringify(context.config));
+      const copy: Configuration<Collection> = JSON.parse(JSON.stringify(backup));
       const removed = copy.collections.filter((col) => col.name !== name);
 
-      // update the config in the cristata instance
-      context.cristata.config[context.tenant] = {
+      // check if the new config is valid
+      const newConfig = {
         ...copy,
-        collections: constructCollections(removed, context.tenant),
+        collections: constructCollections(removed.map(collectionsAsCollectionInputs), context.tenant),
       };
-      const ret = await context.restartApollo();
-
-      // something went wrong
+      const ret = await context.testNewConfig(newConfig);
       if (ret instanceof Error) {
-        // restore the old config
-        context.cristata.config[context.tenant] = {
-          ...copy,
-          collections: constructCollections(backup.collections, context.tenant),
-        };
-
         // throw the error
         throw ret;
       }
@@ -166,20 +159,11 @@ const configuration = {
       const tenantsCollection = context.cristata.tenantsCollection;
 
       // update the config in the database
-      const res = await tenantsCollection?.findOneAndUpdate(
+      await tenantsCollection?.findOneAndUpdate(
         { name: context.tenant },
         { $set: { [`config.secrets.${key}`]: value } },
         { returnDocument: 'after' }
       );
-
-      // update the config in the cristata instance
-      if (res?.value?.config) {
-        context.cristata.config[context.tenant] = {
-          ...res.value.config,
-          collections: constructCollections(res.value.config.collections, context.tenant),
-        };
-        await context.restartApollo();
-      }
 
       // return the value that is now available in the cristata instance
       return value;
@@ -205,18 +189,39 @@ const configuration = {
         { returnDocument: 'after' }
       );
 
-      // update the config in the cristata instance
       if (res?.value?.config) {
         const newConfig = {
           ...res.value.config,
           collections: constructCollections(res.value.config.collections, context.tenant),
         };
-        context.cristata.config[context.tenant] = newConfig;
-        await context.restartApollo();
-        return returnCmsNavConfig(context, key);
+        return returnCmsNavConfig(
+          {
+            ...context,
+            config: newConfig,
+          },
+          key
+        );
       }
 
       return returnCmsNavConfig(context, key);
+    },
+    setProfilesAppFieldDescriptions: async (
+      _: unknown,
+      { input }: { input: Record<string, string> },
+      context: Context
+    ): Promise<void> => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantsCollection = context.cristata.tenantsCollection;
+
+      // update the config in the database
+      await tenantsCollection?.findOneAndUpdate(
+        { name: context.tenant },
+        { $set: { [`config.apps.profiles.fieldDescriptions`]: input } },
+        { returnDocument: 'after' }
+      );
     },
   },
   ConfigurationDashboard: {
@@ -303,7 +308,55 @@ const configuration = {
       }
     },
   },
+  ConfigurationApps: {
+    // goes to the ConfigurationProfilesApp resolver
+    profiles: () => ({}),
+  },
+  ConfigurationProfilesApp: {
+    fieldDescriptions: (
+      _: unknown,
+      __: unknown,
+      context: Context
+    ): Required<NonNullable<NonNullable<Context['config']['apps']>['profiles']>['fieldDescriptions']> => {
+      const fieldDescriptions = context.config.apps?.profiles?.fieldDescriptions || {};
+
+      return {
+        name: fieldDescriptions.name ?? getDefaultProfileFieldDescription('name'),
+        email: fieldDescriptions.email ?? getDefaultProfileFieldDescription('email'),
+        phone: fieldDescriptions.phone ?? getDefaultProfileFieldDescription('phone'),
+        twitter: fieldDescriptions.twitter ?? getDefaultProfileFieldDescription('twitter'),
+        biography: fieldDescriptions.biography ?? getDefaultProfileFieldDescription('biography'),
+        title: fieldDescriptions.title ?? getDefaultProfileFieldDescription('title'),
+      };
+    },
+    defaultFieldDescriptions: (): Required<
+      NonNullable<NonNullable<Context['config']['apps']>['profiles']>['fieldDescriptions']
+    > => {
+      return {
+        name: getDefaultProfileFieldDescription('name'),
+        email: getDefaultProfileFieldDescription('email'),
+        phone: getDefaultProfileFieldDescription('phone'),
+        twitter: getDefaultProfileFieldDescription('twitter'),
+        biography: getDefaultProfileFieldDescription('biography'),
+        title: getDefaultProfileFieldDescription('title'),
+      };
+    },
+  },
 };
+
+function getDefaultProfileFieldDescription(
+  field: keyof NonNullable<NonNullable<NonNullable<Context['config']['apps']>['profiles']>['fieldDescriptions']>
+): string {
+  if (field === 'name') return 'The name of this user. This does not change the username or slug.';
+  if (field === 'email') return "The user's email. Try to only use your organization's email domain.";
+  if (field === 'phone')
+    return 'Add your number so coworkers can contact you about your work. It is only available to users with Cristata accounts.';
+  if (field === 'twitter') return 'Let everyone know where to follow you.';
+  if (field === 'biography')
+    return 'A short biography highlighting accomplishments and qualifications. It should be in paragraph form and written in the third person.';
+  if (field === 'title') return 'The position or job title for the user.';
+  return '';
+}
 
 function filterHidden(
   groups: SubNavGroup[] | undefined,
@@ -400,21 +453,13 @@ const setRawConfigurationCollection = async (
   if (colIndex === -1) copy.collections.push(collectionFromRaw);
   else copy.collections[colIndex] = collectionFromRaw;
 
-  // update the config in the cristata instance
-  context.cristata.config[context.tenant] = {
+  // check if the new config is valid
+  const newConfig = {
     ...copy,
     collections: constructCollections(copy.collections.map(collectionsAsCollectionInputs), context.tenant),
   };
-  const ret = await context.restartApollo();
-
-  // something went wrong
+  const ret = await context.testNewConfig(newConfig);
   if (ret instanceof Error) {
-    // restore the old config
-    context.cristata.config[context.tenant] = {
-      ...backup,
-      collections: constructCollections(backup.collections.map(collectionsAsCollectionInputs), context.tenant),
-    };
-
     // throw the error
     throw ret;
   }
@@ -428,7 +473,7 @@ const setRawConfigurationCollection = async (
 
   // determine if the collection is in the database config
   const res = await tenantsCollection.findOne(
-    { name: 'troop-370' },
+    { name: context.tenant },
     { projection: { 'config.collections.name': 1 } }
   );
   const dbCollections = res?.config.collections.map((collection) => collection.name) || [];
@@ -558,7 +603,7 @@ const getCmsNavConfig = async (context: Context, key = 'cms') => {
                   return {
                     uuid: v3(label, 'c2af0a4c-5c85-4959-9e48-7dbd4f5fc8f7'),
                     label,
-                    icon: 'CircleSmall24Filled' as (typeof context.config.navigation.sub)['cms'][0]['items'][0]['icon'],
+                    icon: 'CircleSmall24Filled' as typeof context.config.navigation.sub['cms'][0]['items'][0]['icon'],
                     to,
                     isHidden,
                   };

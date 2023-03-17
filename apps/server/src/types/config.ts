@@ -1,6 +1,6 @@
-import { GenSchemaInput, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
 import FluentIconsFontCodes from '@fluentui/react-icons/lib/utils/fonts/FluentSystemIcons-Regular.json';
 import { IResolvers } from '@graphql-tools/utils';
+import { GenSchemaInput, SchemaDefType } from '@jackbuehner/cristata-generator-schema';
 import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
 
 type FluentIconNames = keyof typeof FluentIconsFontCodes | 'CircleSmall24Filled';
@@ -197,6 +197,18 @@ interface Configuration<CT = Collection> {
         lastModifiedAt: string;
       };
     }>;
+  };
+  apps?: {
+    profiles?: {
+      fieldDescriptions?: {
+        name?: string;
+        email?: string;
+        phone?: string;
+        twitter?: string;
+        biography?: string;
+        title?: string;
+      };
+    };
   };
 }
 

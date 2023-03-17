@@ -2,7 +2,7 @@
 import { deconstructSchema, isTypeTuple } from '@jackbuehner/cristata-generator-schema';
 import userCollection from '@jackbuehner/cristata-generator-schema/dist/default-schemas/User';
 import { getPasswordStatus, notEmpty, sendEmail, slugify } from '@jackbuehner/cristata-utils';
-import { ApolloError } from 'apollo-server-core';
+import { ApolloError, AuthenticationError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
 import generator from 'generate-password';
 import getFieldNames from 'graphql-list-fields';
@@ -11,8 +11,10 @@ import mongoose, { PassportLocalDocument } from 'mongoose';
 import helpers, { genCollection } from '../graphql/helpers';
 import { construct } from '../graphql/helpers/generators/genResolvers';
 import { resolveReferencedDocuments } from '../graphql/helpers/generators/resolveReferencedDocuments';
+import { setRawConfigurationCollection } from '../graphql/resolvers/configuration';
 import { Context } from '../graphql/server';
-import { Collection } from '../types/config';
+import { Collection, CollectionPermissions } from '../types/config';
+import { collectionsAsCollectionInputs } from '../utils/constructCollections';
 import { CollectionSchemaFields, GitHubTeamNodeID } from './helpers/constructBasicSchemaFields';
 import { TenantDB } from './TenantDB';
 
@@ -61,6 +63,30 @@ const users = (tenant: string): Collection => {
       _id: ObjectID!
       name: String
       url: String
+    }
+
+    type UserCollectionActionAccess {
+      get: UserCollectionActionAccessObject
+      create: UserCollectionActionAccessObject
+      modify: UserCollectionActionAccessObject
+      deactivate: UserCollectionActionAccessObject
+    }
+
+    type UserCollectionActionAccessObject {
+      teams: [String!]
+      users: [String!]
+    }
+
+    input UserCollectionActionAccessInput {
+      get: UserCollectionActionAccessObjectInput
+      create: UserCollectionActionAccessObjectInput
+      modify: UserCollectionActionAccessObjectInput
+      deactivate: UserCollectionActionAccessObjectInput
+    }
+
+    input UserCollectionActionAccessObjectInput {
+      teams: [String!]
+      users: [String!]
     }
   
     type Query {
@@ -114,6 +140,11 @@ const users = (tenant: string): Collection => {
       hours to prevent their account from becoming inaccessable.
       """
       userMigrateToPassword(_id: ObjectID!): User
+
+      """
+      Sets the action access config for the User collection.
+      """
+      userCollectionSetActionAccess(actionAccess: UserCollectionActionAccessInput!): UserCollectionActionAccess
     }
   `;
 
@@ -275,6 +306,49 @@ const users = (tenant: string): Collection => {
         // create a temp password, alert the user via email, and return the user
 
         return await setTemporaryPassword(user, 'migrate', context);
+      },
+      userCollectionSetActionAccess: async (
+        _: never,
+        { actionAccess }: { actionAccess: Partial<CollectionPermissions> },
+        context: Context
+      ) => {
+        // only allow administrators to make changes to action access for the collection
+        requireAuthentication(context);
+        const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+        if (!isAdmin) throw new AuthenticationError('you must be an administrator');
+
+        // get the current config value
+        const currentCollectionConfig = context.config.collections.find(
+          (collection) => collection.name === 'User'
+        );
+        if (!currentCollectionConfig) throw new Error('could not find collection');
+
+        // create the raw input used to generate the collection
+        const raw = collectionsAsCollectionInputs(currentCollectionConfig);
+        const rawCopy = JSON.parse(JSON.stringify(raw)) as typeof raw;
+
+        // convert `"0"` to `0` since the config expects a number but the api only allows strings as an input
+        actionAccess = Object.fromEntries(
+          Object.entries(actionAccess).map(([key, value]) => {
+            return [
+              key,
+              {
+                users: value.users.map((user) => (user === '0' ? 0 : user)),
+                teams: value.teams.map((team) => (team === '0' ? 0 : team)),
+              } as typeof value,
+            ];
+          })
+        ) as Partial<CollectionPermissions>;
+
+        // merge the new action access config with the existing one (overwrite arrays)
+        rawCopy.actionAccess = merge(rawCopy.actionAccess, actionAccess);
+
+        // attempt to save the change using the same logic as the normal collection configurations
+        // (roll back changes if collection is invalid)
+        const result = await setRawConfigurationCollection({ name: 'User', raw: rawCopy }, context);
+
+        // return resultant actionAccess instead of the entire collection so the resolver type is correct
+        return result.actionAccess;
       },
     },
     User: {

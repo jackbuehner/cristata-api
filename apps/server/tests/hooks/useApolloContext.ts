@@ -73,6 +73,10 @@ function useApolloContext({ isAuthenticated, collection, isAdmin }: UseApolloCon
         db_2: true,
       },
     } as unknown as Cristata,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    testNewConfig: async (config: Configuration) => {
+      return;
+    },
     restartApollo: async () => {
       return;
     },
