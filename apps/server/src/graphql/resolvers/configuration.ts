@@ -406,7 +406,7 @@ const setRawConfigurationCollection = async (
 
   // determine if the collection is in the database config
   const res = await tenantsCollection.findOne(
-    { name: 'troop-370' },
+    { name: context.tenant },
     { projection: { 'config.collections.name': 1 } }
   );
   const dbCollections = res?.config.collections.map((collection) => collection.name) || [];
