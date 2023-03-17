@@ -1,4 +1,4 @@
-import { replaceCircular } from '@jackbuehner/cristata-utils';
+import { replaceCircular, unflattenObject } from '@jackbuehner/cristata-utils';
 import { Logtail } from '@logtail/node';
 import { Application, Router } from 'express';
 import http from 'http';
@@ -295,10 +295,10 @@ class Cristata {
   async listenForConfigChange(): Promise<void> {
     this.tenantsCollection?.watch().on('change', async (data) => {
       if (data.ns.db === 'app' && data.ns.coll === 'tenants') {
-        const updatedFields = data.updateDescription?.updatedFields;
+        const updatedFields = unflattenObject(data.updateDescription?.updatedFields || {}, '.');
 
-        // handle when a collection config changes
-        if (updatedFields?.config?.collections) {
+        // handle when a config changes
+        if (updatedFields?.config) {
           // get the updated doc
           // @ts-expect-error the type is wrong
           const newTenantDoc = await this.tenantsCollection.findOne({ _id: data.documentKey._id });
