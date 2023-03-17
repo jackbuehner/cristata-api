@@ -33,7 +33,20 @@ const collection: GenSchemaInput = {
     },
   },
   options: {
-    disableFindOneQuery: true,
+    disableFindOneQuery: true, // the collection provides it's own implimentation
+    disableFindManyQuery: false,
+    disableActionAccessQuery: false,
+    disablePublicFindOneQuery: false,
+    disablePublicFindOneBySlugQuery: false,
+    disablePublicFindManyQuery: false,
+    disableCreateMutation: false,
+    disableModifyMutation: false,
+    disableHideMutation: true,
+    disableArchiveMutation: true,
+    disableLockMutation: true,
+    disableWatchMutation: true,
+    disableDeleteMutation: true,
+    disablePublishMutation: true,
   },
 };
 
