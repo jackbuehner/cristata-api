@@ -22,6 +22,7 @@ const context: ContextFunction<Input, Context> = async ({ req, __cristata }): Pr
   const { tenant, cristata } = __cristata;
   const config = cristata.config[tenant];
   const restartApollo = () => cristata.restartApollo(tenant);
+  const testNewConfig = (config: Configuration) => cristata.testNewConfig(tenant, config);
   const serverOrigin = `${req.protocol}://${req.get('host')}`;
 
   // inject tenant and profile into logs
@@ -48,7 +49,16 @@ const context: ContextFunction<Input, Context> = async ({ req, __cristata }): Pr
           tenant: tenant,
           username: 'TOKEN_' + matchedToken.name,
         };
-        return { config, isAuthenticated, profile, tenant, cristata, restartApollo, serverOrigin };
+        return {
+          config,
+          isAuthenticated,
+          profile,
+          tenant,
+          cristata,
+          restartApollo,
+          testNewConfig,
+          serverOrigin,
+        };
       }
     }
   }
@@ -95,7 +105,7 @@ const context: ContextFunction<Input, Context> = async ({ req, __cristata }): Pr
     };
   })();
 
-  return { config, isAuthenticated, profile, tenant, cristata, restartApollo, serverOrigin };
+  return { config, isAuthenticated, profile, tenant, cristata, restartApollo, testNewConfig, serverOrigin };
 };
 
 interface Context {
@@ -113,6 +123,7 @@ interface Context {
   tenant: string;
   cristata: Cristata;
   restartApollo: () => Promise<Error | void>;
+  testNewConfig: (config: Configuration) => Promise<Error | void>;
   serverOrigin: string;
 }
 

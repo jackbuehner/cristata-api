@@ -288,6 +288,26 @@ class Cristata {
   }
 
   /**
+   * Tests whether a tot reload/restart of the Apollo GraphQL server for a specific tenant will succeed or fail.
+   *
+   * _Returns an error if something went wrong._
+   */
+  async testNewConfig(tenant: string, config: Configuration): Promise<Error | void> {
+    // attempt to create an updated apollo middleware with the newest configuration
+    const apolloReturn = await apollo(
+      { ...this, config: { [tenant]: config } },
+      tenant,
+      this.tenants.length === 1
+    );
+
+    // if an error, return the error to the function that called this function
+    // so it knows there was an issue
+    if (apolloReturn instanceof Error) {
+      return apolloReturn;
+    }
+  }
+
+  /**
    * Listens for when a tenant's configuration changes
    * and recreate apollo server and mongoose models
    * when needed.

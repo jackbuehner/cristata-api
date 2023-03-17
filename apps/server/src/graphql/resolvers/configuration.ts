@@ -123,25 +123,17 @@ const configuration = {
       }>('tenants');
 
       // construct the new config
-      const backup: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(context.config));
-      const copy: Configuration<Collection | GenCollectionInput> = JSON.parse(JSON.stringify(backup));
+      const backup: Configuration<Collection> = JSON.parse(JSON.stringify(context.config));
+      const copy: Configuration<Collection> = JSON.parse(JSON.stringify(backup));
       const removed = copy.collections.filter((col) => col.name !== name);
 
-      // update the config in the cristata instance
-      context.cristata.config[context.tenant] = {
+      // check if the new config is valid
+      const newConfig = {
         ...copy,
-        collections: constructCollections(removed, context.tenant),
+        collections: constructCollections(removed.map(collectionsAsCollectionInputs), context.tenant),
       };
-      const ret = await context.restartApollo();
-
-      // something went wrong
+      const ret = await context.testNewConfig(newConfig);
       if (ret instanceof Error) {
-        // restore the old config
-        context.cristata.config[context.tenant] = {
-          ...copy,
-          collections: constructCollections(backup.collections, context.tenant),
-        };
-
         // throw the error
         throw ret;
       }
@@ -166,20 +158,11 @@ const configuration = {
       const tenantsCollection = context.cristata.tenantsCollection;
 
       // update the config in the database
-      const res = await tenantsCollection?.findOneAndUpdate(
+      await tenantsCollection?.findOneAndUpdate(
         { name: context.tenant },
         { $set: { [`config.secrets.${key}`]: value } },
         { returnDocument: 'after' }
       );
-
-      // update the config in the cristata instance
-      if (res?.value?.config) {
-        context.cristata.config[context.tenant] = {
-          ...res.value.config,
-          collections: constructCollections(res.value.config.collections, context.tenant),
-        };
-        await context.restartApollo();
-      }
 
       // return the value that is now available in the cristata instance
       return value;
@@ -205,15 +188,18 @@ const configuration = {
         { returnDocument: 'after' }
       );
 
-      // update the config in the cristata instance
       if (res?.value?.config) {
         const newConfig = {
           ...res.value.config,
           collections: constructCollections(res.value.config.collections, context.tenant),
         };
-        context.cristata.config[context.tenant] = newConfig;
-        await context.restartApollo();
-        return returnCmsNavConfig(context, key);
+        return returnCmsNavConfig(
+          {
+            ...context,
+            config: newConfig,
+          },
+          key
+        );
       }
 
       return returnCmsNavConfig(context, key);
@@ -400,21 +386,13 @@ const setRawConfigurationCollection = async (
   if (colIndex === -1) copy.collections.push(collectionFromRaw);
   else copy.collections[colIndex] = collectionFromRaw;
 
-  // update the config in the cristata instance
-  context.cristata.config[context.tenant] = {
+  // check if the new config is valid
+  const newConfig = {
     ...copy,
     collections: constructCollections(copy.collections.map(collectionsAsCollectionInputs), context.tenant),
   };
-  const ret = await context.restartApollo();
-
-  // something went wrong
+  const ret = await context.testNewConfig(newConfig);
   if (ret instanceof Error) {
-    // restore the old config
-    context.cristata.config[context.tenant] = {
-      ...backup,
-      collections: constructCollections(backup.collections.map(collectionsAsCollectionInputs), context.tenant),
-    };
-
     // throw the error
     throw ret;
   }
@@ -558,7 +536,7 @@ const getCmsNavConfig = async (context: Context, key = 'cms') => {
                   return {
                     uuid: v3(label, 'c2af0a4c-5c85-4959-9e48-7dbd4f5fc8f7'),
                     label,
-                    icon: 'CircleSmall24Filled' as (typeof context.config.navigation.sub)['cms'][0]['items'][0]['icon'],
+                    icon: 'CircleSmall24Filled' as typeof context.config.navigation.sub['cms'][0]['items'][0]['icon'],
                     to,
                     isHidden,
                   };
