@@ -2,8 +2,8 @@ import ColorHash from 'color-hash';
 import { Router } from 'express';
 import https from 'https';
 import mime from 'mime';
-import { IPhoto } from '../../mongodb/photos';
 import { IFile } from '../../mongodb/files';
+import { IPhoto } from '../../mongodb/photos';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';
 import { IDeserializedUser } from '../passport';
@@ -59,7 +59,7 @@ router.get('/v3/:tenant/user-photo/:user_id', async (req, res) => {
 
       const id = user._id.toHexString();
       const colors = [
-        colorHash.hex(user._id),
+        colorHash.hex(id),
         colorHash.hex(id.substr(4, id.length / 2)),
         colorHash.hex(id.substr(id.length / 2, id.length)),
         colorHash.hex(id.split('').reverse().join('')),

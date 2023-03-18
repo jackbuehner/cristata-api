@@ -10,6 +10,7 @@ export { flattenObject } from './flattenObject';
 export { getFlatKeys } from './getFlatKeys';
 export { getPasswordStatus } from './getPasswordStatus';
 export { getPropertyInArray } from './getPropertyInArray';
+export { hasChangeStreamNamespace } from './hasChangeStreamNamespace';
 export { hasKey } from './hasKey';
 export { insertUserToArray } from './insertUserToArray';
 export { isArray } from './isArray';

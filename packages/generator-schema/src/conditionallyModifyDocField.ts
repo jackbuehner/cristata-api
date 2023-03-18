@@ -1,9 +1,12 @@
 import { hasKey, isArray, slugify } from '@jackbuehner/cristata-utils';
+import { isObject } from 'is-what';
 import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { get as getProperty, set as setProperty } from 'object-path';
 import { DeconstructedSchemaDefType } from './deconstructSchema';
 import { SetterValueType } from './genSchema';
+
+type LeanOrHydratedDocument = Partial<mongoose.Document> & Record<string, unknown>;
 
 // comparison operators
 type gt = { $gt: number };
@@ -56,7 +59,7 @@ type SetterCondition = LogicalOperator<Field>;
  * TODO: document this function
  */
 function conditionallyModifyDocField(
-  doc: mongoose.LeanDocument<mongoose.Document> | mongoose.Document,
+  doc: LeanOrHydratedDocument,
   deconstructedSchema: DeconstructedSchemaDefType
 ): Record<string, unknown> {
   const changed = {};
@@ -78,7 +81,7 @@ function conditionallyModifyDocField(
   return changed;
 }
 
-function process(doc: mongoose.LeanDocument<mongoose.Document>, condition: SetterCondition): boolean {
+function process(doc: LeanOrHydratedDocument, condition: SetterCondition): boolean {
   // array of booleans where each boolean represents
   // whether an operator returned true or false
   const responses: boolean[] = Object.entries(condition).map(([logiOpName, nestedOpsWithField]) => {
@@ -100,7 +103,7 @@ function process(doc: mongoose.LeanDocument<mongoose.Document>, condition: Sette
   return !responses.includes(false);
 }
 
-function processField(field: Field, doc: mongoose.LeanDocument<mongoose.Document>): boolean {
+function processField(field: Field, doc: LeanOrHydratedDocument): boolean {
   // array of booleans where each boolean represents
   // whether an operator returned true or false
   const responses: boolean[] = Object.entries(field).map(([fieldName, operator]) => {
@@ -119,20 +122,14 @@ function processField(field: Field, doc: mongoose.LeanDocument<mongoose.Document
 /**
  * Returns whether a document is a mongoose document or a POJO from a mongoose document.
  */
-function isMongooseDoc(
-  doc: mongoose.Document | mongoose.LeanDocument<mongoose.Document>
-): doc is mongoose.Document {
-  return hasKey('toObject', doc) && hasKey('getChanges', doc);
+function isMongooseDoc(doc: unknown): doc is mongoose.Document {
+  return isObject(doc) && hasKey('toObject', doc) && hasKey('getChanges', doc);
 }
 
 /**
  * Returns whether the operator's condition is true.
  */
-function processOperator(
-  operator: AnyOperator,
-  fieldName: string,
-  doc: mongoose.LeanDocument<mongoose.Document> | mongoose.Document
-): boolean {
+function processOperator(operator: AnyOperator, fieldName: string, doc: LeanOrHydratedDocument): boolean {
   // operators can include multiple operators as different
   // key-value pairs, so we need to look at each object entry
   const operatorEntries = Object.entries(operator);

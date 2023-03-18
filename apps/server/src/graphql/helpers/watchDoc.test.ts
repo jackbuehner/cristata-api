@@ -49,7 +49,7 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     expect(found).toHaveProperty('people.watching', [context.profile?._id]);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should remove the current user from the list of watchers', async () => {
@@ -72,7 +72,7 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     expect(found).toHaveProperty('people.watching', []);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should add a user to the list of watchers who is not the current user', async () => {
@@ -98,7 +98,7 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     expect(found).toHaveProperty('people.watching', [new mongoose.Types.ObjectId('000000000000000000000099')]);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should remove a user who is not the current user from the list of watchers', async () => {
@@ -134,7 +134,7 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     expect(found).toHaveProperty('people.watching', []);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should watch a doc that uses an accessor key other than _id with accessor of type string', async () => {
@@ -170,7 +170,7 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     expect(found).toHaveProperty('people.watching', [context.profile?._id]);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should watch a doc with a accessor of type number', async () => {
@@ -200,7 +200,7 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     expect(found).toHaveProperty('people.watching', [context.profile?._id]);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should watch a doc with a accessor of type Date', async () => {
@@ -235,7 +235,7 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     expect(found).toHaveProperty('people.watching', [context.profile?._id]);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw ForbiddenError when the user does not have permission to watch', async () => {
@@ -257,7 +257,7 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw DOCUMENT_NOT_FOUND error on attempt to watch a document that the user cannot access', async () => {
@@ -283,6 +283,6 @@ describe(`api >> v3 >> helpers >> watchDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 });

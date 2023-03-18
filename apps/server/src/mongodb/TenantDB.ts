@@ -13,7 +13,7 @@ class TenantDB {
   tenant: string;
   opts?: TenantDBOptions;
 
-  models = new Map<string, mongoose.Model<unknown>>();
+  models = new Map<string, TenantModel<unknown>>();
   schemas = new Map<string, mongoose.Schema>();
 
   constructor(tenant: string, collections?: Collection[], opts?: TenantDBOptions) {
@@ -41,10 +41,10 @@ class TenantDB {
    * The model will only be created once; subsequent calls with the
    * same model name will return the already created model.
    */
-  async model<T>(name: string): Promise<mongoose.Model<T> | null> {
+  async model<T>(name: string): Promise<TenantModel<T> | null> {
     // return the model if it has already been created
     if (this.models.has(name) && !this.opts?.alwaysNewModels) {
-      return this.models.get(name) as mongoose.Model<T>;
+      return this.models.get(name) as TenantModel<T>;
     }
 
     // find the collection from the config
@@ -76,12 +76,14 @@ class TenantDB {
     }
 
     // create the model based on the schema
-    const Model = connection.model(collection.name, Schema);
+    const Model = connection.model(collection.name, Schema) as unknown as TenantModel<T>;
 
     // activate the passport strategy for mongoose users
     if (collection.name === 'User') {
       passport.use(
-        (Model as mongoose.PassportLocalModel<mongoose.Document>).createStrategy({ tenant: this.tenant })
+        (Model as unknown as mongoose.PassportLocalModel<mongoose.Document>).createStrategy({
+          tenant: this.tenant,
+        })
       );
     }
 
@@ -90,9 +92,9 @@ class TenantDB {
 
     // save schema and model
     this.schemas.set(name, Schema);
-    this.models.set(name, Model);
+    this.models.set(name, Model as TenantModel<unknown>);
 
-    return Model as mongoose.Model<T>;
+    return Model;
   }
 
   async createDefaultUsers() {
@@ -137,4 +139,13 @@ interface TenantDBOptions {
 
 mongoose.Schema.Types.String.checkRequired((v) => v !== null && v !== undefined);
 
+interface TenantModel<DocType> extends Omit<mongoose.Model<DocType>, 'new'> {
+  new (
+    doc?: Partial<DocType>,
+    fields?: Record<string, unknown>,
+    skipId?: boolean
+  ): mongoose.HydratedDocument<DocType> & DocType;
+}
+
 export { TenantDB };
+export type { TenantModel };

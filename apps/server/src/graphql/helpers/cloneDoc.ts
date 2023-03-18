@@ -44,7 +44,7 @@ async function cloneDoc({
   model,
   accessor,
   context,
-}: CloneDoc): Promise<mongoose.Document<CollectionDoc> | null> {
+}: CloneDoc): Promise<mongoose.HydratedDocument<CollectionDoc> | null> {
   requireAuthentication(context);
 
   // set defaults

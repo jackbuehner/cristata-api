@@ -362,7 +362,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         }
       });
 
-      return await helpers.createDoc<mongoose.LeanDocument<mongoose.Document>>({
+      return await helpers.createDoc<{ _id: mongoose.Types.ObjectId }>({
         model: name,
         args,
         context,
@@ -405,7 +405,7 @@ function genResolvers(config: GenResolversInput, tenant: string) {
         }
       });
 
-      return await helpers.modifyDoc<mongoose.Document, mongoose.LeanDocument<mongoose.Document>>({
+      return await helpers.modifyDoc<mongoose.Document, { _id: mongoose.Types.ObjectId }>({
         model: name,
         data: { ...input, [oneAccessorName]: _accessor },
         _id: oneAccessorType.replace('!', '') === 'Date' ? new Date(_accessor) : _accessor,

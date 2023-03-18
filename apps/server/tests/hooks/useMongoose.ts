@@ -7,7 +7,7 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import {
   collectionSchemaFields,
   publishableCollectionSchemaFields,
-  withPermissionsCollectionSchemaFields
+  withPermissionsCollectionSchemaFields,
 } from '../../src/mongodb/helpers/constructBasicSchemaFields';
 import { convertTopNestedObjectsToSubdocuments } from '../../src/mongodb/helpers/convertTopNestedObjectsToSubdocuments';
 
@@ -47,7 +47,9 @@ function useMongoose(): {
     if (name !== 'Activity') createModel('Activity');
 
     // delete the model if it already exists
-    delete tenantDB.models[name];
+    if (tenantDB.models[name]) {
+      tenantDB.deleteModel(name);
+    }
 
     // create the schema
     const Schema = (() => {

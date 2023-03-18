@@ -93,6 +93,6 @@ async function findDoc({
 }
 
 type LeanCollectionDoc = CollectionDoc;
-type HydratedCollectionDoc = mongoose.Document<unknown, unknown, CollectionDoc> & CollectionDoc;
+type HydratedCollectionDoc = mongoose.HydratedDocument<CollectionDoc> & CollectionDoc;
 
 export { findDoc };

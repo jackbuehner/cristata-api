@@ -50,7 +50,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     expect(found).toHaveProperty('locked', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should lock a doc that is currently locked', async () => {
@@ -72,7 +72,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     expect(found).toHaveProperty('locked', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should unlock a doc that is currently locked', async () => {
@@ -99,7 +99,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     expect(found).toHaveProperty('locked', false);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should unlock a doc that is not currently locked', async () => {
@@ -126,7 +126,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     expect(found).toHaveProperty('locked', false);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should lock a doc that uses an accessor key other than _id with accessor of type string', async () => {
@@ -163,7 +163,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     expect(found).toHaveProperty('locked', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should lock a doc with a accessor of type number', async () => {
@@ -194,7 +194,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     expect(found).toHaveProperty('locked', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should lock a doc with a accessor of type Date', async () => {
@@ -230,7 +230,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     expect(found).toHaveProperty('locked', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw ForbiddenError on attempt to lock a doc that is currently published', async () => {
@@ -261,7 +261,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw ForbiddenError when the user does not have permission to lock', async () => {
@@ -284,7 +284,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw DOCUMENT_NOT_FOUND error on attempt to lock a document that the user cannot access', async () => {
@@ -310,6 +310,6 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 });

@@ -65,8 +65,9 @@ export async function watchAndUpdateSpecifiedValues(
       { fullDocument: 'updateLookup' }
     );
 
-    changeStream.on('change', (change) => {
-      applyRelevantChanges(tenantDb, documentName, ydoc, keysToWatchAndUpdate, change.fullDocument);
+    changeStream.on('change', (data) => {
+      if (data.operationType === 'update')
+        applyRelevantChanges(tenantDb, documentName, ydoc, keysToWatchAndUpdate, data.fullDocument);
     });
 
     // destroy the change stream once the doc no longer exists
