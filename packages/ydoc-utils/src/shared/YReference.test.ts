@@ -28,7 +28,7 @@ describe(`shared >> YReference`, () => {
     });
 
     // create model
-    const Model = mongoose.model('User', Schema);
+    const Model = mongoose.model<Doc>('User', Schema);
 
     // create docs
     jack = await Model.create({ name: 'Jack Buehner', email: 'jack.buehner@thepaladin.news' });
