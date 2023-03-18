@@ -6,6 +6,8 @@ import * as Y from 'yjs';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
 
+type TenantModel = <T>(name: string) => Promise<mongoose.Model<T> | null>;
+
 /**
  *
  */
@@ -13,11 +15,7 @@ async function setYDocType(
   context: Context,
   model: string,
   id: string,
-  cb: (
-    TenantModel: (name: string) => Promise<mongoose.Model<unknown> | null>,
-    ydoc: Y.Doc,
-    sharedHelper: typeof shared
-  ) => Promise<true | Error>,
+  cb: (TenantModel: TenantModel, ydoc: Y.Doc, sharedHelper: typeof shared) => Promise<true | Error>,
   /**
    * reject and destroy after this time
    * (default 1 minute)
@@ -79,7 +77,7 @@ async function setYDocType(
         await tenantDB.connect();
 
         // execute the callback
-        const res = await cb(tenantDB.model.bind(tenantDB), ydoc, shared);
+        const res = await cb((tenantDB.model as TenantModel).bind(tenantDB), ydoc, shared);
         if (res === true) resolve(true);
         else reject(res);
 

@@ -72,15 +72,20 @@ export class DB {
   async connect({ username, password, host, options }: ConnectionDetails) {
     if (!options) options = `retryWrites=true&w=majority`;
 
-    // connect to mongoDB
+    // start connecting to mongoDB
     if (username && password && host) {
-      await mongoose.connect(`mongodb+srv://${username}:${password}@${host}/app?${options}`);
+      await mongoose
+        .connect(`mongodb+srv://${username}:${password}@${host}/app?${options}`, {})
+        .catch(console.error);
     } else {
-      await mongoose.connect(`mongodb://127.0.0.1/app?${options}`);
+      await mongoose.connect(`mongodb://127.0.0.1/app?${options}`).catch(console.error);
     }
 
+    // wait for the primary connection to finish connecting
+    await mongoose.connection.asPromise();
+
     // get the tenants
-    const tenantsCollection = mongoose.connection.db.collection<TenantDoc>('tenants');
+    const tenantsCollection = mongoose.connection.collection<TenantDoc>('tenants');
     this.tenants = (await tenantsCollection.find().toArray()).map((doc) => doc.name);
 
     // create a connections object with a connection for each tenant

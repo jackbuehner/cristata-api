@@ -209,7 +209,7 @@ async function modifyDoc<DocType, DataType>({
     throw result;
   }
 
-  return res;
+  return res.value;
 }
 
 type HydratedCollectionDoc<DocType> = mongoose.Document<unknown, unknown, DocType> & DocType;

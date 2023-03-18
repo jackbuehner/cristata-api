@@ -47,7 +47,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should fail to find a doc with empty permissions', async () => {
@@ -63,7 +63,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toBeUndefined();
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should find a doc with empty permissions when `fullAccess === true`', async () => {
@@ -79,7 +79,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should find a doc with empty permissions when authenticated user is an admin', async () => {
@@ -98,7 +98,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should find a doc with empty permissions when current user can bypass permissions', async () => {
@@ -117,7 +117,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should find a doc with one of user's teams in permissions`, async () => {
@@ -134,7 +134,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should find a doc with user's _id in permissions`, async () => {
@@ -151,7 +151,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should find a doc with team 0 (any team)`, async () => {
@@ -168,7 +168,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should find a doc with team "0" (any team)`, async () => {
@@ -185,7 +185,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should find a doc with user "000000000000000000000000" (any user)`, async () => {
@@ -202,7 +202,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('_id', newDoc._id);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should find a doc by property other than _id`, async () => {
@@ -225,7 +225,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('slug', newDoc.slug);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should find the newest doc when finding by a property that is the same`, async () => {
@@ -259,9 +259,9 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toHaveProperty('letter', 'c');
 
     // cleanup
-    await newDocA.delete();
-    await newDocB.delete();
-    await newDocC.delete();
+    await newDocA.deleteOne();
+    await newDocB.deleteOne();
+    await newDocC.deleteOne();
   });
 
   it(`should be an instance of the mongoose Document class when lean is false`, async () => {
@@ -278,7 +278,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found?.constructor.name).toEqual(Document.name);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should only return fields in the projection for non-lean docs`, async () => {
@@ -307,7 +307,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found?.toObject()).toMatchObject({ slug: 'new-document-with-projection', _id: newDoc._id });
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it(`should only return fields in the projection for lean docs`, async () => {
@@ -336,6 +336,6 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     expect(found).toMatchObject({ slug: 'new-document-with-projection', _id: newDoc._id });
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 });

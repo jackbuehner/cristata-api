@@ -80,7 +80,7 @@ describe(`api >> v3 >> helpers >> getCollectionActionAccess`, () => {
     });
     expect(actionAccess).toHaveProperty('get');
 
-    await doc1.delete();
-    await doc2.delete();
+    await doc1.deleteOne();
+    await doc2.deleteOne();
   });
 });

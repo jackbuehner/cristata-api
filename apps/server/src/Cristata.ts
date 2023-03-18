@@ -1,4 +1,4 @@
-import { replaceCircular, unflattenObject } from '@jackbuehner/cristata-utils';
+import { hasChangeStreamNamespace, replaceCircular, unflattenObject } from '@jackbuehner/cristata-utils';
 import { Logtail } from '@logtail/node';
 import { Application, Router } from 'express';
 import http from 'http';
@@ -27,37 +27,7 @@ class Cristata {
   tenants: string[] = [];
   hasTenantPaid: Record<string, boolean> = {};
   canTenantAllowDiskUse: Record<string, boolean> = {};
-  tenantsCollection: MongoCollection<{
-    _id: ObjectId;
-    name: string;
-    config: Configuration;
-    billing: {
-      stripe_customer_id?: string;
-      stripe_subscription_id?: string;
-      subscription_active: boolean;
-      subscription_last_payment?: string;
-      stripe_subscription_items?: {
-        core: { id: string; usage_reported_at: string };
-        file_storage: { id: string; usage_reported_at: string };
-        database_usage: { id: string; usage_reported_at: string };
-        api_usage: { id: string; usage_reported_at: string };
-        app_usage: { id: string; usage_reported_at: string };
-        integrations: { id: string; usage_reported_at: string };
-        allow_disk_use?: { id: string; usage_reported_at?: string };
-      };
-      metrics: {
-        [key: number]:
-          | {
-              [key: number]:
-                | {
-                    [key: number]: { billable?: number; total: number } | undefined;
-                  }
-                | undefined;
-            }
-          | undefined;
-      };
-    };
-  }> | null = null;
+  tenantsCollection: MongoCollection<TenantsCollectionSchema> | null = null;
   server = http.createServer();
   logtail = new Logtail(process.env.LOGTAIL_ID || 'MISSING');
 
@@ -314,7 +284,12 @@ class Cristata {
    */
   async listenForConfigChange(): Promise<void> {
     this.tenantsCollection?.watch().on('change', async (data) => {
-      if (data.ns.db === 'app' && data.ns.coll === 'tenants') {
+      if (
+        hasChangeStreamNamespace<TenantsCollectionSchema>(data) &&
+        data.ns.db === 'app' &&
+        data.ns.coll === 'tenants' &&
+        data.operationType === 'update'
+      ) {
         const updatedFields = unflattenObject(data.updateDescription?.updatedFields || {}, '.');
 
         // handle when a config changes
@@ -341,5 +316,37 @@ class Cristata {
 
 // keep errors silent
 process.on('unhandledRejection', (error) => console.error(error));
+
+interface TenantsCollectionSchema {
+  _id: ObjectId;
+  name: string;
+  config: Configuration;
+  billing: {
+    stripe_customer_id?: string;
+    stripe_subscription_id?: string;
+    subscription_active: boolean;
+    subscription_last_payment?: string;
+    stripe_subscription_items?: {
+      core: { id: string; usage_reported_at: string };
+      file_storage: { id: string; usage_reported_at: string };
+      database_usage: { id: string; usage_reported_at: string };
+      api_usage: { id: string; usage_reported_at: string };
+      app_usage: { id: string; usage_reported_at: string };
+      integrations: { id: string; usage_reported_at: string };
+      allow_disk_use?: { id: string; usage_reported_at?: string };
+    };
+    metrics: {
+      [key: number]:
+        | {
+            [key: number]:
+              | {
+                  [key: number]: { billable?: number; total: number } | undefined;
+                }
+              | undefined;
+          }
+        | undefined;
+    };
+  };
+}
 
 export default Cristata;

@@ -48,7 +48,7 @@ async function deleteDoc({ model, by, args, context }: DeleteDoc): Promise<mongo
   }
 
   // delete the document
-  await doc.delete();
+  await doc.deleteOne();
   return args._id;
 }
 

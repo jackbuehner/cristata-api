@@ -50,7 +50,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     expect(found).toHaveProperty('archived', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should archive a doc that is currently archived', async () => {
@@ -72,7 +72,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     expect(found).toHaveProperty('archived', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should unarchive a doc that is currently archived', async () => {
@@ -99,7 +99,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     expect(found).toHaveProperty('archived', false);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should unarchive a doc that is not currently archived', async () => {
@@ -126,7 +126,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     expect(found).toHaveProperty('archived', false);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should archive a doc that uses an accessor key other than _id with accessor of type string', async () => {
@@ -163,7 +163,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     expect(found).toHaveProperty('archived', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should archive a doc with a accessor of type number', async () => {
@@ -196,7 +196,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     expect(found).toHaveProperty('archived', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should archive a doc with a accessor of type Date', async () => {
@@ -232,7 +232,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     expect(found).toHaveProperty('archived', true);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw ForbiddenError on attempt to archive a doc that is currently published', async () => {
@@ -263,7 +263,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw ForbiddenError when the user does not have permission to archive', async () => {
@@ -286,7 +286,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw ForbiddenError when no archive permissions are set', async () => {
@@ -310,7 +310,7 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 
   it('should throw DOCUMENT_NOT_FOUND error on attempt to archive a document that the user cannot access', async () => {
@@ -336,6 +336,6 @@ describe(`api >> v3 >> helpers >> archiveDoc`, () => {
     await expect(promise).rejects.toThrow(expectedError);
 
     // cleanup
-    await newDoc.delete();
+    await newDoc.deleteOne();
   });
 });
