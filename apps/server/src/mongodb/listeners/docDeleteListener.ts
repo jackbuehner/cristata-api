@@ -1,8 +1,17 @@
-import { ListenerFunction } from ".";
+import { ListenerFunction } from '.';
 
-const docDeleteListener = (async ({ data, tenant }) => {
+const docDeleteListener = (async ({ data, dispatchEvent, getModelName }) => {
   if (data.operationType === 'delete') {
-    console.log(`event: deleted ${data.ns.db || tenant}.${data.ns.coll}.${data.documentKey._id} via delete`);
+    dispatchEvent({
+      name: 'delete',
+      at: data.wallTime,
+      reason: 'document delete',
+      document: {
+        _id: data.documentKey._id,
+        collection: getModelName(data.ns.coll),
+        doc: data.fullDocumentBeforeChange,
+      },
+    });
   }
 }) satisfies ListenerFunction;
 

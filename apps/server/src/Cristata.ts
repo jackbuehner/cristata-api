@@ -1,9 +1,20 @@
-import { hasChangeStreamNamespace, replaceCircular, unflattenObject } from '@jackbuehner/cristata-utils';
+import {
+  ChangeStreamEventDoc,
+  EventDoc,
+} from '@jackbuehner/cristata-generator-schema/src/default-schemas/Event';
+import {
+  capitalize,
+  hasChangeStreamNamespace,
+  replaceCircular,
+  unflattenObject,
+} from '@jackbuehner/cristata-utils';
 import { Logtail } from '@logtail/node';
+import { detailedDiff } from 'deep-object-diff';
 import { Application, Router } from 'express';
 import http from 'http';
-import { ObjectId } from 'mongoose';
+import { ObjectId, pluralize as pluralizeFunc, Types } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
+import pluralize from 'pluralize';
 import { createExpressApp } from './app';
 import { CollectionDoc } from './graphql/helpers';
 import { GenCollectionInput } from './graphql/helpers/generators/genCollection';
@@ -329,20 +340,83 @@ class Cristata {
         const tenantDbConn = await connectDb(tenant);
 
         tenantDbConn
-          .watch<CollectionDoc>([], {
-            fullDocumentBeforeChange: 'whenAvailable',
-            fullDocument: 'whenAvailable',
-          })
+          .watch<CollectionDoc>(
+            [
+              {
+                $project: {
+                  'fullDocument.__publishedDoc': 0,
+                  'fullDocument._hasPublishedDoc': 0,
+                  'fullDocument.__v': 0,
+                  'fullDocument.__stateExists': 0,
+                  'fullDocument.__migrationBackup': 0,
+                  'fullDocument.__yState': 0,
+                  'fullDocument.__yVersions': 0,
+                  'fullDocument.__versions': 0,
+                  'fullDocumentBeforeChange.__publishedDoc': 0,
+                  'fullDocumentBeforeChange._hasPublishedDoc': 0,
+                  'fullDocumentBeforeChange.__v': 0,
+                  'fullDocumentBeforeChange.__stateExists': 0,
+                  'fullDocumentBeforeChange.__migrationBackup': 0,
+                  'fullDocumentBeforeChange.__yState': 0,
+                  'fullDocumentBeforeChange.__yVersions': 0,
+                  'fullDocumentBeforeChange.__versions': 0,
+                },
+              },
+            ],
+            {
+              fullDocumentBeforeChange: 'whenAvailable',
+              fullDocument: 'whenAvailable',
+            }
+          )
           .on('change', async (data) => {
             if (!hasChangeStreamNamespace<TenantsCollectionSchema>(data)) return;
             if (data.ns.db !== tenant) return;
+            if (data.ns.coll === 'cristataevents') return;
+            if (data.ns.coll === 'activities') return;
 
             console.log(data);
 
-            docDeleteListener({ data, tenant, cristata: this });
-            docModifyListener({ data, tenant, cristata: this });
-            docPublishListener({ data, tenant, cristata: this });
-            docUnpublishListener({ data, tenant, cristata: this });
+            const listenerInput = {
+              // @ts-expect-error wallTime actually exists
+              data: { ...data, wallTime: new Date(data.wallTime) },
+              tenant,
+              cristata: this,
+              db: tenantDbConn.db,
+              dispatchEvent: (doc: Omit<ChangeStreamEventDoc, '_id'>) => {
+                return tenantDbConn.db.collection<EventDoc>('cristataevents').insertOne({
+                  _id: new Types.ObjectId(),
+                  ...doc,
+                });
+              },
+              computeDiff: (beforeDoc?: CollectionDoc, afterDoc?: CollectionDoc) => {
+                if (beforeDoc && afterDoc) {
+                  const diff = detailedDiff(beforeDoc, afterDoc);
+                  return {
+                    added: JSON.stringify(diff.added) !== '{}' ? diff.added : undefined,
+                    deleted: JSON.stringify(diff.deleted) !== '{}' ? diff.deleted : undefined,
+                    updated: JSON.stringify(diff.updated) !== '{}' ? diff.updated : undefined,
+                  };
+                }
+                return {};
+              },
+              getModelName: (collectionName: string) => {
+                const collectionNames = this.config[tenant].collections.map((col) => {
+                  return {
+                    name: col.name,
+                    mongoName: pluralizeFunc()?.(col.name) || pluralize(col.name),
+                  };
+                });
+                return (
+                  collectionNames.find((col) => col.mongoName === collectionName)?.name ||
+                  capitalize(pluralize.singular(collectionName))
+                );
+              },
+            };
+
+            docDeleteListener(listenerInput);
+            docModifyListener(listenerInput);
+            docPublishListener(listenerInput);
+            docUnpublishListener(listenerInput);
           });
 
         // this.config[tenant].collections
