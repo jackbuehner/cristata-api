@@ -12,6 +12,7 @@ const collection: GenSchemaInput = {
     reason: { type: 'String', required: true },
     at: { type: 'Date', required: true },
     document: { type: 'JSON', required: false },
+    webhook: { type: 'JSON', required: false },
   },
   options: {
     disableFindOneQuery: false,
