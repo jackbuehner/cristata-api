@@ -17,7 +17,7 @@ export function hasChangeStreamNamespace<TSchema extends BSON.Document = BSON.Do
   );
 }
 
-type ChangeStreamDocumentWithNamespace<TSchema extends BSON.Document = BSON.Document> =
+export type ChangeStreamDocumentWithNamespace<TSchema extends BSON.Document = BSON.Document> =
   | mongodb.ChangeStreamInsertDocument<TSchema>
   | mongodb.ChangeStreamUpdateDocument<TSchema>
   | mongodb.ChangeStreamReplaceDocument<TSchema>
