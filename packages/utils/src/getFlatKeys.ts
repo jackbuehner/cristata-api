@@ -8,6 +8,8 @@ function getFlatKeys(obj: Record<string, unknown>) {
       const current = parent ? parent + '.' + k : k;
 
       if (isObject(o) && isObject(o[k])) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         walk(o[k], current);
       } else {
         keys.push(current);
