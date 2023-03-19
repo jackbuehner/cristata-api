@@ -1,0 +1,36 @@
+diff --git a/node_modules/typescript/lib/tsc.js b/node_modules/typescript/lib/tsc.js
+index d3d0ee3..c10e579 100644
+--- a/node_modules/typescript/lib/tsc.js
++++ b/node_modules/typescript/lib/tsc.js
+@@ -118612,18 +118612,20 @@ function getLocaleTimeString(system) {
+ }
+ function createWatchStatusReporter(system, pretty) {
+   return pretty ? (diagnostic, newLine, options) => {
+-    clearScreenIfNotWatchingForFileChanges(system, diagnostic, options);
+-    let output = `[${formatColorAndReset(getLocaleTimeString(system), "\x1B[90m" /* Grey */)}] `;
+-    output += `${flattenDiagnosticMessageText(diagnostic.messageText, system.newLine)}${newLine + newLine}`;
+-    system.write(output);
++    // suppress logging when watching for changes
++    // clearScreenIfNotWatchingForFileChanges(system, diagnostic, options);
++    // let output = `[${formatColorAndReset(getLocaleTimeString(system), "\x1B[90m" /* Grey */)}] `;
++    // output += `${flattenDiagnosticMessageText(diagnostic.messageText, system.newLine)}${newLine + newLine}`;
++    // system.write(output);
+   } : (diagnostic, newLine, options) => {
+-    let output = "";
+-    if (!clearScreenIfNotWatchingForFileChanges(system, diagnostic, options)) {
+-      output += newLine;
+-    }
+-    output += `${getLocaleTimeString(system)} - `;
+-    output += `${flattenDiagnosticMessageText(diagnostic.messageText, system.newLine)}${getPlainDiagnosticFollowingNewLines(diagnostic, newLine)}`;
+-    system.write(output);
++    // suppress logging when watching for changes
++    // let output = "";
++    // if (!clearScreenIfNotWatchingForFileChanges(system, diagnostic, options)) {
++    //   output += newLine;
++    // }
++    // output += `${getLocaleTimeString(system)} - `;
++    // output += `${flattenDiagnosticMessageText(diagnostic.messageText, system.newLine)}${getPlainDiagnosticFollowingNewLines(diagnostic, newLine)}`;
++    // system.write(output);
+   };
+ }
+ function parseConfigFileWithSystem(configFileName, optionsToExtend, extendedConfigCache, watchOptionsToExtend, system, reportDiagnostic) {
