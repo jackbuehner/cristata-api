@@ -1,0 +1,101 @@
+diff --git a/node_modules/passport-local-mongoose/index.d.ts b/node_modules/passport-local-mongoose/index.d.ts
+index b037ef5..cb64a0e 100644
+--- a/node_modules/passport-local-mongoose/index.d.ts
++++ b/node_modules/passport-local-mongoose/index.d.ts
+@@ -33,7 +33,7 @@ declare module 'mongoose' {
+       register(user: T, password: string, cb: (err: any, account: any) => void): void;
+       findByUsername(username: string, selectHashSaltFields: boolean): Query<T, T>;
+       findByUsername(username: string, selectHashSaltFields: boolean, cb: (err: any, account: any) => void): any;
+-      createStrategy(): passportLocal.Strategy;
++      createStrategy({ tenant: string }): passportLocal.Strategy;
+   }
+ 
+   // error messages
+diff --git a/node_modules/passport-local-mongoose/index.js b/node_modules/passport-local-mongoose/index.js
+index c8c468a..f24a857 100755
+--- a/node_modules/passport-local-mongoose/index.js
++++ b/node_modules/passport-local-mongoose/index.js
+@@ -154,7 +154,21 @@ module.exports = function (schema, options) {
+         return authenticate(this, password, options);
+       }
+ 
+-      return this.constructor.findByUsername(this.get(options.usernameField), true).then((user) => {
++      if (this.get(options.usernameField)) {
++        return this.constructor.findByUsername(this.get(options.usernameField), true).then((user) => {
++          if (user) {
++            return authenticate(user, password, options);
++          }
++          
++          return { user: false, error: new errors.IncorrectUsernameError(options.errorMessages.IncorrectUsernameError) };
++        });
++      }
++
++      // When neither the salt field nor the username field are already fetched
++      // from the database (accessed via `this`), we must fetch the user trying
++      // to be authenticated from the database and include the salt and hash
++      // fields (they are excluded by default)
++      return this.constructor.findOne(this._id).select(options.hashField).select(options.saltField).then((user) => {
+         if (user) {
+           return authenticate(user, password, options);
+         }
+@@ -305,8 +319,10 @@ module.exports = function (schema, options) {
+     return query;
+   };
+ 
+-  schema.statics.createStrategy = function () {
+-    return new LocalStrategy(options, this.authenticate());
++  schema.statics.createStrategy = function({ tenant }) {
++    // provide tenant to the local strategy so it can name the strategy (local-tenant)
++    // so that each tenant has its own strategy that is connected to the tenant's database
++    return new LocalStrategy({ ...options, tenant }, this.authenticate());
+   };
+ };
+ 
+diff --git a/node_modules/passport-local-mongoose/lib/authenticate.js b/node_modules/passport-local-mongoose/lib/authenticate.js
+index a222582..7c35b6f 100755
+--- a/node_modules/passport-local-mongoose/lib/authenticate.js
++++ b/node_modules/passport-local-mongoose/lib/authenticate.js
+@@ -16,6 +16,7 @@ module.exports = function (user, password, options, cb) {
+ 
+ function authenticate(user, password, options, cb) {
+   let promise = Promise.resolve();
++  console.log(user, options.saltField)
+ 
+   if (options.limitAttempts) {
+     const attemptsInterval = Math.pow(options.interval, Math.log(user.get(options.attemptsField) + 1));
+@@ -60,17 +61,25 @@ function authenticate(user, password, options, cb) {
+         if (options.limitAttempts) {
+           user.set(options.lastLoginField, Date.now());
+           user.set(options.attemptsField, 0);
+-          user
+-            .save()
+-            .then(function (user) {
+-              return cb(null, user);
+-            })
+-            .catch(function (saveErr) {
+-              return cb(saveErr);
+-            });
+-        } else {
+-          return cb(null, user);
+         }
++
++        // add local method to the user's methods
++        user.set('methods', Array.from(new Set([...(user.methods || []), 'local'])));
++
++        user
++          .save()
++          .then(function (user) {
++            const userObj = user.toObject();
++            console.log(userObj)
++
++            // include the tenant name so that passport can deserialize the user by matching it
++            // in the correct database
++            // include the provider name so passport knows which provider was used
++            return cb(null, {...user.toObject(), provider: 'local', tenant: user.db.name});
++          })
++          .catch(function (saveErr) {
++            return cb(saveErr);
++          });
+       } else {
+         if (options.limitAttempts) {
+           user.set(options.lastLoginField, Date.now());

@@ -39,7 +39,7 @@ async function connectDb(database = `app`, uri: string | null = null) {
 
   // create a new connection, using a cached connection if it exists
   // (cached connections ensure that models are preserved)
-  cached.conn = (await cached.promise).connection.useDb(database, { useCache: true });
+  cached.conn = (await (await cached.promise).connection.asPromise()).useDb(database, { useCache: true });
 
   return cached.conn;
 }
