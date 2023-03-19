@@ -2,6 +2,7 @@ import {
   ChangeStreamEventDoc,
   EventDoc,
 } from '@jackbuehner/cristata-generator-schema/src/default-schemas/Event';
+import { WebhookDoc } from '@jackbuehner/cristata-generator-schema/src/default-schemas/Webhook';
 import {
   capitalize,
   hasChangeStreamNamespace,
@@ -14,6 +15,7 @@ import { Application, Router } from 'express';
 import http from 'http';
 import { ObjectId, pluralize as pluralizeFunc, Types } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
+import { get as getProperty } from 'object-path';
 import pluralize from 'pluralize';
 import { createExpressApp } from './app';
 import { CollectionDoc } from './graphql/helpers';
@@ -369,12 +371,89 @@ class Cristata {
             }
           )
           .on('change', async (data) => {
-            if (!hasChangeStreamNamespace<TenantsCollectionSchema>(data)) return;
+            if (!hasChangeStreamNamespace(data)) return;
             if (data.ns.db !== tenant) return;
-            if (data.ns.coll === 'cristataevents') return;
             if (data.ns.coll === 'activities') return;
+            if (data.ns.coll === 'users') return;
 
-            console.log(data);
+            // dispatch webhooks in response to event document insertion
+            if (data.ns.coll === 'cristataevents') {
+              if (data.operationType === 'insert' && data.fullDocument) {
+                const eventDoc = data.fullDocument as unknown as EventDoc;
+
+                // dispatch webhooks that match this document edit event
+                if (eventDoc.document) {
+                  const res = await tenantDbConn.db
+                    .collection<WebhookDoc>('cristatawebhooks')
+                    // @ts-expect-error the filter type is excessively picky
+                    .find({ collections: eventDoc.document.collection, triggers: eventDoc.name })
+                    .toArray();
+
+                  res.forEach((webhook) => {
+                    // make sure at least one event condition is satisfied if any conditions are specified
+                    const satisfied =
+                      webhook.filters.length === 0
+                        ? true
+                        : webhook.filters.some(({ key, condition, value }) => {
+                            if (condition === 'equals') {
+                              let docValue = getProperty(eventDoc.document || {}, key);
+                              if (typeof docValue === 'object') docValue = JSON.stringify(docValue);
+                              return docValue === value;
+                            }
+
+                            if (condition === 'not equals') {
+                              let docValue = getProperty(eventDoc.document || {}, key);
+                              if (typeof docValue === 'object') docValue = JSON.stringify(docValue);
+                              return docValue !== value;
+                            }
+
+                            return false;
+                          });
+
+                    // dispatch the webhook
+                    if (satisfied) {
+                      const method = webhook.verb === 'GET' || webhook.verb === 'POST' ? webhook.verb : 'POST';
+
+                      fetch(webhook.url, {
+                        method: method,
+                        headers: {
+                          Accept: 'application/json',
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(eventDoc || {}),
+                      })
+                        .then((res) => {
+                          if (res.status === 200) return '200';
+                          return `Failed with status code ${res.status}`;
+                        })
+                        .catch(() => {
+                          return 'Failed to reach webhook URL';
+                        })
+                        .then((message) => {
+                          console.log(message);
+                          // create webhook event
+                          tenantDbConn.db.collection<EventDoc>('cristataevents').insertOne({
+                            _id: new Types.ObjectId(),
+                            name: 'webhook',
+                            at: new Date(),
+                            reason: `${eventDoc.name} event`,
+                            webhook: {
+                              _id: webhook._id,
+                              name: webhook.name,
+                              collection: eventDoc.document?.collection || '',
+                              trigger: eventDoc.reason,
+                              url: webhook.url,
+                              verb: webhook.verb,
+                              result: message,
+                            },
+                          });
+                        });
+                    }
+                  });
+                }
+              }
+              return;
+            }
 
             const listenerInput = {
               // @ts-expect-error wallTime actually exists

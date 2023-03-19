@@ -44,7 +44,7 @@ interface WebhookDoc {
   name: string;
   verb: 'GET' | 'POST' | (string & {});
   url: string;
-  triggers: 'modify' | 'delete' | 'publish' | 'unpublish' | (string & {});
+  triggers: ('modify' | 'delete' | 'publish' | 'unpublish' | (string & {}))[];
   collections: [];
   filters: Array<{
     key: string;

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { GenSchemaInput } from '../genSchema';
+import { WebhookDoc } from './Webhook';
 
 const collection: GenSchemaInput = {
   name: 'CristataEvent',
@@ -57,6 +58,15 @@ interface EventDoc {
     deleted?: object;
     updated?: object;
   };
+  webhook?: {
+    _id: mongoose.Types.ObjectId;
+    name: WebhookDoc['name'];
+    verb: WebhookDoc['verb'];
+    url: WebhookDoc['url'];
+    trigger: string;
+    collection: string;
+    result: string;
+  };
 }
 
 interface ChangeStreamEventDoc
@@ -66,5 +76,12 @@ interface ChangeStreamEventDoc
     Pick<EventDoc, 'reason'>,
     Required<Pick<EventDoc, 'document'>> {}
 
+interface WebhookEventDoc
+  extends Pick<EventDoc, '_id'>,
+    Pick<EventDoc, 'name'>,
+    Pick<EventDoc, 'at'>,
+    Pick<EventDoc, 'reason'>,
+    Required<Pick<EventDoc, 'webhook'>> {}
+
 export default collection;
-export type { EventDoc, ChangeStreamEventDoc };
+export type { EventDoc, ChangeStreamEventDoc, WebhookEventDoc };
