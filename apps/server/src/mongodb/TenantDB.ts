@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import passport from 'passport';
+import pluralize from 'pluralize';
 import { Collection } from '../types/config';
 import { constructCollections } from '../utils/constructCollections';
 import { connectDb } from './connectDB';
@@ -32,7 +33,8 @@ class TenantDB {
    * **THIS MUST BE USED BEFORE ANY DATABASE OPERATION.**
    */
   async connect() {
-    return await connectDb(this.tenant, this.opts?.uri);
+    const connection = await connectDb(this.tenant, this.opts?.uri);
+    return connection;
   }
 
   /**
@@ -89,6 +91,15 @@ class TenantDB {
 
     // create text search index
     createTextIndex(collection, Schema, connection);
+
+    // enable change stream images
+    // so the previous document state can be used for comparison to the new state
+    try {
+      const pluralCollectionName = mongoose.pluralize()?.(collection.name) || pluralize(collection.name);
+      connection.db.command({ collMod: pluralCollectionName, changeStreamPreAndPostImages: { enabled: true } });
+    } catch (error) {
+      console.error(error);
+    }
 
     // save schema and model
     this.schemas.set(name, Schema);
