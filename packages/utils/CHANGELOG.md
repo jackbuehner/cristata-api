@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-utils
 
+## 2.3.0
+
+### Minor Changes
+
+- 4c70379: upgrade to mongoose 7 (supports mongodb 6)
+
 ## 2.2.1
 
 ### Patch Changes
