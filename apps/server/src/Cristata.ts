@@ -5,9 +5,16 @@ import http from 'http';
 import { ObjectId } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 import { createExpressApp } from './app';
+import { CollectionDoc } from './graphql/helpers';
 import { GenCollectionInput } from './graphql/helpers/generators/genCollection';
 import { apollo } from './graphql/server';
 import { connectDb } from './mongodb/connectDB';
+import {
+  docDeleteListener,
+  docModifyListener,
+  docPublishListener,
+  docUnpublishListener,
+} from './mongodb/listeners';
 import { Collection, Configuration } from './types/config';
 import { constructCollections } from './utils/constructCollections';
 
@@ -146,6 +153,9 @@ class Cristata {
 
         // listen for tenant changes
         this.listenForConfigChange();
+
+        // listen for tenant database events
+        this.listenForCollectionDocChanges();
       });
     } catch (error) {
       console.error(`Failed to start Cristata  server on port ${process.env.PORT}!`, error);
@@ -311,6 +321,33 @@ class Cristata {
         }
       }
     });
+  }
+
+  async listenForCollectionDocChanges(): Promise<void> {
+    await Promise.all(
+      this.tenants.map(async (tenant) => {
+        const tenantDbConn = await connectDb(tenant);
+
+        tenantDbConn
+          .watch<CollectionDoc>([], {
+            fullDocumentBeforeChange: 'whenAvailable',
+            fullDocument: 'whenAvailable',
+          })
+          .on('change', async (data) => {
+            if (!hasChangeStreamNamespace<TenantsCollectionSchema>(data)) return;
+            if (data.ns.db !== tenant) return;
+
+            console.log(data);
+
+            docDeleteListener({ data, tenant, cristata: this });
+            docModifyListener({ data, tenant, cristata: this });
+            docPublishListener({ data, tenant, cristata: this });
+            docUnpublishListener({ data, tenant, cristata: this });
+          });
+
+        // this.config[tenant].collections
+      })
+    );
   }
 }
 
