@@ -8,6 +8,7 @@ import { files } from '../mongodb/files';
 import { photos } from '../mongodb/photos';
 import teams from '../mongodb/teams.collection.json';
 import { users } from '../mongodb/users';
+import { webhooks } from '../mongodb/webhooks';
 import { Collection } from '../types/config';
 
 function constructCollections(collections: (Collection | GenCollectionInput)[], tenant: string): Collection[] {
@@ -55,6 +56,7 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
     photosCollection,
     activities(tenant),
     events(tenant),
+    webhooks(tenant),
     helpers.generators.genCollection(teams as unknown as GenCollectionInput, tenant),
     ...collections
       .filter((col): col is GenCollectionInput => !!col && !isCollection(col))
