@@ -1,6 +1,6 @@
 {
   "name": "@jackbuehner/cristata-hocuspocus",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "scripts": {
     "start": "cross-env SERVER_AUTH_URL=${SERVER_AUTH_URL:=https://server.cristata.app/auth} node dist/index.js",
     "dev:prepare": "tsc",

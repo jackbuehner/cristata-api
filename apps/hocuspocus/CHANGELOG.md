@@ -1,5 +1,18 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.5.0
+
+### Minor Changes
+
+- 41dc22e: track history in the activity collection
+- 4c70379: upgrade to mongoose 7 (supports mongodb 6)
+- b50a367: reduce ydoc versions array length when doc is too large
+
+### Patch Changes
+
+- 1a222f0: do not attempt to cast objectId if hexId is not correct length during update and history logic in the `onDisconnect` function
+- 88dff8f: do not attempt to set history for a doc if the user id hex string is not 24 characters long
+
 ## 1.4.0
 
 ### Minor Changes

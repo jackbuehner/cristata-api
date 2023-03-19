@@ -1,5 +1,21 @@
 # Changelog
 
+## 10.3.0
+
+### Minor Changes
+
+- 1a222f0: apply setters to published copy of document
+- cbe6e90: add config for profiles app field descriptions, support setting action access for users collection, use tenant name instead of hardcoded string when updating a collection, and use database listener to update config instead of manually updating the config in the Cristata instance
+- eefd3d0: add canCreateAndGet boolean to collection config
+- 41dc22e: track history in the activity collection
+- 4c70379: upgrade to mongoose 7 (supports mongodb 6)
+- 80b33a4: include endpoints for tauri app releases
+
+### Patch Changes
+
+- 88dff8f: include mongoose schema for \_\_publishedDoc
+- eb79abf: do not exclude File collection from API collections list
+
 ## 10.2.0
 
 ### Minor Changes

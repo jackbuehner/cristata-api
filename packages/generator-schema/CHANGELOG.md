@@ -1,5 +1,15 @@
 # @jackbuehner/cristata-generator-schema
 
+## 3.7.0
+
+### Minor Changes
+
+- cbe6e90: add config for profiles app field descriptions, support setting action access for users collection, use tenant name instead of hardcoded string when updating a collection, and use database listener to update config instead of manually updating the config in the Cristata instance
+- 41dc22e: track history in the activity collection
+- 4c70379: upgrade to mongoose 7 (supports mongodb 6)
+- 1a222f0: support non-lean mongoose documents when modifying doc based on setters
+- 1a222f0: support getting schema fields that cannot be required
+
 ## 3.6.0
 
 ### Minor Changes
