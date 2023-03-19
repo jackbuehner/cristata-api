@@ -5,3 +5,4 @@ database
 cache.turbo
 .turbo
 tsconfig.tsbuildinfo
+mongodb-binaries

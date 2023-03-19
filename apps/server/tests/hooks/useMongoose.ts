@@ -26,7 +26,9 @@ function useMongoose(): {
   let mongoServer: MongoMemoryServer | undefined = undefined;
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create({ binary: { downloadDir: './cache/mongodb-binaries' } });
+    mongoServer = await MongoMemoryServer.create({
+      binary: { downloadDir: './cache/mongodb-binaries', version: '6.0.2' },
+    });
     await mongoose.connect(mongoServer.getUri(), {});
   }, 20000);
 
