@@ -306,7 +306,7 @@ class Cristata {
   async listenForConfigChange(): Promise<void> {
     this.tenantsCollection?.watch().on('change', async (data) => {
       if (
-        hasChangeStreamNamespace<TenantsCollectionSchema>(data) &&
+        hasChangeStreamNamespace(data) &&
         data.ns.db === 'app' &&
         data.ns.coll === 'tenants' &&
         data.operationType === 'update'

@@ -3,9 +3,9 @@ import type { BSON } from 'mongoose/node_modules/bson';
 import type mongodb from 'mongoose/node_modules/mongodb';
 import { hasKey } from './hasKey';
 
-export function hasChangeStreamNamespace<TSchema extends BSON.Document = BSON.Document>(
+export function hasChangeStreamNamespace(
   data: mongodb.ChangeStreamDocument
-): data is ChangeStreamDocumentWithNamespace<TSchema> {
+): data is ChangeStreamDocumentWithNamespace {
   return (
     isObject(data) &&
     hasKey('ns', data) &&
