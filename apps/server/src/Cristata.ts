@@ -23,6 +23,7 @@ import { GenCollectionInput } from './graphql/helpers/generators/genCollection';
 import { apollo } from './graphql/server';
 import { connectDb } from './mongodb/connectDB';
 import {
+  docCreateListener,
   docDeleteListener,
   docModifyListener,
   docPublishListener,
@@ -492,13 +493,12 @@ class Cristata {
               },
             };
 
+            docCreateListener(listenerInput);
             docDeleteListener(listenerInput);
             docModifyListener(listenerInput);
             docPublishListener(listenerInput);
             docUnpublishListener(listenerInput);
           });
-
-        // this.config[tenant].collections
       })
     );
   }

@@ -1,3 +1,4 @@
+export { docCreateListener } from './docCreateListener';
 export { docDeleteListener } from './docDeleteListener';
 export { docModifyListener } from './docModifyListener';
 export { docPublishListener } from './docPublishListener';
