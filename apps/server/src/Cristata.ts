@@ -1,13 +1,34 @@
-import { hasChangeStreamNamespace, replaceCircular, unflattenObject } from '@jackbuehner/cristata-utils';
+import {
+  ChangeStreamEventDoc,
+  EventDoc,
+} from '@jackbuehner/cristata-generator-schema/src/default-schemas/Event';
+import { WebhookDoc } from '@jackbuehner/cristata-generator-schema/src/default-schemas/Webhook';
+import {
+  capitalize,
+  hasChangeStreamNamespace,
+  replaceCircular,
+  unflattenObject,
+} from '@jackbuehner/cristata-utils';
 import { Logtail } from '@logtail/node';
+import { detailedDiff } from 'deep-object-diff';
 import { Application, Router } from 'express';
 import http from 'http';
-import { ObjectId } from 'mongoose';
+import { ObjectId, pluralize as pluralizeFunc, Types } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
+import { get as getProperty } from 'object-path';
+import pluralize from 'pluralize';
 import { createExpressApp } from './app';
+import { CollectionDoc } from './graphql/helpers';
 import { GenCollectionInput } from './graphql/helpers/generators/genCollection';
 import { apollo } from './graphql/server';
 import { connectDb } from './mongodb/connectDB';
+import {
+  docCreateListener,
+  docDeleteListener,
+  docModifyListener,
+  docPublishListener,
+  docUnpublishListener,
+} from './mongodb/listeners';
 import { Collection, Configuration } from './types/config';
 import { constructCollections } from './utils/constructCollections';
 
@@ -146,6 +167,9 @@ class Cristata {
 
         // listen for tenant changes
         this.listenForConfigChange();
+
+        // listen for tenant database events
+        this.listenForCollectionDocChanges();
       });
     } catch (error) {
       console.error(`Failed to start Cristata  server on port ${process.env.PORT}!`, error);
@@ -285,7 +309,7 @@ class Cristata {
   async listenForConfigChange(): Promise<void> {
     this.tenantsCollection?.watch().on('change', async (data) => {
       if (
-        hasChangeStreamNamespace<TenantsCollectionSchema>(data) &&
+        hasChangeStreamNamespace(data) &&
         data.ns.db === 'app' &&
         data.ns.coll === 'tenants' &&
         data.operationType === 'update'
@@ -311,6 +335,172 @@ class Cristata {
         }
       }
     });
+  }
+
+  async listenForCollectionDocChanges(): Promise<void> {
+    await Promise.all(
+      this.tenants.map(async (tenant) => {
+        const tenantDbConn = await connectDb(tenant);
+
+        tenantDbConn
+          .watch<CollectionDoc>(
+            [
+              {
+                $project: {
+                  'fullDocument.__publishedDoc': 0,
+                  'fullDocument._hasPublishedDoc': 0,
+                  'fullDocument.__v': 0,
+                  'fullDocument.__stateExists': 0,
+                  'fullDocument.__migrationBackup': 0,
+                  'fullDocument.__yState': 0,
+                  'fullDocument.__yVersions': 0,
+                  'fullDocument.__versions': 0,
+                  'fullDocumentBeforeChange.__publishedDoc': 0,
+                  'fullDocumentBeforeChange._hasPublishedDoc': 0,
+                  'fullDocumentBeforeChange.__v': 0,
+                  'fullDocumentBeforeChange.__stateExists': 0,
+                  'fullDocumentBeforeChange.__migrationBackup': 0,
+                  'fullDocumentBeforeChange.__yState': 0,
+                  'fullDocumentBeforeChange.__yVersions': 0,
+                  'fullDocumentBeforeChange.__versions': 0,
+                },
+              },
+            ],
+            {
+              fullDocumentBeforeChange: 'whenAvailable',
+              fullDocument: 'whenAvailable',
+            }
+          )
+          .on('change', async (data) => {
+            if (!hasChangeStreamNamespace(data)) return;
+            if (data.ns.db !== tenant) return;
+            if (data.ns.coll === 'activities') return;
+            if (data.ns.coll === 'users') return;
+
+            // dispatch webhooks in response to event document insertion
+            if (data.ns.coll === 'cristataevents') {
+              if (data.operationType === 'insert' && data.fullDocument) {
+                const eventDoc = data.fullDocument as unknown as EventDoc;
+
+                // dispatch webhooks that match this document edit event
+                if (eventDoc.document) {
+                  const res = await tenantDbConn.db
+                    .collection<WebhookDoc>('cristatawebhooks')
+                    // @ts-expect-error the filter type is excessively picky
+                    .find({ collections: eventDoc.document.collection, triggers: eventDoc.name })
+                    .toArray();
+
+                  res.forEach((webhook) => {
+                    // make sure at least one event condition is satisfied if any conditions are specified
+                    const satisfied =
+                      webhook.filters.length === 0
+                        ? true
+                        : webhook.filters.some(({ key, condition, value }) => {
+                            if (condition === 'equals') {
+                              let docValue = getProperty(eventDoc.document || {}, key);
+                              if (typeof docValue === 'object') docValue = JSON.stringify(docValue);
+                              return docValue === value;
+                            }
+
+                            if (condition === 'not equals') {
+                              let docValue = getProperty(eventDoc.document || {}, key);
+                              if (typeof docValue === 'object') docValue = JSON.stringify(docValue);
+                              return docValue !== value;
+                            }
+
+                            return false;
+                          });
+
+                    // dispatch the webhook
+                    if (satisfied) {
+                      const method = webhook.verb === 'GET' || webhook.verb === 'POST' ? webhook.verb : 'POST';
+
+                      fetch(webhook.url, {
+                        method: method,
+                        headers: {
+                          Accept: 'application/json',
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(eventDoc || {}),
+                      })
+                        .then((res) => {
+                          if (res.status === 200) return '200';
+                          return `Failed with status code ${res.status}`;
+                        })
+                        .catch(() => {
+                          return 'Failed to reach webhook URL';
+                        })
+                        .then((message) => {
+                          console.log(message);
+                          // create webhook event
+                          tenantDbConn.db.collection<EventDoc>('cristataevents').insertOne({
+                            _id: new Types.ObjectId(),
+                            name: 'webhook',
+                            at: new Date(),
+                            reason: `${eventDoc.name} event`,
+                            webhook: {
+                              _id: webhook._id,
+                              name: webhook.name,
+                              collection: eventDoc.document?.collection || '',
+                              trigger: eventDoc.reason,
+                              url: webhook.url,
+                              verb: webhook.verb,
+                              result: message,
+                            },
+                          });
+                        });
+                    }
+                  });
+                }
+              }
+              return;
+            }
+
+            const listenerInput = {
+              // @ts-expect-error wallTime actually exists
+              data: { ...data, wallTime: new Date(data.wallTime) },
+              tenant,
+              cristata: this,
+              db: tenantDbConn.db,
+              dispatchEvent: (doc: Omit<ChangeStreamEventDoc, '_id'>) => {
+                return tenantDbConn.db.collection<EventDoc>('cristataevents').insertOne({
+                  _id: new Types.ObjectId(),
+                  ...doc,
+                });
+              },
+              computeDiff: (beforeDoc?: CollectionDoc, afterDoc?: CollectionDoc) => {
+                if (beforeDoc && afterDoc) {
+                  const diff = detailedDiff(beforeDoc, afterDoc);
+                  return {
+                    added: JSON.stringify(diff.added) !== '{}' ? diff.added : undefined,
+                    deleted: JSON.stringify(diff.deleted) !== '{}' ? diff.deleted : undefined,
+                    updated: JSON.stringify(diff.updated) !== '{}' ? diff.updated : undefined,
+                  };
+                }
+                return {};
+              },
+              getModelName: (collectionName: string) => {
+                const collectionNames = this.config[tenant].collections.map((col) => {
+                  return {
+                    name: col.name,
+                    mongoName: pluralizeFunc()?.(col.name) || pluralize(col.name),
+                  };
+                });
+                return (
+                  collectionNames.find((col) => col.mongoName === collectionName)?.name ||
+                  capitalize(pluralize.singular(collectionName))
+                );
+              },
+            };
+
+            docCreateListener(listenerInput);
+            docDeleteListener(listenerInput);
+            docModifyListener(listenerInput);
+            docPublishListener(listenerInput);
+            docUnpublishListener(listenerInput);
+          });
+      })
+    );
   }
 }
 
