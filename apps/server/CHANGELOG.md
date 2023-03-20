@@ -1,5 +1,17 @@
 # Changelog
 
+## 10.4.0
+
+### Minor Changes
+
+- 7c1c86a: add collection document deletion listener
+- 7c1c86a: enable change stream images from before and after a change
+- 7c1c86a: add events collection to store listener results (and results from any other types of events added in the future)
+- 7c1c86a: add collection document modification listener
+- 7c1c86a: add ability to dispatch webhooks and dispatch the result as an event
+- 7c1c86a: add collection document publish and unpublish listeners
+- 7c1c86a: add webhooks collection for storing webhook configurations
+
 ## 10.3.0
 
 ### Minor Changes

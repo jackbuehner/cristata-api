@@ -1,6 +1,6 @@
 {
   "name": "@jackbuehner/cristata-utils",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "author": "Jack Buehner",
   "license": "ISC",
   "main": "dist/index",
