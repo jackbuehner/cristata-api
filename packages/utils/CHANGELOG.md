@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-utils
 
+## 2.4.0
+
+### Minor Changes
+
+- 7c1c86a: add util to check if change stream data has a namespace
+
 ## 2.3.0
 
 ### Minor Changes

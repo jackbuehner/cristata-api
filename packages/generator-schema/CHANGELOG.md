@@ -1,5 +1,12 @@
 # @jackbuehner/cristata-generator-schema
 
+## 3.8.0
+
+### Minor Changes
+
+- 7c1c86a: add events collection to store listener results (and results from any other types of events added in the future)
+- 7c1c86a: add webhooks collection for storing webhook configurations
+
 ## 3.7.0
 
 ### Minor Changes
