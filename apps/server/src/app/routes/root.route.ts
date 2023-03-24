@@ -103,7 +103,7 @@ router.get('/filestore/:tenant/:_id', async (req, res) => {
     const fileName =
       (foundFile.name.split('.').slice(0, -1) || 'file') + '.' + mime.extension(foundFile.file_type);
     res.setHeader('Content-Type', `${foundFile.file_type}; charset=UTF-8`);
-    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${fileName.replace(/[^a-zA-Z-._\d\s:]/g, '_')}"`);
 
     // allow usage on non-Cristata websites
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -144,7 +144,7 @@ router.get('/photo/:tenant/:_id', async (req, res) => {
     const fileName =
       (foundPhoto.name.split('.').slice(0, -1) || 'photo') + '.' + mime.extension(foundPhoto.file_type);
     res.setHeader('Content-Type', `${foundPhoto.file_type}; charset=UTF-8`);
-    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${fileName.replace(/[^a-zA-Z-._\d\s:]/g, '_')}"`);
 
     // allow usage on non-Cristata websites
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
