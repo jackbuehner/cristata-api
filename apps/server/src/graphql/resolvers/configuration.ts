@@ -593,17 +593,16 @@ const getCmsNavConfig = async (context: Context, key = 'cms') => {
                   const pluralName = pluralize(collection.name);
                   const hyphenatedName = camelToDashCase(pluralName);
                   let label = collection.navLabel || capitalize(hyphenatedName.replace('-', ' '));
-                  let to = `/cms/collection/${hyphenatedName}`;
+                  const to = `/cms/collection/${hyphenatedName}`;
 
                   if (collection.name === 'Photo') {
                     label = `Photo library`;
-                    to = `/cms/photos/library`;
                   }
 
                   return {
                     uuid: v3(label, 'c2af0a4c-5c85-4959-9e48-7dbd4f5fc8f7'),
                     label,
-                    icon: 'CircleSmall24Filled' as typeof context.config.navigation.sub['cms'][0]['items'][0]['icon'],
+                    icon: 'CircleSmall24Filled' as (typeof context.config.navigation.sub)['cms'][0]['items'][0]['icon'],
                     to,
                     isHidden,
                   };
