@@ -149,6 +149,9 @@ router.get('/photo/:tenant/:_id', async (req, res) => {
     // allow usage on non-Cristata websites
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
+    // cache for a year -- photos are immutable
+    res.setHeader('Cache-Control', 'private, max-age=31536000');
+
     // pipe the request to this url
     const bucketName =
       req.params.tenant === 'paladin-news'
