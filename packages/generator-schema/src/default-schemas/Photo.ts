@@ -16,6 +16,11 @@ const collection: GenSchemaInput = {
         order: 1,
         description: 'The name of the photo in Cristata. Be descriptive.',
       },
+      column: {
+        label: 'Photo name',
+        order: 2,
+        width: 300,
+      },
     },
     file_type: {
       type: 'String',
@@ -62,7 +67,7 @@ const collection: GenSchemaInput = {
         label: 'Tags',
         description: 'Keywords related to the photo. Allows easier searching for photos.',
       },
-      column: { order: 2, label: 'Tags', chips: true, width: 200 },
+      column: { order: 3, label: 'Tags', chips: true, width: 200 },
     },
     require_auth: {
       type: 'Boolean',
@@ -74,7 +79,7 @@ const collection: GenSchemaInput = {
         order: 4,
         label: 'Require authentication with Cristata to view or download this photo via the direct URL',
       },
-      column: { order: 3, label: 'Require login', chips: true, width: 150 },
+      column: { order: 5, label: 'Require login', chips: true, width: 150 },
     },
     width: {
       type: 'Number',
@@ -100,6 +105,10 @@ const collection: GenSchemaInput = {
           description:
             'The photographer or artist of the photo. Be sure to credit the photographer/artist appropriately and correctly. Only use photos you have the rights to use.',
         },
+        column: {
+          label: 'Source',
+          order: 4,
+        },
         modifiable: true,
       },
     } as NestedSchemaDefType,
@@ -117,6 +126,9 @@ const collection: GenSchemaInput = {
       field: {
         hidden: true,
       },
+      column: {
+        hidden: true,
+      },
     },
     legacy_thumbnail_id: {
       type: 'String',
@@ -124,11 +136,14 @@ const collection: GenSchemaInput = {
       field: {
         hidden: true,
       },
+      column: {
+        hidden: true,
+      },
     },
   },
   options: {
     disablePublicFindOneBySlugQuery: true,
-    disableHideMutation: true,
+    disableHideMutation: false,
     disableArchiveMutation: true,
     disableLockMutation: true,
     disableWatchMutation: true,
