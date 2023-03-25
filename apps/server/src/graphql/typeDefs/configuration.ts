@@ -241,6 +241,37 @@ const profilesApp = gql`
   }
 `;
 
-const configuration = base + dashboard + navigation + collection + security + apps + profilesApp;
+const photosApp = gql`
+  extend type ConfigurationApps {
+    photos: ConfigurationPhotosApp!
+  }
+
+  type ConfigurationPhotosApp {
+    fieldDescriptions: ConfigurationPhotosAppFieldDescriptions!
+    defaultFieldDescriptions: ConfigurationPhotosAppFieldDescriptions!
+  }
+
+  type ConfigurationPhotosAppFieldDescriptions {
+    name: String!
+    source: String!
+    tags: String!
+    requireAuth: String!
+    note: String!
+  }
+
+  input ConfigurationPhotosAppFieldDescriptionsInput {
+    name: String!
+    source: String!
+    tags: String!
+    requireAuth: String!
+    note: String!
+  }
+
+  type Mutation {
+    setPhotosAppFieldDescriptions(input: ConfigurationPhotosAppFieldDescriptionsInput!): Void
+  }
+`;
+
+const configuration = base + dashboard + navigation + collection + security + apps + profilesApp + photosApp;
 
 export { configuration };

@@ -116,6 +116,19 @@ const photos = (tenant: string): Collection => {
         const raw = collectionsAsCollectionInputs(currentCollectionConfig);
         const rawCopy = JSON.parse(JSON.stringify(raw)) as typeof raw;
 
+        // convert `"0"` to `0` since the config expects a number but the api only allows strings as an input
+        actionAccess = Object.fromEntries(
+          Object.entries(actionAccess).map(([key, value]) => {
+            return [
+              key,
+              {
+                users: value.users.map((user) => (user === '0' ? 0 : user)),
+                teams: value.teams.map((team) => (team === '0' ? 0 : team)),
+              } as typeof value,
+            ];
+          })
+        ) as Partial<CollectionPermissions>;
+
         // merge the new action access config with the existing one (overwrite arrays)
         rawCopy.actionAccess = merge(rawCopy.actionAccess, actionAccess);
 

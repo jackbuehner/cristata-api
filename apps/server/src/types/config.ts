@@ -209,6 +209,15 @@ interface Configuration<CT = Collection> {
         title?: string;
       };
     };
+    photos?: {
+      fieldDescriptions?: {
+        name?: string;
+        source?: string;
+        tags?: string;
+        requireAuth?: string;
+        note?: string;
+      };
+    };
   };
 }
 
