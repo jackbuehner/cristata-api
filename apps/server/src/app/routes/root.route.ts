@@ -6,6 +6,7 @@ import { IFile } from '../../mongodb/files';
 import { IPhoto } from '../../mongodb/photos';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';
+import { isInternalUse } from '../../utils/isInternalUse';
 import { IDeserializedUser } from '../passport';
 
 /**
@@ -152,12 +153,43 @@ router.get('/photo/:tenant/:_id', async (req, res) => {
     // cache for a year -- photos are immutable
     res.setHeader('Cache-Control', 'private, max-age=31536000');
 
-    // pipe the request to this url
+    // determine the bucket for this tenant
     const bucketName =
       req.params.tenant === 'paladin-news'
         ? 'paladin-photo-library'
         : `app.cristata.${req.params.tenant}.photos`;
-    const s3href = `https://s3.us-east-1.amazonaws.com/${bucketName}/${foundPhoto.uuid}`;
+
+    // construct the correct URL for this photo
+    // using transformations (if available and allowed)
+    // and fall back to the original photo location
+    let s3href: string;
+    const searchParams = req.query as unknown as URLSearchParams;
+    if (searchParams.has('tr') && isInternalUse(req)) {
+      const transformations = (searchParams.get('tr') || '').split(',');
+      const width = transformations.find((tr) => tr.indexOf('w-') === 0)?.replace('w-', '');
+      const height = transformations.find((tr) => tr.indexOf('h-') === 0)?.replace('h-', '');
+      const resizeFit = transformations.find((tr) => tr.indexOf('fit-') === 0)?.replace('fit-', '');
+
+      const cloudFrontLocation = 'https://d1m74hlt8nompf.cloudfront.net';
+
+      const imageParams = {
+        bucket: bucketName,
+        key: foundPhoto.uuid,
+        edits: {
+          resize: {
+            width,
+            height,
+            fit: resizeFit,
+          },
+        },
+      };
+
+      s3href = `${cloudFrontLocation}/${btoa(JSON.stringify(imageParams))}`;
+    } else {
+      s3href = `https://s3.us-east-1.amazonaws.com/${bucketName}/${foundPhoto.uuid}`;
+    }
+
+    // pipe the request to this photo
     const externalReq = https.request(s3href, (externalRes) => {
       externalRes.pipe(res);
     });
