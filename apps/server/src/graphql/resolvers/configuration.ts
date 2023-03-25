@@ -223,6 +223,24 @@ const configuration = {
         { returnDocument: 'after' }
       );
     },
+    setPhotosAppFieldDescriptions: async (
+      _: unknown,
+      { input }: { input: Record<string, string> },
+      context: Context
+    ): Promise<void> => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantsCollection = context.cristata.tenantsCollection;
+
+      // update the config in the database
+      await tenantsCollection?.findOneAndUpdate(
+        { name: context.tenant },
+        { $set: { [`config.apps.photos.fieldDescriptions`]: input } },
+        { returnDocument: 'after' }
+      );
+    },
   },
   ConfigurationDashboard: {
     collectionRows: (
@@ -311,6 +329,8 @@ const configuration = {
   ConfigurationApps: {
     // goes to the ConfigurationProfilesApp resolver
     profiles: () => ({}),
+    // goes to the ConfigurationPhotosApp resolver
+    photos: () => ({}),
   },
   ConfigurationProfilesApp: {
     fieldDescriptions: (
@@ -342,6 +362,34 @@ const configuration = {
       };
     },
   },
+  ConfigurationPhotosApp: {
+    fieldDescriptions: (
+      _: unknown,
+      __: unknown,
+      context: Context
+    ): Required<NonNullable<NonNullable<Context['config']['apps']>['photos']>['fieldDescriptions']> => {
+      const fieldDescriptions = context.config.apps?.photos?.fieldDescriptions || {};
+
+      return {
+        name: fieldDescriptions.name ?? getDefaultPhotoFieldDescription('name'),
+        source: fieldDescriptions.source ?? getDefaultPhotoFieldDescription('source'),
+        tags: fieldDescriptions.tags ?? getDefaultPhotoFieldDescription('tags'),
+        requireAuth: fieldDescriptions.requireAuth ?? getDefaultPhotoFieldDescription('requireAuth'),
+        note: fieldDescriptions.note ?? getDefaultPhotoFieldDescription('note'),
+      };
+    },
+    defaultFieldDescriptions: (): Required<
+      NonNullable<NonNullable<Context['config']['apps']>['photos']>['fieldDescriptions']
+    > => {
+      return {
+        name: getDefaultPhotoFieldDescription('name'),
+        source: getDefaultPhotoFieldDescription('source'),
+        tags: getDefaultPhotoFieldDescription('tags'),
+        requireAuth: getDefaultPhotoFieldDescription('requireAuth'),
+        note: getDefaultPhotoFieldDescription('note'),
+      };
+    },
+  },
 };
 
 function getDefaultProfileFieldDescription(
@@ -355,6 +403,18 @@ function getDefaultProfileFieldDescription(
   if (field === 'biography')
     return 'A short biography highlighting accomplishments and qualifications. It should be in paragraph form and written in the third person.';
   if (field === 'title') return 'The position or job title for the user.';
+  return '';
+}
+
+function getDefaultPhotoFieldDescription(
+  field: keyof NonNullable<NonNullable<NonNullable<Context['config']['apps']>['photos']>['fieldDescriptions']>
+): string {
+  if (field === 'name') return 'The name of the photo in Cristata. Be descriptive.';
+  if (field === 'source')
+    return 'The photographer or artist of the photo. Be sure to credit the photographer/artist appropriately and correctly. Only use photos you have the rights to use.';
+  if (field === 'tags') return 'Keywords related to the photo. Allows easier searching for photos.';
+  if (field === 'requireAuth') return '';
+  if (field === 'note') return 'Track details/notes about this photo. Text in this field is searchable.';
   return '';
 }
 
