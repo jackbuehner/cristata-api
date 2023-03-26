@@ -15,6 +15,7 @@ import { Application, Router } from 'express';
 import http from 'http';
 import { ObjectId, pluralize as pluralizeFunc, Types } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
+import fetch from 'node-fetch';
 import { get as getProperty } from 'object-path';
 import pluralize from 'pluralize';
 import { createExpressApp } from './app';
