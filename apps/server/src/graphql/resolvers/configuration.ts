@@ -1,6 +1,7 @@
 import {
   deconstructSchema,
   defaultSchemaDefTypes,
+  isSchemaDef,
   SchemaDefType,
 } from '@jackbuehner/cristata-generator-schema';
 import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cristata-utils';
@@ -37,6 +38,8 @@ const configuration = {
           const collection = context.config.collections.find((col) => col.name === name);
 
           if (collection) {
+            const bodyField = isSchemaDef(collection.schemaDef.body) ? collection.schemaDef.body : undefined;
+
             return {
               name,
               canPublish: collection.canPublish,
@@ -60,6 +63,7 @@ const configuration = {
               canCreateAndGet:
                 (await helpers.canDo({ model: name, action: 'create', context })) &&
                 (await helpers.canDo({ model: name, action: 'get', context })),
+              hasRichTextBody: !!bodyField?.field?.tiptap,
             };
           }
 
@@ -73,6 +77,8 @@ const configuration = {
             context.config.collections
               .filter((col) => col.name !== 'User' && col.name !== 'Team')
               .map(async (col) => {
+                const bodyField = isSchemaDef(col.schemaDef.body) ? col.schemaDef.body : undefined;
+
                 return {
                   ...col,
                   pluralName:
@@ -81,6 +87,7 @@ const configuration = {
                   canCreateAndGet:
                     (await helpers.canDo({ model: col.name, action: 'create', context })) &&
                     (await helpers.canDo({ model: col.name, action: 'get', context })),
+                  hasRichTextBody: !!bodyField?.field?.tiptap,
                 };
               })
           );

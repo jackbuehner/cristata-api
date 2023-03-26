@@ -137,6 +137,10 @@ const collection = gql`
     Whether the current user has 'create' and 'get' permisson on this collection
     """
     canCreateAndGet: Boolean
+    """
+    Whether the body field in the schema definition is a rich text (tiptap) field.
+    """
+    hasRichTextBody: Boolean!
   }
 
   type Mutation {
