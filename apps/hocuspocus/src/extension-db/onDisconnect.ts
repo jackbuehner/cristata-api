@@ -103,7 +103,7 @@ export function onDisconnect(tenantDb: DB) {
 
       // create a list of user ids that are currently in the doc or just disconnected
       const userIds = Array.from(
-        new Set(...[context._id as string, ...awarenessValues.map((value) => value.user._id)])
+        new Set([context._id as string, ...awarenessValues.map((value) => value.user._id)])
       )
         .filter((hexId) => hexId.length === 24)
         .map((hexId) => new mongoose.Types.ObjectId(hexId));
