@@ -76,17 +76,34 @@ const configuration = {
           return Promise.all(
             context.config.collections
               .filter((col) => col.name !== 'User' && col.name !== 'Team')
-              .map(async (col) => {
-                const bodyField = isSchemaDef(col.schemaDef.body) ? col.schemaDef.body : undefined;
+              .map(async (collection) => {
+                const bodyField = isSchemaDef(collection.schemaDef.body)
+                  ? collection.schemaDef.body
+                  : undefined;
 
                 return {
-                  ...col,
+                  name: collection.name,
+                  canPublish: collection.canPublish,
+                  withPermissions: collection.withPermissions,
+                  schemaDef: collection.schemaDef,
+                  generationOptions: collection.generationOptions,
+                  by: {
+                    one:
+                      collection.by && hasKey('one', collection.by)
+                        ? collection.by.one[0]
+                        : collection.by?.[0] || '_id',
+                    many:
+                      collection.by && hasKey('many', collection.by)
+                        ? collection.by.many[0]
+                        : collection.by?.[0] || '_id',
+                  },
+                  raw: collection.raw,
                   pluralName:
-                    col.navLabel?.split('::').slice(-1)[0] ||
-                    camelToDashCase(pluralize(col.name)).replace(/-/g, ' '),
+                    collection.navLabel?.split('::').slice(-1)[0] ||
+                    camelToDashCase(pluralize(collection.name)).replace(/-/g, ' '),
                   canCreateAndGet:
-                    (await helpers.canDo({ model: col.name, action: 'create', context })) &&
-                    (await helpers.canDo({ model: col.name, action: 'get', context })),
+                    (await helpers.canDo({ model: collection.name, action: 'create', context })) &&
+                    (await helpers.canDo({ model: collection.name, action: 'get', context })),
                   hasRichTextBody: !!bodyField?.field?.tiptap,
                 };
               })
