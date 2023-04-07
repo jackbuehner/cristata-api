@@ -13,7 +13,7 @@ import { Logtail } from '@logtail/node';
 import { detailedDiff } from 'deep-object-diff';
 import { Application, Router } from 'express';
 import http from 'http';
-import { ObjectId, pluralize as pluralizeFunc, Types } from 'mongoose';
+import { ObjectId, Types, pluralize as pluralizeFunc } from 'mongoose';
 import { Collection as MongoCollection } from 'mongoose/node_modules/mongodb';
 import fetch from 'node-fetch';
 import { get as getProperty } from 'object-path';
@@ -218,7 +218,10 @@ class Cristata {
    * Gets the express app. Starts the app if it is not started.
    */
   get app(): Application {
-    if (!this.#express) this.#express = createExpressApp(this);
+    if (!this.#express) {
+      this.#express = createExpressApp(this);
+      console.log(`Created express app at ${new Date().toISOString()}`);
+    }
     return this.#express;
   }
 
