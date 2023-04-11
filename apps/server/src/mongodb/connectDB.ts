@@ -21,7 +21,7 @@ async function connectDb(database = `app`, uri: string | null = null) {
     const username = process.env.MONGO_DB_USERNAME;
     const password = process.env.MONGO_DB_PASSWORD;
     const host = process.env.MONGO_DB_HOST;
-    const options = `retryWrites=true&w=majority`;
+    const options = `retryWrites=true`;
 
     // connect to mongoDB if not connected
     if (!mongoose.connection?.db?.admin?.()?.ping?.()) {

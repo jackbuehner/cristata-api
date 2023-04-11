@@ -6,6 +6,7 @@ import { Collection } from '../types/config';
 import { constructCollections } from '../utils/constructCollections';
 import { connectDb } from './connectDB';
 import { createTextIndex } from './createTextIndex';
+import { createWorkflowIndex } from './createWorkflowIndex';
 import { createCollectionSchema } from './helpers/createCollectionSchema';
 import { injectPassportPlugin } from './helpers/injectPassportPlugin';
 
@@ -91,6 +92,9 @@ class TenantDB {
 
     // create text search index
     createTextIndex(collection, Schema, connection);
+
+    // create other indexes that are used to optimize queries
+    createWorkflowIndex(collection, Schema, connection);
 
     // enable change stream images
     // so the previous document state can be used for comparison to the new state
