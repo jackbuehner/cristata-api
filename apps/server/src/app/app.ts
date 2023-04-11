@@ -10,8 +10,8 @@ import passport from 'passport';
 import Stripe from 'stripe';
 import Cristata from '../Cristata';
 import { calcS3Storage } from '../graphql/resolvers/billing';
-import { connectDb } from '../mongodb/connectDB';
 import { TenantDB } from '../mongodb/TenantDB';
+import { connectDb } from '../mongodb/connectDB';
 import { IUser } from '../mongodb/users';
 import { corsConfig } from './middleware/cors';
 import { requireAuth } from './middleware/requireAuth';
@@ -182,6 +182,7 @@ function createExpressApp(cristata: Cristata): Application {
           );
         });
     } catch (error) {
+      console.error('Error setting database usage metric in Stripe');
       console.error(error);
       cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
@@ -228,6 +229,67 @@ function createExpressApp(cristata: Cristata): Application {
           );
         });
     } catch (error) {
+      console.error('Error setting storage usage metric in Stripe');
+      console.error(error);
+      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
+    }
+  }
+
+  const appUsageCountQueue: Record<string, number | undefined> = {};
+  const apiUsageCountQueue: Record<string, number | undefined> = {};
+  function updateAppApiUsageMetric() {
+    try {
+      const tenants = cristata.tenants;
+
+      const year = new Date().getUTCFullYear();
+      const month = new Date().getUTCMonth() + 1; // start at 1
+      const day = new Date().getUTCDate();
+
+      tenants
+        .filter((tenant) => !!tenant)
+        .forEach(async (tenant) => {
+          // get the tenant document
+          const tenantDoc = await cristata.tenantsCollection?.findOne({ name: tenant });
+
+          // update usage in stripe
+          if (tenantDoc?.billing.stripe_subscription_items?.app_usage?.id) {
+            await stripe.subscriptionItems.createUsageRecord(
+              tenantDoc.billing.stripe_subscription_items.app_usage.id,
+              {
+                quantity: appUsageCountQueue[tenant] || 0,
+                action: 'increment',
+                timestamp: 'now',
+              }
+            );
+          }
+          if (tenantDoc?.billing.stripe_subscription_items?.api_usage?.id) {
+            await stripe.subscriptionItems.createUsageRecord(
+              tenantDoc.billing.stripe_subscription_items.api_usage.id,
+              {
+                quantity: apiUsageCountQueue[tenant] || 0,
+                action: 'increment',
+                timestamp: 'now',
+              }
+            );
+          }
+
+          // update usage in the database
+          await cristata.tenantsCollection?.updateOne(
+            { name: tenant },
+            {
+              $inc: {
+                [`billing.metrics.${year}.${month}.${day}.total`]: appUsageCountQueue[tenant] || 0,
+                [`billing.metrics.${year}.${month}.${day}.billable`]: apiUsageCountQueue[tenant] || 0,
+              },
+              $set: {
+                'billing.stripe_subscription_items.app_usage.usage_reported_at': new Date().toISOString(),
+                'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
+              },
+            }
+          );
+        });
+    } catch (error) {
+      console.error('Error setting API/app usage metric in Stripe');
       console.error(error);
       cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
@@ -240,6 +302,10 @@ function createExpressApp(cristata: Cristata): Application {
   // update storage usage metric in stripe every 15 minutes and on server start
   updateStorageUsageMetric();
   setInterval(updateStorageUsageMetric, 1000 * 60 * 15);
+
+  // update app and api usage metric in stripe and teh database every 1 minute and on server start
+  updateAppApiUsageMetric();
+  setInterval(updateAppApiUsageMetric, 100 * 60);
 
   // end external requests if the tenant does not have an active subscription
   // or the tenant does not exist
@@ -318,64 +384,11 @@ function createExpressApp(cristata: Cristata): Application {
         const responseWasSuccessful = res.statusCode >= 200 && res.statusCode < 300;
 
         if (tenant && responseWasSuccessful) {
-          const year = new Date().getUTCFullYear();
-          const month = new Date().getUTCMonth() + 1; // start at 1
-          const day = new Date().getUTCDate();
-
-          // get the tenant document
-          const tenantDoc = await cristata.tenantsCollection?.findOne({ name: tenant });
-
-          // update usage in stripe
-          if (tenantDoc?.billing.stripe_subscription_items?.app_usage?.id) {
-            await stripe.subscriptionItems.createUsageRecord(
-              tenantDoc.billing.stripe_subscription_items.app_usage.id,
-              {
-                quantity: 1,
-                action: 'increment',
-                timestamp: 'now',
-              }
-            );
-          }
-
-          // update usage in the database
-          await cristata.tenantsCollection?.findOneAndUpdate(
-            { name: tenant },
-            {
-              $inc: { [`billing.metrics.${year}.${month}.${day}.total`]: 1 },
-              $set: {
-                'billing.stripe_subscription_items.app_usage.usage_reported_at': new Date().toISOString(),
-              },
-            }
-          );
+          appUsageCountQueue[tenant] = (appUsageCountQueue[tenant] || 0) + 1;
 
           // for external usage, also count it towards billable api usage
           if (!isInternalUse(req) && process.env.NODE_ENV !== 'development') {
-            {
-              // update usage in stripe
-              if (tenantDoc?.billing.stripe_subscription_items?.api_usage?.id) {
-                await stripe.subscriptionItems.createUsageRecord(
-                  tenantDoc.billing.stripe_subscription_items.api_usage.id,
-                  {
-                    quantity: 1,
-                    action: 'increment',
-                    timestamp: 'now',
-                  }
-                );
-              }
-
-              // update usage in the database
-              await cristata.tenantsCollection?.updateOne(
-                { name: tenant },
-                {
-                  $inc: {
-                    [`billing.metrics.${year}.${month}.${day}.billable`]: 1,
-                  },
-                  $set: {
-                    'billing.stripe_subscription_items.api_usage.usage_reported_at': new Date().toISOString(),
-                  },
-                }
-              );
-            }
+            apiUsageCountQueue[tenant] = (apiUsageCountQueue[tenant] || 0) + 1;
           }
         }
       } catch (error) {
