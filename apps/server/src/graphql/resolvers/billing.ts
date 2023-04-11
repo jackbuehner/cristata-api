@@ -105,6 +105,7 @@ const billing = {
           since: new Date(year, month, 1).toISOString(),
         };
       } catch (error) {
+        console.error('Error getting API usage');
         console.error(error);
         context.cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       }
