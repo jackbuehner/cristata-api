@@ -104,9 +104,9 @@ const core = {
           $unionWith: {
             coll: collectionNamePluralized,
             pipeline: [
-              { $match: { stage: { $ne: null, $exists: true } } },
-              { $match: { hidden: { $ne: true } } },
-              { $match: { archived: { $ne: true } } },
+              { $match: { stage: { $ne: null, $lt: 5, $exists: true } } },
+              { $match: { hidden: false } },
+              { $match: { archived: false } },
               {
                 $match: context.profile?.teams.includes('000000000000000000000001')
                   ? {}
@@ -117,6 +117,7 @@ const core = {
                       ],
                     },
               },
+              { $project: { stage: 1, _id: 1, name: 1 } },
               { $addFields: { in: collectionName, column: { $toInt: '$stage' } } },
             ],
           },
