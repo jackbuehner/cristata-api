@@ -248,6 +248,14 @@ function createExpressApp(cristata: Cristata): Application {
       tenants
         .filter((tenant) => !!tenant)
         .forEach(async (tenant) => {
+          // copy the queue
+          const appUsage = appUsageCountQueue[tenant] || 0;
+          const apiUsage = apiUsageCountQueue[tenant] || 0;
+
+          // reset the queue
+          appUsageCountQueue[tenant] = 0;
+          apiUsageCountQueue[tenant] = 0;
+
           // get the tenant document
           const tenantDoc = await cristata.tenantsCollection?.findOne({ name: tenant });
 
@@ -256,7 +264,7 @@ function createExpressApp(cristata: Cristata): Application {
             await stripe.subscriptionItems.createUsageRecord(
               tenantDoc.billing.stripe_subscription_items.app_usage.id,
               {
-                quantity: appUsageCountQueue[tenant] || 0,
+                quantity: appUsage,
                 action: 'increment',
                 timestamp: 'now',
               }
@@ -266,7 +274,7 @@ function createExpressApp(cristata: Cristata): Application {
             await stripe.subscriptionItems.createUsageRecord(
               tenantDoc.billing.stripe_subscription_items.api_usage.id,
               {
-                quantity: apiUsageCountQueue[tenant] || 0,
+                quantity: apiUsage,
                 action: 'increment',
                 timestamp: 'now',
               }
@@ -278,8 +286,8 @@ function createExpressApp(cristata: Cristata): Application {
             { name: tenant },
             {
               $inc: {
-                [`billing.metrics.${year}.${month}.${day}.total`]: appUsageCountQueue[tenant] || 0,
-                [`billing.metrics.${year}.${month}.${day}.billable`]: apiUsageCountQueue[tenant] || 0,
+                [`billing.metrics.${year}.${month}.${day}.total`]: appUsage,
+                [`billing.metrics.${year}.${month}.${day}.billable`]: apiUsage,
               },
               $set: {
                 'billing.stripe_subscription_items.app_usage.usage_reported_at': new Date().toISOString(),
