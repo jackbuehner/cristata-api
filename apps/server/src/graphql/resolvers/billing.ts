@@ -165,6 +165,36 @@ const billing = {
       if (allow_disk_usage_item) return true;
       return false;
     },
+    useCustomIntegrations: async (_: never, __: never, context: Context): Promise<boolean> => {
+      requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantDoc = await context.cristata.tenantsCollection?.findOne({
+        name: context.tenant,
+      });
+
+      const stripe_customer_id = tenantDoc?.billing.stripe_customer_id;
+      if (!stripe_customer_id) throw new ApolloError('could not find customer id', 'CUSTOMER_DETAILS_MISSING');
+
+      const stripe_subscription_id = tenantDoc?.billing.stripe_subscription_id;
+      if (!stripe_subscription_id)
+        throw new ApolloError('could not find subscription id', 'SUBSCRIPTION_DETAILS_MISSING');
+
+      const stripe_subscription_items = tenantDoc?.billing.stripe_subscription_items;
+      if (!stripe_subscription_items)
+        throw new ApolloError('could not find subscription items', 'SUBSCRIPTION_DETAILS_MISSING');
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
+      const subscription = await stripe.subscriptions.retrieve(stripe_subscription_id);
+
+      const integrations_item = subscription.items.data.find((item) => {
+        return item.price.id === 'price_1L7SDPHoKn7kS1oWb18xRVXN';
+      });
+
+      if (integrations_item) return true;
+      return false;
+    },
   },
 
   Mutation: {
@@ -228,6 +258,52 @@ const billing = {
       });
       return !!updatedSubscription.items.data.find((item) => {
         return item.price.id === 'price_1MKrYOHoKn7kS1oWZkpAF3eK';
+      });
+    },
+    useCustomIntegrations: async (
+      _: never,
+      { useCustomIntegrations }: { useCustomIntegrations: boolean },
+      context: Context
+    ): Promise<boolean> => {
+      requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantDoc = await context.cristata.tenantsCollection?.findOne({
+        name: context.tenant,
+      });
+
+      const stripe_subscription_id = tenantDoc?.billing.stripe_subscription_id;
+      if (!stripe_subscription_id)
+        throw new ApolloError('could not find subscription id', 'SUBSCRIPTION_DETAILS_MISSING');
+
+      const stripe_subscription_items = tenantDoc?.billing.stripe_subscription_items;
+      if (!stripe_subscription_items)
+        throw new ApolloError('could not find subscription items', 'SUBSCRIPTION_DETAILS_MISSING');
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2020-08-27' });
+      const subscription = await stripe.subscriptions.retrieve(stripe_subscription_id);
+      const subscriptionCustomIntegrationsItem = subscription.items.data.find((item) => {
+        return item.price.id === 'price_1L7SDPHoKn7kS1oWb18xRVXN';
+      });
+
+      if (subscriptionCustomIntegrationsItem && useCustomIntegrations) return true;
+      if (!subscriptionCustomIntegrationsItem && !useCustomIntegrations) return false;
+
+      const updatedSubscription = await stripe.subscriptions.update(stripe_subscription_id, {
+        metadata: {
+          tenant: context.tenant,
+        },
+        items: [
+          {
+            id: subscriptionCustomIntegrationsItem?.id,
+            price: 'price_1L7SDPHoKn7kS1oWb18xRVXN',
+            deleted: useCustomIntegrations === false,
+          },
+        ],
+      });
+      return !!updatedSubscription.items.data.find((item) => {
+        return item.price.id === 'price_1L7SDPHoKn7kS1oWb18xRVXN';
       });
     },
   },

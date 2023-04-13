@@ -15,6 +15,7 @@ const billing = gql`
 
   type MutationBillingFeatures {
     allowDiskUse(allowDiskUse: Boolean!): Boolean!
+    useCustomIntegrations(useCustomIntegrations: Boolean!): Boolean!
   }
 
   type Billing {
@@ -36,6 +37,7 @@ const billing = gql`
 
   type BillingFeatures {
     allowDiskUse: Boolean!
+    useCustomIntegrations: Boolean!
   }
 
   type ApiUsage {
