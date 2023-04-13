@@ -521,7 +521,7 @@ interface TenantsCollectionSchema {
     subscription_active: boolean;
     subscription_last_payment?: string;
     stripe_subscription_items?: {
-      core: { id: string; usage_reported_at: string };
+      core: { id: string; usage_reported_at: string; mode: 'legacy' | 'free' | 'professional' | 'premium' };
       file_storage: { id: string; usage_reported_at: string };
       database_usage: { id: string; usage_reported_at: string };
       api_usage: { id: string; usage_reported_at: string };

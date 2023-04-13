@@ -1,9 +1,16 @@
 import { hasKey, isObject, replaceCircular } from '@jackbuehner/cristata-utils';
-import { requireAdmin } from '../../app/middleware/requireAdmin';
 import express, { Router } from 'express';
 import Stripe from 'stripe';
 import Cristata from '../../Cristata';
+import { requireAdmin } from '../../app/middleware/requireAdmin';
 import { IDeserializedUser } from '../passport';
+
+const coreCostPrices = {
+  legacy: 'price_1L7SECHoKn7kS1oW6JrXN7AI',
+  free: 'price_1MwXajHoKn7kS1oWclo873Tt',
+  professional: 'price_1MwXcFHoKn7kS1oWUHYrRR11',
+  premium: 'price_1MwXczHoKn7kS1oW6mDDUtvY',
+};
 
 /**
  * This router contains the routes for stripe.
@@ -20,13 +27,19 @@ function factory(cristata: Cristata): Router {
         name: (req.user as IDeserializedUser).tenant,
       });
 
+      // get the core cost price mode
+      const mode = (req.query as unknown as URLSearchParams).get('coreCostMode');
+
       // create a Stripe checkout session
       const session = await stripe.checkout.sessions.create({
         billing_address_collection: 'auto',
         line_items: [
           {
             // core cost
-            price: 'price_1L7SECHoKn7kS1oW6JrXN7AI',
+            price:
+              mode === 'free' || mode === 'professional' || mode === 'premium'
+                ? coreCostPrices[mode || 'premium']
+                : coreCostPrices.premium,
             quantity: 1,
           },
           {
@@ -166,6 +179,14 @@ function factory(cristata: Cristata): Router {
               const allowDiskUseItem =
                 subItems.find((sub) => sub.plan.product === 'prod_N51bDi1B5W71bY') || null;
 
+              // determine the core subscription mode
+              const [coreCostItemMode]: [string | undefined, string | undefined] = Object.entries(
+                coreCostPrices
+              ).find(([, priceId]) => {
+                if (priceId === coreCostItem?.price.id) return true;
+                return false;
+              }) || [undefined, undefined];
+
               // store the subscription and customer details in the tenant data object
               await cristata.tenantsCollection.findOneAndUpdate(
                 {
@@ -179,6 +200,7 @@ function factory(cristata: Cristata): Router {
                     'billing.subscription_last_payment': nowISO,
                     'billing.stripe_subscription_items.core.id': coreCostItem?.id,
                     'billing.stripe_subscription_items.core.usage_reported_at': nowISO,
+                    'billing.stripe_subscription_items.core.mode': coreCostItemMode,
                     'billing.stripe_subscription_items.file_storage.id': fileStorageItem?.id,
                     'billing.stripe_subscription_items.file_storage.usage_reported_at': nowISO,
                     'billing.stripe_subscription_items.database_usage.id': databaseItem?.id,
