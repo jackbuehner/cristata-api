@@ -1,14 +1,6 @@
 import { Forbidden, Unauthorized } from '@hocuspocus/common';
-import {
-  Extension,
-  onChangePayload,
-  onConnectPayload,
-  onLoadDocumentPayload,
-  onUpgradePayload,
-} from '@hocuspocus/server';
-import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import { Extension, onConnectPayload, onLoadDocumentPayload, onUpgradePayload } from '@hocuspocus/server';
 import { uncapitalize } from '@jackbuehner/cristata-utils';
-import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
 import fetch from 'node-fetch';
 import semver from 'semver';
@@ -180,6 +172,10 @@ class Authenticate implements Extension {
 
   async afterLoadDocument(data: onLoadDocumentPayload): Promise<void> {
     const ydoc = data.document;
+    const { tenant, collectionName } = parseName(data.documentName);
+
+    // get the options for the collection
+    const options = await tenantDb.collectionOptions(tenant, collectionName);
 
     // get the shared types for the permissions
     const users = ydoc.getArray('permissions.users');
@@ -200,62 +196,89 @@ class Authenticate implements Extension {
       });
     };
 
+    // disconnect if hidden, archived, or locked change
+    // to force clients to reconnect in read-only mode
+    // when any of them are true or with read-only mode
+    // turned off when all of the conditions are false
+    const checkboxes = ydoc.getMap<Record<string, boolean | undefined | null>>('__checkboxes');
+    const checkboxDisconnect = (evt: Y.YMapEvent<Record<string, boolean | null | undefined>>) => {
+      evt.changes.keys.forEach((value, key) => {
+        if (key === 'hidden' || key === 'archived' || key === 'locked') {
+          data.instance.closeConnections(data.documentName);
+        }
+      });
+    };
+
+    // disconnect if stage is published and __publishedCopy is enabled
+    // because editing the unpublished copy is disabled when stage is 5.2
+    // (client should use the collectionModify query to lower the stage)
+    const stage = ydoc.getArray<{ value: string; label: string }>('stage');
+    const stageDisconnect = (evt: Y.YArrayEvent<{ value: string; label: string }>) => {
+      const stage = evt.target.toArray()?.[0]?.value;
+      if (options?.independentPublishedDocCopy && `${stage}` === '5.2') {
+        data.instance.closeConnections(data.documentName);
+      }
+    };
+
     users.observe(disconnect);
     teams.observe(disconnect);
+    checkboxes.observe(checkboxDisconnect);
+    stage.observe(stageDisconnect);
   }
 
-  async onChange({
-    document: ydoc,
-    documentName,
-    instance,
-    requestParameters,
-  }: onChangePayload): Promise<void> {
-    const { tenant, collectionName } = parseName(documentName);
+  // async onChange({
+  //   document: ydoc,
+  //   documentName,
+  //   instance,
+  //   requestParameters,
+  // }: onChangePayload): Promise<void> {
+  //   const { tenant, collectionName } = parseName(documentName);
 
-    // disconnect the client on certain conditions if it is not the server
-    // so that it reconnects after disconnect with update auth settings (e.g. readOnly mode)
-    if (
-      process.env.AUTH_OVERRIDE_SECRET &&
-      requestParameters.get('authSecret') !== process.env.AUTH_OVERRIDE_SECRET
-    ) {
-      // get the collection
-      const collection = tenantDb.collection(tenant, collectionName);
-      if (!collection) {
-        console.error('[INVALID COLLECTION] FAILED TO SAVE YDOC WITH VALUES:', ydoc.toJSON());
-        throw new Error(`Document '${documentName}' was not found in the database`);
-      }
+  //   // disconnect the client on certain conditions if it is not the server
+  //   // so that it reconnects after disconnect with update auth settings (e.g. readOnly mode)
+  //   if (
+  //     process.env.AUTH_OVERRIDE_SECRET &&
+  //     requestParameters.get('authSecret') !== process.env.AUTH_OVERRIDE_SECRET
+  //   ) {
+  //     // get the collection
+  //     const collection = tenantDb.collection(tenant, collectionName);
+  //     if (!collection) {
+  //       console.error('[INVALID COLLECTION] FAILED TO SAVE YDOC WITH VALUES:', ydoc.toJSON());
+  //       throw new Error(`Document '${documentName}' was not found in the database`);
+  //     }
 
-      // get the collection schema
-      const schema = await tenantDb.collectionSchema(tenant, collectionName);
-      const deconstructedSchema = deconstructSchema(schema || {});
+  //     // get the collection schema
+  //     const schema = await tenantDb.collectionSchema(tenant, collectionName);
+  //     const deconstructedSchema = deconstructSchema(schema || {});
 
-      // get the options for the collection
-      const options = await tenantDb.collectionOptions(tenant, collectionName);
+  //     // get the options for the collection
+  //     const options = await tenantDb.collectionOptions(tenant, collectionName);
 
-      // get the values of the ydoc shared types
-      // (to be used for setting database document values)
-      const docData =
-        (await getFromY(ydoc, deconstructedSchema, {
-          keepJsonParsed: true,
-          hexIdsAsObjectIds: true,
-          replaceUndefinedNull: true,
-        })) || {};
-      const { hidden, archived, locked, stage } = docData;
+  //     // get the values of the ydoc shared types
+  //     // (to be used for setting database document values)
+  //     const docData =
+  //       (await getFromY(ydoc, deconstructedSchema, {
+  //         keepJsonParsed: true,
+  //         hexIdsAsObjectIds: true,
+  //         replaceUndefinedNull: true,
+  //         collectionName: collectionName + 'auth+change',
+  //       })) || {};
+  //     const { hidden, archived, locked, stage } = docData;
 
-      // disconnect if hidden, archived, or locked are true
-      // to force clients to reconnect in read-only mode
-      if (hidden || archived || locked) {
-        instance.closeConnections(documentName);
-      }
+  //     // disconnect if hidden, archived, or locked are true
+  //     // to force clients to reconnect in read-only mode
+  //     if (hidden || archived || locked) {
+  //       instance.closeConnections(documentName);
+  //     }
 
-      // disconnect if stage is published and __publishedCopy is enabled
-      // because editing the unpublished copy is disabled when stage is 5.2
-      // (client should use the collectionModify query to lower the stage)
-      if (options?.independentPublishedDocCopy && stage == 5.2) {
-        instance.closeConnections(documentName);
-      }
-    }
-  }
+  //     // disconnect if stage is published and __publishedCopy is enabled
+  //     // because editing the unpublished copy is disabled when stage is 5.2
+  //     // (client should use the collectionModify query to lower the stage)
+  //     if (options?.independentPublishedDocCopy && stage == 5.2) {
+  //       instance.closeConnections(documentName);
+  //     }
+  //   }
+  // }
 
   async onUpgrade(data: onUpgradePayload): Promise<void> {
     setTimeout(() => {
