@@ -32,6 +32,11 @@ interface GetYFieldsOptions {
    * String: `''`
    */
   replaceUndefinedNull?: boolean;
+  /**
+   * When this is `true`, the value of DocArray shared types will be
+   * updated to match their resolved value. This may cause side effects.
+   */
+  updateDocArrayValues?: boolean;
 }
 
 async function getFromY(ydoc: Y.Doc, _schemaDef: DeconstructedSchemaDefType, opts?: GetYFieldsOptions) {

@@ -2,10 +2,10 @@ import { onLoadDocumentPayload } from '@hocuspocus/server';
 import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { addToY, getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
+import { get as getProperty } from 'object-path';
 import { parseName } from '../utils';
 import { CollectionDoc, DB } from './DB';
 import { TenantModel } from './TenantModel';
-import { get as getProperty } from 'object-path';
 
 /**
  * For the specified keys (`keysToWatchAndUpdate`), watch the document in
@@ -106,6 +106,7 @@ async function applyRelevantChanges(
     keepJsonParsed: true,
     hexIdsAsObjectIds: true,
     replaceUndefinedNull: true,
+    updateDocArrayValues: true,
   });
 
   // filter schema to only include defs for values that need to be updated

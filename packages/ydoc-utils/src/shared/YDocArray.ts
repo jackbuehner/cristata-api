@@ -1,8 +1,9 @@
 import { DeconstructedSchemaDefType } from '@jackbuehner/cristata-generator-schema';
-import { getFromY, GetYFieldsOptions } from '../getFromY';
+import deepEqual from 'deep-equal';
 import { get as getProperty, set as setProperty } from 'object-path';
 import { v4 as uuidv4 } from 'uuid';
 import * as Y from 'yjs';
+import { GetYFieldsOptions, getFromY } from '../getFromY';
 
 /**
  * DocArrays are stored in a yjs shared array. The value
@@ -68,7 +69,9 @@ class YDocArray<K extends string, V extends Record<string, unknown>[]> {
 
     if (populate) {
       await Promise.all(
-        arr.map(async ({ __uuid }, index) => {
+        arr.map(async (current, index) => {
+          const { __uuid } = current;
+
           // determine the key that will be used for storing DocArray
           // subfields in shared types
           const [searchKey, replaceKey] = (() => {
@@ -83,19 +86,33 @@ class YDocArray<K extends string, V extends Record<string, unknown>[]> {
           // values of the the properies inside the object at this index
           const defs = populate.schema
             .filter(([docKey]) => !docKey.includes('#'))
-            .map(([docKey, docDef]): typeof populate.schema[0] => {
+            .map(([docKey, docDef]): (typeof populate.schema)[0] => {
               const docArrayKey = docKey.replace(searchKey, replaceKey);
               return [docArrayKey, docDef];
             });
 
           // get the field data for the object at this index
           const data = await getFromY(this.#ydoc, defs, populate.opts);
+          const fullData = await getFromY(this.#ydoc, defs, { retainReferenceObjects: true });
 
           // get the object with data to use for this index
           const obj = getProperty(data, replaceKey);
 
           // set the object at this index
           setProperty(arr, index, obj);
+
+          // also inject the field data into the existing array shared type
+          // so that it has updated values
+          if (populate.opts?.updateDocArrayValues) {
+            const updated = { ...(current || {}), ...(getProperty(fullData, replaceKey) || {}) };
+            const isDifferent = !deepEqual(current, updated);
+            if (isDifferent) {
+              this.#ydoc.transact(() => {
+                type.delete(index);
+                type.insert(index, [updated]);
+              });
+            }
+          }
         })
       );
     }
