@@ -58,6 +58,7 @@
     "copy-anything": "^3.0.3",
     "deep-equal": "^2.2.2",
     "deep-object-diff": "^1.1.9",
+    "flatten-anything": "^3.0.5",
     "graphql-list-fields": "^2.0.2",
     "is-what": "^4.1.7",
     "mongoose": "^7.0.2",
