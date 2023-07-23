@@ -1,9 +1,9 @@
 import { FieldDef } from '@jackbuehner/cristata-generator-schema';
+import { getFlatKeys } from '@jackbuehner/cristata-utils';
 import { merge } from 'merge-anything';
 import { Model, RootQuerySelector } from 'mongoose';
-import * as Y from 'yjs';
 import { get as getProperty, set as setProperty } from 'object-path';
-import { getFlatKeys } from '@jackbuehner/cristata-utils';
+import * as Y from 'yjs';
 
 type UnpopulatedValue = { _id: string; label?: string; [key: string]: unknown };
 type PopulatedValue = { value: string; label: string; [key: string]: unknown };
@@ -103,7 +103,8 @@ class YReference<
                 // get fields that are forced to be included
                 const forced: Record<string, unknown> = {};
                 [...(reference.forceLoadFields || []), ...(reference.require || [])].map((fieldName) => {
-                  setProperty(forced, fieldName, getProperty(found, fieldName) || null);
+                  const fieldValue = getProperty(found, fieldName);
+                  if (fieldValue) setProperty(forced, fieldName, fieldValue);
                 });
 
                 return {
