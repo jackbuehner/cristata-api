@@ -1,16 +1,21 @@
 import { storePayload } from '@hocuspocus/server';
-import { conditionallyModifyDocField, deconstructSchema } from '@jackbuehner/cristata-generator-schema';
+import {
+  DeconstructedSchemaDefType,
+  conditionallyModifyDocField,
+  deconstructSchema,
+} from '@jackbuehner/cristata-generator-schema';
 import { hasKey } from '@jackbuehner/cristata-utils';
 import { addToY, getFromY } from '@jackbuehner/cristata-ydoc-utils';
-import { merge } from 'merge-anything';
+import { detailedDiff } from 'deep-object-diff';
+import { flatten } from 'flatten-anything';
 import mongoose from 'mongoose';
 import { calculateObjectSize } from 'mongoose/node_modules/bson';
 import mongodb from 'mongoose/node_modules/mongodb';
 import * as Y from 'yjs';
 import { AwarenessUser, isAwarenessUser, parseName, reduceDays, uint8ToBase64 } from '../utils';
 import { CollectionDoc, DB } from './DB';
-import { sendStageUpdateEmails } from './sendStageUpdateEmails';
 import { TenantModel } from './TenantModel';
+import { sendStageUpdateEmails } from './sendStageUpdateEmails';
 
 export function store(tenantDb: DB) {
   return async ({ document: ydoc, documentName, context, requestParameters }: storePayload): Promise<void> => {
@@ -49,10 +54,7 @@ export function store(tenantDb: DB) {
       });
 
       // modify doc data based on setters in the schema
-      const changed = merge(
-        { timestamps: { modified_at: new Date().toISOString() } },
-        conditionallyModifyDocField(docData, deconstructedSchema)
-      );
+      const changed = conditionallyModifyDocField(docData, deconstructedSchema);
       if (Object.keys(changed).length > 0) {
         await addToY({
           ydoc,
@@ -93,7 +95,17 @@ export function store(tenantDb: DB) {
       const options = await tenantDb.collectionOptions(tenant, collectionName);
 
       // save versions asynchronously
-      saveSnapshot(documentName, ydoc, collection, by, new Date());
+      saveSnapshot(
+        documentName,
+        ydoc,
+        collection,
+        by,
+        new Date(),
+        deconstructedSchema,
+        context,
+        tenantDb,
+        tenant
+      );
 
       // send stage update emails
       if (hasKey('stage', partialDbDoc) && typeof partialDbDoc.stage === 'number') {
@@ -123,8 +135,12 @@ async function saveSnapshot(
   ydoc: storePayload['document'],
   collection: mongodb.Collection<CollectionDoc>,
   by: Awaited<ReturnType<DB['collectionAccessor']>>,
-  timestamp: Date
-): Promise<mongodb.UpdateResult> {
+  timestamp: Date,
+  deconstructedSchema: DeconstructedSchemaDefType,
+  context: Record<string, unknown>,
+  tenantDb: DB,
+  tenant: string
+): Promise<mongodb.UpdateResult | void> {
   const [, , itemId] = documentName.split('.');
 
   // get awareness values and filter out unexpected values
@@ -136,13 +152,57 @@ async function saveSnapshot(
 
   const users = awarenessValues.map((value) => value.user);
 
-  const state = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
-
   // get database document
   const dbDoc = await collection.findOne(
     { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-    { projection: { __yVersions: 1 } }
+    { projection: { __yState: 0 } }
   );
+
+  // get the yjs document data
+  const data = await getFromY(ydoc, deconstructedSchema, {
+    keepJsonParsed: true,
+    hexIdsAsObjectIds: true,
+    replaceUndefinedNull: true,
+  });
+
+  // determine which fields have changed
+  const filterDoc = (doc: object): object =>
+    Object.fromEntries(
+      Object.entries(doc || {}).filter(([key]) => key.indexOf('_') !== 0 && key !== 'history')
+    );
+  const diff = detailedDiff(filterDoc(dbDoc || {}), filterDoc(data));
+  const added = flatten(JSON.parse(JSON.stringify(diff.added))) as Record<string, unknown>;
+  const deleted = flatten(JSON.parse(JSON.stringify(diff.deleted))) as Record<string, unknown>;
+  const updated = flatten(JSON.parse(JSON.stringify(diff.updated))) as Record<string, unknown>;
+
+  // delermine whether the document has actually meaningfully changed
+  const changed = (() => {
+    const anyAdded = Object.keys(added).length > 0;
+    const anyDeleted = Object.keys(deleted).length > 0;
+    const updatedKeys = Object.keys(updated).filter((key) => key !== 'timestamps.modified_at');
+    const anyModified = updatedKeys.length > 0;
+    return anyAdded || anyDeleted || anyModified;
+  })();
+
+  // return early if there wasn't a meaningful change so that there is no unnessary work done
+  // after this line
+  if (!changed) return;
+
+  // store the changes that have occured
+  context.diff = {
+    added,
+    deleted,
+    updated: Object.fromEntries(Object.entries(updated).filter(([key]) => key !== 'timestamps.modified_at')),
+  };
+
+  // also updated the timestamp for changes
+  await addToY({
+    ydoc,
+    schemaDef: deconstructedSchema,
+    inputData: { timestamps: { modified_at: timestamp.toISOString() } },
+    TenantModel: TenantModel(tenantDb, tenant),
+    onlyProvided: true, // only update the properties in `inputData`
+  });
 
   // get the size of the document
   const [docInfo] = await collection
@@ -161,6 +221,7 @@ async function saveSnapshot(
   const tooLarge = docInfo.size_MB > 10;
 
   // create a snapshot of this point
+  const state = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
   let versions = [
     // reduce versions from previous days to single version
     ...reduceDays(dbDoc?.__yVersions, tooLarge ? 0 : 3), // must be at least 3 days old

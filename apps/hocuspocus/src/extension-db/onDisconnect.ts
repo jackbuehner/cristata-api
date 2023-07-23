@@ -2,7 +2,6 @@ import { Extension } from '@hocuspocus/server';
 import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import type { ActivityDoc } from '@jackbuehner/cristata-generator-schema/dist/default-schemas/Activity';
 import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
-import { detailedDiff } from 'deep-object-diff';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { AwarenessUser, isAwarenessUser } from '../utils/isAwarenessUser';
@@ -65,17 +64,6 @@ export function onDisconnect(tenantDb: DB) {
       const schema = await tenantDb.collectionSchema(tenant, collectionName);
       const deconstructedSchema = deconstructSchema(schema || {});
 
-      // get the collection accessor
-      const by = await tenantDb.collectionAccessor(tenant, collectionName);
-
-      // get database document
-      const dbDoc = await tenantDb
-        .collection(tenant, collectionName)
-        ?.findOne(
-          { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-          { projection: { __yState: 0, __stateExists: 0, __yVersions: 0 } }
-        );
-
       // get the document data
       const data = await getFromY(ydoc, deconstructedSchema, {
         keepJsonParsed: true,
@@ -94,33 +82,43 @@ export function onDisconnect(tenantDb: DB) {
       }
 
       // determine which fields have changed
-      // TODO: find a way to create diff from the doc version that existed before -> maybe this logic needs to move to ./store.ts
-      const filterDoc = (doc: object): object =>
-        Object.fromEntries(
-          Object.entries(doc || {}).filter(([key]) => key.indexOf('_') !== 0 && key !== 'history')
-        );
-      const { added, deleted, updated } = detailedDiff(filterDoc(dbDoc || {}), filterDoc(data));
+      // TODO: Figure out how to handle changes that are attributed to multiple users.
+      // TODO: Right now, changes are attributed to every user who is in the doc at
+      // TODO: the time of the change.
+      const added = context.diff?.added || {};
+      const deleted = context.diff?.deleted || {};
+      const updated = context.diff?.updated || {};
 
-      // create a list of user ids that are currently in the doc or just disconnected
-      const userIds = Array.from(
-        new Set([context._id as string, ...awarenessValues.map((value) => value.user._id)])
-      )
-        .filter((hexId) => hexId.length === 24)
-        .map((hexId) => new mongoose.Types.ObjectId(hexId));
+      // delermine whether the document has actually meaningfully changed
+      const changed = (() => {
+        const anyAdded = Object.keys(added).length > 0;
+        const anyDeleted = Object.keys(deleted).length > 0;
+        const anyModified = Object.keys(updated).length > 0;
+        return anyAdded || anyDeleted || anyModified;
+      })();
 
-      // save the activity/history
-      if (itemId.length === 24) {
-        activitiesCollection.insertOne({
-          name: data.name,
-          type: 'ydoc-modified',
-          colName: collectionName,
-          docId: new mongoose.Types.ObjectId(itemId),
-          userIds,
-          at: new Date(context.lastModifiedAt),
-          added,
-          deleted,
-          updated,
-        });
+      if (changed) {
+        // create a list of user ids that are currently in the doc or just disconnected
+        const userIds = Array.from(
+          new Set([context._id as string, ...awarenessValues.map((value) => value.user._id)])
+        )
+          .filter((hexId) => hexId.length === 24 && hexId !== '000000000000000000000000')
+          .map((hexId) => new mongoose.Types.ObjectId(hexId));
+
+        // save the activity/history
+        if (itemId.length === 24) {
+          activitiesCollection.insertOne({
+            name: data.name,
+            type: 'ydoc-modified',
+            colName: collectionName,
+            docId: new mongoose.Types.ObjectId(itemId),
+            userIds,
+            at: new Date(context.lastModifiedAt),
+            added,
+            deleted,
+            updated,
+          });
+        }
       }
     }
   };
