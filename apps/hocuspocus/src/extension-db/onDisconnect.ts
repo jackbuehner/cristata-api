@@ -4,6 +4,7 @@ import type { ActivityDoc } from '@jackbuehner/cristata-generator-schema/dist/de
 import { getFromY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
+import { parseName } from '../utils';
 import { AwarenessUser, isAwarenessUser } from '../utils/isAwarenessUser';
 import { DB } from './DB';
 
@@ -13,7 +14,7 @@ export function onDisconnect(tenantDb: DB) {
     context,
     document: ydoc,
   }): Promise<void> => {
-    const [tenant, collectionName, itemId] = documentName.split('.');
+    const { tenant, collectionName, itemId } = parseName(documentName);
 
     // get awareness values and filter out unexpected values
     const awarenessValues = Array.from(ydoc.awareness.getStates().values()).filter(
@@ -48,7 +49,14 @@ export function onDisconnect(tenantDb: DB) {
 
       // push history item
       await collection.updateOne(
-        { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+        {
+          [by.one[0]]:
+            by.one[1] === 'ObjectId'
+              ? new mongoose.Types.ObjectId(itemId)
+              : by.one[1] === 'Date'
+              ? new Date(itemId)
+              : itemId,
+        },
         { $push: { history: historyItem } }
       );
     }

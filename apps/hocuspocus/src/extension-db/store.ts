@@ -67,7 +67,14 @@ export function store(tenantDb: DB) {
 
       // get database document
       const partialDbDoc = await collection.findOne(
-        { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+        {
+          [by.one[0]]:
+            by.one[1] === 'ObjectId'
+              ? new mongoose.Types.ObjectId(itemId)
+              : by.one[1] === 'Date'
+              ? new Date(itemId)
+              : itemId,
+        },
         { projection: { _id: 1, stage: 1 } }
       );
       const dbDocExists = !!partialDbDoc;
@@ -87,7 +94,14 @@ export function store(tenantDb: DB) {
       // save document state
       const yState = uint8ToBase64(Y.encodeStateAsUpdate(ydoc));
       collection.updateOne(
-        { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+        {
+          [by.one[0]]:
+            by.one[1] === 'ObjectId'
+              ? new mongoose.Types.ObjectId(itemId)
+              : by.one[1] === 'Date'
+              ? new Date(itemId)
+              : itemId,
+        },
         { $set: { ...docData, __yState: yState } }
       );
 
@@ -141,7 +155,7 @@ async function saveSnapshot(
   tenantDb: DB,
   tenant: string
 ): Promise<mongodb.UpdateResult | void> {
-  const [, , itemId] = documentName.split('.');
+  const { itemId } = parseName(documentName);
 
   // get awareness values and filter out unexpected values
   const awarenessValues = Array.from(ydoc.awareness.getStates().values()).filter(
@@ -154,7 +168,14 @@ async function saveSnapshot(
 
   // get database document
   const dbDoc = await collection.findOne(
-    { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+    {
+      [by.one[0]]:
+        by.one[1] === 'ObjectId'
+          ? new mongoose.Types.ObjectId(itemId)
+          : by.one[1] === 'Date'
+          ? new Date(itemId)
+          : itemId,
+    },
     { projection: { __yState: 0 } }
   );
 
@@ -246,7 +267,14 @@ async function saveSnapshot(
 
   // save versions/snapshots
   const updateResult = collection.updateOne(
-    { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+    {
+      [by.one[0]]:
+        by.one[1] === 'ObjectId'
+          ? new mongoose.Types.ObjectId(itemId)
+          : by.one[1] === 'Date'
+          ? new Date(itemId)
+          : itemId,
+    },
     { $set: { __yVersions: versions } }
   );
 

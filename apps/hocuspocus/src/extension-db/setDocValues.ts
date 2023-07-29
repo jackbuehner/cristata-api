@@ -2,6 +2,7 @@ import { onLoadDocumentPayload } from '@hocuspocus/server';
 import { deconstructSchema } from '@jackbuehner/cristata-generator-schema';
 import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import mongoose from 'mongoose';
+import { parseName } from '../utils';
 import { DB } from './DB';
 import { TenantModel } from './TenantModel';
 
@@ -19,7 +20,7 @@ export async function setDocValues(
   ydoc: onLoadDocumentPayload['document']
 ) {
   //
-  const [tenant, collectionName, itemId] = documentName.split('.');
+  const { tenant, collectionName, itemId } = parseName(documentName);
 
   // get the collection
   const collection = tenantDb.collection(tenant, collectionName);
@@ -34,7 +35,14 @@ export async function setDocValues(
   const dbDoc = await tenantDb
     .collection(tenant, collectionName)
     ?.findOne(
-      { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+      {
+        [by.one[0]]:
+          by.one[1] === 'ObjectId'
+            ? new mongoose.Types.ObjectId(itemId)
+            : by.one[1] === 'Date'
+            ? new Date(itemId)
+            : itemId,
+      },
       { projection: { __yVersions: 0, yState: 0, __migrationBackup: 0, __yState: 0, __stateExists: 0 } }
     );
 
@@ -48,7 +56,14 @@ export async function setDocValues(
   if (!__ignoreBackup) {
     const __migrationBackup = dbDoc as unknown as never;
     collection.updateOne(
-      { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+      {
+        [by.one[0]]:
+          by.one[1] === 'ObjectId'
+            ? new mongoose.Types.ObjectId(itemId)
+            : by.one[1] === 'Date'
+            ? new Date(itemId)
+            : itemId,
+      },
       { $set: { __migrationBackup } }
     );
   }

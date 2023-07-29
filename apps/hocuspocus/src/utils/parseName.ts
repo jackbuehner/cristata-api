@@ -7,16 +7,17 @@ export function parseName(documentName: string): ParseNameReturn {
   ];
 
   const version = rest.join('.');
+  const parsedItemId = itemId.replace(/__‾‾/g, '.');
 
   if (version === 'current') {
-    return { tenant, collectionName, itemId, version: undefined };
+    return { tenant, collectionName, itemId: parsedItemId, version: undefined };
   }
 
   if (version) {
-    return { tenant, collectionName, itemId, version: new Date(version) };
+    return { tenant, collectionName, itemId: parsedItemId, version: new Date(version) };
   }
 
-  return { tenant, collectionName, itemId, version: undefined };
+  return { tenant, collectionName, itemId: parsedItemId, version: undefined };
 }
 
 interface ParseNameReturn {

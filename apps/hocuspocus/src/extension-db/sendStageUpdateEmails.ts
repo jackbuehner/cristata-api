@@ -5,6 +5,7 @@ import { isObject } from 'is-what';
 import mongoose from 'mongoose';
 import mongodb from 'mongoose/node_modules/mongodb';
 import { get as getProperty } from 'object-path';
+import { parseName } from '../utils';
 import { CollectionDoc, DB } from './DB';
 
 /**
@@ -20,7 +21,7 @@ export async function sendStageUpdateEmails(
   tenantDb: DB,
   deconstructedSchema: DeconstructedSchemaDefType
 ): Promise<void> {
-  const [tenant, collectionName, itemId] = documentName.split('.');
+  const { tenant, collectionName, itemId } = parseName(documentName);
 
   if (
     docData &&
@@ -35,7 +36,14 @@ export async function sendStageUpdateEmails(
 
       // get watchers ids
       const watchersData = await collection.findOne(
-        { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+        {
+          [by.one[0]]:
+            by.one[1] === 'ObjectId'
+              ? new mongoose.Types.ObjectId(itemId)
+              : by.one[1] === 'Date'
+              ? new Date(itemId)
+              : itemId,
+        },
         {
           projection: {
             _id: 1,

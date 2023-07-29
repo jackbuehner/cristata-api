@@ -29,7 +29,14 @@ export async function updateReferenceValues(
   const dbDoc = await tenantDb
     .collection(tenant, collectionName)
     ?.findOne(
-      { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+      {
+        [by.one[0]]:
+          by.one[1] === 'ObjectId'
+            ? new mongoose.Types.ObjectId(itemId)
+            : by.one[1] === 'Date'
+            ? new Date(itemId)
+            : itemId,
+      },
       { projection: { __yVersions: 0, yState: 0, __migrationBackup: 0 } }
     );
 
