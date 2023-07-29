@@ -33,7 +33,7 @@ class Authenticate implements Extension {
     requestParameters,
     documentName,
   }: onConnectPayload): Promise<void> {
-    const [tenant, collectionName, itemId] = documentName.split('.');
+    const { tenant, collectionName, itemId } = parseName(documentName);
 
     // throw if connection to database is not ready
     if (tenantDb.readyState !== 1) throw 'not ready';
@@ -90,14 +90,19 @@ class Authenticate implements Extension {
       // get the object id of the doc
       let _id = itemId;
       if (by.one[1] !== 'ObjectId' || by.one[0] !== '_id') {
-        const dbDoc = await tenantDb
-          .collection(tenant, collectionName)
-          ?.findOne(
-            { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-            { projection: { _id: 1 } }
-          );
+        const dbDoc = await tenantDb.collection(tenant, collectionName)?.findOne(
+          {
+            [by.one[0]]:
+              by.one[1] === 'ObjectId'
+                ? new mongoose.Types.ObjectId(itemId)
+                : by.one[1] === 'Date'
+                ? new Date(itemId)
+                : itemId,
+          },
+          { projection: { _id: 1 } }
+        );
         if (dbDoc) _id = dbDoc._id.toHexString();
-        else throw new Error('failed to get _id for read/write access');
+        else throw new Error('failed to get _id for read/write access: ' + itemId);
       }
 
       // check read/write access

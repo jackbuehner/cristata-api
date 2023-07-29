@@ -42,12 +42,17 @@ async function findOrCreateYdoc(params: FindOrCreateYDocParams): Promise<Uint8Ar
   const { tenant, collectionName, itemId } = parseName(documentName);
 
   // get database document
-  const dbDoc = await tenantDb
-    .collection(tenant, collectionName)
-    ?.findOne(
-      { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-      { projection: { __yState: 1, __stateExists: 1 } }
-    );
+  const dbDoc = await tenantDb.collection(tenant, collectionName)?.findOne(
+    {
+      [by.one[0]]:
+        by.one[1] === 'ObjectId'
+          ? new mongoose.Types.ObjectId(itemId)
+          : by.one[1] === 'Date'
+          ? new Date(itemId)
+          : itemId,
+    },
+    { projection: { __yState: 1, __stateExists: 1 } }
+  );
 
   // throw an error if the document was not found
   if (!dbDoc) {
@@ -73,7 +78,14 @@ async function findOrCreateYdoc(params: FindOrCreateYDocParams): Promise<Uint8Ar
   // refreshes before first save of __yState, which would cause client state field
   // values to be appended to injected values in `setDocValues`.)
   await collection.updateOne(
-    { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
+    {
+      [by.one[0]]:
+        by.one[1] === 'ObjectId'
+          ? new mongoose.Types.ObjectId(itemId)
+          : by.one[1] === 'Date'
+          ? new Date(itemId)
+          : itemId,
+    },
     { $set: { __stateExists: true } }
   );
 
@@ -97,12 +109,17 @@ async function findOldVersionYdoc(params: FindOldVersionYdoc): Promise<Uint8Arra
   const { tenant, collectionName, itemId, version } = parseName(documentName);
 
   // get database document
-  const dbDoc = await tenantDb
-    .collection(tenant, collectionName)
-    ?.findOne(
-      { [by.one[0]]: by.one[1] === 'ObjectId' ? new mongoose.Types.ObjectId(itemId) : itemId },
-      { projection: { __yVersions: { $elemMatch: { timestamp: version || new Date() } } } }
-    );
+  const dbDoc = await tenantDb.collection(tenant, collectionName)?.findOne(
+    {
+      [by.one[0]]:
+        by.one[1] === 'ObjectId'
+          ? new mongoose.Types.ObjectId(itemId)
+          : by.one[1] === 'Date'
+          ? new Date(itemId)
+          : itemId,
+    },
+    { projection: { __yVersions: { $elemMatch: { timestamp: version || new Date() } } } }
+  );
 
   // throw an error if the document was not found
   if (!dbDoc) {
