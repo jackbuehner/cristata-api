@@ -146,15 +146,15 @@ describe(`shared >> YReference`, () => {
       ]);
     });
 
-    it('should use null if the force loaded field does not exist or has no value in the doc', async () => {
+    it('should not return a field if the force loaded field does not exist or has no value in the doc', async () => {
       await referenceType.set('PIDFU', [jack._id.toHexString(), evan._id.toHexString()], TenantModel, {
         collection: 'User',
         forceLoadFields: ['email_address'],
       });
       const value = referenceType.get('PIDFU');
       expect(value).toMatchObject([
-        { value: jack._id.toHexString(), label: jack.name, email_address: null },
-        { value: evan._id.toHexString(), label: evan.name, email_address: null },
+        { value: jack._id.toHexString(), label: jack.name },
+        { value: evan._id.toHexString(), label: evan.name },
       ]);
     });
 

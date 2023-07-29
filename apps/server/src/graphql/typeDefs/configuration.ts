@@ -187,9 +187,10 @@ const security = gql`
   }
 
   type ConfigurationSecurityToken {
+    _id: ObjectID!
     name: String!
-    token: String!
     expires: String!
+    user_id: String
     scope: ConfigurationSecurityTokenScope!
   }
 
@@ -197,8 +198,26 @@ const security = gql`
     admin: Boolean
   }
 
+  input ConfigurationSecurityTokenScopeInput {
+    admin: Boolean
+  }
+
   type Mutation {
     setSecret(key: String!, value: String!): String!
+    """
+    Is no _id parameter is specified, a new token will be created from the parameters.
+    Specify the token _id to update an existing token.
+
+    Upon creation of a new token, the token will be returned.
+    With existing token updates, nothing will be returned.
+    """
+    setToken(
+      _id: ObjectID
+      name: String!
+      expires: String!
+      user_id: String!
+      scope: ConfigurationSecurityTokenScopeInput!
+    ): String
   }
 `;
 

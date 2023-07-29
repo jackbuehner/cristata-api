@@ -1,9 +1,9 @@
-import { hasKey } from '@jackbuehner/cristata-utils';
+import { hasKey, isObjectId } from '@jackbuehner/cristata-utils';
 import { ContextFunction } from 'apollo-server-core';
 import { ExpressContext } from 'apollo-server-express';
 import mongoose from 'mongoose';
-import { IDeserializedUser } from '../../app/passport';
 import Cristata from '../../Cristata';
+import { IDeserializedUser } from '../../app/passport';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';
 import { Configuration } from '../../types/config';
@@ -37,28 +37,38 @@ const context: ContextFunction<Input, Context> = async ({ req, __cristata }): Pr
   if (req.headers.authorization) {
     const [type, token] = req.headers.authorization.split(' ');
     if (type === 'app-token') {
-      const matchedToken = config.tokens?.find(({ token: appToken }) => appToken === token);
+      const matchedToken = Object.entries(config.tokens || [])
+        .map(([key, val]) => ({ _id: key, ...val }))
+        .find(({ token: appToken }) => appToken === token);
       if (matchedToken) {
-        const isAuthenticated = !!matchedToken;
-        const profile: Context['profile'] = {
-          _id: new mongoose.Types.ObjectId('000000000000000000000000'),
-          email: 'token@cristata.app',
-          methods: ['local'],
-          name: 'TOKEN_' + matchedToken.name,
-          teams: matchedToken.scope.admin === true ? ['000000000000000000000001'] : [],
-          tenant: tenant,
-          username: 'TOKEN_' + matchedToken.name,
-        };
-        return {
-          config,
-          isAuthenticated,
-          profile,
-          tenant,
-          cristata,
-          restartApollo,
-          testNewConfig,
-          serverOrigin,
-        };
+        const expired = new Date(matchedToken.expires) < new Date();
+        const noScope = Object.entries(matchedToken.scope).filter(([, val]) => !!val).length === 0;
+        const disabled = expired || noScope;
+
+        if (!disabled) {
+          const isAuthenticated = !!matchedToken;
+          const profile: Context['profile'] = {
+            _id: isObjectId(matchedToken.user_id)
+              ? new mongoose.Types.ObjectId(matchedToken.user_id)
+              : new mongoose.Types.ObjectId('000000000000000000000000'),
+            email: 'token@cristata.app',
+            methods: ['local'],
+            name: 'TOKEN_' + matchedToken._id,
+            teams: matchedToken.scope.admin === true ? ['000000000000000000000001'] : [],
+            tenant: tenant,
+            username: 'TOKEN_' + matchedToken._id,
+          };
+          return {
+            config,
+            isAuthenticated,
+            profile,
+            tenant,
+            cristata,
+            restartApollo,
+            testNewConfig,
+            serverOrigin,
+          };
+        }
       }
     }
   }
@@ -127,5 +137,5 @@ interface Context {
   serverOrigin: string;
 }
 
-export type { Context };
 export { context };
+export type { Context };
