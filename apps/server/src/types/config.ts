@@ -21,14 +21,19 @@ interface Configuration<CT = Collection> {
       dashboardPassword: string;
     } | null;
   };
-  tokens?: Array<{
-    name: string;
-    token: string;
-    expires: string | 'never'; // ISO date OR 'never'
-    scope: {
-      admin: true;
-    };
-  }>;
+  // string key is hex representation of objectId
+  tokens?: Record<
+    string,
+    {
+      name: string;
+      token: string;
+      expires: string | 'never'; // ISO date OR 'never'
+      user_id: string | undefined;
+      scope: {
+        admin: true;
+      };
+    }
+  >;
   /**
    * The default sender name and email to be used by AWS SES when no other
    * email is specified.
@@ -281,11 +286,11 @@ interface ReturnedSubNavGroup extends SubNavGroup {
 }
 
 export type {
-  Configuration,
   Collection,
   CollectionPermissions,
-  CollectionPermissionsType,
   CollectionPermissionsActions,
+  CollectionPermissionsType,
+  Configuration,
   ReturnedMainNavItem,
   ReturnedSubNavGroup,
   SubNavGroup,

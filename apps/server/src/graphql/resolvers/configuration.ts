@@ -7,9 +7,9 @@ import {
 import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cristata-utils';
 import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
-import { ObjectId } from 'mongoose';
+import { ObjectId, Types } from 'mongoose';
 import pluralize from 'pluralize';
-import { v3 } from 'uuid';
+import { v4 as uuidv4, v3 } from 'uuid';
 import { TenantDB } from '../../mongodb/TenantDB';
 import {
   Collection,
@@ -192,6 +192,55 @@ const configuration = {
       // return the value that is now available in the cristata instance
       return value;
     },
+    setToken: async (
+      _: unknown,
+      {
+        _id,
+        name,
+        expires,
+        user_id,
+        scope,
+      }: {
+        _id: string | undefined;
+        name: NonNullable<Configuration['tokens']>['']['name'];
+        expires: NonNullable<Configuration['tokens']>['']['expires'];
+        user_id: NonNullable<Configuration['tokens']>['']['user_id'];
+        scope: NonNullable<Configuration['tokens']>['']['scope'];
+      },
+      context: Context
+    ) => {
+      helpers.requireAuthentication(context);
+      const isAdmin = context.profile?.teams.includes('000000000000000000000001');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+
+      const tenantsCollection = context.cristata.tenantsCollection;
+      const newToken = !_id ? uuidv4() : null;
+
+      if (newToken) _id = new Types.ObjectId().toHexString();
+
+      // update the config in the database
+      await tenantsCollection?.findOneAndUpdate(
+        { name: context.tenant },
+        {
+          $set: {
+            [`config.tokens.${_id}.name`]: name,
+            [`config.tokens.${_id}.expires`]: expires,
+            [`config.tokens.${_id}.user_id`]: user_id,
+            [`config.tokens.${_id}.scope`]: scope,
+            ...(newToken
+              ? {
+                  // only set the token when no _id was specified
+                  [`config.tokens.${_id}.token`]: newToken,
+                }
+              : {}),
+          },
+        },
+        { returnDocument: 'after' }
+      );
+
+      if (newToken) return newToken;
+      return null;
+    },
     setConfigurationNavigationSub: async (
       _: unknown,
       { key, input }: { key: string; input: SubNavGroup[] },
@@ -338,13 +387,31 @@ const configuration = {
         };
       }
     },
-    tokens: (_: unknown, __: unknown, context: Context): Configuration['tokens'] => {
+    tokens: (
+      _: unknown,
+      __: unknown,
+      context: Context
+    ): {
+      _id: Types.ObjectId;
+      name: NonNullable<Configuration['tokens']>['']['name'];
+      expires: NonNullable<Configuration['tokens']>['']['expires'];
+      user_id: NonNullable<Configuration['tokens']>['']['user_id'];
+      scope: NonNullable<Configuration['tokens']>['']['scope'];
+    }[] => {
       requireAuthentication(context);
       const isAdmin = context.profile?.teams.includes('000000000000000000000001');
-      if (!isAdmin) throw new ForbiddenError('you must be an administrator');
+      if (!isAdmin) throw new ForbiddenError('you must be an administrator to view tokens');
 
       try {
-        return context.config.tokens;
+        return Object.entries(context.config.tokens || {}).map(([key, value]) => {
+          return {
+            _id: new Types.ObjectId(key),
+            name: value.name,
+            expires: value.expires,
+            user_id: value.user_id,
+            scope: value.scope,
+          };
+        });
       } catch {
         return [];
       }
