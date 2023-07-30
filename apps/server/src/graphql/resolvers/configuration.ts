@@ -1,3 +1,4 @@
+import FluentIconsFontCodes from '@fluentui/react-icons/lib/utils/fonts/FluentSystemIcons-Regular.json';
 import {
   deconstructSchema,
   defaultSchemaDefTypes,
@@ -22,6 +23,8 @@ import { collectionsAsCollectionInputs, constructCollections } from '../../utils
 import helpers, { requireAuthentication } from '../helpers';
 import { GenCollectionInput } from '../helpers/generators/genCollection';
 import { Context } from '../server';
+
+type FluentIconNames = keyof typeof FluentIconsFontCodes | 'CircleSmall24Filled';
 
 const configuration = {
   Query: {
@@ -333,7 +336,21 @@ const configuration = {
       helpers.requireAuthentication(context);
 
       return Promise.all(
-        context.config.navigation.main
+        [
+          ...context.config.navigation.main,
+          ...(context.config.secrets?.fathom?.siteId
+            ? [
+                {
+                  label: 'Analytics',
+                  icon: 'DataUsage24Regular' as FluentIconNames,
+                  to: '/embed/fathom',
+                  isHidden: {
+                    notInTeam: '000000000000000000000001',
+                  },
+                },
+              ]
+            : []),
+        ]
           .filter((item) => {
             if (isObject(item.isHidden)) {
               if (typeof item.isHidden.notInTeam === 'string') {
