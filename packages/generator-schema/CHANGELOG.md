@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 3.9.0
+
+### Minor Changes
+
+- 56c8b3b: add column defs for photo collection
+
 ## 3.8.0
 
 ### Minor Changes

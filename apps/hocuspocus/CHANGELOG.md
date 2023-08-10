@@ -1,5 +1,17 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 1.6.0
+
+### Minor Changes
+
+- 043af12: update doc array values when the shared types within the doc array are retrieved
+
+### Patch Changes
+
+- ab697de: do not destructure array into set when setting users array in activity doc
+- 4d4db78: do not store activty in response to no change
+- dd6ca5d: support date accessor on hocuspocus server
+
 ## 1.5.0
 
 ### Minor Changes

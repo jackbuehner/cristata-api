@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-ydoc-utils
 
+## 3.2.0
+
+### Minor Changes
+
+- 043af12: update doc array values when the shared types within the doc array are retrieved
+
 ## 3.1.2
 
 ### Patch Changes
