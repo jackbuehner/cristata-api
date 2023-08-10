@@ -7,8 +7,9 @@ import {
 import { insertUserToArray } from '@jackbuehner/cristata-utils';
 import { ApolloError } from 'apollo-server-core';
 import { ForbiddenError } from 'apollo-server-errors';
+import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
-import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
+import { CollectionDoc, canDo, createDoc, findDoc, requireAuthentication } from '.';
 import { Context } from '../server';
 import { setYDocType } from './setYDocType';
 
@@ -162,7 +163,16 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
       }
 
       // apply setters to published doc copy
-      conditionallyModifyDocField(doc.__publishedDoc, deconstructSchema(collectionConfig.schemaDef));
+      const pojo = doc.toObject();
+      if (pojo.__publishedDoc) {
+        const changed = conditionallyModifyDocField(
+          pojo.__publishedDoc,
+          deconstructSchema(collectionConfig.schemaDef)
+        );
+        if (Object.keys(changed).length > 0) {
+          doc.__publishedDoc = merge(pojo.__publishedDoc, changed) as typeof doc.__publishedDoc;
+        }
+      }
     } else {
       doc.__publishedDoc = null;
     }
