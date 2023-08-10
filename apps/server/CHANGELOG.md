@@ -1,5 +1,29 @@
 # Changelog
 
+## 11.0.0
+
+### Major Changes
+
+- cd0e1fe: support creating and updating tokens
+- cd0e1fe: store app tokens in config as object of token details keyed by token id instead of an array of token details
+- cd0e1fe: remove ability to view tokens after they are created (but still allow editing name, scope, etc.)
+- 56c8b3b: allow browsers to cache photos for 1 year
+
+### Minor Changes
+
+- e3dfbe9: use compound partial index for workflow query
+- 56c8b3b: use new photo library url
+- c2068cc: support transformations on images in photos collection
+- 9d21e93: queue api usage metric to only update every minute
+- 6065e34: add config support for photos app (system collection)
+
+### Patch Changes
+
+- 56c8b3b: filter special characters out of content-disposition header for photos and files
+- 7bfb3ae: return default `by` for collection
+- 359ac01: use node-fetch so fetch is not undefined
+- 044c168: convert mongoose doc to pojo before evaluating setters and updating published doc copy
+
 ## 10.4.0
 
 ### Minor Changes
