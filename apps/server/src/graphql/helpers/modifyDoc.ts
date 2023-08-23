@@ -10,7 +10,6 @@ import { ApolloError, ForbiddenError, UserInputError } from 'apollo-server-error
 import { detailedDiff } from 'deep-object-diff';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
-import { Doc } from 'yjs';
 import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
 import {
   CollectionSchemaFields,
