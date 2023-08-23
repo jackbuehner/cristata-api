@@ -199,7 +199,7 @@ async function modifyDoc<DocType, DataType>({
       }
     });
 
-    addToY({ inputData, schemaDef: deconstructSchema(schema), TenantModel, ydoc });
+    addToY({ inputData, schemaDef: deconstructSchema(schema), TenantModel, ydoc, onlyProvided: true });
 
     return true;
   });
