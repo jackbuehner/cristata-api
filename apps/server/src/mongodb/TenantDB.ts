@@ -103,6 +103,13 @@ class TenantDB {
     return Model;
   }
 
+  async createAllModels() {
+    await this.connect();
+    this.collections.forEach((collection) => {
+      this.model(collection.name);
+    });
+  }
+
   async createDefaultUsers() {
     // connect to the databse
     const connection = await this.connect();

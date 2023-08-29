@@ -119,6 +119,14 @@ class Cristata {
       }
     });
 
+    // create all models for each tenant
+    this.tenants.forEach(async (tenant) => {
+      if (this.config[tenant]) {
+        const tenantDB = new TenantDB(tenant, this.config[tenant].collections);
+        tenantDB.createAllModels();
+      }
+    });
+
     // start the server
     try {
       this.server.listen(parseInt(process.env.PORT || ''), async () => {
@@ -339,6 +347,7 @@ class Cristata {
             const tenantDB = new TenantDB(newTenantDoc.name);
             const connection = await tenantDB.connect();
             connection.deleteModel(/.*/);
+            tenantDB.createAllModels();
 
             // restart apollo so it uses the newest config
             await this.restartApollo(newTenantDoc.name);

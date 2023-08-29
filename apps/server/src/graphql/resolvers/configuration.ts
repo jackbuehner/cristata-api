@@ -637,6 +637,7 @@ const setRawConfigurationCollection = async (
   const tenantDB = new TenantDB(context.tenant);
   const connection = await tenantDB.connect();
   connection.deleteModel(/.*/);
+  tenantDB.createAllModels();
 
   // determine if the collection is in the database config
   const res = await tenantsCollection.findOne(
