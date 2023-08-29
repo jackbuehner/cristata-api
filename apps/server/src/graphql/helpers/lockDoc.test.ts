@@ -36,7 +36,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.withPermissions = false;
 
     // create the model and context
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -58,7 +58,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.withPermissions = false;
 
     // create the model and context
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -80,7 +80,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.withPermissions = false;
 
     // create the model and context
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -107,7 +107,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.withPermissions = false;
 
     // create the model and context
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -134,11 +134,11 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.withPermissions = false;
 
     // create the model and context
-    const Document = createModel(
+    const Document = (await createModel(
       c.collection.name,
       { slug: { type: String } },
       c.collection.withPermissions
-    ) as Model<{
+    )) as Model<{
       slug: string;
     }>;
     const context = useApolloContext(c);
@@ -171,11 +171,11 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.withPermissions = false;
 
     // create the model and context
-    const Document = createModel(
+    const Document = (await createModel(
       c.collection.name,
       { num: { type: 'Number' } },
       c.collection.withPermissions
-    ) as Model<{
+    )) as Model<{
       num: number;
     }>;
     const context = useApolloContext(c);
@@ -202,11 +202,11 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.withPermissions = false;
 
     // create the model and context
-    const Document = createModel(
+    const Document = (await createModel(
       c.collection.name,
       { date: { type: 'Date' } },
       c.collection.withPermissions
-    ) as Model<{
+    )) as Model<{
       date: Date;
     }>;
     const context = useApolloContext(c);
@@ -241,7 +241,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.canPublish = true;
 
     // create the model and context
-    const Document = createModel(
+    const Document = await createModel(
       c.collection.name,
       undefined,
       c.collection.withPermissions,
@@ -269,7 +269,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.actionAccess.lock = { users: [], teams: [] };
 
     // create the model and context
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -292,7 +292,7 @@ describe(`api >> v3 >> helpers >> lockDoc`, () => {
     c.collection.actionAccess.lock = { users: [], teams: [] };
 
     // create the model and context
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find

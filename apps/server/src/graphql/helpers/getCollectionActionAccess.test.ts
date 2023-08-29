@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Model } from 'mongoose';
 import { useApolloContext, useMongoose } from '../../../tests/hooks';
 import { getCollectionActionAccess } from './getCollectionActionAccess';
@@ -24,17 +25,21 @@ describe(`api >> v3 >> helpers >> getCollectionActionAccess`, () => {
   };
   const context = useApolloContext(c);
 
-  const Document = createModel(
-    c.collection.name,
-    { slug: { type: 'String' } },
-    c.collection.withPermissions
-  ) as Model<{
-    slug: string;
-  }>;
+  let doc1: any;
+  let doc2: any;
 
-  const doc1 = new Document({ slug: 'one' });
-  const doc2 = new Document({ slug: 'two' });
   beforeAll(async () => {
+    const Document = (await createModel(
+      c.collection.name,
+      { slug: { type: 'String' } },
+      c.collection.withPermissions
+    )) as Model<{
+      slug: string;
+    }>;
+
+    doc1 = new Document({ slug: 'one' });
+    doc2 = new Document({ slug: 'two' });
+
     await doc1.save();
     await doc2.save();
   });

@@ -35,7 +35,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     c.collection.withPermissions = false;
 
     // create the model and context
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -51,7 +51,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it('should fail to find a doc with empty permissions', async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -67,7 +67,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it('should find a doc with empty permissions when `fullAccess === true`', async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -86,7 +86,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     // make user an admin
     c.isAdmin = true;
 
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -105,7 +105,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
     // allow current user to pypass document permissions
     c.collection.actionAccess.bypassDocPermissions = { users: ['000000000000000000000001'], teams: [] }; // 000000000000000000000001 is the test user's id
 
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -121,7 +121,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should find a doc with one of user's teams in permissions`, async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -138,7 +138,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should find a doc with user's _id in permissions`, async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -155,7 +155,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should find a doc with team 0 (any team)`, async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -172,7 +172,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should find a doc with team "0" (any team)`, async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -189,7 +189,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should find a doc with user "000000000000000000000000" (any user)`, async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -206,7 +206,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should find a doc by property other than _id`, async () => {
-    const Document = createModel(
+    const Document = await createModel(
       c.collection.name,
       { slug: { type: 'String' } },
       c.collection.withPermissions
@@ -229,7 +229,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should find the newest doc when finding by a property that is the same`, async () => {
-    const Document = createModel(
+    const Document = await createModel(
       c.collection.name,
       { slug: { type: 'String', default: 'new-document' }, letter: { type: 'String' } },
       c.collection.withPermissions
@@ -265,7 +265,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should be an instance of the mongoose Document class when lean is false`, async () => {
-    const Document = createModel(c.collection.name, undefined, c.collection.withPermissions);
+    const Document = await createModel(c.collection.name, undefined, c.collection.withPermissions);
     const context = useApolloContext(c);
 
     // create and save a doc to find
@@ -282,7 +282,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should only return fields in the projection for non-lean docs`, async () => {
-    const Document = createModel(
+    const Document = await createModel(
       c.collection.name,
       { slug: { type: 'String', default: 'new-document' }, slug2: { type: 'String' } },
       c.collection.withPermissions
@@ -311,7 +311,7 @@ describe(`api >> v3 >> helpers >> findDoc`, () => {
   });
 
   it(`should only return fields in the projection for lean docs`, async () => {
-    const Document = createModel(
+    const Document = await createModel(
       c.collection.name,
       { slug: { type: 'String', default: 'new-document' }, slug2: { type: 'String' } },
       c.collection.withPermissions
