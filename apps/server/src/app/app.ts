@@ -19,6 +19,7 @@ import { unless } from './middleware/unless';
 import './passport';
 import { IDeserializedUser } from './passport';
 import { authRouterFactory } from './routes/auth.route';
+import { heapRouterFactory } from './routes/heap.route';
 import { proxyRouterFactory } from './routes/proxy.route';
 import { releaseRouterFactory } from './routes/release.route';
 import { rootRouter } from './routes/root.route';
@@ -139,6 +140,7 @@ function createExpressApp(cristata: Cristata): Application {
   app.use(proxyRouterFactory()); // CORS proxy routes
   app.use(`/releases`, releaseRouterFactory()); // app release routes
   app.use(stripeRouterFactory(cristata)); // stripe routes
+  app.use(`/heap`, heapRouterFactory()); // heap/memory routes
   app.use(``, rootRouter); // root v3 routes
 
   app.get(``, requireAuth, (req: Request, res: Response) => {
