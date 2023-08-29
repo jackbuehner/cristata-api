@@ -11,6 +11,15 @@ import {
 } from '../../src/mongodb/helpers/constructBasicSchemaFields';
 import { convertTopNestedObjectsToSubdocuments } from '../../src/mongodb/helpers/convertTopNestedObjectsToSubdocuments';
 
+async function startMongoServer() {
+  const mongoServer = await MongoMemoryServer.create({
+    binary: { downloadDir: './cache/mongodb-binaries', version: '6.0.2' },
+  });
+  global.conn = mongoose.createConnection(mongoServer.getUri(), {});
+  await global.conn.asPromise();
+  return mongoServer;
+}
+
 /**
  * Create a MongoDB server in memory for tests and connect
  * mongoose to the in-memory MongoDB server.
@@ -26,24 +35,23 @@ function useMongoose(): {
   let mongoServer: MongoMemoryServer | undefined = undefined;
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create({
-      binary: { downloadDir: './cache/mongodb-binaries', version: '6.0.2' },
-    });
-    await mongoose.connect(mongoServer.getUri(), {});
+    mongoServer = await startMongoServer();
   }, 20000);
 
   afterAll(async () => {
-    mongoose.disconnect();
+    global.conn?.destroy();
     if (mongoServer) await mongoServer.stop();
   });
 
-  const createModel: CreateModel = (
+  const createModel: CreateModel = async (
     name,
     customFields = undefined,
     withPermissions = false,
     canPublish = false
   ) => {
-    const tenantDB = mongoose.connection.useDb('db_2', { useCache: true });
+    if (!global.conn) mongoServer = await startMongoServer();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const tenantDB = global.conn!.useDb('db_2', { useCache: true });
 
     // create the activity model since many of the helpers require it
     if (name !== 'Activity') createModel('Activity');
@@ -90,6 +98,6 @@ type CreateModel = (
   customFields?: Record<string, SchemaDefinitionProperty>,
   withPermissions?: boolean,
   canPublish?: boolean
-) => Model<unknown>;
+) => Promise<Model<unknown>>;
 
 export { useMongoose };

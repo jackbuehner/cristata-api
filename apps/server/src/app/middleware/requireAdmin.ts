@@ -18,13 +18,13 @@ const requireAdmin = async (req: Request, res: Response, next: NextFunction): Pr
   const user = req.user as IDeserializedUser;
   const tenant = user.tenant;
 
-  const conn = global.mongoose?.app?.conn?.useDb(tenant);
-  if (!conn) {
+  const tenantConn = global.conn?.useDb(tenant, { useCache: true });
+  if (!tenantConn) {
     res.status(500).end();
     return;
   }
 
-  const userTeams = await conn.db
+  const userTeams = await tenantConn.db
     .collection('teams')
     .find(
       {

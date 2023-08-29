@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useApolloContext, useMongoose } from '../../../tests/hooks';
 import { getUsers } from './getUsers';
+import mongoose from 'mongoose';
 
 describe(`api >> v3 >> helpers >> getUsers`, () => {
   const { createModel } = useMongoose();
@@ -21,15 +23,20 @@ describe(`api >> v3 >> helpers >> getUsers`, () => {
       },
     },
   };
+
   const context = useApolloContext(c);
 
-  // create two user objects
-  const User = createModel(c.collection.name);
+  let user1: any;
+  let user2: any;
 
-  const user1 = new User({ _id: '000000000000000000000001' });
-  user1.save();
-  const user2 = new User({ _id: '000000000000000000000002' });
-  user2.save();
+  beforeAll(async () => {
+    const User = await createModel(c.collection.name);
+
+    user1 = new User({ _id: '000000000000000000000001' });
+    user1.save();
+    user2 = new User({ _id: '000000000000000000000002' });
+    user2.save();
+  });
 
   it('should get a user object when a single ObjectId is provided', async () => {
     const user = await getUsers(user1._id, context);
