@@ -634,10 +634,9 @@ const setRawConfigurationCollection = async (
 
   // clear the models so that models based on an old version of the config
   // are not used with the new collection configs
-  const tenantDB = new TenantDB(context.tenant, context.config.collections);
-  for (const modelName in tenantDB.models.keys()) {
-    tenantDB.models.delete(modelName);
-  }
+  const tenantDB = new TenantDB(context.tenant);
+  const connection = await tenantDB.connect();
+  connection.deleteModel(/.*/);
 
   // determine if the collection is in the database config
   const res = await tenantsCollection.findOne(

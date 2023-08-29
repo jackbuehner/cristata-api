@@ -15,9 +15,6 @@ class TenantDB {
   tenant: string;
   opts?: TenantDBOptions;
 
-  models = new Map<string, TenantModel<unknown>>();
-  schemas = new Map<string, mongoose.Schema>();
-
   constructor(tenant: string, collections?: Collection[], opts?: TenantDBOptions) {
     this.tenant = tenant;
     this.opts = opts;
@@ -45,10 +42,8 @@ class TenantDB {
    * same model name will return the already created model.
    */
   async model<T>(name: string): Promise<TenantModel<T> | null> {
-    // return the model if it has already been created
-    if (this.models.has(name) && !this.opts?.alwaysNewModels) {
-      return this.models.get(name) as TenantModel<T>;
-    }
+    // connect to the databse
+    const connection = await this.connect();
 
     // find the collection from the config
     const collection = this.collections.find((col) => col.name === name);
@@ -56,6 +51,11 @@ class TenantDB {
     // return null if the collection does not exist
     if (!collection) {
       return null;
+    }
+
+    // return the model if it has already been created
+    if (connection.models[collection.name] && !this.opts?.alwaysNewModels) {
+      return connection.models[collection.name] as TenantModel<T>;
     }
 
     // create the schema
@@ -67,13 +67,8 @@ class TenantDB {
     // add passport-local-mongoose to the users collection
     if (collection.name === 'User') injectPassportPlugin(Schema);
 
-    // connect to the databse
-    const connection = await this.connect();
-
     // delete model from mongoose connection if it already
-    // exists because it was created outside the scope
-    // of this class
-    // (mongoose disallows duplicate models)
+    // exists because mongoose disallows duplicate models
     if (connection.models[collection.name]) {
       connection.deleteModel(collection.name);
     }
@@ -104,10 +99,6 @@ class TenantDB {
     } catch (error) {
       console.error(error);
     }
-
-    // save schema and model
-    this.schemas.set(name, Schema);
-    this.models.set(name, Model as TenantModel<unknown>);
 
     return Model;
   }

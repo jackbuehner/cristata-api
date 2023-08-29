@@ -22,6 +22,7 @@ import { createExpressApp } from './app';
 import { CollectionDoc } from './graphql/helpers';
 import { GenCollectionInput } from './graphql/helpers/generators/genCollection';
 import { apollo } from './graphql/server';
+import { TenantDB } from './mongodb/TenantDB';
 import { connectDb } from './mongodb/connectDB';
 import {
   docCreateListener,
@@ -332,6 +333,12 @@ class Cristata {
               ...newTenantDoc.config,
               collections: constructCollections(newTenantDoc.config.collections, newTenantDoc.name),
             };
+
+            // clear the models so that models based on an old version of the config
+            // are not used with the new collection configs
+            const tenantDB = new TenantDB(newTenantDoc.name);
+            const connection = await tenantDB.connect();
+            connection.deleteModel(/.*/);
 
             // restart apollo so it uses the newest config
             await this.restartApollo(newTenantDoc.name);
