@@ -12,6 +12,8 @@
     "start": "cross-env NODE_OPTIONS=${SERVER_NODE_OPTIONS} APP_URL=${APP_URL:=https://cristata.app} AUTH_APP_URL=${AUTH_APP_URL:=https://auth.cristata.app} node dist/index.js",
     "dev:prepare": "tsc",
     "dev": "npm run dev:prepare && tsc --watch & cross-env PORT=${PORT:=3000} NODE_OPTIONS=${SERVER_NODE_OPTIONS} APP_URL=${APP_URL:=https://cristata.app} AUTH_APP_URL=${AUTH_APP_URL:=https://auth.cristata.app} NODE_ENV=development nodemon dist/index.js",
+    "inspect": "npm run dev:prepare && tsc && cross-env PORT=${PORT:=3000} NODE_OPTIONS=${SERVER_NODE_OPTIONS} APP_URL=${APP_URL:=https://cristata.app} AUTH_APP_URL=${AUTH_APP_URL:=https://auth.cristata.app} NODE_ENV=development node --inspect dist/index.js",
+    "inspect-prod": "npm run dev:prepare && tsc --build && cross-env PORT=${PORT:=3000} NODE_OPTIONS=${SERVER_NODE_OPTIONS} APP_URL=${APP_URL:=https://cristata.app} AUTH_APP_URL=${AUTH_APP_URL:=https://auth.cristata.app} NODE_ENV=development node --inspect dist/index.js",
     "build": "tsc --build && tsc --declaration && cross-env NODE_ENV=production npm run lint",
     "check": "tsc && npm run lint",
     "test": "jest",
