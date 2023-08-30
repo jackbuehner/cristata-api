@@ -4,6 +4,7 @@ import Cristata from '../Cristata';
 
 declare global {
   var conn: mongoosePkg.Connection | null;
+  var defaultCollections: Record<string, Collection[]>;
 }
 
 declare global {

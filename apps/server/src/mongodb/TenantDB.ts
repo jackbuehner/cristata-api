@@ -19,9 +19,16 @@ class TenantDB {
     this.tenant = tenant;
     this.opts = opts;
 
+    // create default collections for the tenant in the global scope
+    // that can be used whenever `collections` is undefined
+    if (!global.defaultCollections) global.defaultCollections = {};
+    if (!global.defaultCollections[tenant]) {
+      global.defaultCollections[tenant] = constructCollections([], tenant);
+    }
+
     // use the provided collections from the config
-    // or use the default collections if config is undefined
-    this.collections = collections || constructCollections([], tenant);
+    // or use the default collections if `collections` is undefined
+    this.collections = collections || global.defaultCollections[tenant];
   }
 
   /**
