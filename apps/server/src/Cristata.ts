@@ -180,6 +180,17 @@ class Cristata {
 
         // listen for tenant database events
         this.listenForCollectionDocChanges();
+
+        setInterval(() => {
+          console.table(
+            Object.fromEntries(
+              Object.entries(process.memoryUsage()).map(([key, value]) => [
+                key,
+                `${(value / 1000000).toFixed(2)} MB`,
+              ])
+            )
+          );
+        }, 30 * 1000);
       });
     } catch (error) {
       console.error(`Failed to start Cristata  server on port ${process.env.PORT}!`, error);
