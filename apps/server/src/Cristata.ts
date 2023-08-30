@@ -10,6 +10,7 @@ import {
   unflattenObject,
 } from '@jackbuehner/cristata-utils';
 import { Logtail } from '@logtail/node';
+import { exec } from 'child_process';
 import { detailedDiff } from 'deep-object-diff';
 import { Application, Router } from 'express';
 import http from 'http';
@@ -190,6 +191,9 @@ class Cristata {
               ])
             )
           );
+          exec('free -m', (_, stdout) => {
+            console.log(stdout);
+          });
         }, 30 * 1000);
       });
     } catch (error) {
