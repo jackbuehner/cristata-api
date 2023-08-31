@@ -1,4 +1,3 @@
-import { replaceCircular } from '@jackbuehner/cristata-utils';
 import compression from 'compression';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
@@ -186,7 +185,6 @@ function createExpressApp(cristata: Cristata): Application {
     } catch (error) {
       console.error('Error setting database usage metric in Stripe');
       console.error(error);
-      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   }
 
@@ -233,7 +231,6 @@ function createExpressApp(cristata: Cristata): Application {
     } catch (error) {
       console.error('Error setting storage usage metric in Stripe');
       console.error(error);
-      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   }
 
@@ -301,7 +298,6 @@ function createExpressApp(cristata: Cristata): Application {
     } catch (error) {
       console.error('Error setting API/app usage metric in Stripe');
       console.error(error);
-      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   }
 
@@ -333,7 +329,6 @@ function createExpressApp(cristata: Cristata): Application {
       }
     } catch (error) {
       console.error(error);
-      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   });
 
@@ -360,7 +355,6 @@ function createExpressApp(cristata: Cristata): Application {
         }
       } catch (error) {
         console.error(error);
-        cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       }
     });
     next();
@@ -403,7 +397,6 @@ function createExpressApp(cristata: Cristata): Application {
         }
       } catch (error) {
         console.error(error);
-        cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       }
     });
     next();

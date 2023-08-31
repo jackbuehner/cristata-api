@@ -1,4 +1,4 @@
-import { hasKey, isObjectId, replaceCircular } from '@jackbuehner/cristata-utils';
+import { hasKey, isObjectId } from '@jackbuehner/cristata-utils';
 import dotenv from 'dotenv';
 import { NextFunction, Request, Response, Router } from 'express';
 import { isPlainObject } from 'is-what';
@@ -8,7 +8,7 @@ import Cristata from '../../Cristata';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { magicLogin } from '../middleware/magicLogin';
 import { requireAuth } from '../middleware/requireAuth';
-import { deserializeUser, IDeserializedUser, UserToSerialize } from '../passport';
+import { IDeserializedUser, UserToSerialize, deserializeUser } from '../passport';
 
 // load environmental variables
 dotenv.config({ override: true });
@@ -33,7 +33,6 @@ const handleError = (
   // skipping logging errors from incorrect credentioals
   if (code !== 401) {
     console.error(error);
-    cristata.logtail.error(JSON.stringify(replaceCircular(error)));
   }
   if (descriptive) res.status(code).json({ error: error.message });
   else if (req.body.redirect === false) res.status(500).json({ error: 'error authenticating' });

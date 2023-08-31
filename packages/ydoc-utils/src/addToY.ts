@@ -4,16 +4,12 @@ import {
   isTypeTuple,
   MongooseSchemaType,
 } from '@jackbuehner/cristata-generator-schema';
-import { isJSON, replaceCircular } from '@jackbuehner/cristata-utils';
-import { Logtail } from '@logtail/node';
+import { isJSON } from '@jackbuehner/cristata-utils';
 import { Model } from 'mongoose';
-import { get as getProperty, set as setProperty } from 'object-path';
+import { get as getProperty, has as hasProperty, set as setProperty } from 'object-path';
 import * as Y from 'yjs';
 import { z, ZodError } from 'zod';
 import { shared } from './shared';
-import { has as hasProperty } from 'object-path';
-
-const logtail = new Logtail(process.env.LOGTAIL_ID || 'MISSING');
 
 interface AddToYParams {
   ydoc: Y.Doc;
@@ -132,7 +128,7 @@ async function addToY(params: AddToYParams) {
               if (def.docs) {
                 const namedSubdocSchemas = def.docs
                   .filter(([docKey]) => !docKey.includes('#'))
-                  .map(([docKey, docDef]): typeof def.docs[0] => {
+                  .map(([docKey, docDef]): (typeof def.docs)[0] => {
                     const valueKey = docKey.replace(key, `${key}.${index}`);
                     const docArrayKey = docKey.replace(key, `__docArray.‾‾${key}‾‾.${uuid}`);
 
@@ -251,7 +247,6 @@ async function addToY(params: AddToYParams) {
         }
       } catch (error) {
         console.error(error);
-        logtail.error(JSON.stringify(replaceCircular(error)));
         if (error instanceof ZodError) {
           throw new Error(
             `Validation error on field "${key}" of type "${schemaType}${

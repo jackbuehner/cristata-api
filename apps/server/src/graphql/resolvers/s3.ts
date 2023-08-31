@@ -1,7 +1,7 @@
 import { ApolloError } from 'apollo-server-errors';
 import aws from 'aws-sdk';
-import { Context } from '../server';
 import { requireAuthentication } from '../helpers';
+import { Context } from '../server';
 
 const credentials = {
   accessKeyId: process.env.AWS_SECRET_KEY_ID || '',
@@ -33,7 +33,6 @@ const s3 = {
         s3.getSignedUrl('putObject', s3Params, (err, signedRequest) => {
           if (err) {
             console.error(err);
-            context.cristata.logtail.error(JSON.stringify(err));
             throw new ApolloError(err.message, 'AWS_S3_ERROR');
           }
           resolve({

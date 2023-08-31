@@ -1,4 +1,4 @@
-import { hasKey, isObject, replaceCircular } from '@jackbuehner/cristata-utils';
+import { hasKey, isObject } from '@jackbuehner/cristata-utils';
 import express, { Router } from 'express';
 import Stripe from 'stripe';
 import Cristata from '../../Cristata';
@@ -84,7 +84,6 @@ function factory(cristata: Cristata): Router {
       } else res.status(403).send();
     } catch (error) {
       console.error(error);
-      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   });
 
@@ -112,7 +111,6 @@ function factory(cristata: Cristata): Router {
       }
     } catch (error) {
       console.error(error);
-      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       res.status(500).send();
     }
   });
@@ -130,7 +128,6 @@ function factory(cristata: Cristata): Router {
       }
     } catch (error) {
       console.error(error);
-      cristata.logtail.error(JSON.stringify(replaceCircular(error)));
       if (error instanceof Error) {
         return res.status(400).send(`⚠️  Webhook signature verification failed: ${error.message}`);
       } else {
@@ -221,7 +218,6 @@ function factory(cristata: Cristata): Router {
               cristata.hasTenantPaid[tenant] = true;
             } catch (error) {
               console.error(`Failed to update tenant after checkout.session.completed`, error);
-              cristata.logtail.error(JSON.stringify(replaceCircular(error)));
               if (error instanceof Error) {
                 return res
                   .status(400)
@@ -262,7 +258,6 @@ function factory(cristata: Cristata): Router {
               if (tenantName) cristata.hasTenantPaid[tenantName] = true;
             } catch (error) {
               console.error(`Failed to update tenant after invoice.paid`, error);
-              cristata.logtail.error(JSON.stringify(replaceCircular(error)));
               if (error instanceof Error) {
                 return res.status(400).send(`⚠️  Failed to update tenant after invoice.paid: ${error.message}`);
               }
@@ -300,7 +295,6 @@ function factory(cristata: Cristata): Router {
               if (tenantName) cristata.hasTenantPaid[tenantName] = false;
             } catch (error) {
               console.error(`Failed to update tenant after invoice.payment_failed`, error);
-              cristata.logtail.error(JSON.stringify(replaceCircular(error)));
               if (error instanceof Error) {
                 return res
                   .status(400)
@@ -340,7 +334,6 @@ function factory(cristata: Cristata): Router {
               if (tenantName) cristata.hasTenantPaid[tenantName] = false;
             } catch (error) {
               console.error(`Failed to update tenant after customer.subscription.deleted`, error);
-              cristata.logtail.error(JSON.stringify(replaceCircular(error)));
               if (error instanceof Error) {
                 return res
                   .status(400)
@@ -409,7 +402,6 @@ function factory(cristata: Cristata): Router {
               cristata.hasTenantPaid[tenant] = true;
             } catch (error) {
               console.error(`Failed to update tenant after checkout.session.completed`, error);
-              cristata.logtail.error(JSON.stringify(replaceCircular(error)));
               if (error instanceof Error) {
                 return res
                   .status(400)

@@ -3,13 +3,7 @@ import {
   EventDoc,
 } from '@jackbuehner/cristata-generator-schema/src/default-schemas/Event';
 import { WebhookDoc } from '@jackbuehner/cristata-generator-schema/src/default-schemas/Webhook';
-import {
-  capitalize,
-  hasChangeStreamNamespace,
-  replaceCircular,
-  unflattenObject,
-} from '@jackbuehner/cristata-utils';
-import { Logtail } from '@logtail/node';
+import { capitalize, hasChangeStreamNamespace, unflattenObject } from '@jackbuehner/cristata-utils';
 import { exec } from 'child_process';
 import { detailedDiff } from 'deep-object-diff';
 import { Application, Router } from 'express';
@@ -53,7 +47,6 @@ class Cristata {
   canTenantAllowDiskUse: Record<string, boolean> = {};
   tenantsCollection: MongoCollection<TenantsCollectionSchema> | null = null;
   server = http.createServer();
-  logtail = new Logtail(process.env.LOGTAIL_ID || 'MISSING');
 
   constructor(config?: Configuration<Collection | GenCollectionInput>) {
     if (config) {
@@ -87,7 +80,6 @@ class Cristata {
       } catch (error) {
         response.destroy();
         console.error(error);
-        this.logtail.error(JSON.stringify(replaceCircular(error)));
       }
     });
 
@@ -116,7 +108,6 @@ class Cristata {
         });
       } catch (error) {
         console.error(error);
-        this.logtail.error(JSON.stringify(replaceCircular(error)));
       }
     });
 
@@ -198,7 +189,6 @@ class Cristata {
       });
     } catch (error) {
       console.error(`Failed to start Cristata  server on port ${process.env.PORT}!`, error);
-      this.logtail.error(JSON.stringify(replaceCircular(error)));
     }
   }
 
@@ -276,7 +266,6 @@ class Cristata {
             }
           } catch (error) {
             console.error(error);
-            this.logtail.error(JSON.stringify(replaceCircular(error)));
           }
         })
       );

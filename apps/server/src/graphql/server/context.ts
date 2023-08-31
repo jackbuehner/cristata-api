@@ -25,15 +25,6 @@ const context: ContextFunction<Input, Context> = async ({ req, __cristata }): Pr
   const testNewConfig = (config: Configuration) => cristata.testNewConfig(tenant, config);
   const serverOrigin = `${req.protocol}://${req.get('host')}`;
 
-  // inject tenant and profile into logs
-  cristata.logtail.use(async (log) => {
-    return {
-      ...log,
-      tenant,
-      user: JSON.parse(JSON.stringify(req.user || 'none')),
-    };
-  });
-
   if (req.headers.authorization) {
     const [type, token] = req.headers.authorization.split(' ');
     if (type === 'app-token') {
