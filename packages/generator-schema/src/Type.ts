@@ -36,6 +36,11 @@ const Type = {
       else return 'ObjectID';
     }
 
+    if (Type.isEncryptedString(type)) {
+      if (isArray) return '[EncryptedString]';
+      else return 'EncryptedString';
+    }
+
     if (Type.isString(type)) {
       if (isArray) return '[String]';
       else return 'String';
@@ -68,7 +73,15 @@ const Type = {
     return toCheck === mongoose.Types.ObjectId || toCheck === 'ObjectId' || toCheck === 'ObjectId';
   },
   isString: (toCheck: unknown): boolean => {
-    return toCheck === String || toCheck === mongoose.Schema.Types.String || toCheck === 'String';
+    return (
+      toCheck === String ||
+      toCheck === mongoose.Schema.Types.String ||
+      toCheck === 'String' ||
+      toCheck === 'EncryptedString'
+    );
+  },
+  isEncryptedString: (toCheck: unknown): boolean => {
+    return toCheck === 'EncryptedString';
   },
   isObject: (toCheck: unknown): boolean => {
     return toCheck === JSON || toCheck === 'JSON';

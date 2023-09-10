@@ -2,16 +2,16 @@ import { hasKey, isArray } from '@jackbuehner/cristata-utils';
 import { merge } from 'merge-anything';
 import mongoose, { SchemaDefinition } from 'mongoose';
 import { customAlphabet } from 'nanoid';
+import { Type } from './Type';
 import {
+  NestedSchemaDefType,
+  SchemaDef,
+  SchemaDefType,
+  SchemaDefaultValueType,
   isSchemaDef,
   isSchemaDefOrType,
   isTypeTuple,
-  NestedSchemaDefType,
-  SchemaDef,
-  SchemaDefaultValueType,
-  SchemaDefType,
 } from './genSchema';
-import { Type } from './Type';
 
 interface GenSchemaFieldsOpts {
   /**
@@ -84,7 +84,7 @@ function genSchemaFields(
           } else if (Type.isObjectId(type)) {
             if (isArray) type = [mongoose.Schema.Types.ObjectId];
             else type = mongoose.Schema.Types.ObjectId;
-          } else if (Type.isString(type)) {
+          } else if (Type.isEncryptedString(type) || Type.isString(type)) {
             if (isArray) type = [mongoose.Schema.Types.String];
             else type = mongoose.Schema.Types.String;
           }

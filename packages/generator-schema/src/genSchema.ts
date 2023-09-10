@@ -761,6 +761,7 @@ type GraphSchemaType =
   | '[ObjectId]'
   | '[Date]'
   | '[JSON]'
+  | '[EncryptedString]'
   | string;
 
 type MongooseSchemaType =
@@ -776,31 +777,33 @@ type MongooseSchemaType =
   | ['ObjectId']
   | 'String'
   | ['String']
+  | 'EncryptedString' // is converted to 'String' for mongoose
+  | '[EncryptedString]' // is converted to '[String]' for mongoose
   | 'JSON'
   | ['JSON'];
 
+export {
+  genSchema,
+  isCustomGraphSchemaType,
+  isNestedSchemaDefType,
+  isSchemaDef,
+  isSchemaDefOrType,
+  isSchemaRef,
+  isTypeTuple,
+};
 export type {
+  FieldDef,
   GenSchemaInput,
   GraphSchemaType,
   MongooseSchemaType,
   NestedSchemaDefType,
+  NumberOption,
   SchemaDef,
   SchemaDefType,
+  SchemaDefaultValueType,
   SchemaRef,
   SchemaType,
-  SchemaDefaultValueType,
   SetterValueType,
   StringOption,
-  NumberOption,
-  FieldDef,
   TiptapOptions,
-};
-export {
-  genSchema,
-  isCustomGraphSchemaType,
-  isTypeTuple,
-  isSchemaDef,
-  isSchemaRef,
-  isSchemaDefOrType,
-  isNestedSchemaDefType,
 };

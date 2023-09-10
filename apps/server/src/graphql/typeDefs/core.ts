@@ -4,6 +4,7 @@ const core = gql`
   scalar Date
   scalar ObjectID
   scalar JSON
+  scalar EncryptedString
   scalar Void
   scalar Float
 
