@@ -5,7 +5,7 @@ import {
   isSchemaDef,
   SchemaDefType,
 } from '@jackbuehner/cristata-generator-schema';
-import { camelToDashCase, capitalize, hasKey, isObject } from '@jackbuehner/cristata-utils';
+import { camelToDashCase, capitalize, hasKey, isObject, notEmpty } from '@jackbuehner/cristata-utils';
 import { ForbiddenError, UserInputError } from 'apollo-server-errors';
 import { merge } from 'merge-anything';
 import { ObjectId, Types } from 'mongoose';
@@ -337,7 +337,7 @@ const configuration = {
 
       return Promise.all(
         [
-          ...context.config.navigation.main,
+          ...context.config.navigation.main.filter((item) => item.label !== 'Configure'),
           ...(context.config.secrets?.fathom?.siteId
             ? [
                 {
@@ -350,15 +350,27 @@ const configuration = {
                 },
               ]
             : []),
+          {
+            label: 'External accounts',
+            icon: 'PersonAccounts20Regular' as FluentIconNames,
+            to: '/external-accounts',
+            isHidden: (() => {
+              if (!context.profile) return false;
+              // if the user is allowed to view external account documents, show the nav item
+              return helpers.canDo({ model: 'ExternalAccount', action: 'get', context });
+            })(),
+          },
+          ...[context.config.navigation.main.find((item) => item.label === 'Configure')].filter(notEmpty),
         ]
-          .filter((item) => {
-            if (isObject(item.isHidden)) {
-              if (typeof item.isHidden.notInTeam === 'string') {
-                return context.profile?.teams.includes(item.isHidden.notInTeam);
+          .filter(async (item) => {
+            const hidden = await item.isHidden;
+            if (isObject(hidden)) {
+              if (typeof hidden.notInTeam === 'string') {
+                return context.profile?.teams.includes(hidden.notInTeam);
               }
-              return item.isHidden.notInTeam.some((team) => context.profile?.teams.includes(team));
+              return hidden.notInTeam.some((team) => context.profile?.teams.includes(team));
             }
-            return item.isHidden !== true;
+            return hidden !== true;
           })
           .map(async (item): Promise<ReturnedMainNavItem> => {
             delete item.isHidden;
