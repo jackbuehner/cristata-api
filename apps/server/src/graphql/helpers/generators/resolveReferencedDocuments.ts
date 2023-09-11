@@ -214,6 +214,7 @@ async function resolveReferencedDocuments(
   collectionName: string
 ): Promise<CollectionDoc[]> {
   const docs = copy(_docs);
+  if (!docs || docs.length === 0) return [];
 
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();

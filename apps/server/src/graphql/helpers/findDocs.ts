@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { ApolloError } from 'apollo-server-core';
 import mongoose, { FilterQuery, PipelineStage } from 'mongoose';
-import { canDo, CollectionDoc, requireAuthentication } from '.';
+import { CollectionDoc, canDo, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
 
@@ -23,6 +23,9 @@ interface FindDocs {
 
 async function findDocs({ model, args, context, fullAccess, project }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
+
+  const canFindDocs = await canDo({ action: 'get', model, context });
+  if (!canFindDocs) return [];
 
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
   await tenantDB.connect();
