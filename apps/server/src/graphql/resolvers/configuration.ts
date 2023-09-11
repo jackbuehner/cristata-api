@@ -7,6 +7,7 @@ import {
 } from '@jackbuehner/cristata-generator-schema';
 import { camelToDashCase, capitalize, hasKey, isObject, notEmpty } from '@jackbuehner/cristata-utils';
 import { ForbiddenError, UserInputError } from 'apollo-server-errors';
+import { isPromise } from 'is-what';
 import { merge } from 'merge-anything';
 import { ObjectId, Types } from 'mongoose';
 import pluralize from 'pluralize';
@@ -335,54 +336,78 @@ const configuration = {
     main: async (_: unknown, __: unknown, context: Context): Promise<ReturnedMainNavItem[]> => {
       helpers.requireAuthentication(context);
 
-      return Promise.all(
-        [
-          ...context.config.navigation.main.filter((item) => item.label !== 'Configure'),
-          ...(context.config.secrets?.fathom?.siteId
-            ? [
-                {
-                  label: 'Analytics',
-                  icon: 'DataUsage24Regular' as FluentIconNames,
-                  to: '/embed/fathom',
-                  isHidden: {
-                    notInTeam: '000000000000000000000001',
-                  },
+      const entries = [
+        ...context.config.navigation.main.filter((item) => item.label !== 'Configure'),
+        ...(context.config.secrets?.fathom?.siteId
+          ? [
+              {
+                label: 'Analytics',
+                icon: 'DataUsage24Regular' as FluentIconNames,
+                to: '/embed/fathom',
+                isHidden: {
+                  notInTeam: '000000000000000000000001',
                 },
-              ]
-            : []),
-          {
-            label: 'External accounts',
-            icon: 'PersonAccounts20Regular' as FluentIconNames,
-            to: '/external-accounts',
-            isHidden: (() => {
-              if (!context.profile) return false;
-              // if the user is allowed to view external account documents, show the nav item
-              return helpers.canDo({ model: 'ExternalAccount', action: 'get', context });
-            })(),
-          },
-          ...[context.config.navigation.main.find((item) => item.label === 'Configure')].filter(notEmpty),
-        ]
-          .filter(async (item) => {
-            const hidden = await item.isHidden;
-            if (isObject(hidden)) {
-              if (typeof hidden.notInTeam === 'string') {
-                return context.profile?.teams.includes(hidden.notInTeam);
-              }
-              return hidden.notInTeam.some((team) => context.profile?.teams.includes(team));
+              },
+            ]
+          : []),
+        {
+          label: 'External accounts',
+          icon: 'PersonAccounts20Regular' as FluentIconNames,
+          to: '/external-accounts',
+          isHidden: (() => {
+            if (!context.profile) return false;
+            // if the user is allowed to view external account documents, show the nav item
+            return helpers.canDo({ model: 'ExternalAccount', action: 'get', context }).then((res) => !res);
+          })(),
+        },
+        ...[context.config.navigation.main.find((item) => item.label === 'Configure')].filter(notEmpty),
+      ];
+
+      const entriesWithResolvedHiddenSpec = await Promise.all(
+        entries.map(
+          async ({
+            isHidden,
+            ...item
+          }): Promise<
+            typeof item & {
+              hidden?:
+                | boolean
+                | {
+                    notInTeam: string | string[];
+                  };
             }
-            return hidden !== true;
-          })
-          .map(async (item): Promise<ReturnedMainNavItem> => {
-            delete item.isHidden;
-            if (isObject(item.to)) {
-              const subNavConfig = await getCmsNavConfig(context, item.to.first);
-              return {
-                ...item,
-                to: subNavConfig[0]?.items?.[0]?.to || '/',
-              };
-            }
-            return { ...item, to: item.to };
-          })
+          > => {
+            const hidden = isPromise(isHidden) ? await isHidden : isHidden;
+
+            return {
+              ...item,
+              hidden,
+            };
+          }
+        )
+      );
+
+      const filteredEntries = entriesWithResolvedHiddenSpec.filter(({ hidden }) => {
+        if (isObject(hidden)) {
+          if (typeof hidden.notInTeam === 'string') {
+            return context.profile?.teams.includes(hidden.notInTeam);
+          }
+          return hidden.notInTeam.some((team) => context.profile?.teams.includes(team));
+        }
+        return hidden !== true;
+      });
+
+      return Promise.all(
+        filteredEntries.map(async (item): Promise<ReturnedMainNavItem> => {
+          if (isObject(item.to)) {
+            const subNavConfig = await getCmsNavConfig(context, item.to.first);
+            return {
+              ...item,
+              to: subNavConfig[0]?.items?.[0]?.to || '/',
+            };
+          }
+          return { ...item, to: item.to };
+        })
       );
     },
     sub: async (_: unknown, { key }: { key: string }, context: Context): Promise<ReturnedSubNavGroup[]> => {
