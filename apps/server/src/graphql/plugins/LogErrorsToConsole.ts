@@ -26,8 +26,8 @@ function LogErrorsToConsole() {
             prunedContext: {
               ...prunedContext,
               profile: {
-                _id: prunedContext.profile._id,
-                name: prunedContext.profile.name,
+                _id: prunedContext.profile?._id,
+                name: prunedContext.profile?.name,
               },
             },
             errors: requestContext.errors,
