@@ -30,7 +30,7 @@ async function deleteDoc({ model, by, args, context }: DeleteDoc): Promise<mongo
     throw new ForbiddenError('you cannot delete this document');
 
   // set history
-  if (context.profile) {
+  if (context.profile && model !== 'ExternalAccount') {
     const type = 'deleted';
 
     createDoc({

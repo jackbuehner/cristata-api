@@ -103,7 +103,7 @@ async function lockDoc({ model, accessor, lock, context }: LockDoc) {
   }
 
   // set the history
-  if (context.profile) {
+  if (context.profile && model !== 'ExternalAccount') {
     const type = lock ? 'locked' : 'unlocked';
 
     // TODO: remove this in a future version

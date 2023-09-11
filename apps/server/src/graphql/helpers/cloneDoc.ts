@@ -2,7 +2,7 @@
 import { insertUserToArray } from '@jackbuehner/cristata-utils';
 import { ApolloError, ForbiddenError } from 'apollo-server-errors';
 import mongoose from 'mongoose';
-import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
+import { CollectionDoc, canDo, createDoc, findDoc, requireAuthentication } from '.';
 import { TenantDB } from '../../mongodb/TenantDB';
 import { Context } from '../server';
 
@@ -89,7 +89,7 @@ async function cloneDoc({
     }
 
     // update history
-    if (context.profile) {
+    if (context.profile && model !== 'ExternalAccount') {
       const type = 'patched';
 
       // TODO: remove this in a future version

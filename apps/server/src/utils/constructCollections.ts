@@ -2,6 +2,7 @@ import { hasKey } from '@jackbuehner/cristata-utils';
 import { merge } from 'merge-anything';
 import helpers from '../graphql/helpers';
 import { GenCollectionInput } from '../graphql/helpers/generators/genCollection';
+import { accounts } from '../mongodb/accounts';
 import { activities } from '../mongodb/activities';
 import { events } from '../mongodb/events';
 import { files } from '../mongodb/files';
@@ -50,6 +51,17 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
     return users(tenant);
   })();
 
+  const accountsConfig = collections.find((col) => col.name === 'ExternalAccount');
+  const accountsCollection = (() => {
+    if (accountsConfig?.actionAccess) {
+      return merge(accounts(tenant), {
+        actionAccess: accountsConfig.actionAccess,
+        raw: { actionAccess: accountsConfig.actionAccess },
+      });
+    }
+    return accounts(tenant);
+  })();
+
   return [
     usersCollection,
     filesCollection,
@@ -57,6 +69,7 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
     activities(tenant),
     events(tenant),
     webhooks(tenant),
+    accountsCollection,
     helpers.generators.genCollection(teams as unknown as GenCollectionInput, tenant),
     ...collections
       .filter((col): col is GenCollectionInput => !!col && !isCollection(col))
@@ -65,6 +78,7 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
       .filter((col) => col.name !== 'File')
       .filter((col) => col.name !== 'Photo')
       .filter((col) => col.name !== 'Activity')
+      .filter((col) => col.name !== 'ExternalAccount')
       .filter((col) => col.name.indexOf('Cristata') !== 0)
       .map((col) => helpers.generators.genCollection(col, tenant)),
     ...collections
@@ -74,6 +88,7 @@ function constructCollections(collections: (Collection | GenCollectionInput)[], 
       .filter((col) => col.name !== 'File')
       .filter((col) => col.name !== 'Photo')
       .filter((col) => col.name !== 'Activity')
+      .filter((col) => col.name !== 'ExternalAccount')
       .filter((col) => col.name.indexOf('Cristata') !== 0),
   ];
 }
@@ -98,4 +113,4 @@ function collectionsAsCollectionInputs(value: Collection) {
   return value.raw;
 }
 
-export { constructCollections, collectionsAsCollectionInputs };
+export { collectionsAsCollectionInputs, constructCollections };

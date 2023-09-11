@@ -131,7 +131,7 @@ async function modifyDoc<DocType, DataType>({
   }
 
   // save history
-  if (context.profile) {
+  if (context.profile && model !== 'ExternalAccount') {
     const type = 'patched';
 
     // TODO: remove this in a future version

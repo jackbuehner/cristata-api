@@ -40,7 +40,7 @@ const files = (tenant: string): Collection => {
     tenant
   );
 
-  createBucket(tenant);
+  if (process.env.NODE_ENV !== 'test') createBucket(tenant);
 
   collection.typeDefs += gql`
     extend type File {

@@ -36,6 +36,7 @@ if (!process.env.MONGO_DB_HOST) throw new Error('MONGO_DB_HOST not defined in en
 if (!process.env.AWS_SECRET_KEY_ID) throw new Error('AWS_SECRET_KEY_ID not defined in env');
 if (!process.env.AWS_SECRET_ACCESS_KEY) throw new Error('AWS_SECRET_ACCESS_KEY not defined in env');
 if (!process.env.PORT) throw new Error('PORT not defined in env');
+if (!process.env.ENCRYPTED_STRING_PASSCODE) throw new Error('ENCRYPTED_STRING_PASSCODE not defined in env');
 
 class Cristata {
   config: Record<string, Configuration> = {};
@@ -400,6 +401,7 @@ class Cristata {
             if (data.ns.db !== tenant) return;
             if (data.ns.coll === 'activities') return;
             if (data.ns.coll === 'users') return;
+            if (data.ns.coll === 'externalaccounts') return;
 
             // dispatch webhooks in response to event document insertion
             if (data.ns.coll === 'cristataevents') {

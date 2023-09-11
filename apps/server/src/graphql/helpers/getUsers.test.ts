@@ -33,9 +33,9 @@ describe(`api >> v3 >> helpers >> getUsers`, () => {
     const User = await createModel(c.collection.name);
 
     user1 = new User({ _id: '000000000000000000000001' });
-    user1.save();
+    await user1.save();
     user2 = new User({ _id: '000000000000000000000002' });
-    user2.save();
+    await user2.save();
   });
 
   it('should get a user object when a single ObjectId is provided', async () => {

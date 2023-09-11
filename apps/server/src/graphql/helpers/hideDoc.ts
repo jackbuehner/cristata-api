@@ -100,7 +100,7 @@ async function hideDoc({ model, accessor, hide, context }: HideDoc) {
   }
 
   // set the history
-  if (context.profile) {
+  if (context.profile && model !== 'ExternalAccount') {
     const type = hide ? 'hidden' : 'unhidden';
 
     // TODO: remove this in a future version

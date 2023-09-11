@@ -4,7 +4,7 @@ import getFieldNames from 'graphql-list-fields';
 import mongoose from 'mongoose';
 import { TenantDB } from '../../mongodb/TenantDB';
 import helpers, { getUsers } from '../helpers';
-import { DateScalar, JsonScalar, ObjectIdScalar, VoidScalar } from '../scalars';
+import { DateScalar, JsonScalar, ObjectIdScalar, EncryptedStringScalar, VoidScalar } from '../scalars';
 import { Context } from '../server';
 
 type ActivityArgs = { limit?: number; collections?: string[]; exclude?: string[]; page?: number };
@@ -16,6 +16,7 @@ const core = {
   Date: DateScalar,
   ObjectID: ObjectIdScalar,
   JSON: JsonScalar,
+  EncryptedString: EncryptedStringScalar,
   Void: VoidScalar,
   Query: {
     collectionActivity: async (

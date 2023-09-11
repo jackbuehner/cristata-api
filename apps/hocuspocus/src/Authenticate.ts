@@ -35,6 +35,9 @@ class Authenticate implements Extension {
   }: onConnectPayload): Promise<void> {
     const { tenant, collectionName, itemId } = parseName(documentName);
 
+    // do not connect ExternalAccounts because some content is encrypted
+    if (collectionName === 'ExternalAccount') throw Forbidden;
+
     // throw if connection to database is not ready
     if (tenantDb.readyState !== 1) throw 'not ready';
 
