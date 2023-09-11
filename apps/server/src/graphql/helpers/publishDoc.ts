@@ -114,7 +114,7 @@ async function publishDoc({ model, args, by, _id, context }: PublishDoc) {
   if (result instanceof Error) throw result;
 
   // save history
-  if (context.profile) {
+  if (context.profile && model !== 'ExternalAccount') {
     const type = args.publish ? 'published' : 'unpublished';
 
     // TODO: remove this in a future version

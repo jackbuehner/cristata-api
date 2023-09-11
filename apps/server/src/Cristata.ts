@@ -401,6 +401,7 @@ class Cristata {
             if (data.ns.db !== tenant) return;
             if (data.ns.coll === 'activities') return;
             if (data.ns.coll === 'users') return;
+            if (data.ns.coll === 'externalaccounts') return;
 
             // dispatch webhooks in response to event document insertion
             if (data.ns.coll === 'cristataevents') {

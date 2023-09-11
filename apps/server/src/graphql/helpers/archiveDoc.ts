@@ -108,7 +108,7 @@ async function archiveDoc({ model, accessor, archive, context }: ArchiveDoc) {
   }
 
   // set history
-  if (context.profile) {
+  if (context.profile && model !== 'ExternalAccount') {
     const type = archive ? 'archive' : 'unarchive';
 
     // TODO: remove this in a future version

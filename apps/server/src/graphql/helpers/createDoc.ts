@@ -69,7 +69,7 @@ async function createDoc<DataType>({ model, args, context, withPermissions, modi
   }
 
   // set history
-  if (context.profile && model !== 'Activity') {
+  if (context.profile && model !== 'Activity' && model !== 'ExternalAccount') {
     const type = 'created';
 
     // TODO: remove this in a future version
