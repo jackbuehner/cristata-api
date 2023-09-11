@@ -8,7 +8,7 @@ const activities = (tenant: string): Collection => {
     {
       ...activityCollection,
       actionAccess: {
-        get: { teams: ['admin'], users: [] },
+        get: { teams: ['admin'], users: [0] },
         create: { teams: ['admin'], users: [] },
         modify: { teams: ['admin'], users: [] },
         hide: { teams: ['admin'], users: [] },
