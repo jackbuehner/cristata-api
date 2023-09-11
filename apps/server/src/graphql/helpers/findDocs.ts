@@ -24,7 +24,7 @@ interface FindDocs {
 async function findDocs({ model, args, context, fullAccess, project }: FindDocs) {
   if (!fullAccess) requireAuthentication(context);
 
-  const canFindDocs = await canDo({ action: 'get', model, context });
+  const canFindDocs = fullAccess || (await canDo({ action: 'get', model, context }));
   if (!canFindDocs) return [];
 
   const tenantDB = new TenantDB(context.tenant, context.config.collections);
