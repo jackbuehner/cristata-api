@@ -7,7 +7,7 @@ import {
 import { convertNullPrototype, insertUserToArray, isDefinedDate, slugify } from '@jackbuehner/cristata-utils';
 import { addToY } from '@jackbuehner/cristata-ydoc-utils';
 import { ApolloError, ForbiddenError, UserInputError } from 'apollo-server-errors';
-import { detailedDiff } from 'deep-object-diff';
+import { detailedDiff, diff } from 'deep-object-diff';
 import { merge } from 'merge-anything';
 import mongoose from 'mongoose';
 import { canDo, CollectionDoc, createDoc, findDoc, requireAuthentication } from '.';
@@ -192,7 +192,8 @@ async function modifyDoc<DocType, DataType>({
     );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { history, ...inputData } = data;
+    const changed = diff(currentDoc, data) as CollectionDoc;
+    const { history, ...inputData } = changed;
     Object.keys(inputData).forEach((key) => {
       if (key.indexOf('__') === 0) {
         delete inputData[key];
