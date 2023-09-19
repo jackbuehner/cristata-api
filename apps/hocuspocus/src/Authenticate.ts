@@ -221,11 +221,23 @@ class Authenticate implements Extension {
     // because editing the unpublished copy is disabled when stage is 5.2
     // (client should use the collectionModify query to lower the stage)
     const stage = ydoc.getArray<{ value: string; label: string }>('stage');
+    let previousStage = stage.toArray()?.[0]?.value;
     const stageDisconnect = (evt: Y.YArrayEvent<{ value: string; label: string }>) => {
       const stage = evt.target.toArray()?.[0]?.value;
+
+      // if stage is set to 5.2 (published), always disconnect to ensure
+      // the connection is readOnly === true
       if (options?.independentPublishedDocCopy && `${stage}` === '5.2') {
         data.instance.closeConnections(data.documentName);
       }
+
+      // if stage is changed from 5.2 to any other stage, disconnect to
+      // ensure that the connection switches to readOnly === false
+      if (options?.independentPublishedDocCopy && `${previousStage}` === '5.2' && `${stage}` !== '5.2') {
+        data.instance.closeConnections(data.documentName);
+      }
+
+      previousStage = stage;
     };
 
     users.observe(disconnect);
