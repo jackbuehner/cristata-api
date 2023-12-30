@@ -2,9 +2,9 @@ import ColorHash from 'color-hash';
 import { Router } from 'express';
 import https from 'https';
 import mime from 'mime';
+import { TenantDB } from '../../mongodb/TenantDB';
 import { IFile } from '../../mongodb/files';
 import { IPhoto } from '../../mongodb/photos';
-import { TenantDB } from '../../mongodb/TenantDB';
 import { IUser } from '../../mongodb/users';
 import { IDeserializedUser } from '../passport';
 
@@ -166,7 +166,7 @@ router.get('/photo/:tenant/:_id', async (req, res) => {
       const height = transformations.find((tr) => tr.indexOf('h-') === 0)?.replace('h-', '');
       const resizeFit = transformations.find((tr) => tr.indexOf('fit-') === 0)?.replace('fit-', '');
 
-      const cloudFrontLocation = 'https://d1m74hlt8nompf.cloudfront.net';
+      const cloudFrontLocation = 'https://dsm94u2p4guhh.cloudfront.net';
 
       const imageParams = {
         bucket: bucketName,
