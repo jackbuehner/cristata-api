@@ -5,10 +5,11 @@ async function connectDb(database = `app`, uri: string | null = null) {
     const username = process.env.MONGO_DB_USERNAME;
     const password = process.env.MONGO_DB_PASSWORD;
     const host = process.env.MONGO_DB_HOST;
-    const options = `retryWrites=true`;
+    const useSrv = !host?.includes(':');
+    const options = process.env.MONGO_DB_OPTIONS || `retryWrites=true`;
 
     if (username && password && host) {
-      uri = `mongodb+srv://${username}:${password}@${host}/app?${options}`;
+      uri = `mongodb${useSrv ? '+srv' : ''}://${username}:${password}@${host}/app?${options}`;
     } else {
       uri = `mongodb://127.0.0.1/${database}?${options}`;
     }

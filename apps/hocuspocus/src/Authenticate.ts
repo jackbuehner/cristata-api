@@ -12,6 +12,7 @@ const tenantDb = new DB({
   username: process.env.MONGO_DB_USERNAME,
   password: process.env.MONGO_DB_PASSWORD,
   host: process.env.MONGO_DB_HOST,
+  options: process.env.MONGO_DB_OPTIONS,
 });
 
 export interface AuthenticateConfiguration {

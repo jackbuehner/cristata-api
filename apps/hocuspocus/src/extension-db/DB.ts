@@ -71,11 +71,12 @@ export class DB {
 
   async connect({ username, password, host, options }: ConnectionDetails) {
     if (!options) options = `retryWrites=true&w=majority`;
+    const useSrv = !host?.includes(':');
 
     // start connecting to mongoDB
     if (username && password && host) {
       await mongoose
-        .connect(`mongodb+srv://${username}:${password}@${host}/app?${options}`, {})
+        .connect(`mongodb${useSrv ? '+srv' : ''}://${username}:${password}@${host}/app?${options}`, {})
         .catch(console.error);
     } else {
       await mongoose.connect(`mongodb://127.0.0.1/app?${options}`).catch(console.error);
