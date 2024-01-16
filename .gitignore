@@ -6,3 +6,4 @@ cache.turbo
 .turbo
 tsconfig.tsbuildinfo
 mongodb-binaries
+/data
