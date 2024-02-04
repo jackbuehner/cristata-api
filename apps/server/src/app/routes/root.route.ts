@@ -79,6 +79,12 @@ router.get('/v3/:tenant/user-photo/:user_id', async (req, res) => {
   }
 });
 
+// always redirect troop-370 file urls since they no longer use Cristata
+// but they want the old filestore urls to still work
+router.get('/filestore/troop-370/:_id', (req, res) => {
+  res.redirect(301, `https://troop370atlanta.org/cristata-filestore/${req.params._id}`)
+})
+
 router.get('/filestore/:tenant/:_id', async (req, res) => {
   try {
     // connect to database
