@@ -1,5 +1,11 @@
 # @jackbuehner/cristata-generator-schema
 
+## 4.0.0
+
+### Major Changes
+
+- 012aa85: add external accounts collection and app
+
 ## 3.9.0
 
 ### Minor Changes

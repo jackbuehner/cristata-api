@@ -1,5 +1,15 @@
 # @jackbuehner/cristata-hocuspocus
 
+## 2.0.0
+
+### Major Changes
+
+- 012aa85: add external accounts collection and app
+
+### Patch Changes
+
+- 50cba22: force a reconnect when a published doc switches to an edit session, but also do not clear text fields
+
 ## 1.6.0
 
 ### Minor Changes

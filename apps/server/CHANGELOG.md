@@ -1,5 +1,26 @@
 # Changelog
 
+## 12.0.0
+
+### Major Changes
+
+- ef19879: do not store connections for each tenant in global variable
+- 012aa85: add external accounts collection and app
+
+### Minor Changes
+
+- ef19879: create all mongoose schemas and models on server start
+- 48d4fa7: do not return found docs when getting docs is prohibited in the specified collection for the current user
+
+### Patch Changes
+
+- 03772b7: only add modified values to ydoc
+- 48d4fa7: allow all users to view activity by default
+- 2bf84f1: use new cloudfront image resize url
+- ef19879: do not recreate models when not necessary
+- 50cba22: force a reconnect when a published doc switches to an edit session, but also do not clear text fields
+- 48d4fa7: correctly filter main nav config
+
 ## 11.0.0
 
 ### Major Changes
